@@ -1,9 +1,8 @@
 import SwiftUI
 
-struct RunTabView<Services: RunLogging>: View {
-    let services: Services
-    var openCoach: () -> Void
-    var openSecondary: (String) -> Void
+struct RunTabView: View {
+    @Environment(\.runSmartServices) private var services
+    @EnvironmentObject private var router: AppRouter
 
     @State private var metrics: [MetricTile] = [
         MetricTile(title: "Distance", value: "5.24", unit: "km", symbol: "point.topleft.down.curvedto.point.bottomright.up", tint: Color.lime),
@@ -41,7 +40,7 @@ struct RunTabView<Services: RunLogging>: View {
                                     .frame(width: 150, height: 20)
                             }
                             Spacer()
-                            Button(action: openCoach) {
+                            Button(action: { router.openCoach(context: "Run") }) {
                                 Label("Tap to talk", systemImage: "mic.fill")
                                     .font(.caption.bold())
                                     .foregroundStyle(Color.lime)
@@ -144,10 +143,10 @@ struct RunTabView<Services: RunLogging>: View {
                 }
 
                 HStack(spacing: 18) {
-                    RunControlButton(title: "Audio", symbol: "speaker.wave.2.fill", tint: .gray) { openSecondary("Audio Cues") }
-                    RunControlButton(title: "Lap", symbol: "flag.fill", tint: .gray) { openSecondary("Lap Marker") }
+                    RunControlButton(title: "Audio", symbol: "speaker.wave.2.fill", tint: .gray) { router.open(.audioCues) }
+                    RunControlButton(title: "Lap", symbol: "flag.fill", tint: .gray) { router.open(.lapMarker) }
                     RunControlButton(title: "Pause", symbol: "pause.fill", tint: Color.lime, prominent: true) {}
-                    RunControlButton(title: "Finish", symbol: "stop.fill", tint: .red) { openSecondary("Post-Run Summary") }
+                    RunControlButton(title: "Finish", symbol: "stop.fill", tint: .red) { router.open(.postRunSummary) }
                 }
                 .frame(maxWidth: .infinity)
             }

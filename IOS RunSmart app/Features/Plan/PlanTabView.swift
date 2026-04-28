@@ -1,124 +1,131 @@
 import SwiftUI
 
-struct PlanTabView<Services: PlanProviding>: View {
-    let services: Services
-    var openCoach: () -> Void
-    var openSecondary: (String) -> Void
+struct PlanTabView: View {
+    @Environment(\.runSmartServices) private var services
+    @EnvironmentObject private var router: AppRouter
 
     @State private var workouts = RunSmartPreviewData.workouts
+    @State private var navPath: [SecondaryDestination] = []
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 14) {
-                RunSmartHeader(title: "Plan")
+        NavigationStack(path: $navPath) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 14) {
+                    RunSmartHeader(title: "Plan")
 
-                GlassCard(glow: Color.lime) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack(spacing: 16) {
-                            CoachAvatar(size: 96)
-                            VStack(alignment: .leading, spacing: 8) {
-                                SectionLabel(title: "AI Coach Briefing")
-                                Text("Strong week ahead, Alex. Your recovery is on point and last week's tempo looked solid. We're building fitness with a tempo focus midweek and a steady long run on Sunday.")
-                                    .font(.body)
-                                    .foregroundStyle(.white.opacity(0.86))
-                                Text("Focus: Tempo • Build Aerobic Endurance")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.lime)
-                            }
-                        }
-                        Button(action: openCoach) {
-                            HStack {
-                                Image(systemName: "sparkles")
-                                    .foregroundStyle(Color.lime)
-                                Text("Ask Coach anything...")
-                                    .foregroundStyle(Color.mutedText)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(Color.mutedText)
-                            }
-                            .padding(12)
-                            .background(.white.opacity(0.05))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                HStack {
-                    Text("This Week")
-                        .font(.headline)
-                    Spacer()
-                    Text("Apr 28 – May 4")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.mutedText)
-                }
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(workouts) { workout in
-                            WorkoutDayCard(workout: workout)
-                                .onTapGesture { openSecondary(workout.title) }
-                        }
-                    }
-                    .padding(.horizontal, 2)
-                }
-
-                GlassCard(cornerRadius: 18, padding: 14) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack {
-                            Text("May Overview")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "chevron.left")
-                            Image(systemName: "chevron.right")
-                        }
-                        .foregroundStyle(.white.opacity(0.86))
-
-                        HStack {
-                            ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
-                                Text(day)
-                                    .font(.caption2.bold())
-                                    .foregroundStyle(Color.mutedText)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        HStack {
-                            ForEach(28...34, id: \.self) { number in
-                                VStack(spacing: 7) {
-                                    Text(number <= 30 ? "\(number)" : "\(number - 30)")
+                    GlassCard(glow: Color.lime) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack(spacing: 16) {
+                                CoachAvatar(size: 96)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    SectionLabel(title: "AI Coach Briefing")
+                                    Text("Strong week ahead, Alex. Your recovery is on point and last week's tempo looked solid. We're building fitness with a tempo focus midweek and a steady long run on Sunday.")
+                                        .font(.body)
+                                        .foregroundStyle(.white.opacity(0.86))
+                                    Text("Focus: Tempo • Build Aerobic Endurance")
                                         .font(.caption.weight(.semibold))
-                                        .foregroundStyle(number == 30 ? Color.black : Color.white)
-                                        .frame(width: 25, height: 25)
-                                        .background(number == 30 ? Color.lime : Color.clear)
-                                        .clipShape(Circle())
-                                    Circle()
-                                        .fill(number == 30 || number == 28 || number == 29 ? Color.lime : Color.purple)
-                                        .frame(width: 4, height: 4)
+                                        .foregroundStyle(Color.lime)
                                 }
-                                .frame(maxWidth: .infinity)
+                            }
+                            Button(action: { router.openCoach(context: "Plan") }) {
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                        .foregroundStyle(Color.lime)
+                                    Text("Ask Coach anything...")
+                                        .foregroundStyle(Color.mutedText)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(Color.mutedText)
+                                }
+                                .padding(12)
+                                .background(.white.opacity(0.05))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    HStack {
+                        Text("This Week")
+                            .font(.headline)
+                        Spacer()
+                        Text("Apr 28 – May 4")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.mutedText)
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(workouts) { workout in
+                                WorkoutDayCard(workout: workout)
+                                    .onTapGesture { navPath.append(.workoutDetail(workout)) }
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
+
+                    GlassCard(cornerRadius: 18, padding: 14) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack {
+                                Text("May Overview")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "chevron.left")
+                                Image(systemName: "chevron.right")
+                            }
+                            .foregroundStyle(.white.opacity(0.86))
+
+                            HStack {
+                                ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
+                                    Text(day)
+                                        .font(.caption2.bold())
+                                        .foregroundStyle(Color.mutedText)
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            HStack {
+                                ForEach(28...34, id: \.self) { number in
+                                    VStack(spacing: 7) {
+                                        Text(number <= 30 ? "\(number)" : "\(number - 30)")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(number == 30 ? Color.black : Color.white)
+                                            .frame(width: 25, height: 25)
+                                            .background(number == 30 ? Color.lime : Color.clear)
+                                            .clipShape(Circle())
+                                        Circle()
+                                            .fill(number == 30 || number == 28 || number == 29 ? Color.lime : Color.purple)
+                                            .frame(width: 4, height: 4)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
                             }
                         }
                     }
-                }
 
-                GlassCard(cornerRadius: 18, padding: 14) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionLabel(title: "This Week from Your Coach", trailing: "View all")
-                        ForEach(workouts.filter { $0.kind == .tempo || $0.kind == .long }) { workout in
-                            PlanCoachRow(workout: workout)
+                    GlassCard(cornerRadius: 18, padding: 14) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionLabel(title: "This Week from Your Coach", trailing: "View all")
+                            ForEach(workouts.filter { $0.kind == .tempo || $0.kind == .long }) { workout in
+                                PlanCoachRow(workout: workout)
+                                    .onTapGesture { navPath.append(.workoutDetail(workout)) }
+                            }
                         }
                     }
-                }
 
-                InsightCard(
-                    title: "Coach Notes",
-                    message: "Great consistency lately. Your aerobic base is improving. Keep stacking quality weeks.",
-                    action: { openSecondary("Plan Adjustment") }
-                )
+                    InsightCard(
+                        title: "Coach Notes",
+                        message: "Great consistency lately. Your aerobic base is improving. Keep stacking quality weeks.",
+                        action: { navPath.append(.planAdjustment) }
+                    )
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .padding(.top, 16)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: SecondaryDestination.self) { destination in
+                SecondaryFlowView(destination: destination)
+            }
         }
         .task {
             workouts = await services.weeklyPlan()

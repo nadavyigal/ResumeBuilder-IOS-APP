@@ -1,10 +1,8 @@
 import SwiftUI
 
-struct TodayTabView<Services: TodayProviding & CoachChatting>: View {
-    let services: Services
-    var openCoach: () -> Void
-    var openSecondary: (String) -> Void
-    var startRun: () -> Void
+struct TodayTabView: View {
+    @Environment(\.runSmartServices) private var services
+    @EnvironmentObject private var router: AppRouter
 
     @State private var recommendation = RunSmartPreviewData.today
     @State private var messages = RunSmartPreviewData.coachMessages
@@ -34,7 +32,7 @@ struct TodayTabView<Services: TodayProviding & CoachChatting>: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(.white.opacity(0.06))
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            Button(action: openCoach) {
+                            Button(action: { router.openCoach(context: "Today") }) {
                                 Label("Talk to Coach", systemImage: "waveform")
                             }
                             .buttonStyle(NeonButtonStyle())
@@ -74,7 +72,7 @@ struct TodayTabView<Services: TodayProviding & CoachChatting>: View {
                             }
                             MiniRouteView()
                                 .frame(height: 76)
-                            Button(action: startRun) {
+                            Button(action: { router.startRun() }) {
                                 Label("Start Workout", systemImage: "play.fill")
                             }
                             .buttonStyle(NeonButtonStyle())
@@ -85,7 +83,19 @@ struct TodayTabView<Services: TodayProviding & CoachChatting>: View {
                 InsightCard(
                     title: "Coach Insight",
                     message: "Your readiness is high and your consistency is paying off. This tempo session will boost your endurance and confidence.",
-                    action: { openSecondary("Workout Details") }
+                    action: {
+                        let w = WorkoutSummary(
+                            weekday: "",
+                            date: "",
+                            kind: .tempo,
+                            title: recommendation.workoutTitle,
+                            distance: recommendation.distance,
+                            detail: "",
+                            isToday: true,
+                            isComplete: false
+                        )
+                        router.open(.workoutDetail(w))
+                    }
                 )
 
                 GlassCard(cornerRadius: 18, padding: 14) {
@@ -112,58 +122,6 @@ struct TodayTabView<Services: TodayProviding & CoachChatting>: View {
             recommendation = await services.todayRecommendation()
             messages = await services.recentMessages()
         }
-    }
-}
-
-struct TodayWeekStrip: View {
-    var workouts: [WorkoutSummary]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(workouts) { workout in
-                    VStack(spacing: 5) {
-                        Text(workout.weekday)
-                            .font(.caption2.bold())
-                            .foregroundStyle(Color.mutedText)
-                        Text(workout.date)
-                            .font(.headline)
-                        Image(systemName: workout.isComplete ? "checkmark" : workout.kind.symbol)
-                            .foregroundStyle(workout.isToday ? Color.lime : Color.white.opacity(0.55))
-                    }
-                    .frame(width: 52, height: 72)
-                    .background(workout.isToday ? Color.lime.opacity(0.12) : Color.white.opacity(0.045))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(workout.isToday ? Color.lime : Color.hairline)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-            }
-        }
-    }
-}
-
-struct QuickActionCard: View {
-    var title: String
-    var symbol: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            GlassCard(cornerRadius: 14, padding: 12) {
-                VStack(spacing: 7) {
-                    Image(systemName: symbol)
-                        .foregroundStyle(Color.lime)
-                    Text(title)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.82))
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 

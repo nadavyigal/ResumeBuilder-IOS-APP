@@ -19,7 +19,7 @@ enum RunSmartTab: String, CaseIterable, Identifiable {
     }
 }
 
-enum WorkoutKind: String {
+enum WorkoutKind: String, Hashable {
     case easy = "Easy Run"
     case intervals = "Intervals"
     case tempo = "Tempo Run"
@@ -46,7 +46,7 @@ struct RunnerProfile {
     var totalTime: String
 }
 
-struct WorkoutSummary: Identifiable {
+struct WorkoutSummary: Identifiable, Hashable {
     let id = UUID()
     var weekday: String
     var date: String

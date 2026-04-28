@@ -1,20 +1,38 @@
 import SwiftUI
+import Combine
 
 enum RunSmartSheet: Identifiable {
     case coach(String)
-    case secondary(String)
+    case secondary(SecondaryDestination)
 
     var id: String {
         switch self {
         case .coach(let context): "coach-\(context)"
-        case .secondary(let title): "secondary-\(title)"
+        case .secondary(let dest): "secondary-\(dest.id)"
         }
     }
 }
 
+@MainActor
+final class AppRouter: ObservableObject {
+    @Published var selectedTab: RunSmartTab = .today
+    @Published var activeSheet: RunSmartSheet?
+
+    func openCoach(context: String) {
+        activeSheet = .coach(context)
+    }
+
+    func open(_ destination: SecondaryDestination) {
+        activeSheet = .secondary(destination)
+    }
+
+    func startRun() {
+        selectedTab = .run
+    }
+}
+
 struct RunSmartLiteAppShell: View {
-    @State private var selectedTab: RunSmartTab = .today
-    @State private var activeSheet: RunSmartSheet?
+    @StateObject private var router = AppRouter()
     private let services = MockRunSmartServices()
 
     var body: some View {
@@ -22,47 +40,28 @@ struct RunSmartLiteAppShell: View {
             RunSmartBackground()
 
             Group {
-                switch selectedTab {
-                case .today:
-                    TodayTabView(
-                        services: services,
-                        openCoach: { activeSheet = .coach("Today") },
-                        openSecondary: { activeSheet = .secondary($0) },
-                        startRun: { selectedTab = .run }
-                    )
-                case .plan:
-                    PlanTabView(
-                        services: services,
-                        openCoach: { activeSheet = .coach("Plan") },
-                        openSecondary: { activeSheet = .secondary($0) }
-                    )
-                case .run:
-                    RunTabView(
-                        services: services,
-                        openCoach: { activeSheet = .coach("Run") },
-                        openSecondary: { activeSheet = .secondary($0) }
-                    )
-                case .profile:
-                    ProfileTabView(
-                        services: services,
-                        openCoach: { activeSheet = .coach("Profile") },
-                        openSecondary: { activeSheet = .secondary($0) }
-                    )
+                switch router.selectedTab {
+                case .today:   TodayTabView()
+                case .plan:    PlanTabView()
+                case .run:     RunTabView()
+                case .profile: ProfileTabView()
                 }
             }
             .safeAreaPadding(.bottom, 94)
 
-            CustomTabBar(selectedTab: $selectedTab)
+            CustomTabBar(selectedTab: $router.selectedTab)
         }
+        .environmentObject(router)
+        .environment(\.runSmartServices, services)
         .preferredColorScheme(.dark)
-        .sheet(item: $activeSheet) { sheet in
+        .sheet(item: $router.activeSheet) { sheet in
             switch sheet {
             case .coach(let context):
                 CoachFlowView(context: context)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-            case .secondary(let title):
-                SecondaryFlowView(title: title)
+            case .secondary(let destination):
+                SecondaryFlowView(destination: destination)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }

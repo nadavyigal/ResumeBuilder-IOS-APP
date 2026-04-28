@@ -1,141 +1,147 @@
 import SwiftUI
 
-struct ProfileTabView<Services: ProfileProviding>: View {
-    let services: Services
-    var openCoach: () -> Void
-    var openSecondary: (String) -> Void
+struct ProfileTabView: View {
+    @Environment(\.runSmartServices) private var services
+    @EnvironmentObject private var router: AppRouter
 
     @State private var runner = RunSmartPreviewData.runner
     @State private var achievements = RunSmartPreviewData.achievements
+    @State private var navPath: [SecondaryDestination] = []
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 13) {
-                RunSmartHeader(title: "Profile", showSettings: true)
+        NavigationStack(path: $navPath) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 13) {
+                    RunSmartHeader(title: "Profile", showSettings: true)
 
-                HStack(spacing: 16) {
-                    CoachAvatar(size: 92, showBolt: true)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(runner.name)
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                        HStack(spacing: 7) {
-                            Text(runner.goal)
-                            Circle()
-                                .fill(Color.lime)
-                                .frame(width: 5, height: 5)
-                            Text(runner.streak)
-                        }
-                        .foregroundStyle(Color.mutedText)
-                    }
-                }
-
-                GlassCard(cornerRadius: 16, padding: 0) {
-                    HStack(spacing: 0) {
-                        ProfileStat(title: "Level", value: "14", detail: runner.level)
-                        Divider().background(Color.hairline)
-                        ProfileStat(title: "Total Runs", value: "\(runner.totalRuns)", detail: "")
-                        Divider().background(Color.hairline)
-                        ProfileStat(title: "Total Distance", value: "\(runner.totalDistance)", detail: "km")
-                        Divider().background(Color.hairline)
-                        ProfileStat(title: "Total Time", value: runner.totalTime, detail: "")
-                    }
-                    .padding(.vertical, 14)
-                }
-
-                GlassCard(glow: Color.lime) {
-                    HStack(alignment: .center, spacing: 14) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionLabel(title: "Your AI Coach")
-                            HStack {
-                                Text("Coach Spark")
-                                    .font(.title.weight(.bold))
-                                Text("AI")
-                                    .font(.caption.bold())
-                                    .foregroundStyle(Color.lime)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 4)
-                                    .background(Color.lime.opacity(0.13))
-                                    .clipShape(Capsule())
+                    HStack(spacing: 16) {
+                        CoachAvatar(size: 92, showBolt: true)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(runner.name)
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                            HStack(spacing: 7) {
+                                Text(runner.goal)
+                                Circle()
+                                    .fill(Color.lime)
+                                    .frame(width: 5, height: 5)
+                                Text(runner.streak)
                             }
-                            Text("Adaptive. Motivating. Data-driven.")
-                                .font(.subheadline)
+                            .foregroundStyle(Color.mutedText)
+                        }
+                    }
+
+                    GlassCard(cornerRadius: 16, padding: 0) {
+                        HStack(spacing: 0) {
+                            ProfileStat(title: "Level", value: "14", detail: runner.level)
+                            Divider().background(Color.hairline)
+                            ProfileStat(title: "Total Runs", value: "\(runner.totalRuns)", detail: "")
+                            Divider().background(Color.hairline)
+                            ProfileStat(title: "Total Distance", value: "\(runner.totalDistance)", detail: "km")
+                            Divider().background(Color.hairline)
+                            ProfileStat(title: "Total Time", value: runner.totalTime, detail: "")
+                        }
+                        .padding(.vertical, 14)
+                    }
+
+                    GlassCard(glow: Color.lime) {
+                        HStack(alignment: .center, spacing: 14) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                SectionLabel(title: "Your AI Coach")
+                                HStack {
+                                    Text("Coach Spark")
+                                        .font(.title.weight(.bold))
+                                    Text("AI")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(Color.lime)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 4)
+                                        .background(Color.lime.opacity(0.13))
+                                        .clipShape(Capsule())
+                                }
+                                Text("Adaptive. Motivating. Data-driven.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.mutedText)
+                                Text("I analyze your data, adapt your plan in real-time, and coach you to be your best.")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.72))
+                                Button(action: { router.openCoach(context: "Profile") }) {
+                                    Label("Chat with Coach", systemImage: "text.bubble")
+                                        .font(.caption.bold())
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 9)
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(Color.lime)
+                                .background(Color.lime.opacity(0.11))
+                                .overlay(Capsule().stroke(Color.lime.opacity(0.7)))
+                                .clipShape(Capsule(style: .continuous))
+                            }
+                            Spacer()
+                            CoachSilhouette()
+                                .frame(width: 138, height: 150)
+                        }
+                    }
+
+                    GlassCard(cornerRadius: 18, padding: 14) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("COACH SETTINGS")
+                                .font(.caption.bold())
                                 .foregroundStyle(Color.mutedText)
-                            Text("I analyze your data, adapt your plan in real-time, and coach you to be your best.")
-                                .font(.caption)
-                                .foregroundStyle(.white.opacity(0.72))
-                            Button(action: openCoach) {
-                                Label("Chat with Coach", systemImage: "text.bubble")
-                                    .font(.caption.bold())
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 9)
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                                SettingsTile(title: "Voice Coaching", value: "On", symbol: "speaker.wave.2", action: { navPath.append(.voiceCoaching) })
+                                SettingsTile(title: "Coaching Tone", value: "Motivating", symbol: "waveform", action: { navPath.append(.coachingTone) })
+                                SettingsTile(title: "Goal Focus", value: "10K Improvement", symbol: "target", action: { navPath.append(.goalFocus) })
+                                SettingsTile(title: "Check-in Cadence", value: "Every 3 Days", symbol: "calendar", action: { navPath.append(.reminders) })
                             }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(Color.lime)
-                            .background(Color.lime.opacity(0.11))
-                            .overlay(Capsule().stroke(Color.lime.opacity(0.7)))
-                            .clipShape(Capsule(style: .continuous))
-                        }
-                        Spacer()
-                        CoachSilhouette()
-                            .frame(width: 138, height: 150)
-                    }
-                }
-
-                GlassCard(cornerRadius: 18, padding: 14) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("COACH SETTINGS")
-                            .font(.caption.bold())
-                            .foregroundStyle(Color.mutedText)
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                            SettingsTile(title: "Voice Coaching", value: "On", symbol: "speaker.wave.2", action: { openSecondary("Voice Coaching") })
-                            SettingsTile(title: "Coaching Tone", value: "Motivating", symbol: "waveform", action: { openSecondary("Coaching Tone") })
-                            SettingsTile(title: "Goal Focus", value: "10K Improvement", symbol: "target", action: { openSecondary("Goal Focus") })
-                            SettingsTile(title: "Check-in Cadence", value: "Every 3 Days", symbol: "calendar", action: { openSecondary("Reminders") })
                         }
                     }
-                }
 
-                GlassCard(cornerRadius: 18, padding: 14) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("COACH OPTIMIZING FOR")
-                            .font(.caption.bold())
-                            .foregroundStyle(Color.mutedText)
-                        HStack(spacing: 10) {
-                            SmallStatCard(title: "10K Improvement", value: "49:12", unit: "→ 46:30", symbol: "chart.line.uptrend.xyaxis", tint: Color.lime)
-                            SmallStatCard(title: "Consistency", value: "92%", unit: "On track", symbol: "chart.bar.fill", tint: Color.lime)
-                            SmallStatCard(title: "Recovery", value: "85%", unit: "Optimal", symbol: "heart.circle", tint: Color.lime)
+                    GlassCard(cornerRadius: 18, padding: 14) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("COACH OPTIMIZING FOR")
+                                .font(.caption.bold())
+                                .foregroundStyle(Color.mutedText)
+                            HStack(spacing: 10) {
+                                SmallStatCard(title: "10K Improvement", value: "49:12", unit: "→ 46:30", symbol: "chart.line.uptrend.xyaxis", tint: Color.lime)
+                                SmallStatCard(title: "Consistency", value: "92%", unit: "On track", symbol: "chart.bar.fill", tint: Color.lime)
+                                SmallStatCard(title: "Recovery", value: "85%", unit: "Optimal", symbol: "heart.circle", tint: Color.lime)
+                            }
                         }
                     }
-                }
 
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionLabel(title: "Achievements", trailing: "View all")
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 14) {
-                                ForEach(achievements) { achievement in
-                                    AchievementBadge(achievement: achievement)
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionLabel(title: "Achievements", trailing: "View all")
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 14) {
+                                    ForEach(achievements) { achievement in
+                                        AchievementBadge(achievement: achievement)
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("CONNECTED")
-                            .font(.caption.bold())
-                            .foregroundStyle(Color.mutedText)
-                        HStack(spacing: 10) {
-                            ConnectedServiceCard(name: "Garmin Connect", status: "Connected", action: { openSecondary("Garmin Connect") })
-                            ConnectedServiceCard(name: "Strava", status: "Connected", action: { openSecondary("Strava") })
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("CONNECTED")
+                                .font(.caption.bold())
+                                .foregroundStyle(Color.mutedText)
+                            HStack(spacing: 10) {
+                                ConnectedServiceCard(name: "Garmin Connect", status: "Connected", action: { navPath.append(.connectedService("Garmin Connect")) })
+                                ConnectedServiceCard(name: "Strava", status: "Connected", action: { navPath.append(.connectedService("Strava")) })
+                            }
                         }
                     }
                 }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 18)
+                .padding(.top, 16)
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .padding(.top, 16)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: SecondaryDestination.self) { destination in
+                SecondaryFlowView(destination: destination)
+            }
         }
         .task {
             runner = await services.runnerProfile()

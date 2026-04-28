@@ -1,21 +1,59 @@
 import SwiftUI
 
+enum SecondaryDestination: Hashable, Identifiable {
+    case workoutDetail(WorkoutSummary)
+    case planAdjustment
+    case postRunSummary
+    case audioCues
+    case lapMarker
+    case voiceCoaching
+    case coachingTone
+    case goalFocus
+    case reminders
+    case connectedService(String)
+
+    var id: String {
+        switch self {
+        case .workoutDetail(let w): "workoutDetail-\(w.id)"
+        case .planAdjustment: "planAdjustment"
+        case .postRunSummary: "postRunSummary"
+        case .audioCues: "audioCues"
+        case .lapMarker: "lapMarker"
+        case .voiceCoaching: "voiceCoaching"
+        case .coachingTone: "coachingTone"
+        case .goalFocus: "goalFocus"
+        case .reminders: "reminders"
+        case .connectedService(let name): "connectedService-\(name)"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .workoutDetail(let w): w.title
+        case .planAdjustment: "Plan Adjustment"
+        case .postRunSummary: "Post-Run Summary"
+        case .audioCues: "Audio Cues"
+        case .lapMarker: "Lap Marker"
+        case .voiceCoaching: "Voice Coaching"
+        case .coachingTone: "Coaching Tone"
+        case .goalFocus: "Goal Focus"
+        case .reminders: "Reminders"
+        case .connectedService(let name): name
+        }
+    }
+}
+
 struct SecondaryFlowView: View {
-    var title: String
+    var destination: SecondaryDestination
 
     var body: some View {
         ZStack {
             RunSmartBackground()
             VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
-                Capsule()
-                    .fill(.white.opacity(0.24))
-                    .frame(width: 46, height: 5)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-
-                Text(title)
+                Text(destination.title)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
+                    .padding(.top, 8)
 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 14) {
@@ -46,18 +84,17 @@ struct SecondaryFlowView: View {
     }
 
     private var copy: String {
-        switch title {
-        case "Workout Details":
+        switch destination {
+        case .workoutDetail:
             "Explain the session purpose, warm-up, target effort, common mistakes, and completion cues."
-        case "Plan Adjustment":
+        case .planAdjustment:
             "Collect feedback, recent run data, and recovery context before proposing a safe reshuffle."
-        case "Post-Run Summary":
+        case .postRunSummary:
             "Summarize distance, pace, effort, notes, and coach follow-up before saving the run."
-        case "Garmin Connect", "Strava":
+        case .connectedService:
             "Show connection status, permissions, last sync, reconnect, and disconnect controls."
         default:
             "This native flow is intentionally present as a thin shell so the navigation contract is ready before live integrations land."
         }
     }
 }
-
