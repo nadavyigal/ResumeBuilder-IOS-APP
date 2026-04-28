@@ -3,11 +3,21 @@ import SwiftUI
 struct TodayTabView: View {
     @Environment(\.runSmartServices) private var services
     @EnvironmentObject private var router: AppRouter
-    @EnvironmentObject private var session: RunSmartAppSession
+    @EnvironmentObject private var session: SupabaseSession
 
-    @State private var recommendation = TodayRecommendation(readiness: 0, readinessLabel: "Loading", workoutTitle: "Loading workout", distance: "--", pace: "--", elevation: "--", coachMessage: "Loading your real training context.")
+    @State private var recommendation = TodayRecommendation.placeholder
     @State private var messages: [CoachMessage] = []
     @State private var routes: [RouteSuggestion] = []
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Hey"
+        }
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -15,7 +25,7 @@ struct TodayTabView: View {
                 RunSmartHeader(showLogo: true)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Good morning, \(session.onboardingProfile.displayName)")
+                    Text("\(greeting), \(session.onboardingProfile.displayName)")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                     Text("Your coach is ready when you are.")
                         .foregroundStyle(Color.mutedText)
@@ -77,10 +87,10 @@ struct TodayTabView: View {
                 }
 
                 HStack(spacing: 10) {
-                    SmallStatCard(title: "Weekly Progress", value: "31 / 42", unit: "km", symbol: "chart.bar.fill", tint: Color.lime)
-                    SmallStatCard(title: "Streak", value: "11", unit: "days", symbol: "flame.fill", tint: .orange)
-                    SmallStatCard(title: "Recovery", value: "7h 48m", unit: "sleep", symbol: "moon.fill", tint: .purple)
-                    SmallStatCard(title: "HRV Status", value: "Stable", unit: "balanced", symbol: "heart", tint: .green)
+                    SmallStatCard(title: "Weekly km", value: recommendation.weeklyProgress, unit: "", symbol: "chart.bar.fill", tint: Color.lime)
+                    SmallStatCard(title: "Streak", value: recommendation.streak, unit: "", symbol: "flame.fill", tint: .orange)
+                    SmallStatCard(title: "Recovery", value: recommendation.recovery, unit: "sleep", symbol: "moon.fill", tint: .purple)
+                    SmallStatCard(title: "HRV", value: recommendation.hrv, unit: "", symbol: "heart", tint: .green)
                 }
             }
             .foregroundStyle(.white)

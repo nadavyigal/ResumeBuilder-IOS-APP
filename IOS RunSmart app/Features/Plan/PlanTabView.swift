@@ -7,6 +7,16 @@ struct PlanTabView: View {
     @State private var workouts: [WorkoutSummary] = []
     @State private var navPath: [SecondaryDestination] = []
 
+    private var weekRangeLabel: String {
+        let calendar = Calendar.current
+        let today = Date()
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+              let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) else { return "" }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
+        return "\(fmt.string(from: weekStart)) – \(fmt.string(from: weekEnd))"
+    }
+
     var body: some View {
         NavigationStack(path: $navPath) {
             ScrollView(showsIndicators: false) {
@@ -49,7 +59,7 @@ struct PlanTabView: View {
                         Text("This Week")
                             .font(.headline)
                         Spacer()
-                        Text("Apr 28 – May 4")
+                        Text(weekRangeLabel)
                             .font(.subheadline)
                             .foregroundStyle(Color.mutedText)
                     }
@@ -117,6 +127,29 @@ struct PlanTabView: View {
                         message: "Great consistency lately. Your aerobic base is improving. Keep stacking quality weeks.",
                         action: { navPath.append(.planAdjustment) }
                     )
+
+                    Button(action: { navPath.append(.challenges) }) {
+                        GlassCard(cornerRadius: 18, padding: 14) {
+                            HStack(spacing: 14) {
+                                Image(systemName: "trophy.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.lime)
+                                    .padding(12)
+                                    .background(Color.lime.opacity(0.15))
+                                    .clipShape(Circle())
+                                VStack(alignment: .leading, spacing: 4) {
+                                    SectionLabel(title: "Challenges")
+                                    Text("Adopt a challenge to stay motivated and build consistency.")
+                                        .font(.callout)
+                                        .foregroundStyle(.white.opacity(0.8))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(Color.mutedText)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 18)

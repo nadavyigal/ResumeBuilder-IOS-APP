@@ -6,7 +6,7 @@ enum SecondaryDestination: Hashable, Identifiable {
     case reschedule(WorkoutSummary)
     case addActivity
     case routeSelector
-    case postRunSummary
+    case postRunSummary(RecordedRun?)
     case audioCues
     case lapMarker
     case voiceCoaching
@@ -14,6 +14,7 @@ enum SecondaryDestination: Hashable, Identifiable {
     case goalFocus
     case reminders
     case connectedService(String)
+    case challenges
 
     var id: String {
         switch self {
@@ -22,7 +23,7 @@ enum SecondaryDestination: Hashable, Identifiable {
         case .reschedule(let w): "reschedule-\(w.id)"
         case .addActivity: "addActivity"
         case .routeSelector: "routeSelector"
-        case .postRunSummary: "postRunSummary"
+        case .postRunSummary(let run): "postRunSummary-\(run?.id.uuidString ?? "nil")"
         case .audioCues: "audioCues"
         case .lapMarker: "lapMarker"
         case .voiceCoaching: "voiceCoaching"
@@ -30,6 +31,7 @@ enum SecondaryDestination: Hashable, Identifiable {
         case .goalFocus: "goalFocus"
         case .reminders: "reminders"
         case .connectedService(let name): "connectedService-\(name)"
+        case .challenges: "challenges"
         }
     }
 
@@ -48,6 +50,7 @@ enum SecondaryDestination: Hashable, Identifiable {
         case .goalFocus: "Goal Focus"
         case .reminders: "Reminders & Preferences"
         case .connectedService(let name): name
+        case .challenges: "Challenges"
         }
     }
 }
@@ -85,8 +88,8 @@ struct SecondaryFlowView: View {
             AddActivityScaffold()
         case .routeSelector:
             RouteSelectorScaffold()
-        case .postRunSummary:
-            PostRunSummaryScaffold()
+        case .postRunSummary(let run):
+            PostRunSummaryScaffold(run: run)
         case .audioCues:
             AudioCuesScaffold()
         case .lapMarker:
@@ -96,11 +99,13 @@ struct SecondaryFlowView: View {
         case .coachingTone:
             CoachingToneScaffold()
         case .goalFocus:
-            GoalFocusScaffold()
+            GoalFocusEditor()
         case .reminders:
             ReminderPreferencesScaffold()
         case .connectedService(let serviceName):
             ConnectedServiceDetailScaffold(serviceName: serviceName)
+        case .challenges:
+            ChallengesListView()
         }
     }
 
@@ -132,6 +137,8 @@ struct SecondaryFlowView: View {
             "Schedule nudges, check-ins, and recovery prompts."
         case .connectedService:
             "Inspect sync status, permissions, and controls."
+        case .challenges:
+            "Adopt a challenge and track your progress."
         }
     }
 
@@ -150,6 +157,7 @@ struct SecondaryFlowView: View {
         case .goalFocus: "target"
         case .reminders: "bell.badge.fill"
         case .connectedService: "link.circle.fill"
+        case .challenges: "trophy.fill"
         }
     }
 }
@@ -473,41 +481,50 @@ private struct LapMarkerScaffold: View {
 }
 
 private struct PostRunSummaryScaffold: View {
+    var run: RecordedRun?
+
+    private var distanceLabel: String {
+        guard let run else { return "--" }
+        return String(format: "%.2f km", run.distanceMeters / 1000)
+    }
+
+    private var paceLabel: String {
+        guard let run, run.averagePaceSecondsPerKm > 0 else { return "--" }
+        let s = Int(run.averagePaceSecondsPerKm)
+        return String(format: "%d:%02d", s / 60, s % 60)
+    }
+
+    private var timeLabel: String {
+        guard let run else { return "--" }
+        let t = Int(run.movingTimeSeconds)
+        if t >= 3600 { return String(format: "%d:%02d:%02d", t / 3600, (t % 3600) / 60, t % 60) }
+        return String(format: "%d:%02d", t / 60, t % 60)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
             GlassCard(glow: Color.lime) {
                 VStack(alignment: .leading, spacing: 12) {
                     SectionLabel(title: "Run Complete")
                     HStack {
-                        MetricBadge(title: "Distance", value: "8.2 km")
-                        MetricBadge(title: "Avg Pace", value: "5:12")
-                        MetricBadge(title: "Time", value: "42:38")
+                        MetricBadge(title: "Distance", value: distanceLabel)
+                        MetricBadge(title: "Avg Pace", value: paceLabel)
+                        MetricBadge(title: "Time", value: timeLabel)
                     }
-                    Text("Coach Spark: You nailed the middle tempo block and stayed controlled. That is the exact stimulus we wanted.")
+                    Text("Run saved. Great work — your coach will factor this into next week's plan.")
                         .font(.callout)
                         .foregroundStyle(.white.opacity(0.84))
                 }
             }
 
-            GlassCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Splits")
-                    ForEach(["5:25", "5:18", "5:12", "5:08", "5:07"], id: \.self) { split in
-                        HStack {
-                            Text("Lap")
-                                .foregroundStyle(Color.mutedText)
-                            Spacer()
-                            Text(split)
-                                .font(.headline)
-                            Capsule()
-                                .fill(Color.lime.opacity(0.45))
-                                .frame(width: 64, height: 6)
-                        }
-                    }
+            if let run, !run.routePoints.isEmpty {
+                GlassCard(padding: 8, glow: Color.lime) {
+                    RouteMapView(points: run.routePoints, title: "Your Route")
+                        .frame(height: 160)
                 }
             }
 
-            Button("Save Run") {}
+            Button("Done") {}
                 .buttonStyle(NeonButtonStyle())
         }
     }
@@ -547,27 +564,100 @@ private struct CoachingToneScaffold: View {
     }
 }
 
-private struct GoalFocusScaffold: View {
+private struct GoalFocusEditor: View {
+    @EnvironmentObject private var session: SupabaseSession
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var selectedGoal: String = ""
+    @State private var selectedExperience: String = ""
+    @State private var selectedStyle: String = ""
+    @State private var daysPerWeek: Int = 4
+    @State private var isSaving = false
+    @State private var saved = false
+
+    private let goals = ["5K / Speed", "10K Improvement", "Half Marathon", "Marathon", "Build Habit"]
+    private let experiences = ["Building Base", "Intermediate", "Advanced", "Competitive"]
+    private let styles = ["Motivating", "Technical", "Supportive", "Strict"]
+
     var body: some View {
         VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
             GlassCard(glow: Color.lime) {
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Current Focus")
-                    FlowSelectionTile(title: "10K Improvement", value: "Primary", symbol: "target", selected: true)
-                    FlowSelectionTile(title: "Consistency", value: "Secondary", symbol: "checkmark.seal", selected: false)
-                    FlowSelectionTile(title: "Recovery Balance", value: "Guardrail", symbol: "heart", selected: false)
+                VStack(alignment: .leading, spacing: 14) {
+                    SectionLabel(title: "Primary Goal")
+                    ForEach(goals, id: \.self) { goal in
+                        Button { selectedGoal = goal } label: {
+                            FlowSelectionTile(title: goal, value: "", symbol: "target", selected: selectedGoal == goal)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    SectionLabel(title: "Experience Level")
+                    ForEach(experiences, id: \.self) { exp in
+                        Button { selectedExperience = exp } label: {
+                            FlowSelectionTile(title: exp, value: "", symbol: "figure.run", selected: selectedExperience == exp)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    SectionLabel(title: "Coaching Style")
+                    ForEach(styles, id: \.self) { style in
+                        Button { selectedStyle = style } label: {
+                            FlowSelectionTile(title: style, value: "", symbol: "sparkles", selected: selectedStyle == style)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
 
             GlassCard {
                 VStack(alignment: .leading, spacing: 10) {
-                    SectionLabel(title: "Coach Will Optimize")
-                    DetailLine(label: "Workout mix", value: "Tempo plus aerobic base")
-                    DetailLine(label: "Load cap", value: "No more than 12% weekly jump")
-                    DetailLine(label: "Race estimate", value: "46:30 target")
+                    SectionLabel(title: "Days Per Week")
+                    Stepper("\(daysPerWeek) days", value: $daysPerWeek, in: 1...7)
+                        .foregroundStyle(.white)
                 }
             }
+
+            if saved {
+                Label("Goals saved!", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(Color.lime)
+                    .font(.headline)
+            }
+
+            Button(action: { Task { await save() } }) {
+                HStack {
+                    if isSaving { ProgressView().tint(.black) }
+                    else { Label("Save Goals", systemImage: "checkmark") }
+                }
+            }
+            .buttonStyle(NeonButtonStyle())
+            .disabled(isSaving || selectedGoal.isEmpty)
         }
+        .onAppear {
+            selectedGoal = session.onboardingProfile.goal
+            selectedExperience = session.onboardingProfile.experience
+            selectedStyle = session.onboardingProfile.coachingTone
+            daysPerWeek = session.onboardingProfile.weeklyRunDays
+        }
+    }
+
+    private func save() async {
+        var updated = session.onboardingProfile
+        updated.goal = selectedGoal
+        updated.experience = selectedExperience
+        updated.coachingTone = selectedStyle
+        updated.weeklyRunDays = daysPerWeek
+        isSaving = true
+        await session.completeOnboarding(updated)
+        isSaving = false
+        saved = true
     }
 }
 

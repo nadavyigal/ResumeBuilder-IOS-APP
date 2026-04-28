@@ -45,15 +45,27 @@ final class AppRouter: ObservableObject {
 
 struct RunSmartLiteAppShell: View {
     @StateObject private var router = AppRouter()
-    @StateObject private var session = RunSmartAppSession()
+    @StateObject private var session = SupabaseSession()
     @StateObject private var recorder = RunRecorder()
-    private let services = ProductionRunSmartServices()
+    private let services = SupabaseRunSmartServices.shared
 
     var body: some View {
         ZStack(alignment: .bottom) {
             RunSmartBackground()
 
-            if session.hasCompletedOnboarding {
+            if session.isLoading {
+                ProgressView()
+                    .tint(Color.lime)
+                    .scaleEffect(1.5)
+            } else if !session.isAuthenticated {
+                SignInView()
+                    .environmentObject(session)
+            } else if !session.hasCompletedOnboarding {
+                OnboardingView(initialProfile: session.onboardingProfile) { profile in
+                    Task { await session.completeOnboarding(profile) }
+                }
+                .environmentObject(session)
+            } else {
                 Group {
                     switch router.selectedTab {
                     case .today:   TodayTabView()
@@ -65,10 +77,6 @@ struct RunSmartLiteAppShell: View {
                 .safeAreaPadding(.bottom, 94)
 
                 CustomTabBar(selectedTab: $router.selectedTab)
-            } else {
-                OnboardingView(initialProfile: session.onboardingProfile) { profile in
-                    session.completeOnboarding(profile)
-                }
             }
         }
         .environmentObject(router)
@@ -88,6 +96,7 @@ struct RunSmartLiteAppShell: View {
                     .presentationDragIndicator(.visible)
                     .environment(\.runSmartServices, services)
                     .environment(\.runRecorder, recorder)
+                    .environmentObject(session)
             }
         }
     }

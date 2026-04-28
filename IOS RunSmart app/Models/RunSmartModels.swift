@@ -67,6 +67,10 @@ struct TodayRecommendation {
     var pace: String
     var elevation: String
     var coachMessage: String
+    var weeklyProgress: String = "--"
+    var streak: String = "--"
+    var recovery: String = "--"
+    var hrv: String = "--"
 }
 
 struct MetricTile: Identifiable {

@@ -113,26 +113,30 @@ struct RunTabView: View {
                             .clipShape(Circle())
                         VStack(alignment: .leading) {
                             SectionLabel(title: "Coach Cue")
-                            Text("Hold steady. Relax your shoulders.")
+                            coachCue
                                 .font(.caption)
                         }
                         Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("CADENCE")
-                                .font(.caption2.bold())
-                                .foregroundStyle(Color.mutedText)
-                            Text("172 spm")
-                                .font(.headline)
-                            AudioBars()
-                                .frame(width: 86, height: 14)
-                        }
+                        runStatusPill
                     }
                 }
 
                 HStack(spacing: 10) {
-                    SmallStatCard(title: "Elevation", value: "28", unit: "m", symbol: "mountain.2", tint: Color.lime)
-                    SmallStatCard(title: "Zone", value: "4", unit: "Threshold", symbol: "heart", tint: .red)
-                    SmallStatCard(title: "Pace Trend", value: "-0:03", unit: "vs last km", symbol: "speedometer", tint: Color.lime)
+                    SmallStatCard(
+                        title: "Elevation",
+                        value: recorder.routePoints.isEmpty ? "--" : String(format: "%.0f", elevationGainMeters),
+                        unit: "m", symbol: "mountain.2", tint: Color.lime
+                    )
+                    SmallStatCard(
+                        title: "GPS Points",
+                        value: "\(recorder.routePoints.count)",
+                        unit: "pts", symbol: "location.fill", tint: .cyan
+                    )
+                    SmallStatCard(
+                        title: "Accuracy",
+                        value: recorder.horizontalAccuracy.map { String(format: "%.0f", $0) } ?? "--",
+                        unit: "m", symbol: "target", tint: Color.lime
+                    )
                 }
 
                 HStack(spacing: 18) {
@@ -179,14 +183,48 @@ struct RunTabView: View {
     private var coachCue: Text {
         switch recorder.phase {
         case .recording:
-            Text("Ease your shoulders.\nCurrent pace: \(Text(recorder.currentPaceLabel).foregroundStyle(Color.lime).bold()) /km.")
+            Text("Ease your shoulders. Pace: \(recorder.currentPaceLabel)/km.")
         case .paused:
-            Text("Paused. Resume when you are ready, or finish to save this run.")
+            Text("Paused. Resume when ready or finish to save.")
         case .denied:
-            Text("Location permission is required for real GPS run recording.")
+            Text("Location permission required for GPS recording.")
         default:
-            Text("Start a GPS run to record real distance, route, pace, and time.")
+            Text("Start a GPS run to record distance, route, and pace.")
         }
+    }
+
+    private var runStatusPill: some View {
+        let label: String
+        let color: Color
+        switch recorder.phase {
+        case .recording:
+            label = "Recording"
+            color = Color.lime
+        case .paused:
+            label = "Paused"
+            color = .orange
+        default:
+            label = "Ready"
+            color = Color.mutedText
+        }
+        return Text(label)
+            .font(.caption2.bold())
+            .foregroundStyle(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(color.opacity(0.15))
+            .clipShape(Capsule())
+    }
+
+    private var elevationGainMeters: Double {
+        let altitudes = recorder.routePoints.compactMap { $0.altitude }
+        guard altitudes.count >= 2 else { return 0 }
+        var gain: Double = 0
+        for i in 1..<altitudes.count {
+            let diff = altitudes[i] - altitudes[i-1]
+            if diff > 0 { gain += diff }
+        }
+        return gain
     }
 
     private var primaryActionTitle: String {
@@ -217,12 +255,11 @@ struct RunTabView: View {
     }
 
     private func finishRun() {
-        if let run = recorder.finish() {
-            Task {
-                await services.saveToHealth(run)
-            }
+        let run = recorder.finish()
+        if let run {
+            Task { await services.saveToHealth(run) }
         }
-        router.open(.postRunSummary)
+        router.open(.postRunSummary(run))
     }
 }
 

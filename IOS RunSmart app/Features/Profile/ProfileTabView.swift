@@ -33,7 +33,7 @@ struct ProfileTabView: View {
 
                     GlassCard(cornerRadius: 16, padding: 0) {
                         HStack(spacing: 0) {
-                            ProfileStat(title: "Level", value: "14", detail: runner.level)
+                            ProfileStat(title: "Level", value: runner.level, detail: "")
                             Divider().background(Color.hairline)
                             ProfileStat(title: "Total Runs", value: "\(runner.totalRuns)", detail: "")
                             Divider().background(Color.hairline)
@@ -103,9 +103,9 @@ struct ProfileTabView: View {
                                 .font(.caption.bold())
                                 .foregroundStyle(Color.mutedText)
                             HStack(spacing: 10) {
-                                SmallStatCard(title: "10K Improvement", value: "49:12", unit: "→ 46:30", symbol: "chart.line.uptrend.xyaxis", tint: Color.lime)
-                                SmallStatCard(title: "Consistency", value: "92%", unit: "On track", symbol: "chart.bar.fill", tint: Color.lime)
-                                SmallStatCard(title: "Recovery", value: "85%", unit: "Optimal", symbol: "heart.circle", tint: Color.lime)
+                                SmallStatCard(title: runner.goal.capitalized, value: "--", unit: "goal", symbol: "chart.line.uptrend.xyaxis", tint: Color.lime)
+                                SmallStatCard(title: "Experience", value: runner.level, unit: "", symbol: "chart.bar.fill", tint: Color.lime)
+                                SmallStatCard(title: "Total km", value: "\(runner.totalDistance)", unit: "km", symbol: "figure.run", tint: Color.lime)
                             }
                         }
                     }
@@ -134,6 +134,29 @@ struct ProfileTabView: View {
                             }
                         }
                     }
+
+                    Button(action: { navPath.append(.challenges) }) {
+                        GlassCard(cornerRadius: 18, padding: 14) {
+                            HStack(spacing: 14) {
+                                Image(systemName: "trophy.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.lime)
+                                    .padding(12)
+                                    .background(Color.lime.opacity(0.15))
+                                    .clipShape(Circle())
+                                VStack(alignment: .leading, spacing: 4) {
+                                    SectionLabel(title: "Challenges")
+                                    Text("View and adopt active running challenges.")
+                                        .font(.callout)
+                                        .foregroundStyle(.white.opacity(0.8))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(Color.mutedText)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 18)

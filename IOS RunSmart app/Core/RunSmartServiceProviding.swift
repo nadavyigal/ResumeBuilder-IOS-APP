@@ -6,7 +6,7 @@ protocol RunSmartServiceProviding: TodayProviding, PlanProviding, CoachChatting,
 extension MockRunSmartServices: RunSmartServiceProviding {}
 
 private struct RunSmartServicesKey: EnvironmentKey {
-    static let defaultValue: any RunSmartServiceProviding = ProductionRunSmartServices()
+    static let defaultValue: any RunSmartServiceProviding = SupabaseRunSmartServices.shared
 }
 
 extension EnvironmentValues {
