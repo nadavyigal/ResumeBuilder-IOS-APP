@@ -27,17 +27,24 @@ final class SupabaseSession: ObservableObject {
     var profileID: UUID? { profile?.id }
 
     func initialize() async {
-        defer { isLoading = false }
-        if let user = supabase.auth.currentUser {
+        // Resolve the initial session before entering the infinite auth-change stream
+        if let session = try? await supabase.auth.session, !session.isExpired {
             isAuthenticated = true
-            await loadProfile(userID: user.id)
+            await loadProfile(userID: session.user.id)
         }
+        isLoading = false  // spinner off before stream — defer never fires on an infinite loop
+
         for await (event, session) in supabase.auth.authStateChanges {
             switch event {
             case .signedIn:
-                isAuthenticated = true
-                if let uid = session?.user.id {
-                    await loadProfile(userID: uid)
+                if let s = session, !s.isExpired {
+                    isAuthenticated = true
+                    await loadProfile(userID: s.user.id)
+                } else {
+                    isAuthenticated = false
+                    hasCompletedOnboarding = false
+                    profile = nil
+                    displayName = ""
                 }
             case .signedOut:
                 isAuthenticated = false

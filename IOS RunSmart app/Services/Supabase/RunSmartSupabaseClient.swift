@@ -4,10 +4,14 @@ import Supabase
 // MARK: - Client singleton
 
 enum SupabaseManager {
-    static let client = SupabaseClient(
-        supabaseURL: URL(string: "https://dxqglotcyirxzyqaxqln.supabase.co")!,
-        supabaseKey: "sb_publishable_PpDpqkqVaKFnOyoLR7mdyA_UNTeeoqN"
-    )
+    static let client: SupabaseClient = {
+        let auth = SupabaseClientOptions.AuthOptions(emitLocalSessionAsInitialSession: true)
+        return SupabaseClient(
+            supabaseURL: URL(string: "https://dxqglotcyirxzyqaxqln.supabase.co")!,
+            supabaseKey: "sb_publishable_PpDpqkqVaKFnOyoLR7mdyA_UNTeeoqN",
+            options: SupabaseClientOptions(auth: auth)
+        )
+    }()
 }
 
 // MARK: - Database row types
