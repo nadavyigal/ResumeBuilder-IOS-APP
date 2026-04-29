@@ -133,6 +133,6 @@ extension DBWorkout {
         guard let paceSeconds = pace, paceSeconds > 0 else { return "--:--" }
         let mins = paceSeconds / 60
         let secs = paceSeconds % 60
-        return String(format: "%d:%02d", mins, secs)
+        return String(format: "%d:%02d", Int32(mins), Int32(secs))
     }
 }

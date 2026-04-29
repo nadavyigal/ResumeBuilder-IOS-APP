@@ -62,7 +62,7 @@ struct GarminReadiness {
         if let sleepS = m.sleepDurationS, sleepS > 0 {
             let hrs = sleepS / 3600
             let mins = (sleepS % 3600) / 60
-            recovery = "\(hrs)h \(String(format: "%02d", mins))m"
+            recovery = String(format: "%dh %02dm", Int32(hrs), Int32(mins))
         } else {
             recovery = "--"
         }

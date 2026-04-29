@@ -491,14 +491,16 @@ private struct PostRunSummaryScaffold: View {
     private var paceLabel: String {
         guard let run, run.averagePaceSecondsPerKm > 0 else { return "--" }
         let s = Int(run.averagePaceSecondsPerKm)
-        return String(format: "%d:%02d", s / 60, s % 60)
+        return String(format: "%d:%02d", Int32(s / 60), Int32(s % 60))
     }
 
     private var timeLabel: String {
         guard let run else { return "--" }
         let t = Int(run.movingTimeSeconds)
-        if t >= 3600 { return String(format: "%d:%02d:%02d", t / 3600, (t % 3600) / 60, t % 60) }
-        return String(format: "%d:%02d", t / 60, t % 60)
+        if t >= 3600 {
+            return String(format: "%d:%02d:%02d", Int32(t / 3600), Int32((t % 3600) / 60), Int32(t % 60))
+        }
+        return String(format: "%d:%02d", Int32(t / 60), Int32(t % 60))
     }
 
     var body: some View {

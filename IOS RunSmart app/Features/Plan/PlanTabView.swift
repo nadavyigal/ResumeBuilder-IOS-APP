@@ -7,6 +7,12 @@ struct PlanTabView: View {
     @State private var workouts: [WorkoutSummary] = []
     @State private var navPath: [SecondaryDestination] = []
 
+    private var currentWeekDays: [Date] {
+        let calendar = Calendar.current
+        guard let interval = calendar.dateInterval(of: .weekOfYear, for: Date()) else { return [] }
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: interval.start) }
+    }
+
     private var weekRangeLabel: String {
         let calendar = Calendar.current
         let today = Date()
@@ -15,6 +21,20 @@ struct PlanTabView: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "MMM d"
         return "\(fmt.string(from: weekStart)) – \(fmt.string(from: weekEnd))"
+    }
+
+    private var weekOverviewTitle: String {
+        let days = currentWeekDays
+        guard let first = days.first, let last = days.last else { return "Week Overview" }
+
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = calendar.isDate(first, equalTo: last, toGranularity: .month) ? "MMMM 'Overview'" : "MMM-MMM 'Overview'"
+
+        if calendar.isDate(first, equalTo: last, toGranularity: .month) {
+            return formatter.string(from: first)
+        }
+        return "\(DateFormatter.monthAbbreviation.string(from: first))-\(DateFormatter.monthAbbreviation.string(from: last)) Overview"
     }
 
     var body: some View {
@@ -77,7 +97,7 @@ struct PlanTabView: View {
                     GlassCard(cornerRadius: 18, padding: 14) {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
-                                Text("May Overview")
+                                Text(weekOverviewTitle)
                                     .font(.headline)
                                 Spacer()
                                 Image(systemName: "chevron.left")
@@ -86,25 +106,33 @@ struct PlanTabView: View {
                             .foregroundStyle(.white.opacity(0.86))
 
                             HStack {
-                                ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
-                                    Text(day)
+                                ForEach(Array(currentWeekDays.enumerated()), id: \.offset) { _, date in
+                                    Text(DateFormatter.weekdayInitial.string(from: date))
                                         .font(.caption2.bold())
                                         .foregroundStyle(Color.mutedText)
                                         .frame(maxWidth: .infinity)
                                 }
                             }
                             HStack {
-                                ForEach(28...34, id: \.self) { number in
+                                ForEach(Array(currentWeekDays.enumerated()), id: \.offset) { _, date in
+                                    let workout = workout(on: date)
+                                    let isToday = Calendar.current.isDateInToday(date)
                                     VStack(spacing: 7) {
-                                        Text(number <= 30 ? "\(number)" : "\(number - 30)")
+                                        Text(DateFormatter.dayNumber.string(from: date))
                                             .font(.caption.weight(.semibold))
-                                            .foregroundStyle(number == 30 ? Color.black : Color.white)
+                                            .foregroundStyle(isToday ? Color.black : Color.white)
                                             .frame(width: 25, height: 25)
-                                            .background(number == 30 ? Color.lime : Color.clear)
+                                            .background(isToday ? Color.lime : Color.clear)
                                             .clipShape(Circle())
-                                        Circle()
-                                            .fill(number == 30 || number == 28 || number == 29 ? Color.lime : Color.purple)
-                                            .frame(width: 4, height: 4)
+                                        if let workout {
+                                            Circle()
+                                                .fill(workout.isComplete ? Color.lime : Color.purple)
+                                                .frame(width: 4, height: 4)
+                                        } else {
+                                            Circle()
+                                                .fill(Color.clear)
+                                                .frame(width: 4, height: 4)
+                                        }
                                     }
                                     .frame(maxWidth: .infinity)
                                 }
@@ -164,6 +192,32 @@ struct PlanTabView: View {
             workouts = await services.weeklyPlan()
         }
     }
+
+    private func workout(on date: Date) -> WorkoutSummary? {
+        let calendar = Calendar.current
+        let day = String(calendar.component(.day, from: date))
+        return workouts.first { $0.date == day }
+    }
+}
+
+private extension DateFormatter {
+    static let weekdayInitial: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEEE"
+        return formatter
+    }()
+
+    static let dayNumber: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter
+    }()
+
+    static let monthAbbreviation: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        return formatter
+    }()
 }
 
 struct WorkoutDayCard: View {

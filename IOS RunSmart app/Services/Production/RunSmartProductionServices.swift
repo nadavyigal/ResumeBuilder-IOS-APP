@@ -278,7 +278,7 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor [weak self] in
                 self?.tick()
             }
         }
@@ -302,13 +302,13 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     static func timeLabel(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded()))
-        return String(format: "%02d:%02d", total / 60, total % 60)
+        return String(format: "%02d:%02d", Int32(total / 60), Int32(total % 60))
     }
 
     static func paceLabel(secondsPerKm: TimeInterval) -> String {
         guard secondsPerKm.isFinite, secondsPerKm > 0 else { return "--" }
         let total = Int(secondsPerKm.rounded())
-        return String(format: "%d:%02d", total / 60, total % 60)
+        return String(format: "%d:%02d", Int32(total / 60), Int32(total % 60))
     }
 }
 

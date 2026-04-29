@@ -25,7 +25,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         async let streakTask = fetchStreak(userID: userID)
 
         let (dbProfile, metrics, streak) = await (profileTask, metricsTask, streakTask)
-        guard let profile = dbProfile else { return TodayRecommendation.placeholder }
+        guard dbProfile != nil else { return TodayRecommendation.placeholder }
 
         // plans/conversations link via auth UUID (plans.profile_id = auth.uid())
         let activePlan = await planRepo.activePlan(profileID: userID)
@@ -46,10 +46,13 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         let coachMessage = await latestCoachMessage(profileID: userID)
             ?? "Ready for your next run. Let's make today count."
 
-        let weeklyDone = String(format: "%.1f", activePlan?.completedKmThisWeek ?? 0)
-        let weeklyTotal = String(format: "%.1f", activePlan?.totalKmThisWeek ?? 0)
+        let weeklyDone = String(format: "%.1f", Double(activePlan?.completedKmThisWeek ?? 0.0))
+        let weeklyTotal = String(format: "%.1f", Double(activePlan?.totalKmThisWeek ?? 0.0))
         let streakDays = streak?.currentStreak ?? 0
-        let sleepHours = metrics?.sleepDurationS.map { String(format: "%.0fh %02dm", Double($0) / 3600, ($0 % 3600) / 60) } ?? "--"
+        let sleepHours = metrics?.sleepDurationS.map {
+            let totalSeconds = Int($0)
+            return String(format: "%dh %02dm", Int32(totalSeconds / 3600), Int32((totalSeconds % 3600) / 60))
+        } ?? "--"
         let hrvLabel = metrics?.hrv != nil ? (metrics!.hrv! > 50 ? "Stable" : "Lower") : "--"
 
         return TodayRecommendation(
