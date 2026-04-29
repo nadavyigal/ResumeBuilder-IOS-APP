@@ -16,32 +16,51 @@ enum SupabaseManager {
 
 // MARK: - Database row types
 
-struct DBProfile: Codable, Sendable {
-    let id: UUID
+struct DBProfile: Sendable {
+    let id: Int              // bigint auto-increment in DB
     let authUserId: UUID?
+    let email: String
     let name: String?
-    let goal: String
-    let experience: String
+    let goal: String         // nullable in DB; defaults to ""
+    let experience: String   // nullable in DB; defaults to ""
     let preferredTimes: [String]
-    let daysPerWeek: Int
     let coachingStyle: String?
+    let daysPerWeek: Int     // nullable in DB; defaults to 0
     let onboardingComplete: Bool
+}
 
+extension DBProfile: Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case authUserId = "auth_user_id"
+        case email
         case name
         case goal
         case experience
         case preferredTimes = "preferred_times"
-        case daysPerWeek = "days_per_week"
         case coachingStyle = "coaching_style"
+        case daysPerWeek = "days_per_week"
         case onboardingComplete = "onboarding_complete"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        authUserId = try? c.decodeIfPresent(UUID.self, forKey: .authUserId)
+        email = (try? c.decode(String.self, forKey: .email)) ?? ""
+        name = try? c.decodeIfPresent(String.self, forKey: .name)
+        goal = (try? c.decode(String.self, forKey: .goal)) ?? ""
+        experience = (try? c.decode(String.self, forKey: .experience)) ?? ""
+        preferredTimes = (try? c.decode([String].self, forKey: .preferredTimes)) ?? []
+        coachingStyle = try? c.decodeIfPresent(String.self, forKey: .coachingStyle)
+        daysPerWeek = (try? c.decode(Int.self, forKey: .daysPerWeek)) ?? 0
+        onboardingComplete = (try? c.decode(Bool.self, forKey: .onboardingComplete)) ?? false
     }
 }
 
 struct DBProfileInsert: Encodable, Sendable {
-    let authUserId: String
+    let authUserId: String   // UUID string — matches auth_user_id uuid column
+    let email: String        // NOT NULL in DB
     let name: String
     let goal: String
     let experience: String
@@ -52,6 +71,7 @@ struct DBProfileInsert: Encodable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case authUserId = "auth_user_id"
+        case email
         case name
         case goal
         case experience

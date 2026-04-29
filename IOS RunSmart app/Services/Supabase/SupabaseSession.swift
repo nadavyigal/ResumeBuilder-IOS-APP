@@ -24,7 +24,8 @@ final class SupabaseSession: ObservableObject {
 
     var currentUserID: UUID? { supabase.auth.currentUser?.id }
 
-    var profileID: UUID? { profile?.id }
+    // plans/conversations use auth.uid() as profile_id (uuid), not profiles.id (bigint)
+    var profileID: UUID? { currentUserID }
 
     func initialize() async {
         // Resolve the initial session before entering the infinite auth-change stream
@@ -66,14 +67,15 @@ final class SupabaseSession: ObservableObject {
                 .limit(1)
                 .execute()
                 .value
+            print("[SupabaseSession] loadProfile got \(rows.count) row(s) for uid=\(userID)")
             if let p = rows.first {
                 profile = p
                 hasCompletedOnboarding = p.onboardingComplete
                 displayName = p.name ?? ""
                 onboardingProfile = OnboardingProfile(
                     displayName: p.name ?? "",
-                    goal: p.goal,
-                    experience: p.experience,
+                    goal: p.goal.isEmpty ? "" : p.goal,
+                    experience: p.experience.isEmpty ? "" : p.experience,
                     weeklyRunDays: p.daysPerWeek,
                     preferredDays: p.preferredTimes,
                     units: "Metric",
@@ -87,10 +89,16 @@ final class SupabaseSession: ObservableObject {
     }
 
     func completeOnboarding(_ onboarding: OnboardingProfile) async {
-        guard let userID = currentUserID else { return }
+        guard let userID = currentUserID else {
+            print("[SupabaseSession] completeOnboarding: no currentUserID")
+            return
+        }
         onboardingProfile = onboarding
+        // email comes from the Apple JWT the auth server decoded — always present after sign-in
+        let email = supabase.auth.currentUser?.email ?? ""
         let insert = DBProfileInsert(
             authUserId: userID.uuidString,
+            email: email,
             name: onboarding.displayName,
             goal: onboarding.supabaseGoal,
             experience: onboarding.supabaseExperience,
@@ -99,6 +107,7 @@ final class SupabaseSession: ObservableObject {
             coachingStyle: onboarding.supabaseCoachingStyle,
             onboardingComplete: true
         )
+        print("[SupabaseSession] completeOnboarding upsert uid=\(userID) email=\(email)")
         do {
             let rows: [DBProfile] = try await supabase
                 .from("profiles")
@@ -106,6 +115,7 @@ final class SupabaseSession: ObservableObject {
                 .select()
                 .execute()
                 .value
+            print("[SupabaseSession] completeOnboarding upserted \(rows.count) row(s)")
             if let p = rows.first {
                 profile = p
                 hasCompletedOnboarding = true

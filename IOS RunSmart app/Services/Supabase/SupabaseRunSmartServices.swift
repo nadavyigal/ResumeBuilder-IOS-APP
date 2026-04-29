@@ -27,7 +27,8 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         let (dbProfile, metrics, streak) = await (profileTask, metricsTask, streakTask)
         guard let profile = dbProfile else { return TodayRecommendation.placeholder }
 
-        let activePlan = await planRepo.activePlan(profileID: profile.id)
+        // plans/conversations link via auth UUID (plans.profile_id = auth.uid())
+        let activePlan = await planRepo.activePlan(profileID: userID)
         let todayWorkout = activePlan?.todayWorkout
 
         let readiness: Int
@@ -42,7 +43,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             readinessLabel = readiness > 80 ? "Ready to train" : "Moderate"
         }
 
-        let coachMessage = await latestCoachMessage(profileID: profile.id)
+        let coachMessage = await latestCoachMessage(profileID: userID)
             ?? "Ready for your next run. Let's make today count."
 
         let weeklyDone = String(format: "%.1f", activePlan?.completedKmThisWeek ?? 0)
@@ -69,22 +70,20 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     // MARK: PlanProviding
 
     func weeklyPlan() async -> [WorkoutSummary] {
-        guard let userID = currentUserID,
-              let profile = await fetchProfile(userID: userID) else { return [] }
-        guard let activePlan = await planRepo.activePlan(profileID: profile.id) else { return [] }
+        guard let userID = currentUserID else { return [] }
+        guard let activePlan = await planRepo.activePlan(profileID: userID) else { return [] }
         return activePlan.currentWeekWorkouts.map { $0.toWorkoutSummary() }
     }
 
     // MARK: CoachChatting
 
     func recentMessages() async -> [CoachMessage] {
-        guard let userID = currentUserID,
-              let profile = await fetchProfile(userID: userID) else { return [] }
+        guard let userID = currentUserID else { return [] }
         do {
             let conversations: [DBConversation] = try await supabase
                 .from("conversations")
                 .select()
-                .eq("profile_id", value: profile.id.uuidString)
+                .eq("profile_id", value: userID.uuidString)
                 .order("created_at", ascending: false)
                 .limit(1)
                 .execute()
@@ -127,7 +126,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         }
 
         let streak = await fetchStreak(userID: userID)
-        let activePlan = await planRepo.activePlan(profileID: profile.id)
+        let activePlan = await planRepo.activePlan(profileID: userID)
         let totalKm = activePlan?.completedKmThisWeek ?? 0
 
         return RunnerProfile(
