@@ -29,9 +29,8 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         let (dbProfile, metrics, streak) = await (profileTask, metricsTask, streakTask)
         guard dbProfile != nil else { return TodayRecommendation.placeholder }
 
-        // plans/conversations link via auth UUID (plans.profile_id = auth.uid())
-        let activePlan = await planRepo.activePlan(profileID: userID)
-        let todayWorkout = activePlan?.todayWorkout
+        let activePlan = await planRepo.activePlan(authUserID: userID)
+        let todayWorkout = activePlan?.todayWorkout ?? activePlan?.nextActionableWorkout
 
         let readiness: Int
         let readinessLabel: String
@@ -76,13 +75,13 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
 
     func weeklyPlan() async -> [WorkoutSummary] {
         guard let userID = currentUserID else { return [] }
-        guard let activePlan = await planRepo.activePlan(profileID: userID) else { return [] }
-        return activePlan.currentWeekWorkouts.map { $0.toWorkoutSummary() }
+        guard let activePlan = await planRepo.activePlan(authUserID: userID) else { return [] }
+        return activePlan.currentWeekWorkouts.primaryWorkoutPerDay().map { $0.toWorkoutSummary() }
     }
 
     func activeTrainingPlan() async -> TrainingPlanSnapshot? {
         guard let userID = currentUserID else { return nil }
-        guard let activePlan = await planRepo.activePlan(profileID: userID) else { return nil }
+        guard let activePlan = await planRepo.activePlan(authUserID: userID) else { return nil }
         let plan = activePlan.plan
         let startDate = ISO8601DateFormatter.shortDate.date(from: plan.startDate) ?? Date()
         let endDate = ISO8601DateFormatter.shortDate.date(from: plan.endDate) ?? Date()
@@ -98,22 +97,153 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
 
     func planWorkouts(from startDate: Date, to endDate: Date) async -> [WorkoutSummary] {
         guard let userID = currentUserID else { return [] }
-        let workouts = await planRepo.planWorkouts(profileID: userID, from: startDate, to: endDate)
-        return workouts.map { $0.toWorkoutSummary() }
+        let workouts = await planRepo.planWorkouts(authUserID: userID, from: startDate, to: endDate)
+        return workouts.primaryWorkoutPerDay().map { $0.toWorkoutSummary() }
     }
 
     func nextWorkouts(limit: Int) async -> [WorkoutSummary] {
         guard let userID = currentUserID else { return [] }
-        guard let activePlan = await planRepo.activePlan(profileID: userID) else { return [] }
+        guard let activePlan = await planRepo.activePlan(authUserID: userID) else { return [] }
         let today = Calendar.current.startOfDay(for: Date())
         return activePlan.workouts
             .filter { w in
                 guard let date = w.scheduledDateAsDate else { return false }
                 return date >= today && !w.completed
             }
-            .sorted { ($0.scheduledDateAsDate ?? .distantFuture) < ($1.scheduledDateAsDate ?? .distantFuture) }
+            .primaryWorkoutPerDay()
             .prefix(limit)
             .map { $0.toWorkoutSummary() }
+    }
+
+    func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool {
+        guard let userID = currentUserID else { return false }
+        let saved = await planRepo.saveTrainingGoal(authUserID: userID, request: request)
+        let regenerated = await regenerateTrainingPlan(request)
+        if saved || regenerated {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return saved && regenerated
+    }
+
+    func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool {
+        guard let userID = currentUserID,
+              let token = try? await supabase.auth.session.accessToken else {
+            return false
+        }
+
+        do {
+            let recent = Array((await recentRuns()).prefix(10))
+            let identity = await planRepo.identity(authUserID: userID)
+            let payload = RunSmartDTO.GeneratePlanRequest(
+                userContext: .init(
+                    userId: identity.numericUserID,
+                    goal: request.supabaseGoal,
+                    experience: request.supabaseExperience,
+                    daysPerWeek: request.weeklyRunDays,
+                    preferredTimes: request.preferredDays.isEmpty ? ["morning"] : request.preferredDays,
+                    coachingStyle: request.supabaseCoachingStyle,
+                    averageWeeklyKm: recentWeeklyKm(runs: recent)
+                ),
+                trainingHistory: .init(
+                    weeklyVolumeKm: recentWeeklyKm(runs: recent),
+                    consistencyScore: min(100, recent.count * 10),
+                    recentRuns: recent.map { run in
+                        .init(
+                            date: ISO8601DateFormatter.shortDate.string(from: run.startedAt),
+                            distanceKm: run.distanceMeters / 1_000,
+                            durationMinutes: max(1, Int(run.movingTimeSeconds / 60)),
+                            avgPace: RunRecorder.paceLabel(secondsPerKm: run.averagePaceSecondsPerKm),
+                            rpe: nil,
+                            notes: run.source.rawValue
+                        )
+                    }
+                ),
+                goals: .init(primaryGoal: .init(
+                    title: request.goal,
+                    goalType: request.supabaseGoal,
+                    category: request.supabaseGoal,
+                    target: request.goal,
+                    deadline: ISO8601DateFormatter.shortDate.string(from: request.targetDate),
+                    progressPercentage: 0
+                )),
+                targetDistance: targetDistanceSlug(for: request.goal),
+                totalWeeks: planWeeks(until: request.targetDate),
+                planPreferences: .init(
+                    trainingDays: request.preferredDays,
+                    availableDays: request.preferredDays,
+                    longRunDay: request.preferredDays.last,
+                    trainingVolume: "progressive",
+                    difficulty: "balanced"
+                )
+            )
+
+            let body = try JSONEncoder().encode(payload)
+            let client = URLSessionRunSmartAPIClient(accessToken: token)
+            let response = try await client.send(
+                RunSmartAPI.Endpoint(path: "api/generate-plan", method: .post, body: body),
+                as: RunSmartDTO.GeneratePlanResponse.self
+            )
+
+            guard let generated = response.plan else {
+                print("[SupabaseServices] generate-plan returned no plan:", response.error ?? "unknown")
+                return false
+            }
+
+            let persisted = await planRepo.persistGeneratedPlan(authUserID: userID, request: request, generated: generated)
+            if persisted {
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+                }
+            }
+            return persisted
+        } catch {
+            if !(error is CancellationError) {
+                print("[SupabaseServices] regenerateTrainingPlan error:", error)
+            }
+            return false
+        }
+    }
+
+    func moveWorkout(workoutID: UUID, to date: Date) async -> Bool {
+        let moved = await planRepo.moveWorkout(workoutID: workoutID, to: date)
+        if moved {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return moved
+    }
+
+    func pushWorkoutTomorrow(workoutID: UUID) async -> Bool {
+        let pushed = await planRepo.pushWorkoutTomorrow(workoutID: workoutID)
+        if pushed {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return pushed
+    }
+
+    func amendWorkout(workoutID: UUID, patch: WorkoutPatch) async -> Bool {
+        let amended = await planRepo.amendWorkout(workoutID: workoutID, patch: patch)
+        if amended {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return amended
+    }
+
+    func removeWorkout(workoutID: UUID) async -> Bool {
+        let removed = await planRepo.removeWorkout(workoutID: workoutID)
+        if removed {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return removed
     }
 
     // MARK: CoachChatting
@@ -437,9 +567,9 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             let client = URLSessionRunSmartAPIClient(accessToken: token)
             let payload = try await client.send(
                 RunSmartAPI.Endpoint(path: "api/run-report", method: .post, body: body),
-                as: RunSmartDTO.RunReportPayload.self
+                as: RunSmartDTO.RunReportResponse.self
             )
-            let report = Self.report(from: payload, run: run)
+            let report = Self.report(from: payload.report, run: run)
             store.saveRunReport(report)
             return report
         } catch {
@@ -615,6 +745,26 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         } catch { return nil }
     }
 
+    private func recentWeeklyKm(runs: [RecordedRun]) -> Double {
+        let start = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        return runs.filter { $0.startedAt >= start }.reduce(0.0) { $0 + $1.distanceMeters } / 1_000
+    }
+
+    private func targetDistanceSlug(for goal: String) -> String? {
+        let lower = goal.lowercased()
+        if lower.contains("5k") { return "5k" }
+        if lower.contains("10k") { return "10k" }
+        if lower.contains("half") { return "half-marathon" }
+        if lower.contains("marathon") { return "marathon" }
+        return nil
+    }
+
+    private func planWeeks(until targetDate: Date) -> Int? {
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: targetDate).day ?? 0
+        guard days > 0 else { return nil }
+        return max(1, min(16, Int(ceil(Double(days) / 7.0))))
+    }
+
     private func generatedLoopRoute(around coordinate: CLLocationCoordinate2D, distanceKm: Double) async -> RouteSuggestion? {
         let bearings = [0.0, 120.0, 240.0]
         var closest: RouteSuggestion?
@@ -702,6 +852,10 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     }
 }
 
+extension Notification.Name {
+    static let runSmartPlanDidChange = Notification.Name("RunSmartPlanDidChange")
+}
+
 private extension SupabaseRunSmartServices {
     static func reportRunID(for run: RecordedRun) -> String {
         run.providerActivityID ?? run.id.uuidString
@@ -755,7 +909,11 @@ private extension SupabaseRunSmartServices {
                 summary: firstMarkdownSection(named: "summary", in: text) ?? text,
                 effort: firstMarkdownSection(named: "effort", in: text) ?? "Effort notes are included in the coach summary.",
                 recovery: firstMarkdownSection(named: "recovery", in: text) ?? "No recovery note stored.",
-                nextSessionNudge: firstMarkdownSection(named: "next", in: text) ?? "No next-run recommendation stored."
+                nextSessionNudge: firstMarkdownSection(named: "next", in: text) ?? "No next-run recommendation stored.",
+                keyInsights: firstMarkdownListSection(named: "insight", in: text),
+                pacing: firstMarkdownSection(named: "pacing", in: text),
+                biomechanics: firstMarkdownSection(named: "biomechan", in: text),
+                recoveryTimeline: nil
             ),
             structuredNextWorkout: nil
         )
@@ -778,46 +936,82 @@ private extension SupabaseRunSmartServices {
                 summary: payload.summary ?? "No coach report yet.",
                 effort: payload.effort ?? "No effort note yet.",
                 recovery: payload.recovery ?? "No recovery note yet.",
-                nextSessionNudge: payload.nextSessionNudge ?? "No next-run recommendation yet."
+                nextSessionNudge: payload.nextSessionNudge ?? "No next-run recommendation yet.",
+                keyInsights: payload.keyInsights,
+                pacing: payload.pacing,
+                biomechanics: payload.biomechanics,
+                recoveryTimeline: payload.recoveryTimeline
             ),
             structuredNextWorkout: payload.structuredNextWorkout
         )
     }
 
     static func reportRequest(for run: RecordedRun, recentRuns: [RecordedRun], upcomingWorkouts: [WorkoutSummary]) -> RunSmartDTO.RunReportRequest {
-        RunSmartDTO.RunReportRequest(
-            runID: reportRunID(for: run),
-            source: run.source.rawValue,
-            startedAtISO8601: ISO8601DateFormatter().string(from: run.startedAt),
-            endedAtISO8601: ISO8601DateFormatter().string(from: run.endedAt),
-            distanceMeters: run.distanceMeters,
-            movingTimeSeconds: Int(run.movingTimeSeconds.rounded()),
-            averagePaceSecondsPerKm: run.averagePaceSecondsPerKm,
-            averageHeartRateBPM: run.averageHeartRateBPM,
-            telemetry: run.routePoints.enumerated().map { index, point in
-                RunSmartDTO.RoutePoint(latitude: point.latitude, longitude: point.longitude, sequence: index)
-            },
-            recentRuns: recentRuns.map { recent in
-                RunSmartDTO.RunLogRequest(
-                    startedAtISO8601: ISO8601DateFormatter().string(from: recent.startedAt),
-                    endedAtISO8601: ISO8601DateFormatter().string(from: recent.endedAt),
-                    distanceMeters: recent.distanceMeters,
-                    movingTimeSeconds: Int(recent.movingTimeSeconds.rounded()),
-                    averagePaceSecondsPerKm: recent.averagePaceSecondsPerKm,
-                    averageHeartRateBPM: recent.averageHeartRateBPM,
-                    routePoints: []
-                )
-            },
-            upcomingWorkouts: upcomingWorkouts.map { workout in
-                RunSmartDTO.WorkoutReportContext(
-                    workoutID: workout.id.uuidString,
-                    scheduledDateISO8601: ISO8601DateFormatter().string(from: workout.scheduledDate),
-                    title: workout.title,
-                    distanceLabel: workout.distance,
-                    targetPaceSecondsPerKm: workout.targetPaceSecondsPerKm,
-                    notes: workout.detail.isEmpty ? nil : workout.detail
-                )
-            }
+        let routePoints = run.routePoints
+        let averageAccuracy = routePoints.isEmpty ? nil : routePoints.reduce(0.0) { $0 + $1.horizontalAccuracy } / Double(routePoints.count)
+        let isoFormatter = ISO8601DateFormatter()
+        let shortDateFormatter = ISO8601DateFormatter.shortDate
+        let weekly7Start = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        let weekly28Start = Calendar.current.date(byAdding: .day, value: -28, to: Date()) ?? Date()
+        let week7 = recentRuns.filter { $0.startedAt >= weekly7Start }
+        let week28 = recentRuns.filter { $0.startedAt >= weekly28Start }
+        let webRun = RunSmartDTO.RunReportRequest.WebRun(
+            id: reportRunID(for: run),
+            type: "easy",
+            distanceKm: run.distanceMeters / 1_000,
+            durationSeconds: Int(run.movingTimeSeconds.rounded()),
+            avgPaceSecondsPerKm: run.averagePaceSecondsPerKm > 0 ? run.averagePaceSecondsPerKm : nil,
+            completedAt: isoFormatter.string(from: run.endedAt),
+            notes: run.source.rawValue,
+            heartRateBpm: run.averageHeartRateBPM
+        )
+        let gps = RunSmartDTO.RunReportRequest.GPSContext(
+            points: routePoints.count,
+            startAccuracy: routePoints.first?.horizontalAccuracy,
+            endAccuracy: routePoints.last?.horizontalAccuracy,
+            averageAccuracy: averageAccuracy
+        )
+        let workoutContexts: [RunSmartDTO.WorkoutReportContext] = upcomingWorkouts.map { workout in
+            let targetPace = workout.targetPaceSecondsPerKm.map { RunRecorder.paceLabel(secondsPerKm: Double($0)) }
+            return RunSmartDTO.WorkoutReportContext(
+                date: shortDateFormatter.string(from: workout.scheduledDate),
+                sessionType: workout.title,
+                durationMinutes: workout.durationMinutes,
+                targetPace: targetPace,
+                targetHrZone: workout.intensity,
+                notes: workout.detail.isEmpty ? nil : workout.detail,
+                tags: [workout.kind.rawValue],
+                workoutID: workout.id.uuidString,
+                scheduledDateISO8601: isoFormatter.string(from: workout.scheduledDate),
+                title: workout.title,
+                distanceLabel: workout.distance,
+                targetPaceSecondsPerKm: workout.targetPaceSecondsPerKm
+            )
+        }
+        let historicalRuns: [RunSmartDTO.RunReportRequest.HistoricalRun] = recentRuns.map { recent in
+            RunSmartDTO.RunReportRequest.HistoricalRun(
+                type: recent.source.rawValue,
+                distanceKm: recent.distanceMeters / 1_000,
+                paceSecPerKm: recent.averagePaceSecondsPerKm > 0 ? recent.averagePaceSecondsPerKm : nil,
+                date: shortDateFormatter.string(from: recent.startedAt),
+                effort: nil
+            )
+        }
+        let historicalContext = RunSmartDTO.RunReportRequest.HistoricalContext(
+            recentRuns: historicalRuns,
+            weeklyVolume7d: week7.reduce(0.0) { $0 + $1.distanceMeters } / 1_000,
+            weeklyVolume28d: week28.reduce(0.0) { $0 + $1.distanceMeters } / 1_000,
+            weeklyRunCount7d: week7.count,
+            recoveryScore: nil,
+            readinessScore: nil
+        )
+
+        return RunSmartDTO.RunReportRequest(
+            run: webRun,
+            gps: gps,
+            paceData: nil,
+            upcomingWorkouts: workoutContexts,
+            historicalContext: historicalContext
         )
     }
 
@@ -844,6 +1038,15 @@ private extension SupabaseRunSmartServices {
 
         let value = collected.joined(separator: " ")
         return value.isEmpty ? nil : value
+    }
+
+    static func firstMarkdownListSection(named name: String, in text: String) -> [String]? {
+        guard let section = firstMarkdownSection(named: name, in: text) else { return nil }
+        let values = section
+            .components(separatedBy: ". ")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return values.isEmpty ? nil : values
     }
 }
 

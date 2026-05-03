@@ -9,6 +9,7 @@ struct TodayTabView: View {
     @State private var routes: [RouteSuggestion] = []
     @State private var nextWorkouts: [WorkoutSummary] = []
     @State private var runReports: [RunReportSummary] = []
+    @State private var coachMessages: [CoachMessage] = []
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -22,17 +23,19 @@ struct TodayTabView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 header
 
-                ReadinessHeroView(recommendation: recommendation) {
-                    router.open(.recoveryDashboard)
-                }
+                TodayCoachHeroCard(
+                    message: recommendation.coachMessage,
+                    onCoach: { router.openCoach(context: "Today") }
+                )
                 .runSmartStaggeredAppear(index: 0)
 
-                TodayWorkoutCard(
+                TodayCommandCenter(
                     recommendation: recommendation,
                     route: routes.first,
+                    onReadiness: { router.open(.recoveryDashboard) },
                     onStart: { router.startRun(with: todayWorkout) },
                     onModify: { router.open(.planAdjustment) },
                     onSkip: { router.open(.reschedule(todayWorkout)) },
@@ -47,11 +50,19 @@ struct TodayTabView: View {
                 )
                 .runSmartStaggeredAppear(index: 2)
 
+                TodayConversationPreview(messages: coachMessages) {
+                    router.openCoach(context: "Today")
+                }
+                .runSmartStaggeredAppear(index: 3)
+
+                quickStats
+                    .runSmartStaggeredAppear(index: 4)
+
                 if !nextWorkouts.isEmpty {
                     UpcomingRunsCard(workouts: nextWorkouts) { workout in
                         router.open(.workoutDetail(workout))
                     }
-                    .runSmartStaggeredAppear(index: 3)
+                    .runSmartStaggeredAppear(index: 5)
                 }
 
                 if !runReports.isEmpty {
@@ -60,63 +71,72 @@ struct TodayTabView: View {
                             router.open(.runReportDetail(detail))
                         }
                     }
-                    .runSmartStaggeredAppear(index: 4)
+                    .runSmartStaggeredAppear(index: 6)
                 }
 
-                quickStats
-                    .runSmartStaggeredAppear(index: 5)
-
                 WeatherConditionsCard()
-                    .runSmartStaggeredAppear(index: 6)
+                    .runSmartStaggeredAppear(index: 7)
             }
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
-            .padding(.top, 16)
+            .padding(.top, 14)
         }
         .task {
-            async let recommendationTask = services.todayRecommendation()
-            async let routesTask = services.routeSuggestions()
-            async let nextWorkoutsTask = services.nextWorkouts(limit: 3)
-            async let reportsTask = services.latestRunReports(limit: 3)
-            let (rec, rts, nw, reports) = await (recommendationTask, routesTask, nextWorkoutsTask, reportsTask)
-            recommendation = rec
-            routes = rts
-            nextWorkouts = nw
-            runReports = reports
+            await loadData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .runSmartPlanDidChange)) { _ in
+            Task { await loadData() }
         }
     }
 
+    private func loadData() async {
+        async let recommendationTask = services.todayRecommendation()
+        async let routesTask = services.routeSuggestions()
+        async let nextWorkoutsTask = services.nextWorkouts(limit: 3)
+        async let reportsTask = services.latestRunReports(limit: 3)
+        async let messagesTask = services.recentMessages()
+        let (rec, rts, nw, reports, messages) = await (recommendationTask, routesTask, nextWorkoutsTask, reportsTask, messagesTask)
+        recommendation = rec
+        routes = rts
+        nextWorkouts = nw
+        runReports = reports
+        coachMessages = messages
+    }
+
     private var header: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 18) {
+            RunSmartTopBar(title: nil, showBrand: true)
+                .overlay(alignment: .trailing) {
+                    Button { router.open(.morningCheckin) } label: {
+                        Image(systemName: "checklist.checked")
+                            .font(.headline)
+                            .foregroundStyle(Color.accentPrimary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .offset(x: -92)
+                }
+            VStack(alignment: .leading, spacing: 5) {
                 Text("\(greeting), \(displayName)")
-                    .font(.headingLG)
+                    .font(.displayMD)
                     .foregroundStyle(Color.textPrimary)
-                Text("Your next smart decision is ready.")
-                    .font(.bodyMD)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                Text("Your coach is ready when you are.")
+                    .font(.bodyLG)
                     .foregroundStyle(Color.textSecondary)
             }
-            Spacer()
-            Button { router.open(.morningCheckin) } label: {
-                Image(systemName: "checklist.checked")
-                    .font(.headline)
-                    .foregroundStyle(Color.accentPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(Color.surfaceElevated, in: Circle())
-            }
-            .buttonStyle(.plain)
-            RunSmartHeader(title: nil)
-                .frame(width: 88)
         }
     }
 
     private var quickStats: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
-                SmallStatCard(title: "Weekly km", value: recommendation.weeklyProgress, unit: "", symbol: "chart.bar.fill", tint: .accentPrimary)
-                SmallStatCard(title: "Streak", value: recommendation.streak, unit: "", symbol: "flame.fill", tint: .accentEnergy)
-                SmallStatCard(title: "Recovery", value: recommendation.recovery, unit: "sleep", symbol: "moon.fill", tint: .accentRecovery)
-                SmallStatCard(title: "HRV", value: recommendation.hrv, unit: "", symbol: "heart", tint: .accentHeart)
+                TodayMiniStatCard(title: "Weekly Progress", value: recommendation.weeklyProgress, unit: "km", symbol: "chart.bar.fill", tint: .accentPrimary, values: [0.18, 0.35, 0.55, 0.78, 0.62, 0.44, 0.70])
+                TodayMiniStatCard(title: "Streak", value: recommendation.streak, unit: "days", symbol: "flame.fill", tint: .accentAmber, values: [0.35, 0.35, 0.35, 0.35, 0.35])
+                TodayMiniStatCard(title: "Recovery", value: recommendation.recovery, unit: "sleep", symbol: "moon.fill", tint: .accentMagenta, values: [0.20, 0.34, 0.46, 0.62, 0.70, 0.55, 0.48])
+                TodayMiniStatCard(title: "HRV Status", value: recommendation.hrv, unit: "balanced", symbol: "heart", tint: .accentSuccess, values: [0.40, 0.52, 0.46, 0.72, 0.58, 0.76, 0.62])
             }
             .padding(.vertical, 2)
         }
@@ -147,6 +167,204 @@ struct TodayTabView: View {
     }
 }
 
+private struct TodayCoachHeroCard: View {
+    var message: String
+    var onCoach: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            CoachAvatar(size: 118, showBolt: false)
+                .padding(.leading, 8)
+
+            RunSmartPanel(cornerRadius: 20, padding: 14, accent: .accentPrimary) {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "Your AI Coach")
+                    Text(message)
+                        .font(.bodyLG.weight(.medium))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(4)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button(action: onCoach) {
+                        HStack {
+                            Text("Talk to Coach")
+                                .font(.buttonLabel)
+                            Spacer()
+                            Image(systemName: "waveform")
+                                .font(.title3.weight(.bold))
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 18)
+                        .frame(height: 52)
+                        .background(Color.accentPrimary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: Color.accentPrimary.opacity(0.35), radius: 14)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+private struct TodayCommandCenter: View {
+    var recommendation: TodayRecommendation
+    var route: RouteSuggestion?
+    var onReadiness: () -> Void
+    var onStart: () -> Void
+    var onModify: () -> Void
+    var onSkip: () -> Void
+    var onRoute: () -> Void
+
+    private var readinessTint: Color {
+        switch recommendation.readiness {
+        case 80...100: return .accentSuccess
+        case 55..<80: return .accentPrimary
+        default: return .accentHeart
+        }
+    }
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 22, padding: 0, accent: .accentPrimary) {
+            HStack(spacing: 0) {
+                Button(action: onReadiness) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        SectionLabel(title: "Readiness", trailing: "Info")
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("\(recommendation.readiness)")
+                                .font(.displayXL)
+                                .monospacedDigit()
+                                .displayTightTracking()
+                            Text(recommendation.readinessLabel)
+                                .font(.bodyMD.weight(.semibold))
+                                .foregroundStyle(readinessTint)
+                        }
+                        ZStack {
+                            ProgressRing(value: Double(recommendation.readiness) / 100, lineWidth: 12, icon: "figure.run", tint: readinessTint)
+                            .frame(width: 112, height: 112)
+                        }
+                    }
+                    .frame(width: 132, alignment: .topLeading)
+                    .frame(minHeight: 248, alignment: .topLeading)
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
+
+                Rectangle()
+                    .fill(Color.border.opacity(0.8))
+                    .frame(width: 1)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "Coach Recommends")
+                    Text(recommendation.workoutTitle)
+                        .font(.headingLG)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    Text("- \(recommendation.distance)")
+                        .font(.headingMD)
+
+                    HStack(spacing: 14) {
+                        MetricPill(symbol: "timer", text: recommendation.pace)
+                        MetricPill(symbol: "mountain.2", text: recommendation.elevation)
+                    }
+
+                    Button(action: onRoute) {
+                        RunSmartRoutePreview(title: route?.name, height: 84)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onStart) {
+                        HStack {
+                            Text("Start Workout")
+                                .font(.buttonLabel)
+                            Spacer()
+                            Image(systemName: "play.fill")
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 18)
+                        .frame(height: 54)
+                        .background(Color.accentPrimary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: Color.accentPrimary.opacity(0.35), radius: 14)
+                    }
+                    .buttonStyle(.plain)
+
+                    HStack {
+                        Button("Modify", action: onModify)
+                        Spacer()
+                        Button("Skip", action: onSkip)
+                    }
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.textSecondary)
+                }
+                .padding(16)
+            }
+        }
+    }
+}
+
+private struct TodayConversationPreview: View {
+    var messages: [CoachMessage]
+    var onTap: () -> Void
+
+    private var visibleMessages: [CoachMessage] {
+        Array(messages.prefix(2))
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            RunSmartPanel(cornerRadius: 20, padding: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        SectionLabel(title: "Coach Conversation")
+                        Text("See all")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.accentPrimary)
+                    }
+                    ForEach(visibleMessages) { message in
+                        CoachBubble(message: message)
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct TodayMiniStatCard: View {
+    var title: String
+    var value: String
+    var unit: String
+    var symbol: String
+    var tint: Color
+    var values: [CGFloat]
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 16, padding: 12, accent: nil) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title.uppercased())
+                    .font(.labelSM)
+                    .tracking(0.8)
+                    .foregroundStyle(Color.textSecondary)
+                    .lineLimit(2)
+                    .frame(height: 28, alignment: .topLeading)
+                Image(systemName: symbol)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(tint)
+                Text(value)
+                    .font(.metricSM)
+                    .monospacedDigit()
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text(unit)
+                    .font(.caption2)
+                    .foregroundStyle(Color.textSecondary)
+                MetricBars(values: values, tint: tint)
+            }
+            .frame(width: 104, height: 138, alignment: .topLeading)
+        }
+    }
+}
+
 struct RecentRunReportsCard: View {
     var reports: [RunReportSummary]
     var onTap: (RunReportSummary) -> Void
@@ -167,7 +385,7 @@ struct RecentRunReportsCard: View {
                                 Text(report.title)
                                     .font(.bodyMD.weight(.semibold))
                                     .foregroundStyle(Color.textPrimary)
-                                Text("\(report.dateLabel) · \(report.distance) · \(report.pace)")
+                                Text("\(report.dateLabel) - \(report.distance) - \(report.pace)")
                                     .font(.labelSM)
                                     .foregroundStyle(Color.textSecondary)
                                     .lineLimit(1)
@@ -374,13 +592,13 @@ struct UpcomingRunRow: View {
                     Text(dateLabel)
                         .font(.labelSM)
                         .foregroundStyle(Color.textSecondary)
-                    Text("·")
+                    Text("-")
                         .foregroundStyle(Color.textTertiary)
                     Text(workout.distance)
                         .font(.labelSM)
                         .foregroundStyle(Color.textSecondary)
                     if let pace = StructuredWorkoutFactory.derivedPaceLabel(workout: workout) {
-                        Text("·")
+                        Text("-")
                             .foregroundStyle(Color.textTertiary)
                         Text(pace)
                             .font(.labelSM)

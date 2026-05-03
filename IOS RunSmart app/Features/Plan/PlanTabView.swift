@@ -40,7 +40,7 @@ struct PlanTabView: View {
     var body: some View {
         NavigationStack(path: $navPath) {
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 14) {
                     header
 
                     PlanBriefingCard(
@@ -49,14 +49,42 @@ struct PlanTabView: View {
                         recovery: recovery,
                         onCoach: { router.openCoach(context: "Plan") }
                     )
+                    .runSmartStaggeredAppear(index: 0)
 
-                    if !nextWorkouts.isEmpty {
-                        UpcomingRunsCard(workouts: nextWorkouts) { workout in
-                            navPath.append(.workoutDetail(workout))
-                        }
+                    PlanWeekStripSection(workouts: weekWorkouts, weekRange: weekRangeLabel) { workout in
+                        navPath.append(.workoutDetail(workout))
                     }
+                    .runSmartStaggeredAppear(index: 1)
+
+                    PlanMonthOverviewStrip(
+                        displayedMonth: displayedMonth,
+                        workoutsByDate: workoutsByDate,
+                        onSelectWorkout: { workout in navPath.append(.workoutDetail(workout)) },
+                        onPreviousMonth: {
+                            displayedMonth = Calendar.current.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
+                        },
+                        onNextMonth: {
+                            displayedMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
+                        }
+                    )
+                    .runSmartStaggeredAppear(index: 2)
+
+                    PlanCoachNotesCard(workouts: nextWorkouts, goal: goal) { workout in
+                        navPath.append(.workoutDetail(workout))
+                    } onAll: {
+                        viewMode = .week
+                    }
+                    .runSmartStaggeredAppear(index: 3)
+
+                    InsightCard(
+                        title: "Coach Notes",
+                        message: recovery.recommendation,
+                        action: { router.openCoach(context: "Plan") }
+                    )
+                    .runSmartStaggeredAppear(index: 4)
 
                     SegmentedPillPicker(values: PlanViewMode.allCases, selection: $viewMode) { $0.rawValue }
+                        .runSmartStaggeredAppear(index: 5)
 
                     switch viewMode {
                     case .week:
@@ -91,17 +119,19 @@ struct PlanTabView: View {
                         onCoach: { router.openCoach(context: "Plan") }
                     )
 
-                    ChallengePlanCard(challenge: challenge) {
-                        navPath.append(.challenges)
+                    if viewMode == .progress {
+                        ChallengePlanCard(challenge: challenge) {
+                            navPath.append(.challenges)
+                        }
+
+                        RecoveryPlanCard(recovery: recovery, trainingLoad: trainingLoad)
+
+                        RunTrendChartCard(runs: recentRuns)
                     }
-
-                    RecoveryPlanCard(recovery: recovery, trainingLoad: trainingLoad)
-
-                    RunTrendChartCard(runs: recentRuns)
                 }
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
-                .padding(.top, 16)
+                .padding(.top, 14)
                 .padding(.bottom, 10)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -110,54 +140,63 @@ struct PlanTabView: View {
             }
         }
         .task {
-            async let weekTask = services.weeklyPlan()
-            async let nextTask = services.nextWorkouts(limit: 3)
-            async let runsTask = services.recentRuns()
-            async let goalTask = services.activeGoal()
-            async let challengeTask = services.activeChallenge()
-            async let recoveryTask = services.recoverySnapshot()
-            async let loadTask = services.trainingLoadSnapshot()
-            let (ww, nw, runs, g, ch, rec, load) = await (
-                weekTask, nextTask, runsTask, goalTask, challengeTask, recoveryTask, loadTask
-            )
-            weekWorkouts = ww
-            nextWorkouts = nw
-            recentRuns = runs
-            goal = g
-            challenge = ch
-            recovery = rec
-            trainingLoad = load
+            await loadPlanData()
         }
         .task(id: displayedMonth) {
-            isLoadingMonthWorkouts = true
-            let (startDate, endDate) = monthBounds(for: displayedMonth)
-            let loaded = await services.planWorkouts(from: startDate, to: endDate)
-            workoutsByDate = Dictionary(
-                loaded.map { w in (ISO8601DateFormatter.shortDate.string(from: w.scheduledDate), w) },
-                uniquingKeysWith: { first, _ in first }
-            )
-            isLoadingMonthWorkouts = false
+            await loadMonthData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .runSmartPlanDidChange)) { _ in
+            Task {
+                await loadPlanData()
+                await loadMonthData()
+            }
         }
     }
 
+    private func loadPlanData() async {
+        async let weekTask = services.weeklyPlan()
+        async let nextTask = services.nextWorkouts(limit: 3)
+        async let runsTask = services.recentRuns()
+        async let goalTask = services.activeGoal()
+        async let challengeTask = services.activeChallenge()
+        async let recoveryTask = services.recoverySnapshot()
+        async let loadTask = services.trainingLoadSnapshot()
+        let (ww, nw, runs, g, ch, rec, load) = await (
+            weekTask, nextTask, runsTask, goalTask, challengeTask, recoveryTask, loadTask
+        )
+        weekWorkouts = ww
+        nextWorkouts = nw
+        recentRuns = runs
+        goal = g
+        challenge = ch
+        recovery = rec
+        trainingLoad = load
+    }
+
+    private func loadMonthData() async {
+        isLoadingMonthWorkouts = true
+        let (startDate, endDate) = monthBounds(for: displayedMonth)
+        let loaded = await services.planWorkouts(from: startDate, to: endDate)
+        workoutsByDate = Dictionary(
+            loaded.map { w in (ISO8601DateFormatter.shortDate.string(from: w.scheduledDate), w) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        isLoadingMonthWorkouts = false
+    }
+
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your Plan")
-                    .font(.headingLG)
-                Text(weekRangeLabel)
-                    .font(.bodyMD)
-                    .foregroundStyle(Color.textSecondary)
+        RunSmartTopBar(title: "Plan")
+            .overlay(alignment: .trailing) {
+                Button { router.open(.goalWizard) } label: {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.headline)
+                        .foregroundStyle(Color.accentPrimary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .offset(x: -92)
             }
-            Spacer()
-            Button { router.open(.goalWizard) } label: {
-                Image(systemName: "slider.horizontal.3")
-                    .foregroundStyle(Color.accentPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(Color.surfaceElevated, in: Circle())
-            }
-            .buttonStyle(.plain)
-        }
     }
 }
 
@@ -175,34 +214,226 @@ private struct PlanBriefingCard: View {
     var onCoach: () -> Void
 
     var body: some View {
-        HeroCard(accent: .accentPrimary, cornerRadius: 22, padding: 16) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .center, spacing: 16) {
-                    CoachAvatar(size: 88, showBolt: true)
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionLabel(title: "AI Coach Briefing")
-                        Text("Strong week ahead\(name.isEmpty ? "" : ", \(name)"). Recovery is \(recovery.hrv.lowercased()) and the plan is aligned to \(goal.title.lowercased()).")
-                            .font(.system(size: 18, weight: .semibold))
-                            .fixedSize(horizontal: false, vertical: true)
-                        StatusChip(text: "Focus: \(goal.trendLabel)", symbol: "target", tint: .accentPrimary)
+        RunSmartPanel(cornerRadius: 22, padding: 18, accent: .accentPrimary) {
+            HStack(alignment: .top, spacing: 16) {
+                CoachAvatar(size: 94, showBolt: false)
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "AI Coach Briefing")
+                    Text("Strong week ahead\(name.isEmpty ? "" : ", \(name)"). Your recovery is \(recovery.hrv.lowercased()) and last week's tempo looked solid. We're building fitness with a \(goal.title.lowercased()) focus.")
+                        .font(.bodyLG)
+                        .foregroundStyle(Color.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Focus: \(goal.trendLabel) - Build Aerobic Endurance")
+                        .font(.bodyMD.weight(.semibold))
+                        .foregroundStyle(Color.accentPrimary)
+
+                    Button(action: onCoach) {
+                        HStack {
+                            CoachGlowBadge(size: 34)
+                            Text("Ask Coach anything...")
+                                .font(.bodyMD)
+                                .foregroundStyle(Color.textSecondary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                        .padding(.horizontal, 12)
+                        .frame(height: 52)
+                        .background(Color.surfaceCard.opacity(0.72), in: Capsule())
+                        .overlay(Capsule().stroke(Color.border, lineWidth: 1))
                     }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+private struct PlanWeekStripSection: View {
+    var workouts: [WorkoutSummary]
+    var weekRange: String
+    var onWorkout: (WorkoutSummary) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("This Week")
+                    .font(.bodyLG.weight(.semibold))
+                Spacer()
+                Text(weekRange)
+                    .font(.bodyMD)
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(workouts) { workout in
+                        Button { onWorkout(workout) } label: {
+                            WorkoutDayCard(workout: workout)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 1)
+            }
+        }
+    }
+}
+
+private struct PlanMonthOverviewStrip: View {
+    var displayedMonth: Date
+    var workoutsByDate: [String: WorkoutSummary]
+    var onSelectWorkout: (WorkoutSummary) -> Void
+    var onPreviousMonth: () -> Void
+    var onNextMonth: () -> Void
+
+    private var days: [Date] {
+        let calendar = Calendar.current
+        let start = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+        return (0..<14).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+    }
+
+    private var title: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM 'Overview'"
+        return formatter.string(from: displayedMonth)
+    }
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text(title)
+                        .font(.bodyLG.weight(.semibold))
+                    Spacer()
+                    Button(action: onPreviousMonth) {
+                        Image(systemName: "chevron.left")
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(.plain)
+                    Button(action: onNextMonth) {
+                        Image(systemName: "chevron.right")
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .foregroundStyle(Color.textSecondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 11) {
+                        ForEach(days, id: \.self) { date in
+                            let key = ISO8601DateFormatter.shortDate.string(from: date)
+                            let workout = workoutsByDate[key]
+                            PlanOverviewDay(date: date, workout: workout) {
+                                if let workout { onSelectWorkout(workout) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct PlanOverviewDay: View {
+    var date: Date
+    var workout: WorkoutSummary?
+    var onTap: () -> Void
+
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(date)
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                Text(weekday)
+                    .font(.caption2.bold())
+                    .foregroundStyle(Color.textSecondary)
+                Text(day)
+                    .font(.bodyMD.weight(.semibold))
+                    .foregroundStyle(isToday ? Color.black : Color.textPrimary)
+                    .frame(width: 30, height: 30)
+                    .background(isToday ? Color.accentPrimary : Color.clear, in: Circle())
+                Circle()
+                    .fill(workout == nil ? Color.textTertiary.opacity(0.5) : (workout?.isComplete == true ? Color.accentPrimary : tint))
+                    .frame(width: 6, height: 6)
+            }
+            .frame(width: 36)
+        }
+        .buttonStyle(.plain)
+        .disabled(workout == nil)
+    }
+
+    private var weekday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        return String(formatter.string(from: date).prefix(1))
+    }
+
+    private var day: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+
+    private var tint: Color {
+        guard let workout else { return .textTertiary }
+        switch workout.kind {
+        case .tempo, .intervals: return .accentAmber
+        case .hills, .strength: return .accentMagenta
+        case .long: return .accentRecovery
+        default: return .accentPrimary
+        }
+    }
+}
+
+private struct PlanCoachNotesCard: View {
+    var workouts: [WorkoutSummary]
+    var goal: GoalSummary
+    var onWorkout: (WorkoutSummary) -> Void
+    var onAll: () -> Void
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("This Week from Your Coach")
+                        .font(.bodyLG.weight(.semibold))
+                    Spacer()
+                    Button("View all", action: onAll)
+                        .font(.bodyMD.weight(.semibold))
+                        .foregroundStyle(Color.accentPrimary)
                 }
 
-                Button(action: onCoach) {
-                    HStack {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(Color.accentPrimary)
-                        Text("Ask Coach anything...")
-                            .foregroundStyle(Color.textSecondary)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(Color.textSecondary)
+                ForEach(Array(workouts.prefix(2))) { workout in
+                    Button { onWorkout(workout) } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: workout.kind.symbol)
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundStyle(Color.accentPrimary)
+                                .frame(width: 58, height: 58)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(workout.weekday.capitalized): \(workout.title)")
+                                    .font(.bodyLG.weight(.semibold))
+                                    .foregroundStyle(Color.textPrimary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.72)
+                                Text(workout.detail.isEmpty ? goal.detail : workout.detail)
+                                    .font(.bodyMD)
+                                    .foregroundStyle(Color.textSecondary)
+                                    .lineLimit(2)
+                            }
+                            Spacer()
+                            Image(systemName: "text.bubble")
+                                .font(.title3)
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                        .padding(10)
+                        .background(Color.surfaceCard.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
-                    .padding(12)
-                    .background(Color.shimmer)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }

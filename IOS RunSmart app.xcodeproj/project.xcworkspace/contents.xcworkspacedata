@@ -4,4 +4,10 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:STATUS_REPORT.md">
+   </FileRef>
+   <FileRef
+      location = "group:VS_AGENT_REPORT.md">
+   </FileRef>
 </Workspace>

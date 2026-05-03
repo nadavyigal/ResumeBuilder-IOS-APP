@@ -6,7 +6,6 @@ enum RunSmartTab: String, CaseIterable, Identifiable {
     case today = "Today"
     case plan = "Plan"
     case run = "Run"
-    case activity = "Activity"
     case profile = "Profile"
 
     var id: String { rawValue }
@@ -16,7 +15,6 @@ enum RunSmartTab: String, CaseIterable, Identifiable {
         case .today: "sun.max"
         case .plan: "calendar"
         case .run: "figure.run"
-        case .activity: "chart.bar.xaxis"
         case .profile: "person"
         }
     }
@@ -26,7 +24,6 @@ enum RunSmartTab: String, CaseIterable, Identifiable {
         case .today: "sun.max.fill"
         case .plan: "calendar.badge.clock"
         case .run: "figure.run.circle.fill"
-        case .activity: "chart.bar.xaxis"
         case .profile: "person.fill"
         }
     }
@@ -80,6 +77,44 @@ struct WorkoutSummary: Identifiable, Hashable {
     var intensity: String?
     var trainingPhase: String?
     var workoutStructure: String?
+}
+
+struct TrainingGoalRequest: Hashable {
+    var displayName: String
+    var goal: String
+    var experience: String
+    var weeklyRunDays: Int
+    var preferredDays: [String]
+    var coachingTone: String
+    var targetDate: Date
+}
+
+struct WorkoutPatch: Hashable {
+    var scheduledDate: Date?
+    var kind: WorkoutKind?
+    var distanceKm: Double?
+    var durationMinutes: Int?
+    var targetPaceSecondsPerKm: Int?
+    var notes: String?
+    var workoutStructure: String?
+
+    init(
+        scheduledDate: Date? = nil,
+        kind: WorkoutKind? = nil,
+        distanceKm: Double? = nil,
+        durationMinutes: Int? = nil,
+        targetPaceSecondsPerKm: Int? = nil,
+        notes: String? = nil,
+        workoutStructure: String? = nil
+    ) {
+        self.scheduledDate = scheduledDate
+        self.kind = kind
+        self.distanceKm = distanceKm
+        self.durationMinutes = durationMinutes
+        self.targetPaceSecondsPerKm = targetPaceSecondsPerKm
+        self.notes = notes
+        self.workoutStructure = workoutStructure
+    }
 }
 
 struct TrainingPlanSnapshot: Identifiable {
@@ -295,6 +330,10 @@ struct CoachRunNotes: Codable, Hashable {
     var effort: String
     var recovery: String
     var nextSessionNudge: String
+    var keyInsights: [String]? = nil
+    var pacing: String? = nil
+    var biomechanics: String? = nil
+    var recoveryTimeline: [String]? = nil
 }
 
 struct StructuredNextWorkout: Codable, Hashable {

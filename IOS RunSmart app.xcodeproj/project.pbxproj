@@ -267,6 +267,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RunSmartInfo.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "RunSmart reads workouts to keep coaching recommendations based on real activity data.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "RunSmart writes completed GPS runs to Health when you allow it.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "RunSmart records GPS routes, pace, and distance during outdoor runs.";
@@ -308,6 +309,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = RunSmartInfo.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "RunSmart reads workouts to keep coaching recommendations based on real activity data.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "RunSmart writes completed GPS runs to Health when you allow it.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "RunSmart records GPS routes, pace, and distance during outdoor runs.";

@@ -4,6 +4,7 @@ enum SecondaryDestination: Hashable, Identifiable {
     case workoutDetail(WorkoutSummary)
     case planAdjustment
     case reschedule(WorkoutSummary)
+    case amendWorkout(WorkoutSummary)
     case addActivity
     case routeSelector
     case runReport(DBGarminActivity)
@@ -33,6 +34,7 @@ enum SecondaryDestination: Hashable, Identifiable {
         case .workoutDetail(let w): "workoutDetail-\(w.id)"
         case .planAdjustment: "planAdjustment"
         case .reschedule(let w): "reschedule-\(w.id)"
+        case .amendWorkout(let w): "amendWorkout-\(w.id)"
         case .addActivity: "addActivity"
         case .routeSelector: "routeSelector"
         case .runReport(let activity): "runReport-\(activity.id)"
@@ -64,6 +66,7 @@ enum SecondaryDestination: Hashable, Identifiable {
         case .workoutDetail(let w): w.title
         case .planAdjustment: "Plan Adjustment"
         case .reschedule: "Reschedule"
+        case .amendWorkout: "Amend Workout"
         case .addActivity: "Add Activity"
         case .routeSelector: "Route Selector"
         case .runReport, .runReportDetail: "Run Report"
@@ -119,6 +122,8 @@ struct SecondaryFlowView: View {
             PlanAdjustmentScaffold()
         case .reschedule(let workout):
             RescheduleScaffold(workout: workout)
+        case .amendWorkout(let workout):
+            AmendWorkoutScaffold(workout: workout)
         case .addActivity:
             AddActivityScaffold()
         case .routeSelector:
@@ -176,6 +181,8 @@ struct SecondaryFlowView: View {
             "Coach logic for safe plan changes."
         case .reschedule:
             "Move a workout without spiking weekly load."
+        case .amendWorkout:
+            "Adjust the workout details in your active plan."
         case .addActivity:
             "Log a manual run or cross-training session."
         case .routeSelector:
@@ -228,6 +235,7 @@ struct SecondaryFlowView: View {
         case .workoutDetail(let workout): workout.kind.symbol
         case .planAdjustment: "slider.horizontal.3"
         case .reschedule: "calendar.badge.clock"
+        case .amendWorkout: "slider.horizontal.3"
         case .addActivity: "plus.circle.fill"
         case .routeSelector: "map.fill"
         case .runReport, .runReportDetail: "chart.xyaxis.line"
@@ -285,10 +293,13 @@ private struct FlowHeader: View {
 }
 
 private struct WorkoutDetailScaffold: View {
+    @Environment(\.runSmartServices) private var services
     @EnvironmentObject private var router: AppRouter
+    @Environment(\.dismiss) private var dismiss
 
     var workout: WorkoutSummary
     @State private var runMode = "Outdoor"
+    @State private var isRemoving = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
@@ -333,7 +344,9 @@ private struct WorkoutDetailScaffold: View {
                         ActionTile(title: "Warm-Up Stretches", symbol: "line.3.horizontal") {}
                         ActionTile(title: "Add Route", symbol: "mappin.and.ellipse") { router.open(.routeSelector) }
                         ActionTile(title: "Link Activity", symbol: "link") { router.open(.addActivity) }
-                        ActionTile(title: "Remove Workout", symbol: "trash", tint: .red) {}
+                        ActionTile(title: isRemoving ? "Removing" : "Remove Workout", symbol: "trash", tint: .red) {
+                            Task { await removeWorkout() }
+                        }
                     }
                 }
             }
@@ -362,6 +375,9 @@ private struct WorkoutDetailScaffold: View {
                             .font(.headline)
                         Spacer()
                     }
+                    Text(workout.workoutStructure?.isEmpty == false ? "From the saved plan structure." : "Estimated from the saved workout targets.")
+                        .font(.caption)
+                        .foregroundStyle(Color.mutedText)
                     if let steps = StructuredWorkoutFactory.makeSteps(for: workout) {
                         ForEach(steps) { step in
                             WorkoutStepRow(step: step)
@@ -393,6 +409,9 @@ private struct WorkoutDetailScaffold: View {
                     SectionLabel(title: "Coach Actions")
                     ActionRow(title: "Reschedule Workout", detail: "Move this session and preserve weekly balance.", symbol: "calendar.badge.clock") {
                         router.open(.reschedule(workout))
+                    }
+                    ActionRow(title: "Amend Workout", detail: "Update distance, duration, pace, or notes.", symbol: "slider.horizontal.3") {
+                        router.open(.amendWorkout(workout))
                     }
                     ActionRow(title: "Choose Route", detail: "Pick a route that matches the target effort.", symbol: "map") {
                         router.open(.routeSelector)
@@ -444,6 +463,16 @@ private struct WorkoutDetailScaffold: View {
         default: "Zone 2"
         }
     }
+
+    private func removeWorkout() async {
+        guard !isRemoving else { return }
+        isRemoving = true
+        let removed = await services.removeWorkout(workoutID: workout.id)
+        isRemoving = false
+        if removed {
+            dismiss()
+        }
+    }
 }
 
 private struct PlanAdjustmentScaffold: View {
@@ -454,10 +483,7 @@ private struct PlanAdjustmentScaffold: View {
             GlassCard(glow: Color.lime) {
                 VStack(alignment: .leading, spacing: 12) {
                     SectionLabel(title: "Coach Assessment")
-                    ReadinessBar(title: "Recovery", value: 0.82, detail: "High")
-                    ReadinessBar(title: "Weekly Load", value: 0.64, detail: "Safe")
-                    ReadinessBar(title: "Schedule Fit", value: 0.72, detail: "Tight Thu")
-                    Text("Recommendation: keep today's tempo, move strength to Friday, and preserve the Sunday long run.")
+                    Text("Plan changes now write to your real RunSmart training plan. Open a workout to move, remove, or start it; use the goal wizard to regenerate the block from the web coach.")
                         .font(.callout)
                         .foregroundStyle(.white.opacity(0.84))
                 }
@@ -465,10 +491,13 @@ private struct PlanAdjustmentScaffold: View {
 
             GlassCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Proposed Changes")
-                    PlanChangeRow(day: "Thu", before: "Strength", after: "Recovery Mobility")
-                    PlanChangeRow(day: "Fri", before: "Recovery", after: "Strength")
-                    PlanChangeRow(day: "Sun", before: "Long Run", after: "Long Run, cap at easy effort")
+                    SectionLabel(title: "Available Changes")
+                    ActionRow(title: "Regenerate Goal Plan", detail: "Create a new web-parity plan from your saved goal.", symbol: "target") {
+                        router.open(.goalWizard)
+                    }
+                    ActionRow(title: "Add Missing Activity", detail: "Log a completed run so reports and plan context stay honest.", symbol: "plus.circle.fill") {
+                        router.open(.addActivity)
+                    }
                 }
             }
 
@@ -481,13 +510,21 @@ private struct PlanAdjustmentScaffold: View {
 }
 
 private struct RescheduleScaffold: View {
-    var workout: WorkoutSummary
+    @Environment(\.runSmartServices) private var services
+    @Environment(\.dismiss) private var dismiss
 
-    private let options: [(day: String, fit: String, detail: String)] = [
-        ("Tomorrow", "Best fit", "Keeps 48h before the long run."),
-        ("Friday", "Good", "Swap with strength and keep effort controlled."),
-        ("Saturday", "Caution", "Too close to the long run unless Sunday is reduced.")
-    ]
+    var workout: WorkoutSummary
+    @State private var isSaving = false
+
+    private var options: [(day: String, fit: String, detail: String, date: Date)] {
+        let calendar = Calendar.current
+        let start = Calendar.current.startOfDay(for: Date())
+        return [
+            ("Tomorrow", "Best fit", "Keeps the plan moving without inventing a new workout.", calendar.date(byAdding: .day, value: 1, to: start) ?? start),
+            ("In 2 days", "Good", "Adds a little more recovery before the session.", calendar.date(byAdding: .day, value: 2, to: start) ?? start),
+            ("Next week", "Caution", "Use only when this week is no longer realistic.", calendar.date(byAdding: .day, value: 7, to: start) ?? start)
+        ]
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
@@ -502,26 +539,166 @@ private struct RescheduleScaffold: View {
             }
 
             ForEach(Array(options.enumerated()), id: \.offset) { _, option in
-                GlassCard {
-                    HStack(spacing: 12) {
-                        Image(systemName: option.fit == "Best fit" ? "checkmark.circle.fill" : "calendar")
-                            .foregroundStyle(option.fit == "Best fit" ? Color.lime : Color.mutedText)
-                            .font(.title3)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(option.day)
-                                .font(.headline)
-                            Text(option.detail)
-                                .font(.caption)
-                                .foregroundStyle(Color.mutedText)
+                Button {
+                    Task { await move(to: option.date) }
+                } label: {
+                    GlassCard {
+                        HStack(spacing: 12) {
+                            Image(systemName: option.fit == "Best fit" ? "checkmark.circle.fill" : "calendar")
+                                .foregroundStyle(option.fit == "Best fit" ? Color.lime : Color.mutedText)
+                                .font(.title3)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(option.day)
+                                    .font(.headline)
+                                Text(option.detail)
+                                    .font(.caption)
+                                    .foregroundStyle(Color.mutedText)
+                            }
+                            Spacer()
+                            Text(isSaving ? "Saving" : option.fit)
+                                .font(.caption.bold())
+                                .foregroundStyle(option.fit == "Caution" ? Color.orange : Color.lime)
                         }
-                        Spacer()
-                        Text(option.fit)
-                            .font(.caption.bold())
-                            .foregroundStyle(option.fit == "Caution" ? Color.orange : Color.lime)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isSaving)
+            }
+        }
+    }
+
+    private func move(to date: Date) async {
+        isSaving = true
+        let moved: Bool
+        if Calendar.current.isDate(date, inSameDayAs: Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date())) ?? date) {
+            moved = await services.pushWorkoutTomorrow(workoutID: workout.id)
+        } else {
+            moved = await services.moveWorkout(workoutID: workout.id, to: date)
+        }
+        isSaving = false
+        if moved {
+            dismiss()
+        }
+    }
+}
+
+private struct AmendWorkoutScaffold: View {
+    @Environment(\.runSmartServices) private var services
+    @Environment(\.dismiss) private var dismiss
+
+    var workout: WorkoutSummary
+
+    @State private var kind: WorkoutKind
+    @State private var distanceKm: Double
+    @State private var durationMinutes: Int
+    @State private var paceMinutes: Int
+    @State private var paceSeconds: Int
+    @State private var notes: String
+    @State private var isSaving = false
+    @State private var failed = false
+
+    init(workout: WorkoutSummary) {
+        self.workout = workout
+        _kind = State(initialValue: workout.kind)
+        _distanceKm = State(initialValue: Self.distanceValue(from: workout.distance))
+        _durationMinutes = State(initialValue: workout.durationMinutes ?? 30)
+        let pace = workout.targetPaceSecondsPerKm ?? 0
+        _paceMinutes = State(initialValue: max(0, pace / 60))
+        _paceSeconds = State(initialValue: max(0, pace % 60))
+        _notes = State(initialValue: workout.detail)
+    }
+
+    private let kinds: [WorkoutKind] = [.easy, .tempo, .intervals, .hills, .long, .race, .recovery]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
+            GlassCard(glow: Color.lime) {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "Amending", trailing: workout.weekday)
+                    Text(workout.title)
+                        .font(.title2.bold())
+                    Text("Changes save to the active Supabase workout and refresh Today and Plan.")
+                        .font(.callout)
+                        .foregroundStyle(Color.mutedText)
+                }
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    SectionLabel(title: "Workout Type")
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(kinds, id: \.self) { item in
+                            Button { kind = item } label: {
+                                FlowSelectionTile(title: item.rawValue.capitalized, value: "", symbol: item.symbol, selected: kind == item)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
             }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    SectionLabel(title: "Targets")
+                    DetailLine(label: "Distance", value: String(format: "%.1f km", distanceKm))
+                    Slider(value: $distanceKm, in: 0...42.2, step: 0.1)
+                        .tint(Color.lime)
+                    Stepper("Duration: \(durationMinutes) min", value: $durationMinutes, in: 0...360, step: 5)
+                    Stepper("Pace: \(paceMinutes):\(String(format: "%02d", paceSeconds)) /km", value: $paceMinutes, in: 0...12)
+                    Stepper("Pace seconds: \(paceSeconds)", value: $paceSeconds, in: 0...59)
+                    TextField("Notes", text: $notes, axis: .vertical)
+                        .lineLimit(2...5)
+                        .textFieldStyle(RunSmartTextFieldStyle())
+                }
+            }
+
+            if failed {
+                Text("Could not save this amendment. Check the console for the Supabase error.")
+                    .font(.callout)
+                    .foregroundStyle(Color.red)
+            }
+
+            Button {
+                Task { await save() }
+            } label: {
+                HStack {
+                    if isSaving {
+                        ProgressView().tint(.black)
+                    } else {
+                        Label("Save Amendment", systemImage: "checkmark")
+                    }
+                }
+            }
+            .buttonStyle(NeonButtonStyle())
+            .disabled(isSaving)
         }
+    }
+
+    private func save() async {
+        isSaving = true
+        failed = false
+        let pace = paceMinutes > 0 ? (paceMinutes * 60 + paceSeconds) : nil
+        let patch = WorkoutPatch(
+            kind: kind,
+            distanceKm: distanceKm,
+            durationMinutes: durationMinutes > 0 ? durationMinutes : nil,
+            targetPaceSecondsPerKm: pace,
+            notes: notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : notes
+        )
+        let saved = await services.amendWorkout(workoutID: workout.id, patch: patch)
+        isSaving = false
+        if saved {
+            dismiss()
+        } else {
+            failed = true
+        }
+    }
+
+    private static func distanceValue(from label: String) -> Double {
+        let value = label
+            .replacingOccurrences(of: "km", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return Double(value) ?? 0
     }
 }
 
@@ -788,6 +965,7 @@ private struct RunReportScaffold: View {
 
             if let report {
                 RunReportCoachNotesCard(report: report)
+                RunReportRichSignalsCard(report: report)
                 RunReportNextWorkoutCard(report: report)
             } else {
                 GlassCard {
@@ -902,6 +1080,7 @@ private struct RunReportDetailScaffold: View {
                 }
             }
             RunReportCoachNotesCard(report: report)
+            RunReportRichSignalsCard(report: report)
             RunReportNextWorkoutCard(report: report)
         }
     }
@@ -923,6 +1102,57 @@ private struct RunReportCoachNotesCard: View {
 
     private var scoreLabel: String? {
         report.coachScore.map { "Score \($0)" }
+    }
+}
+
+private struct RunReportRichSignalsCard: View {
+    var report: RunReportDetail
+
+    var body: some View {
+        if hasSignals {
+            GlassCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "Run Breakdown")
+                    if let insights = report.notes.keyInsights, !insights.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Key Insights")
+                                .font(.caption.bold())
+                                .foregroundStyle(Color.mutedText)
+                            ForEach(insights, id: \.self) { insight in
+                                Label(insight, systemImage: "sparkle")
+                                    .font(.callout)
+                                    .foregroundStyle(.white.opacity(0.86))
+                            }
+                        }
+                    }
+                    if let pacing = report.notes.pacing, !pacing.isEmpty {
+                        DetailLine(label: "Pacing", value: pacing)
+                    }
+                    if let biomechanics = report.notes.biomechanics, !biomechanics.isEmpty {
+                        DetailLine(label: "Biomechanics", value: biomechanics)
+                    }
+                    if let recovery = report.notes.recoveryTimeline, !recovery.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Recovery Timeline")
+                                .font(.caption.bold())
+                                .foregroundStyle(Color.mutedText)
+                            ForEach(recovery, id: \.self) { step in
+                                Label(step, systemImage: "clock.arrow.circlepath")
+                                    .font(.callout)
+                                    .foregroundStyle(.white.opacity(0.86))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var hasSignals: Bool {
+        report.notes.keyInsights?.isEmpty == false ||
+        report.notes.pacing?.isEmpty == false ||
+        report.notes.biomechanics?.isEmpty == false ||
+        report.notes.recoveryTimeline?.isEmpty == false
     }
 }
 
@@ -1093,6 +1323,7 @@ private struct CoachingToneScaffold: View {
 }
 
 private struct GoalFocusEditor: View {
+    @Environment(\.runSmartServices) private var services
     @EnvironmentObject private var session: SupabaseSession
     @Environment(\.dismiss) private var dismiss
 
@@ -1102,6 +1333,7 @@ private struct GoalFocusEditor: View {
     @State private var daysPerWeek: Int = 4
     @State private var isSaving = false
     @State private var saved = false
+    @State private var failed = false
 
     private let goals = ["5K / Speed", "10K Improvement", "Half Marathon", "Marathon", "Build Habit"]
     private let experiences = ["Building Base", "Intermediate", "Advanced", "Competitive"]
@@ -1159,6 +1391,12 @@ private struct GoalFocusEditor: View {
                     .font(.headline)
             }
 
+            if failed {
+                Text("Goal saved locally, but the web coach did not generate a plan. Check the console and try again.")
+                    .font(.callout)
+                    .foregroundStyle(Color.red)
+            }
+
             Button(action: { Task { await save() } }) {
                 HStack {
                     if isSaving { ProgressView().tint(.black) }
@@ -1177,15 +1415,37 @@ private struct GoalFocusEditor: View {
     }
 
     private func save() async {
+        guard !selectedGoal.isEmpty else {
+            print("[GoalFocusEditor] ❌ Cannot save: no goal selected")
+            return
+        }
+        
         var updated = session.onboardingProfile
         updated.goal = selectedGoal
-        updated.experience = selectedExperience
-        updated.coachingTone = selectedStyle
+        updated.experience = selectedExperience.isEmpty ? session.onboardingProfile.experience : selectedExperience
+        updated.coachingTone = selectedStyle.isEmpty ? session.onboardingProfile.coachingTone : selectedStyle
         updated.weeklyRunDays = daysPerWeek
+        
         isSaving = true
         await session.completeOnboarding(updated)
+        let request = TrainingGoalRequest(
+            displayName: updated.displayName,
+            goal: updated.goal,
+            experience: updated.experience,
+            weeklyRunDays: updated.weeklyRunDays,
+            preferredDays: updated.preferredDays,
+            coachingTone: updated.coachingTone,
+            targetDate: Calendar.current.date(byAdding: .month, value: 4, to: Date()) ?? Date()
+        )
+        let savedToPlan = await services.saveTrainingGoal(request)
         isSaving = false
-        saved = true
+        saved = savedToPlan
+        failed = !savedToPlan
+        
+        print("[GoalFocusEditor] \(savedToPlan ? "✅" : "❌") Saved goals: \(selectedGoal), \(selectedExperience), \(selectedStyle), \(daysPerWeek) days/week")
+        if savedToPlan {
+            dismiss()
+        }
     }
 }
 

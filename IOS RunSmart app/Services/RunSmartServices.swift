@@ -11,6 +11,21 @@ protocol PlanProviding {
     func activeTrainingPlan() async -> TrainingPlanSnapshot?
     func planWorkouts(from startDate: Date, to endDate: Date) async -> [WorkoutSummary]
     func nextWorkouts(limit: Int) async -> [WorkoutSummary]
+    func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool
+    func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool
+    func moveWorkout(workoutID: UUID, to date: Date) async -> Bool
+    func pushWorkoutTomorrow(workoutID: UUID) async -> Bool
+    func amendWorkout(workoutID: UUID, patch: WorkoutPatch) async -> Bool
+    func removeWorkout(workoutID: UUID) async -> Bool
+}
+
+extension PlanProviding {
+    func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool { false }
+    func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool { false }
+    func moveWorkout(workoutID: UUID, to date: Date) async -> Bool { false }
+    func pushWorkoutTomorrow(workoutID: UUID) async -> Bool { false }
+    func amendWorkout(workoutID: UUID, patch: WorkoutPatch) async -> Bool { false }
+    func removeWorkout(workoutID: UUID) async -> Bool { false }
 }
 
 protocol CoachChatting {
@@ -83,6 +98,13 @@ struct MockRunSmartServices: TodayProviding, PlanProviding, CoachChatting, Profi
     func nextWorkouts(limit: Int) async -> [WorkoutSummary] {
         Array(RunSmartPreviewData.workouts.prefix(limit))
     }
+
+    func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool { true }
+    func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool { true }
+    func moveWorkout(workoutID: UUID, to date: Date) async -> Bool { true }
+    func pushWorkoutTomorrow(workoutID: UUID) async -> Bool { true }
+    func amendWorkout(workoutID: UUID, patch: WorkoutPatch) async -> Bool { true }
+    func removeWorkout(workoutID: UUID) async -> Bool { true }
 
     func recentMessages() async -> [CoachMessage] {
         RunSmartPreviewData.coachMessages

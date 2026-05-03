@@ -1,9 +1,15 @@
 import SwiftUI
 
 struct GoalWizardView: View {
+    @Environment(\.runSmartServices) private var services
+    @EnvironmentObject private var session: SupabaseSession
+    @Environment(\.dismiss) private var dismiss
+
     @State private var goal = "10K PR"
     @State private var weeklyRuns = 4.0
     @State private var targetDate = Date().addingTimeInterval(60 * 60 * 24 * 84)
+    @State private var isSaving = false
+    @State private var errorMessage: String?
 
     private let goals = ["First 5K", "10K PR", "Half Marathon", "Marathon", "Just Run More"]
 
@@ -47,11 +53,81 @@ struct GoalWizardView: View {
                 }
             }
 
-            Button { RunSmartHaptics.success() } label: {
-                Label("Create Goal", systemImage: "target")
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.callout)
+                    .foregroundStyle(Color.accentHeart)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button { Task { await saveGoal() } } label: {
+                HStack {
+                    if isSaving {
+                        ProgressView()
+                            .tint(.black)
+                    } else {
+                        Label("Create Goal & Training Plan", systemImage: "target")
+                    }
+                }
             }
             .buttonStyle(NeonButtonStyle())
+            .disabled(isSaving)
         }
+        .onAppear {
+            let profile = session.onboardingProfile
+            if !profile.goal.isEmpty { goal = displayGoal(from: profile.goal) }
+            weeklyRuns = Double(max(2, min(7, profile.weeklyRunDays)))
+        }
+    }
+
+    private func saveGoal() async {
+        isSaving = true
+        errorMessage = nil
+        let profile = session.onboardingProfile
+        let request = TrainingGoalRequest(
+            displayName: profile.displayName,
+            goal: goal,
+            experience: profile.experience.isEmpty ? "intermediate" : profile.experience,
+            weeklyRunDays: Int(weeklyRuns),
+            preferredDays: normalizedPreferredDays(profile.preferredDays, weeklyRuns: Int(weeklyRuns)),
+            coachingTone: profile.coachingTone.isEmpty ? "Motivating" : profile.coachingTone,
+            targetDate: targetDate
+        )
+
+        let saved = await services.saveTrainingGoal(request)
+        isSaving = false
+        if saved {
+            RunSmartHaptics.success()
+            dismiss()
+        } else {
+            errorMessage = "Could not create the plan. Check the console for Supabase/API details."
+        }
+    }
+
+    private func displayGoal(from raw: String) -> String {
+        switch raw.lowercased() {
+        case "habit": return "Just Run More"
+        case "speed": return "10K PR"
+        case "distance": return "Half Marathon"
+        default: return raw
+        }
+    }
+
+    private func normalizedPreferredDays(_ days: [String], weeklyRuns: Int) -> [String] {
+        let fallback = weeklyRuns <= 3 ? ["Mon", "Wed", "Sat"] : ["Mon", "Wed", "Fri", "Sun"]
+        let mapped = days.compactMap { day -> String? in
+            let lower = day.lowercased()
+            if lower.hasPrefix("mon") { return "Mon" }
+            if lower.hasPrefix("tue") { return "Tue" }
+            if lower.hasPrefix("wed") { return "Wed" }
+            if lower.hasPrefix("thu") { return "Thu" }
+            if lower.hasPrefix("fri") { return "Fri" }
+            if lower.hasPrefix("sat") { return "Sat" }
+            if lower.hasPrefix("sun") { return "Sun" }
+            return nil
+        }
+        let resolved = mapped.isEmpty ? fallback : mapped
+        return Array(resolved.prefix(max(1, weeklyRuns)))
     }
 }
 
