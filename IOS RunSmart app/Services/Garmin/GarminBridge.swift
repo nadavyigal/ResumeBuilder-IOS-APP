@@ -52,21 +52,21 @@ final class GarminBridge: NSObject {
     func recentActivities(authUserID: UUID, limit: Int = 10) async -> [DBGarminActivity] {
         do {
             let rows: [DBGarminActivity] = try await supabase
-                .from("garmin_activities")
+                .from("garmin_activities_deduped")
                 .select()
                 .eq("auth_user_id", value: authUserID.uuidString)
                 .order("start_time", ascending: false)
                 .limit(limit)
                 .execute()
                 .value
-            return rows
+            return Self.uniqueActivities(rows)
         } catch { return [] }
     }
 
     func latestDailyMetrics(authUserID: UUID) async -> DBGarminDailyMetrics? {
         do {
             let rows: [DBGarminDailyMetrics] = try await supabase
-                .from("garmin_daily_metrics")
+                .from("garmin_daily_metrics_deduped")
                 .select()
                 .eq("auth_user_id", value: authUserID.uuidString)
                 .order("date", ascending: false)
@@ -123,6 +123,15 @@ final class GarminBridge: NSObject {
         if let date = formatter.date(from: string) { return date }
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: string)
+    }
+
+    private static func uniqueActivities(_ rows: [DBGarminActivity]) -> [DBGarminActivity] {
+        var seen = Set<String>()
+        return rows.filter { activity in
+            guard !seen.contains(activity.activityId) else { return false }
+            seen.insert(activity.activityId)
+            return true
+        }
     }
 }
 

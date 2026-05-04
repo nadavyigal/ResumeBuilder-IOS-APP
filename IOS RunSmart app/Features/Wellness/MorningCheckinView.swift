@@ -1,9 +1,13 @@
 import SwiftUI
 
 struct MorningCheckinView: View {
+    @Environment(\.runSmartServices) private var services
+    @Environment(\.dismiss) private var dismiss
     @State private var energy = 7.0
     @State private var soreness = 3.0
     @State private var mood = "Steady"
+    @State private var isSaving = false
+    @State private var saveFailed = false
 
     private let moods = ["Strong", "Steady", "Tired", "Stressed"]
 
@@ -45,11 +49,38 @@ struct MorningCheckinView: View {
             }
 
             Button {
-                RunSmartHaptics.success()
+                Task { await save() }
             } label: {
-                Label("Save Check-In", systemImage: "checkmark")
+                Label(isSaving ? "Saving" : "Save Check-In", systemImage: "checkmark")
             }
             .buttonStyle(NeonButtonStyle())
+            .disabled(isSaving)
+
+            if saveFailed {
+                Text("Could not save check-in. Try again in a moment.")
+                    .font(.bodyMD)
+                    .foregroundStyle(Color.accentHeart)
+            }
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        saveFailed = false
+        let saved = await services.saveMorningCheckin(
+            energy: Int(energy),
+            soreness: Int(soreness),
+            mood: mood,
+            stress: nil,
+            fatigue: nil,
+            notes: nil
+        )
+        isSaving = false
+        if saved {
+            RunSmartHaptics.success()
+            dismiss()
+        } else {
+            saveFailed = true
         }
     }
 }
