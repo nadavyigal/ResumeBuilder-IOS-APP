@@ -1,0 +1,102 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "app_name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resumely" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "Resumely" } }
+      }
+    },
+    "tab_home" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "בית" } }
+      }
+    },
+    "tab_scan" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "סריקה" } }
+      }
+    },
+    "tab_improve" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Improve" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "שיפור" } }
+      }
+    },
+    "tab_design" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "עיצוב" } }
+      }
+    },
+    "tab_profile" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "פרופיל" } }
+      }
+    },
+    "home_score_excellent" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Excellent — ready to apply" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "מצוין — מוכן להגשה" } }
+      }
+    },
+    "home_score_good" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Good — a few improvements left" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "טוב — כמה שיפורים נותרו" } }
+      }
+    },
+    "home_score_needs_work" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Needs work — let's improve it" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "דורש שיפור — בואו נשפר" } }
+      }
+    },
+    "scan_import_resume" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import Resume" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "ייבוא קורות חיים" } }
+      }
+    },
+    "scan_analyze_cta" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Analyze Resume" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "ניתוח קורות חיים" } }
+      }
+    },
+    "improve_optimize_cta" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optimize for This Job" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "אופטימיזציה לתפקיד זה" } }
+      }
+    },
+    "design_apply_cta" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply Design" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "החל עיצוב" } }
+      }
+    },
+    "export_download_pdf" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download PDF" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "הורד PDF" } }
+      }
+    },
+    "profile_my_applications" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "My Applications" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "המועמדויות שלי" } }
+      }
+    },
+    "profile_sign_out" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign Out" } },
+        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "התנתק" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
