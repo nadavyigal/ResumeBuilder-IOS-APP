@@ -14,14 +14,18 @@ struct ProfileTabView: View {
     var body: some View {
         NavigationStack(path: $navPath) {
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 16) {
-                    RunSmartHeader(title: "Profile", showSettings: true) {
+                VStack(alignment: .leading, spacing: 14) {
+                    RunSmartTopBar(title: "Profile", showSettings: true) {
                         navPath.append(.account)
                     }
 
                     identityHeader
                     statsBar
+                    coachSparkCard
+                    coachSettingsGrid
+                    optimizationCards
                     achievementsGallery
+                    connectedSection
                     if !runReports.isEmpty {
                         RecentRunReportsCard(reports: runReports) { report in
                             if let detail = report.toDetail() {
@@ -29,11 +33,10 @@ struct ProfileTabView: View {
                             }
                         }
                     }
-                    settingsSections
                 }
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
-                .padding(.top, 16)
+                .padding(.top, 14)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: SecondaryDestination.self) { destination in
@@ -50,44 +53,128 @@ struct ProfileTabView: View {
     }
 
     private var identityHeader: some View {
-        HeroCard(accent: .accentPrimary) {
-            HStack(spacing: 16) {
-                CoachAvatar(size: 94, showBolt: true)
+        HStack(spacing: 18) {
+            CoachAvatar(size: 118, showBolt: true)
                 VStack(alignment: .leading, spacing: 6) {
                     Text(runner.name)
                         .font(.displayMD)
                         .foregroundStyle(Color.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
-                    Text("Level: \(runner.level)")
-                        .font(.bodyMD.weight(.semibold))
-                        .foregroundStyle(Color.accentPrimary)
-                    Text(runner.goal)
-                        .font(.bodyMD)
+                    HStack(spacing: 7) {
+                        Text(runner.goal)
+                        Circle()
+                            .fill(Color.accentPrimary)
+                            .frame(width: 6, height: 6)
+                        Text(runner.streak)
+                    }
+                    .font(.bodyLG.weight(.medium))
                         .foregroundStyle(Color.textSecondary)
                 }
                 Spacer()
-            }
         }
     }
 
     private var statsBar: some View {
-        ContentCard(padding: 0) {
+        RunSmartPanel(cornerRadius: 18, padding: 0) {
             HStack(spacing: 0) {
-                ProfileStat(title: "Runs", value: "\(runner.totalRuns)", detail: "")
+                ProfileStat(title: "Level", value: levelNumber, detail: runner.level)
                 Divider().background(Color.border)
-                ProfileStat(title: "Km", value: "\(runner.totalDistance)", detail: "total")
+                ProfileStat(title: "Total Runs", value: "\(runner.totalRuns)", detail: "")
                 Divider().background(Color.border)
-                ProfileStat(title: "Streak", value: runner.streak.components(separatedBy: " ").first ?? "--", detail: "weeks")
+                ProfileStat(title: "Total Distance", value: "\(runner.totalDistance)", detail: "km")
                 Divider().background(Color.border)
-                ProfileStat(title: "Time", value: runner.totalTime, detail: "")
+                ProfileStat(title: "Total Time", value: runner.totalTime, detail: "")
             }
             .padding(.vertical, 14)
         }
     }
 
+    private var coachSparkCard: some View {
+        RunSmartPanel(cornerRadius: 22, padding: 18, accent: .accentPrimary) {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionLabel(title: "Your AI Coach")
+                    HStack(spacing: 8) {
+                        Text("Coach Spark")
+                            .font(.displayMD)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.76)
+                        StatusChip(text: "AI", tint: .accentPrimary)
+                    }
+                    Text("Adaptive. Motivating. Data-driven.")
+                        .font(.bodyLG)
+                        .foregroundStyle(Color.textSecondary)
+                    Text("I analyze your data, adapt your plan in real-time, and coach you to be your best.")
+                        .font(.bodyMD)
+                        .foregroundStyle(Color.textSecondary)
+                        .lineLimit(3)
+
+                    Button { router.openCoach(context: "Profile") } label: {
+                        Label("Chat with Coach", systemImage: "text.bubble")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Color.accentPrimary)
+                            .padding(.horizontal, 14)
+                            .frame(height: 42)
+                            .background(Color.accentPrimary.opacity(0.08), in: Capsule())
+                            .overlay(Capsule().stroke(Color.accentPrimary.opacity(0.55), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer(minLength: 0)
+
+                ZStack {
+                    Circle()
+                        .stroke(Color.accentPrimary.opacity(0.42), lineWidth: 3)
+                        .frame(width: 122, height: 122)
+                        .shadow(color: Color.accentPrimary.opacity(0.45), radius: 24)
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 52, weight: .black))
+                        .foregroundStyle(Color.accentPrimary)
+                }
+                .frame(width: 128)
+            }
+        }
+    }
+
+    private var coachSettingsGrid: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(title: "Coach Settings")
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ProfileActionTile(title: "Voice Coaching", value: session.onboardingProfile.notificationsEnabled ? "On" : "Off", symbol: "speaker.wave.2.fill") {
+                        navPath.append(.voiceCoaching)
+                    }
+                    ProfileActionTile(title: "Coaching Tone", value: session.onboardingProfile.coachingTone, symbol: "waveform") {
+                        navPath.append(.coachingTone)
+                    }
+                    ProfileActionTile(title: "Goal Focus", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target") {
+                        navPath.append(.goalWizard)
+                    }
+                    ProfileActionTile(title: "Check-in Cadence", value: "Every 3 Days", symbol: "calendar") {
+                        navPath.append(.reminders)
+                    }
+                }
+            }
+        }
+    }
+
+    private var optimizationCards: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(title: "Coach Optimizing For")
+                HStack(spacing: 10) {
+                    ProfileOptimizationTile(title: runner.goal, value: "49:12 -> 46:30", detail: "Target PR", symbol: "chart.line.uptrend.xyaxis", tint: .accentPrimary)
+                    ProfileOptimizationTile(title: "Consistency", value: "92%", detail: "On track", symbol: "chart.bar.fill", tint: .accentSuccess)
+                    ProfileOptimizationTile(title: "Recovery", value: "85%", detail: "Optimal", symbol: "heart", tint: .accentPrimary)
+                }
+            }
+        }
+    }
+
     private var achievementsGallery: some View {
-        ContentCard {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     SectionLabel(title: "Achievements")
@@ -104,6 +191,30 @@ struct ProfileTabView: View {
                         ForEach(achievements) { achievement in
                             AchievementBadge(achievement: achievement)
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private var connectedSection: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(title: "Connected")
+                HStack(spacing: 10) {
+                    ConnectedServiceTile(title: "Garmin", detail: "Garmin Connect", status: statusLabel("Garmin Connect")) {
+                        navPath.append(.connectedService("Garmin Connect"))
+                    }
+                    ConnectedServiceTile(title: "Health", detail: "HealthKit", status: statusLabel("HealthKit")) {
+                        navPath.append(.connectedService("HealthKit"))
+                    }
+                }
+                HStack(spacing: 10) {
+                    ConnectedServiceTile(title: "Prefs", detail: "Reminders", status: session.onboardingProfile.notificationsEnabled ? "On" : "Manage") {
+                        navPath.append(.reminders)
+                    }
+                    ConnectedServiceTile(title: "Account", detail: "Privacy", status: "Manage") {
+                        navPath.append(.account)
                     }
                 }
             }
@@ -136,6 +247,11 @@ struct ProfileTabView: View {
     private func statusLabel(_ provider: String) -> String {
         deviceStatuses.first(where: { $0.provider == provider })?.state.rawValue.capitalized ?? "Disconnected"
     }
+
+    private var levelNumber: String {
+        let digits = runner.level.filter(\.isNumber)
+        return digits.isEmpty ? "14" : String(digits)
+    }
 }
 
 struct ProfileStat: View {
@@ -160,6 +276,122 @@ struct ProfileStat: View {
                 .foregroundStyle(Color.textTertiary)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+private struct ProfileActionTile: View {
+    var title: String
+    var value: String
+    var symbol: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Image(systemName: symbol)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.accentPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                        .foregroundStyle(Color.textSecondary)
+                }
+                Spacer(minLength: 0)
+                Text(title)
+                    .font(.bodyMD)
+                    .foregroundStyle(Color.textSecondary)
+                    .lineLimit(2)
+                Text(value)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.accentPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .padding(12)
+            .frame(minHeight: 110, alignment: .topLeading)
+            .background(Color.surfaceCard.opacity(0.78), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct ProfileOptimizationTile: View {
+    var title: String
+    var value: String
+    var detail: String
+    var symbol: String
+    var tint: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Image(systemName: symbol)
+                .foregroundStyle(tint)
+                .frame(height: 28)
+            RunSmartSparkline(values: [2, 4, 3, 5, 7, 6, 8], tint: tint)
+                .frame(height: 28)
+            Text(value)
+                .font(.bodyMD.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
+            Text(detail)
+                .font(.caption2)
+                .foregroundStyle(Color.textSecondary)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 126, alignment: .topLeading)
+        .background(Color.surfaceCard.opacity(0.78), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.border, lineWidth: 1))
+    }
+}
+
+private struct ConnectedServiceTile: View {
+    var title: String
+    var detail: String
+    var status: String
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Text(title.uppercased())
+                    .font(.bodyMD.weight(.black))
+                    .foregroundStyle(title == "Garmin" ? Color.textPrimary : Color.accentPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.62)
+                    .frame(width: 74, alignment: .leading)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(detail)
+                        .font(.bodyMD.weight(.semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(status.lowercased().contains("connected") || status == "On" ? Color.accentPrimary : Color.textTertiary)
+                            .frame(width: 6, height: 6)
+                        Text(status)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.accentPrimary)
+                    }
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.bold())
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 66)
+            .background(Color.surfaceCard.opacity(0.78), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 }
 

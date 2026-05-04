@@ -1,25 +1,25 @@
 import SwiftUI
 
 extension Color {
-    static let surfaceBase = Color(red: 0.039, green: 0.055, blue: 0.078)
-    static let surfaceElevated = Color(red: 0.071, green: 0.094, blue: 0.125)
-    static let surfaceCard = Color(red: 0.102, green: 0.125, blue: 0.188)
+    static let surfaceBase = Color(red: 0.024, green: 0.024, blue: 0.039) // #06060A
+    static let surfaceElevated = Color(red: 0.047, green: 0.047, blue: 0.078) // #0C0C14
+    static let surfaceCard = Color(red: 0.067, green: 0.067, blue: 0.110) // #11111C
 
-    static let accentPrimary = Color(red: 0.910, green: 1.000, blue: 0.278)
-    static let accentEnergy = Color(red: 1.000, green: 0.420, blue: 0.208)
-    static let accentRecovery = Color(red: 0.278, green: 0.831, blue: 1.000)
-    static let accentHeart = Color(red: 1.000, green: 0.302, blue: 0.416)
-    static let accentSuccess = Color(red: 0.239, green: 0.922, blue: 0.451)
+    static let accentPrimary = Color(red: 0.800, green: 1.000, blue: 0.000) // #CCFF00
+    static let accentEnergy = Color(red: 0.984, green: 0.573, blue: 0.235) // #FB923C
+    static let accentRecovery = Color(red: 0.376, green: 0.647, blue: 0.980) // #60A5FA
+    static let accentHeart = Color(red: 0.984, green: 0.443, blue: 0.522) // #FB7185
+    static let accentSuccess = Color(red: 0.176, green: 0.863, blue: 0.510) // #2DDC82
 
-    static let textPrimary = Color(red: 0.941, green: 0.949, blue: 0.961)
-    static let textSecondary = Color(red: 0.541, green: 0.584, blue: 0.659)
-    static let textTertiary = Color(red: 0.353, green: 0.392, blue: 0.471)
-    static let border = Color(red: 0.118, green: 0.149, blue: 0.212)
+    static let textPrimary = Color(red: 0.949, green: 0.949, blue: 1.000) // #F2F2FF
+    static let textSecondary = Color(red: 0.522, green: 0.522, blue: 0.620)
+    static let textTertiary = Color(red: 0.314, green: 0.314, blue: 0.400)
+    static let border = Color.white.opacity(0.07)
 
-    static let accentAmber = Color(red: 1.000, green: 0.706, blue: 0.157)
-    static let accentMagenta = Color(red: 0.898, green: 0.271, blue: 0.737)
-    static let borderSubtle = Color(red: 0.094, green: 0.118, blue: 0.165)
-    static let shimmer = Color(red: 0.118, green: 0.149, blue: 0.212)
+    static let accentAmber = Color(red: 0.984, green: 0.573, blue: 0.235)
+    static let accentMagenta = Color(red: 0.655, green: 0.545, blue: 0.980)
+    static let borderSubtle = Color.white.opacity(0.05)
+    static let shimmer = Color.white.opacity(0.08)
 
     // Compatibility aliases for existing screens while Phase 2 migrates view code.
     static let ink = Color.surfaceBase
@@ -40,9 +40,9 @@ enum RunSmartSpacing {
 }
 
 enum RunSmartRadius {
-    static let sm: CGFloat = 12
-    static let md: CGFloat = 16
-    static let lg: CGFloat = 24
+    static let sm: CGFloat = 14
+    static let md: CGFloat = 20
+    static let lg: CGFloat = 28
     static let pill: CGFloat = 999
 }
 
@@ -50,7 +50,6 @@ enum RunSmartBackgroundContext {
     case today(readiness: Int?)
     case plan
     case run(isRecording: Bool)
-    case activity
     case profile
     case neutral
 
@@ -62,8 +61,6 @@ enum RunSmartBackgroundContext {
             self = .plan
         case .run:
             self = .run(isRecording: false)
-        case .activity:
-            self = .activity
         case .profile:
             self = .profile
         }
@@ -83,7 +80,6 @@ struct RunSmartBackground: View {
             }
         case .plan: return .accentRecovery
         case .run(let isRecording): return isRecording ? .clear : .accentEnergy
-        case .activity: return .accentSuccess
         case .profile: return .clear
         case .neutral: return .accentPrimary
         }
@@ -94,7 +90,6 @@ struct RunSmartBackground: View {
         case .today: return .accentEnergy
         case .plan: return .accentPrimary
         case .run: return .accentHeart
-        case .activity: return .accentRecovery
         case .profile: return .clear
         case .neutral: return .accentRecovery
         }
@@ -133,6 +128,266 @@ struct RunSmartBackground: View {
             }
         }
         .ignoresSafeArea()
+    }
+}
+
+struct RunSmartLogoMark: View {
+    var size: CGFloat = 34
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.051, green: 0.133, blue: 0.094),
+                            Color(red: 0.035, green: 0.102, blue: 0.063)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            Image(systemName: "sparkle")
+                .font(.system(size: size * 0.52, weight: .bold))
+                .foregroundStyle(Color.accentSuccess)
+                .shadow(color: Color.accentSuccess.opacity(0.70), radius: 5)
+
+            Image(systemName: "plus")
+                .font(.system(size: size * 0.18, weight: .bold))
+                .foregroundStyle(Color.accentSuccess.opacity(0.90))
+                .offset(x: size * 0.25, y: -size * 0.22)
+
+            Circle()
+                .fill(Color.accentSuccess.opacity(0.75))
+                .frame(width: size * 0.10, height: size * 0.10)
+                .offset(x: -size * 0.22, y: size * 0.23)
+        }
+        .frame(width: size, height: size)
+        .shadow(color: Color.accentSuccess.opacity(0.30), radius: size * 0.45)
+    }
+}
+
+struct RunSmartTopBar: View {
+    var title: String?
+    var showBrand = false
+    var showSettings = false
+    var onSettingsTap: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if showBrand {
+                RunSmartLogoMark(size: 34)
+                Text("RunSmart")
+                    .font(.headingMD.weight(.bold))
+                    .foregroundStyle(Color.textPrimary)
+            } else if let title {
+                Text(title)
+                    .font(.displayMD)
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+            } else {
+                RunSmartLogoMark(size: 34)
+            }
+
+            Spacer()
+
+            if showSettings {
+                Button(action: { onSettingsTap?() }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                Image(systemName: "bell")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color.textSecondary)
+                    .frame(width: 36, height: 44)
+                    .overlay(alignment: .topTrailing) {
+                        Circle()
+                            .fill(Color.accentPrimary)
+                            .frame(width: 9, height: 9)
+                            .offset(x: -4, y: 9)
+                    }
+                CoachAvatar(size: 42)
+            }
+        }
+        .frame(minHeight: 48)
+    }
+}
+
+struct RunSmartPanel<Content: View>: View {
+    var cornerRadius: CGFloat = 22
+    var padding: CGFloat = 16
+    var accent: Color? = nil
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        content
+            .padding(padding)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(Color.surfaceElevated.opacity(0.86))
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.06),
+                            (accent ?? Color.accentPrimary).opacity(accent == nil ? 0.015 : 0.08),
+                            Color.black.opacity(0.10)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.16), (accent ?? Color.border).opacity(0.64), Color.border.opacity(0.38)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: (accent ?? Color.black).opacity(accent == nil ? 0.20 : 0.18), radius: accent == nil ? 10 : 20, x: 0, y: 10)
+    }
+}
+
+struct CoachGlowBadge: View {
+    var symbol: String = "sparkles"
+    var size: CGFloat = 52
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: size * 0.43, weight: .black))
+            .foregroundStyle(Color.accentPrimary)
+            .frame(width: size, height: size)
+            .background(
+                Circle()
+                    .fill(Color.accentPrimary.opacity(0.14))
+                    .shadow(color: Color.accentPrimary.opacity(0.45), radius: size * 0.32)
+            )
+            .overlay(Circle().stroke(Color.accentPrimary.opacity(0.28), lineWidth: 1))
+    }
+}
+
+struct MetricBars: View {
+    var values: [CGFloat] = [0.25, 0.48, 0.66, 0.88, 0.50, 0.36, 0.72]
+    var tint: Color = .accentPrimary
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 5) {
+            ForEach(Array(values.enumerated()), id: \.offset) { _, value in
+                Capsule()
+                    .fill(tint.opacity(value > 0.55 ? 0.92 : 0.48))
+                    .frame(width: 4, height: max(5, value * 28))
+            }
+        }
+        .frame(height: 30, alignment: .bottom)
+    }
+}
+
+struct RunSmartSparkline: View {
+    var values: [Double]
+    var tint: Color = .accentPrimary
+
+    var body: some View {
+        GeometryReader { geo in
+            let maxVal = values.max() ?? 1
+            let minVal = values.min() ?? 0
+            let range = max(maxVal - minVal, 1)
+            let step = geo.size.width / CGFloat(max(values.count - 1, 1))
+
+            Path { path in
+                for (index, value) in values.enumerated() {
+                    let x = CGFloat(index) * step
+                    let y = geo.size.height * (1 - CGFloat((value - minVal) / range))
+                    if index == 0 {
+                        path.move(to: CGPoint(x: x, y: y))
+                    } else {
+                        path.addLine(to: CGPoint(x: x, y: y))
+                    }
+                }
+            }
+            .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
+
+struct RunSmartRoutePreview: View {
+    var title: String?
+    var showGPS = false
+    var height: CGFloat = 132
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.black.opacity(0.26))
+
+            GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
+
+                Path { path in
+                    for index in 0..<7 {
+                        let y = h * (0.18 + CGFloat(index) * 0.11)
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: w, y: y + (index.isMultiple(of: 2) ? 16 : -10)))
+                    }
+                    for index in 0..<5 {
+                        let x = w * (0.12 + CGFloat(index) * 0.20)
+                        path.move(to: CGPoint(x: x, y: 0))
+                        path.addLine(to: CGPoint(x: x + 22, y: h))
+                    }
+                }
+                .stroke(Color.white.opacity(0.045), lineWidth: 2)
+
+                Path { path in
+                    path.move(to: CGPoint(x: w * 0.12, y: h * 0.78))
+                    path.addCurve(to: CGPoint(x: w * 0.38, y: h * 0.58), control1: CGPoint(x: w * 0.20, y: h * 0.66), control2: CGPoint(x: w * 0.29, y: h * 0.61))
+                    path.addCurve(to: CGPoint(x: w * 0.62, y: h * 0.46), control1: CGPoint(x: w * 0.48, y: h * 0.55), control2: CGPoint(x: w * 0.54, y: h * 0.51))
+                    path.addCurve(to: CGPoint(x: w * 0.82, y: h * 0.17), control1: CGPoint(x: w * 0.74, y: h * 0.38), control2: CGPoint(x: w * 0.77, y: h * 0.22))
+                }
+                .stroke(Color.accentPrimary, style: StrokeStyle(lineWidth: 4.5, lineCap: .round, lineJoin: .round))
+                .shadow(color: Color.accentPrimary.opacity(0.65), radius: 10)
+
+                Circle()
+                    .fill(Color.accentSuccess)
+                    .frame(width: 20, height: 20)
+                    .position(x: w * 0.12, y: h * 0.78)
+                Circle()
+                    .fill(Color.textPrimary)
+                    .frame(width: 15, height: 15)
+                    .position(x: w * 0.82, y: h * 0.17)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+            if let title {
+                VStack {
+                    HStack {
+                        Label(title, systemImage: showGPS ? "location.fill" : "map")
+                            .font(.caption.bold())
+                            .foregroundStyle(Color.textPrimary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .background(Color.surfaceElevated.opacity(0.88), in: Capsule())
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(10)
+            }
+        }
+        .frame(height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.border.opacity(0.9), lineWidth: 1))
     }
 }
 
@@ -456,73 +711,52 @@ struct CustomTabBar: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 10)
+        .padding(.top, 10)
+        .padding(.bottom, 9)
         .background(
-            Rectangle()
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
                 .fill(.ultraThinMaterial)
-                .overlay(Color.surfaceBase.opacity(0.82))
-                .overlay(alignment: .top) {
-                    Rectangle()
-                        .fill(Color.border)
-                        .frame(height: 1)
-                }
+                .overlay(Color.surfaceElevated.opacity(0.78), in: RoundedRectangle(cornerRadius: 34, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 34, style: .continuous).stroke(Color.white.opacity(0.13), lineWidth: 1))
         )
+        .shadow(color: .black.opacity(0.34), radius: 20, x: 0, y: 12)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 10)
     }
 
     private func tabButton(_ tab: RunSmartTab, isSelected: Bool) -> some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 4) {
             Image(systemName: isSelected ? tab.filledSymbol : tab.symbol)
-                .font(.system(size: 21, weight: .semibold))
-                .frame(width: 44, height: 32)
-            ZStack {
-                if isSelected {
-                    Capsule()
-                        .fill(Color.accentPrimary)
-                        .matchedGeometryEffect(id: "tab-dot", in: indicator)
-                } else {
-                    Capsule()
-                        .fill(.clear)
-                }
-            }
-            .frame(width: 5, height: 5)
+                .font(.system(size: 23, weight: .semibold))
+                .frame(width: 44, height: 28)
+            Text(tab.rawValue)
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
         }
         .foregroundStyle(isSelected ? Color.accentPrimary : Color.textSecondary)
+        .frame(height: 52)
         .accessibilityLabel(tab.rawValue)
     }
 
     private func runButton(isSelected: Bool) -> some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 3) {
             Image(systemName: isSelected ? RunSmartTab.run.filledSymbol : RunSmartTab.run.symbol)
                 .font(.system(size: 25, weight: .black))
-                .foregroundStyle(Color.black)
-                .frame(width: 58, height: 58)
+                .foregroundStyle(isSelected ? Color.black : Color.textSecondary)
+                .frame(width: 64, height: 64)
                 .background(
                     Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.accentPrimary, Color.accentEnergy],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(isSelected ? Color.accentPrimary : Color.surfaceCard)
                 )
-                .shadow(color: Color.accentPrimary.opacity(isSelected ? 0.52 : 0.28), radius: isSelected ? 18 : 10)
+                .overlay(Circle().stroke(Color.white.opacity(0.10), lineWidth: 1))
+                .shadow(color: Color.accentPrimary.opacity(isSelected ? 0.46 : 0.0), radius: isSelected ? 20 : 0)
                 .scaleEffect(isSelected ? 1.04 : 1.0)
-
-            ZStack {
-                if isSelected {
-                    Capsule()
-                        .fill(Color.accentPrimary)
-                        .matchedGeometryEffect(id: "tab-dot", in: indicator)
-                } else {
-                    Capsule()
-                        .fill(.clear)
-                }
-            }
-            .frame(width: 5, height: 5)
+            Text("Run")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(isSelected ? Color.accentPrimary : Color.textSecondary)
         }
-        .offset(y: -18)
+        .offset(y: -17)
         .accessibilityLabel(RunSmartTab.run.rawValue)
     }
 }

@@ -17,7 +17,7 @@ enum SupabaseManager {
 // MARK: - Database row types
 
 struct DBProfile: Sendable {
-    let id: Int              // bigint auto-increment in DB
+    let id: String           // supports legacy bigint and web UUID profile IDs
     let authUserId: UUID?
     let email: String
     let name: String?
@@ -45,7 +45,15 @@ extension DBProfile: Codable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id = try c.decode(Int.self, forKey: .id)
+        if let uuid = try? c.decode(UUID.self, forKey: .id) {
+            id = uuid.uuidString
+        } else if let string = try? c.decode(String.self, forKey: .id) {
+            id = string
+        } else if let int = try? c.decode(Int.self, forKey: .id) {
+            id = "\(int)"
+        } else {
+            id = ""
+        }
         authUserId = try? c.decodeIfPresent(UUID.self, forKey: .authUserId)
         email = (try? c.decode(String.self, forKey: .email)) ?? ""
         name = try? c.decodeIfPresent(String.self, forKey: .name)
@@ -82,9 +90,52 @@ struct DBProfileInsert: Encodable, Sendable {
     }
 }
 
+enum DBProfileReference: Codable, Hashable, Sendable {
+    case numeric(Int)
+    case uuid(UUID)
+    case string(String)
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let int = try? c.decode(Int.self) {
+            self = .numeric(int)
+        } else if let uuid = try? c.decode(UUID.self) {
+            self = .uuid(uuid)
+        } else if let string = try? c.decode(String.self), let uuid = UUID(uuidString: string) {
+            self = .uuid(uuid)
+        } else if let string = try? c.decode(String.self), let int = Int(string) {
+            self = .numeric(int)
+        } else if let string = try? c.decode(String.self) {
+            self = .string(string)
+        } else {
+            self = .string("")
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .numeric(let value):
+            try c.encode(value)
+        case .uuid(let value):
+            try c.encode(value.uuidString)
+        case .string(let value):
+            try c.encode(value)
+        }
+    }
+
+    var debugValue: String {
+        switch self {
+        case .numeric(let value): "\(value)"
+        case .uuid(let value): value.uuidString
+        case .string(let value): value
+        }
+    }
+}
+
 struct DBPlan: Codable, Sendable {
     let id: UUID
-    let profileId: UUID
+    let profileId: DBProfileReference
     let title: String
     let description: String?
     let startDate: String
@@ -338,6 +389,47 @@ extension OnboardingProfile {
         case let s where s.contains("techni") || s.contains("analytic"): return "analytical"
         case let s where s.contains("strict") || s.contains("challeng"): return "challenging"
         default: return "supportive"
+        }
+    }
+}
+
+extension TrainingGoalRequest {
+    var supabaseGoal: String {
+        let lower = goal.lowercased()
+        if lower.contains("habit") || lower.contains("consistency") || lower.contains("just") { return "habit" }
+        if lower.contains("speed") || lower.contains("5k") || lower.contains("pr") { return "speed" }
+        return "distance"
+    }
+
+    var supabaseExperience: String {
+        let lower = experience.lowercased()
+        if lower.contains("beginner") || lower.contains("base") || lower.contains("new") { return "beginner" }
+        if lower.contains("advanced") || lower.contains("competitive") { return "advanced" }
+        return "intermediate"
+    }
+
+    var supabaseCoachingStyle: String {
+        switch coachingTone.lowercased() {
+        case let s where s.contains("motivat") || s.contains("encourag"): return "encouraging"
+        case let s where s.contains("techni") || s.contains("analytic"): return "analytical"
+        case let s where s.contains("strict") || s.contains("challeng"): return "challenging"
+        default: return "supportive"
+        }
+    }
+}
+
+extension WorkoutKind {
+    var supabaseType: String {
+        switch self {
+        case .easy: return "easy"
+        case .intervals: return "intervals"
+        case .tempo: return "tempo"
+        case .hills: return "hill"
+        case .strength: return "rest"
+        case .recovery: return "recovery"
+        case .long: return "long"
+        case .race: return "time-trial"
+        case .parkrun: return "easy"
         }
     }
 }

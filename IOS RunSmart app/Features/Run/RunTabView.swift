@@ -20,6 +20,8 @@ struct RunTabView: View {
                     routePoints: recorder.routePoints,
                     phase: recorder.phase,
                     coachCue: coachCue,
+                    onCoach: { router.openCoach(context: "Run") },
+                    onAudio: { router.open(.audioCues) },
                     onPauseResume: primaryRunAction,
                     onLap: { router.open(.lapMarker) },
                     onLock: { RunSmartHaptics.light() },
@@ -33,6 +35,7 @@ struct RunTabView: View {
                         RunSmartHaptics.medium()
                         recorder.start()
                     },
+                    onCoach: { router.openCoach(context: "Run") },
                     onRoute: { router.open(.routeCreator) },
                     onAudio: { router.open(.audioCues) }
                 )

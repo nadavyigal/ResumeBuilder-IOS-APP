@@ -76,11 +76,10 @@ struct RunSmartLiteAppShell: View {
                     case .today:   TodayTabView()
                     case .plan:    PlanTabView()
                     case .run:     RunTabView()
-                    case .activity: ActivityTabView()
                     case .profile: ProfileTabView()
                     }
                 }
-                .safeAreaPadding(.bottom, 88)
+                .safeAreaPadding(.bottom, 108)
 
                 CustomTabBar(selectedTab: $router.selectedTab)
             }
