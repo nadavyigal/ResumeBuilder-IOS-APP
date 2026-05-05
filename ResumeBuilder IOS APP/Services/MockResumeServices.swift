@@ -62,7 +62,7 @@ struct MockResumeAnalysisService: ResumeAnalysisServiceProtocol {
 // MARK: - Mock Optimization
 
 struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
-    func optimize(resumeId: String, jobDescriptionId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
         try await Task.sleep(for: .seconds(2))
         return OptimizeResponse(
             success: true,
@@ -72,8 +72,6 @@ struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
                 OptimizedResumeSection(id: "s3", type: .skills, body: "TypeScript, React, Node.js, Kubernetes, Docker, CI/CD, PostgreSQL, Redis, AWS", status: "optimized", aiNote: "Reordered by relevance to job"),
             ],
             optimizationId: "mock-opt-001",
-            reviewId: nil,
-            nextStep: nil,
             error: nil
         )
     }
