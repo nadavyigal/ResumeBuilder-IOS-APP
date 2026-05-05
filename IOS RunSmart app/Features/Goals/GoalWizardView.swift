@@ -14,64 +14,83 @@ struct GoalWizardView: View {
     private let goals = ["First 5K", "10K PR", "Half Marathon", "Marathon", "Just Run More"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HeroCard(accent: .accentEnergy) {
-                VStack(alignment: .leading, spacing: 10) {
-                    SectionLabel(title: "Goal setting wizard")
-                    Text("Choose the next training block")
-                        .font(.headingLG)
-                    Text("The coach uses this to tune weekly load, workout mix, and reminders.")
-                        .font(.bodyMD)
-                        .foregroundStyle(Color.textSecondary)
-                }
-            }
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(goals, id: \.self) { option in
-                    Button { goal = option } label: {
-                        GoalChoiceCard(title: option, selected: goal == option)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            ContentCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Weekly rhythm")
-                    Stepper(value: $weeklyRuns, in: 2...7, step: 1) {
-                        HStack {
-                            Text("Runs per week")
-                            Spacer()
-                            Text("\(Int(weeklyRuns))")
-                                .font(.metricSM)
-                                .foregroundStyle(Color.accentPrimary)
+        VStack(spacing: 0) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+                    HeroCard(accent: .accentEnergy) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SectionLabel(title: "Goal setting wizard")
+                            Text("Choose the next training block")
+                                .font(.headingLG)
+                            Text("The coach uses this to tune weekly load, workout mix, and reminders.")
+                                .font(.bodyMD)
+                                .foregroundStyle(Color.textSecondary)
                         }
                     }
-                    .tint(Color.accentPrimary)
-                    DatePicker("Target date", selection: $targetDate, displayedComponents: .date)
-                        .tint(Color.accentPrimary)
-                }
-            }
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.callout)
-                    .foregroundStyle(Color.accentHeart)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(goals, id: \.self) { option in
+                            Button { goal = option } label: {
+                                GoalChoiceCard(title: option, selected: goal == option)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
 
-            Button { Task { await saveGoal() } } label: {
-                HStack {
-                    if isSaving {
-                        ProgressView()
-                            .tint(.black)
-                    } else {
-                        Label("Create Goal & Training Plan", systemImage: "target")
+                    ContentCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionLabel(title: "Weekly rhythm")
+                            Stepper(value: $weeklyRuns, in: 2...7, step: 1) {
+                                HStack {
+                                    Text("Runs per week")
+                                    Spacer()
+                                    Text("\(Int(weeklyRuns))")
+                                        .font(.metricSM)
+                                        .foregroundStyle(Color.accentPrimary)
+                                }
+                            }
+                            .tint(Color.accentPrimary)
+                            DatePicker("Target date", selection: $targetDate, displayedComponents: .date)
+                                .tint(Color.accentPrimary)
+                        }
                     }
                 }
+                .foregroundStyle(Color.textPrimary)
+                .padding(.horizontal, 20)
+                .padding(.top, 18)
+                .padding(.bottom, 18)
             }
-            .buttonStyle(NeonButtonStyle())
-            .disabled(isSaving)
+
+            VStack(alignment: .leading, spacing: 10) {
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.callout)
+                        .foregroundStyle(Color.accentHeart)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Button { Task { await saveGoal() } } label: {
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .tint(.black)
+                        } else {
+                            Label("Create Goal & Training Plan", systemImage: "target")
+                        }
+                    }
+                }
+                .buttonStyle(NeonButtonStyle())
+                .disabled(isSaving)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
+            .background(.ultraThinMaterial)
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
         }
         .onAppear {
             let profile = session.onboardingProfile

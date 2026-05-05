@@ -56,7 +56,7 @@ struct RunSmartLiteAppShell: View {
     private let services = SupabaseRunSmartServices.shared
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             RunSmartBackground(context: RunSmartBackgroundContext(tab: router.selectedTab))
 
             if session.isLoading {
@@ -78,9 +78,9 @@ struct RunSmartLiteAppShell: View {
                     case .profile: ProfileTabView()
                     }
                 }
-                .safeAreaPadding(.bottom, 108)
-
-                CustomTabBar(selectedTab: $router.selectedTab)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar(selectedTab: $router.selectedTab)
+                }
             }
 
             if isShowingLaunch {
@@ -109,22 +109,24 @@ struct RunSmartLiteAppShell: View {
             }
         }
         .sheet(item: $router.activeSheet) { sheet in
-            Group {
-                switch sheet {
-                case .coach(let context):
-                    CoachFlowView(context: context)
-                        .presentationDetents([.large])
-                        .presentationDragIndicator(.visible)
-                case .secondary(let destination):
-                    SecondaryFlowView(destination: destination)
-                        .presentationDetents([.medium, .large])
-                        .presentationDragIndicator(.visible)
-                }
+            switch sheet {
+            case .coach(let context):
+                CoachFlowView(context: context)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .environmentObject(router)
+                    .environmentObject(session)
+                    .environment(\.runSmartServices, services)
+                    .environment(\.runRecorder, recorder)
+            case .secondary(let destination):
+                SecondaryFlowView(destination: destination)
+                    .presentationDetents(destination == .goalWizard ? [.large] : [.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .environmentObject(router)
+                    .environmentObject(session)
+                    .environment(\.runSmartServices, services)
+                    .environment(\.runRecorder, recorder)
             }
-            .environmentObject(router)
-            .environmentObject(session)
-            .environment(\.runSmartServices, services)
-            .environment(\.runRecorder, recorder)
         }
     }
 }

@@ -40,10 +40,10 @@ struct TodayTabView: View {
                     .runSmartStaggeredAppear(index: 1)
                 }
 
-                TodayCommandCenter(
+                TodayWorkoutRecommendationCard(
                     recommendation: recommendation,
+                    workout: todayWorkout,
                     route: routes.first,
-                    onReadiness: { router.open(.recoveryDashboard) },
                     onStart: { router.startRun(with: todayWorkout) },
                     onModify: { router.open(.planAdjustment) },
                     onSkip: { router.open(.reschedule(todayWorkout)) },
@@ -97,7 +97,7 @@ struct TodayTabView: View {
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
             .padding(.top, 18)
-            .padding(.bottom, 132)
+            .padding(.bottom, 24)
         }
         .task {
             await loadData()
@@ -310,104 +310,196 @@ private struct TodayWeekStripSection: View {
                     }
                 }
                 .padding(.horizontal, 1)
-                .padding(.vertical, 2)
+                .padding(.vertical, 8)
             }
         }
     }
 }
 
-private struct TodayCommandCenter: View {
+private struct TodayWorkoutRecommendationCard: View {
     var recommendation: TodayRecommendation
+    var workout: WorkoutSummary
     var route: RouteSuggestion?
-    var onReadiness: () -> Void
     var onStart: () -> Void
     var onModify: () -> Void
     var onSkip: () -> Void
     var onRoute: () -> Void
 
-    private var readinessTint: Color {
-        switch recommendation.readiness {
-        case 80...100: return .accentSuccess
-        case 55..<80: return .accentPrimary
-        default: return .accentHeart
-        }
+    @State private var isExpanded = false
+
+    private var display: TodayWorkoutDisplayModel {
+        TodayWorkoutDisplayModel.make(recommendation: recommendation, workout: workout)
     }
 
     var body: some View {
-        RunSmartPanel(cornerRadius: 22, padding: 0, accent: .accentPrimary) {
-            HStack(spacing: 0) {
-                Button(action: onReadiness) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionLabel(title: "Readiness", trailing: "Info")
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("\(recommendation.readiness)")
-                                .font(.displayXL)
-                                .monospacedDigit()
-                                .displayTightTracking()
-                            Text(recommendation.readinessLabel)
-                                .font(.bodyMD.weight(.semibold))
-                                .foregroundStyle(readinessTint)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center) {
+                Text("Today's Workout")
+                    .font(.headingLG)
+                Spacer()
+                Text(display.weekLabel)
+                    .font(.bodyMD.weight(.black))
+                    .foregroundStyle(Color.accentPrimary)
+                    .padding(.horizontal, 14)
+                    .frame(height: 34)
+                    .background(Color.accentPrimary.opacity(0.12), in: Capsule())
+                    .overlay(Capsule().stroke(Color.accentPrimary.opacity(0.35), lineWidth: 1))
+            }
+
+            RunSmartPanel(cornerRadius: 26, padding: 0, accent: .accentPrimary) {
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack(alignment: .top, spacing: 14) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(display.workoutType)
+                                .font(.labelSM)
+                                .tracking(2)
+                                .foregroundStyle(Color.textSecondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.72)
+                            Text(display.title)
+                                .font(.displayLG)
+                                .foregroundStyle(Color.textPrimary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.72)
                         }
-                        ZStack {
-                            ProgressRing(value: Double(recommendation.readiness) / 100, lineWidth: 12, icon: "figure.run", tint: readinessTint)
-                            .frame(width: 112, height: 112)
+
+                        Spacer(minLength: 0)
+
+                        Image(systemName: workout.kind.symbol)
+                            .font(.system(size: 34, weight: .black))
+                            .foregroundStyle(Color.accentPrimary)
+                            .frame(width: 74, height: 74)
+                            .background(Color.accentPrimary.opacity(0.12), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                    .stroke(Color.accentPrimary.opacity(0.45), lineWidth: 1.5)
+                            )
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            StatusChip(text: display.distance, tint: .accentPrimary)
+                            StatusChip(text: display.targetPace, tint: .accentEnergy)
+                            StatusChip(text: display.intensity, tint: .accentRecovery)
                         }
                     }
-                    .frame(width: 132, alignment: .topLeading)
-                    .frame(minHeight: 248, alignment: .topLeading)
-                    .padding(16)
-                }
-                .buttonStyle(.plain)
 
-                Rectangle()
-                    .fill(Color.border.opacity(0.8))
-                    .frame(width: 1)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(title: "Coach Recommends")
-                    Text(recommendation.workoutTitle)
-                        .font(.headingLG)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.72)
-                    Text("- \(recommendation.distance)")
-                        .font(.headingMD)
-
-                    HStack(spacing: 14) {
-                        MetricPill(symbol: "timer", text: recommendation.pace)
-                        MetricPill(symbol: "mountain.2", text: recommendation.elevation)
+                    HStack(spacing: 10) {
+                        TodayWorkoutMetricTile(title: "Duration", value: display.duration)
+                        TodayWorkoutMetricTile(title: "Target Pace", value: display.targetPace)
+                        TodayWorkoutMetricTile(title: "Intensity", value: display.intensity)
                     }
 
-                    Button(action: onRoute) {
-                        RunSmartRoutePreview(title: route?.name, height: 84)
+                    Button {
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.84)) {
+                            isExpanded.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Text("Workout Breakdown")
+                                .font(.bodyLG.weight(.bold))
+                                .foregroundStyle(Color.textPrimary)
+                            Spacer()
+                            Text(isExpanded ? "COLLAPSE" : "EXPAND")
+                                .font(.labelSM)
+                                .tracking(1.0)
+                                .foregroundStyle(Color.textSecondary)
+                            Image(systemName: "chevron.down")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(Color.textSecondary)
+                                .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 64)
+                        .background(Color.surfaceBase.opacity(0.34), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.border, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
+
+                    if isExpanded {
+                        VStack(spacing: 10) {
+                            ForEach(display.steps) { step in
+                                TodayWorkoutStepRow(step: step)
+                            }
+                            if display.steps.isEmpty {
+                                Text("Coach details will appear once the workout structure is available.")
+                                    .font(.bodyMD)
+                                    .foregroundStyle(Color.textSecondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
 
                     Button(action: onStart) {
-                        HStack {
-                            Text("Start Workout")
-                                .font(.buttonLabel)
-                            Spacer()
-                            Image(systemName: "play.fill")
-                        }
-                        .foregroundStyle(Color.black)
-                        .padding(.horizontal, 18)
-                        .frame(height: 54)
-                        .background(Color.accentPrimary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .shadow(color: Color.accentPrimary.opacity(0.35), radius: 14)
+                        Label("Start Workout", systemImage: "play.fill")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(NeonButtonStyle())
 
-                    HStack {
+                    HStack(spacing: 20) {
                         Button("Modify", action: onModify)
+                        Spacer()
+                        Button(route == nil ? "Route" : route!.name, action: onRoute)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
                         Spacer()
                         Button("Skip", action: onSkip)
                     }
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.textSecondary)
                 }
-                .padding(16)
+                .padding(18)
             }
         }
+    }
+}
+
+private struct TodayWorkoutMetricTile: View {
+    var title: String
+    var value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.labelSM)
+                .tracking(1.1)
+                .foregroundStyle(Color.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(value)
+                .font(.headingMD)
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+        }
+        .frame(maxWidth: .infinity, minHeight: 78, alignment: .leading)
+        .padding(.horizontal, 14)
+        .background(Color.surfaceCard.opacity(0.78), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.border, lineWidth: 1))
+    }
+}
+
+private struct TodayWorkoutStepRow: View {
+    var step: WorkoutStep
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(step.tint)
+                .frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(step.title)
+                    .font(.bodyMD.weight(.semibold))
+                Text("\(step.duration) · \(step.target)")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(Color.surfaceCard.opacity(0.58), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 

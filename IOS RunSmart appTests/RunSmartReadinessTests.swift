@@ -2,6 +2,102 @@ import XCTest
 @testable import IOS_RunSmart_app
 
 final class RunSmartReadinessTests: XCTestCase {
+    private func makeDate(_ value: String) -> Date {
+        ISO8601DateFormatter.shortDate.date(from: value)!
+    }
+
+    private func makeWorkout(
+        id: UUID = UUID(),
+        date: String,
+        kind: WorkoutKind = .easy,
+        title: String = "Easy Run",
+        distance: String = "5.0 km",
+        durationMinutes: Int? = nil,
+        pace: Int? = nil,
+        intensity: String? = nil
+    ) -> WorkoutSummary {
+        let scheduledDate = makeDate(date)
+        return WorkoutSummary(
+            id: id,
+            scheduledDate: scheduledDate,
+            planID: nil,
+            weekday: "",
+            date: "",
+            kind: kind,
+            title: title,
+            distance: distance,
+            detail: "",
+            isToday: false,
+            isComplete: false,
+            durationMinutes: durationMinutes,
+            targetPaceSecondsPerKm: pace,
+            intensity: intensity,
+            trainingPhase: nil,
+            workoutStructure: nil
+        )
+    }
+
+    func testPlanWeeksGroupByCalendarWeekAndTotalDistance() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 1
+        let workouts = [
+            makeWorkout(date: "2026-04-27", distance: "5.5 km"),
+            makeWorkout(date: "2026-05-02", kind: .long, title: "Long Run", distance: "10km"),
+            makeWorkout(date: "2026-05-04", distance: "8km"),
+            makeWorkout(date: "2026-05-06", kind: .tempo, title: "Tempo", distance: "6.6 km"),
+            makeWorkout(date: "2026-05-07", kind: .recovery, title: "Recovery", distance: "Rest")
+        ]
+
+        let weeks = PlanPresentationModels.makeWeeks(
+            displayedMonth: makeDate("2026-05-05"),
+            workouts: workouts,
+            now: makeDate("2026-05-05"),
+            calendar: calendar
+        )
+
+        XCTAssertEqual(weeks.count, 2)
+        XCTAssertEqual(weeks[0].dateRangeLabel, "APR 26 - MAY 2")
+        XCTAssertEqual(weeks[0].totalWorkouts, 2)
+        XCTAssertEqual(weeks[0].totalDistanceLabel, "15.50km")
+        XCTAssertTrue(weeks[1].isCurrentWeek)
+        XCTAssertEqual(weeks[1].totalWorkouts, 2)
+        XCTAssertEqual(weeks[1].totalDistanceLabel, "14.60km")
+    }
+
+    func testTodayWorkoutDisplayFallsBackToLaunchFriendlyLabels() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 1
+        let recommendation = TodayRecommendation(
+            readiness: 82,
+            readinessLabel: "Ready",
+            workoutTitle: "Tempo Builder",
+            distance: "8.0 km",
+            pace: "GPS guided",
+            elevation: "Route based",
+            coachMessage: "Go steady."
+        )
+        let workout = makeWorkout(
+            date: "2026-05-05",
+            kind: .tempo,
+            title: "Tempo Builder",
+            distance: "8.696 km",
+            durationMinutes: 50
+        )
+
+        let display = TodayWorkoutDisplayModel.make(
+            recommendation: recommendation,
+            workout: workout,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(display.workoutType, "TEMPO RUN · OUTDOOR")
+        XCTAssertEqual(display.targetPace, "5:44 /km")
+        XCTAssertEqual(display.duration, "~50 min")
+        XCTAssertEqual(display.intensity, "Zone 3")
+        XCTAssertEqual(display.weekLabel, "Week 2")
+        XCTAssertFalse(display.steps.isEmpty)
+    }
+
     func testRunReportPayloadDecodesRichWebShape() throws {
         let json = """
         {

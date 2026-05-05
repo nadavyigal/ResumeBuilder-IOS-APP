@@ -51,6 +51,7 @@ struct PostRunSummaryView: View {
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
             .padding(.top, 16)
+            .padding(.bottom, 24)
         }
     }
 

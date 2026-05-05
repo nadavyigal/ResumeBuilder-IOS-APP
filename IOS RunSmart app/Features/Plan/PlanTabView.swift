@@ -29,12 +29,13 @@ struct PlanTabView: View {
     }
 
     private func monthBounds(for month: Date) -> (start: Date, end: Date) {
-        let calendar = Calendar.current
-        guard let interval = calendar.dateInterval(of: .month, for: month) else {
-            return (month, month)
-        }
-        let end = calendar.date(byAdding: .second, value: -1, to: interval.end) ?? interval.end
-        return (interval.start, end)
+        PlanPresentationModels.monthQueryBounds(for: month)
+    }
+
+    private var planWeeks: [PlanWeekSummary] {
+        let monthWorkouts = Array(workoutsByDate.values)
+        let workouts = PlanPresentationModels.uniqueWorkouts([monthWorkouts, weekWorkouts, nextWorkouts])
+        return PlanPresentationModels.makeWeeks(displayedMonth: displayedMonth, workouts: workouts)
     }
 
     var body: some View {
@@ -51,17 +52,9 @@ struct PlanTabView: View {
                     )
                     .runSmartStaggeredAppear(index: 0)
 
-                    PlanMonthOverviewStrip(
-                        displayedMonth: displayedMonth,
-                        workoutsByDate: workoutsByDate,
-                        onSelectWorkout: { workout in navPath.append(.workoutDetail(workout)) },
-                        onPreviousMonth: {
-                            displayedMonth = Calendar.current.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
-                        },
-                        onNextMonth: {
-                            displayedMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
-                        }
-                    )
+                    PlanWeeklyListSection(weeks: planWeeks) { workout in
+                        navPath.append(.workoutDetail(workout))
+                    }
                     .runSmartStaggeredAppear(index: 1)
 
                     PlanCoachNotesCard(workouts: nextWorkouts, goal: goal) { workout in
@@ -123,7 +116,7 @@ struct PlanTabView: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
                 .padding(.top, 18)
-                .padding(.bottom, 132)
+                .padding(.bottom, 24)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: SecondaryDestination.self) { destination in
@@ -424,6 +417,145 @@ private struct PlanCoachNotesCard: View {
     }
 }
 
+private struct PlanWeeklyListSection: View {
+    var weeks: [PlanWeekSummary]
+    var onWorkout: (WorkoutSummary) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Training Weeks")
+                    .font(.headingMD)
+                Spacer()
+                Text("Plan list")
+                    .font(.labelSM)
+                    .tracking(1.1)
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            if weeks.isEmpty {
+                RunSmartPanel(cornerRadius: 20, padding: 16) {
+                    Text("Create or sync a plan to see weekly workouts here.")
+                        .font(.bodyMD)
+                        .foregroundStyle(Color.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                VStack(spacing: 14) {
+                    ForEach(weeks) { week in
+                        PlanWeekSummaryCard(week: week, onWorkout: onWorkout)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct PlanWeekSummaryCard: View {
+    var week: PlanWeekSummary
+    var onWorkout: (WorkoutSummary) -> Void
+
+    private var progressCount: Int {
+        max(1, week.totalWorkouts)
+    }
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 20, padding: 0, accent: week.isCurrentWeek ? .accentPrimary : nil) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(week.dateRangeLabel)
+                        .font(.labelSM)
+                        .tracking(1.0)
+                        .foregroundStyle(Color.textSecondary)
+                    Text("Week \(week.weekNumber)")
+                        .font(.displayMD)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+                }
+
+                HStack(spacing: 7) {
+                    ForEach(0..<progressCount, id: \.self) { _ in
+                        Capsule()
+                            .fill(Color.textTertiary.opacity(0.45))
+                            .frame(height: 5)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Workouts: \(week.totalWorkouts)")
+                    Text("Distance: \(week.totalDistanceLabel)")
+                }
+                .font(.bodyMD)
+                .foregroundStyle(Color.textSecondary)
+
+                VStack(spacing: 12) {
+                    ForEach(week.visibleWorkouts) { workout in
+                        Button { onWorkout(workout) } label: {
+                            PlanWeekWorkoutRow(workout: workout)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(week.isCurrentWeek ? Color.accentPrimary : Color.clear, lineWidth: 2)
+        )
+    }
+}
+
+private struct PlanWeekWorkoutRow: View {
+    var workout: WorkoutSummary
+
+    private var tint: Color {
+        switch workout.kind {
+        case .tempo, .intervals, .hills: return .accentEnergy
+        case .long: return .accentMagenta
+        case .recovery: return .accentRecovery
+        case .strength: return .accentRecovery
+        default: return .accentSuccess
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: workout.kind.symbol)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.black)
+                .frame(width: 34, height: 34)
+                .background(
+                    LinearGradient(colors: [Color.accentPrimary, tint], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                )
+
+            Text(shortWeekday)
+                .font(.bodyLG)
+                .foregroundStyle(Color.textSecondary)
+                .frame(width: 44, alignment: .leading)
+
+            Text("\(workout.title) · \(workout.distance)")
+                .font(.bodyLG.weight(.medium))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Color.textTertiary)
+        }
+    }
+
+    private var shortWeekday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: workout.scheduledDate)
+    }
+}
+
 private struct PlanWeekSection: View {
     var workouts: [WorkoutSummary]
     var weekRange: String
@@ -450,6 +582,7 @@ private struct PlanWeekSection: View {
                     }
                 }
                 .padding(.horizontal, 2)
+                .padding(.vertical, 8)
             }
         }
     }
@@ -458,27 +591,49 @@ private struct PlanWeekSection: View {
 struct WorkoutDayCard: View {
     var workout: WorkoutSummary
 
+    private var tint: Color {
+        switch workout.kind {
+        case .tempo, .intervals, .hills: return .accentEnergy
+        case .long: return .accentMagenta
+        case .strength, .recovery: return .accentRecovery
+        default: return .accentSuccess
+        }
+    }
+
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 7) {
             Text(workout.weekday)
                 .font(.caption2.bold())
                 .foregroundStyle(Color.textSecondary)
+                .lineLimit(1)
             Text(workout.date)
                 .font(.title3.weight(workout.isToday ? .bold : .semibold))
-            RunSmartIconMark(size: 32, tint: workout.isToday ? .accentPrimary : .accentSuccess, selected: workout.isToday)
+                .frame(height: 26)
+            Image(systemName: workout.kind.symbol)
+                .font(.system(size: 24, weight: .black))
+                .foregroundStyle(workout.isToday ? Color.black : tint)
+                .frame(width: 40, height: 40)
+                .background(workout.isToday ? Color.accentPrimary : tint.opacity(0.14), in: Circle())
             Text(workout.title)
                 .font(.caption2.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .frame(height: 30, alignment: .top)
+                .minimumScaleFactor(0.72)
+                .frame(height: 32, alignment: .top)
             Text(workout.distance)
                 .font(.caption2)
                 .foregroundStyle(Color.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
             Spacer(minLength: 0)
-            RunSmartIconMark(size: 18, tint: workout.isComplete ? .accentPrimary : .textTertiary, selected: workout.isComplete)
+            Image(systemName: workout.isComplete ? "checkmark.circle.fill" : "list.bullet.rectangle")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(workout.isComplete ? Color.accentPrimary : Color.textTertiary)
+                .frame(width: 28, height: 24)
         }
-        .frame(width: 76, height: 152)
-        .padding(.vertical, 10)
+        .frame(width: 86, height: 174)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
         .background(
             LinearGradient(
                 colors: workout.isToday ? [Color.white.opacity(0.12), Color.accentPrimary.opacity(0.06)] : [Color.white.opacity(0.055), Color.white.opacity(0.025)],

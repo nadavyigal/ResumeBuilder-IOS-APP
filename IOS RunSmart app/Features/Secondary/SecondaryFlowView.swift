@@ -100,14 +100,18 @@ struct SecondaryFlowView: View {
         ZStack {
             RunSmartBackground()
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
-                    FlowHeader(destination: destination, subtitle: subtitle, symbol: symbol)
-                    content
-                    Spacer(minLength: 20)
+            if destination == .goalWizard {
+                GoalWizardView()
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
+                        FlowHeader(destination: destination, subtitle: subtitle, symbol: symbol)
+                        content
+                        Spacer(minLength: 20)
+                    }
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(20)
                 }
-                .foregroundStyle(Color.textPrimary)
-                .padding(20)
             }
         }
         .preferredColorScheme(.dark)

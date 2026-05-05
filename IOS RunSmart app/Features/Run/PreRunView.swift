@@ -74,6 +74,7 @@ struct PreRunView: View {
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
             .padding(.top, 14)
+            .padding(.bottom, 24)
         }
     }
 
