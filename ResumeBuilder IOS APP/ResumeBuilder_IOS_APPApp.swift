@@ -6,7 +6,7 @@ struct ResumeBuilder_IOS_APPApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            ContentView()
                 .environment(appState)
                 .task {
                     appState.bootstrap()

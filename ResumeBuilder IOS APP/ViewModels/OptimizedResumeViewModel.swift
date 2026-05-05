@@ -26,7 +26,14 @@ final class OptimizedResumeViewModel {
     }
 
     func refineSection(sectionId: String, instruction: String, token: String?) async {
-        guard let token, let optId = optimizationId else { return }
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
         isRefining = true
         activeSectionId = sectionId
         errorMessage = nil
@@ -45,7 +52,14 @@ final class OptimizedResumeViewModel {
     }
 
     func acceptRefine(sectionId: String, acceptedText: String, token: String?) async {
-        guard let token, let optId = optimizationId else { return }
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
         isSaving = true
         defer { isSaving = false }
         do {

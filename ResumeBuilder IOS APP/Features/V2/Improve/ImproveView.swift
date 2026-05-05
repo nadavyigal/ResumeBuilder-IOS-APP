@@ -37,9 +37,11 @@ struct ImproveView: View {
                         isLoading: viewModel.isOptimizing
                     ) {
                         Task {
-                            if let optId = await viewModel.optimize(token: appState.session?.accessToken) {
-                                currentOptId = optId
+                            if let result = await viewModel.optimize(token: appState.session?.accessToken) {
+                                currentOptId = result.optimizationId
+                                optimizedSections = result.sections
                                 navigateToOptimized = true
+                                onOptimized?(result.optimizationId)
                             }
                         }
                     }

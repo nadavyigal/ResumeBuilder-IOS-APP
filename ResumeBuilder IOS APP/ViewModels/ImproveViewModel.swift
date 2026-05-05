@@ -4,6 +4,11 @@ import Observation
 @Observable
 @MainActor
 final class ImproveViewModel {
+    struct OptimizationResult: Sendable {
+        let optimizationId: String
+        let sections: [OptimizedResumeSection]
+    }
+
     var analysis: ResumeAnalysis? = nil
     var improvements: [ResumeImprovement] = []
     var isLoading = false
@@ -55,15 +60,27 @@ final class ImproveViewModel {
         }
     }
 
+<<<<<<< HEAD
     func optimize(token: String?) async -> String? {
         guard let token, let resumeId else { return nil }
         guard let jobDescriptionId else {
             errorMessage = "Scan your resume with a job link before optimizing."
+=======
+    func optimize(token: String?) async -> OptimizationResult? {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return nil
+        }
+        guard let resumeId else {
+            errorMessage = ResumeOptimizationError.missingResumeId.localizedDescription
+>>>>>>> 45e32da (fix: harden resume optimization flow and root entry wiring)
             return nil
         }
         isOptimizing = true
+        errorMessage = nil
         defer { isOptimizing = false }
         do {
+<<<<<<< HEAD
             let response = try await optimizationService.optimize(
                 resumeId: resumeId,
                 jobDescriptionId: jobDescriptionId,
@@ -72,6 +89,15 @@ final class ImproveViewModel {
             )
             optimizationId = response.optimizationId ?? response.reviewId
             return optimizationId
+=======
+            let response = try await optimizationService.optimize(resumeId: resumeId, jobDescription: jobDescription, token: token)
+            guard let optimizationId = response.optimizationId else {
+                throw ResumeOptimizationError.missingOptimizationId
+            }
+            let sections = response.sections ?? []
+            self.optimizationId = optimizationId
+            return OptimizationResult(optimizationId: optimizationId, sections: sections)
+>>>>>>> 45e32da (fix: harden resume optimization flow and root entry wiring)
         } catch {
             errorMessage = error.localizedDescription
             return nil

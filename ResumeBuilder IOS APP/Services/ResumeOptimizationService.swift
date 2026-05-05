@@ -1,5 +1,25 @@
 import Foundation
 
+enum ResumeOptimizationError: LocalizedError, Sendable {
+    case missingToken
+    case missingResumeId
+    case missingOptimizationId
+    case invalidResponse(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .missingToken:
+            return "Please sign in before optimizing your resume."
+        case .missingResumeId:
+            return "Upload a resume before running optimization."
+        case .missingOptimizationId:
+            return "Optimization is not ready yet. Please try again."
+        case .invalidResponse(let message):
+            return message
+        }
+    }
+}
+
 struct OptimizeResponse: Codable, Sendable {
     let success: Bool?
     let sections: [OptimizedResumeSection]?
@@ -11,6 +31,34 @@ struct OptimizeResponse: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success, sections, reviewId, nextStep, error
         case optimizationId = "optimization_id"
+    }
+
+    private enum NestedCodingKeys: String, CodingKey {
+        case data
+        case optimizedResume = "optimized_resume"
+    }
+
+    init(success: Bool?, sections: [OptimizedResumeSection]?, optimizationId: String?, error: String?) {
+        self.success = success
+        self.sections = sections
+        self.optimizationId = optimizationId
+        self.error = error
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let nestedContainer = try? decoder.container(keyedBy: NestedCodingKeys.self)
+
+        let nestedData = try nestedContainer?.decodeIfPresent(OptimizeResponse.self, forKey: .data)
+
+        success = try container.decodeIfPresent(Bool.self, forKey: .success) ?? nestedData?.success
+        optimizationId = try container.decodeIfPresent(String.self, forKey: .optimizationId) ?? nestedData?.optimizationId
+        error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
+
+        let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)
+        let nestedSections = nestedData?.sections
+        let optimizedResumeSections = try nestedContainer?.decodeIfPresent([OptimizedResumeSection].self, forKey: .optimizedResume)
+        sections = topSections ?? nestedSections ?? optimizedResumeSections
     }
 }
 
@@ -54,12 +102,25 @@ protocol ResumeOptimizationServiceProtocol: Sendable {
 struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
     private let apiClient = APIClient()
 
+<<<<<<< HEAD
     func optimize(resumeId: String, jobDescriptionId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
         let body: [String: Any] = [
             "resumeId": resumeId,
             "jobDescriptionId": jobDescriptionId,
         ]
         return try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
+=======
+    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+        let body: [String: Any] = ["resume_id": resumeId, "job_description": jobDescription]
+        let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
+        if response.success == false {
+            throw ResumeOptimizationError.invalidResponse(response.error ?? "Optimization failed.")
+        }
+        guard response.optimizationId != nil else {
+            throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")
+        }
+        return response
+>>>>>>> 45e32da (fix: harden resume optimization flow and root entry wiring)
     }
 
     func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse {
