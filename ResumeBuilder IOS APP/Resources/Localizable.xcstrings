@@ -1,101 +1,557 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "/ 100" : {
+
+    },
+    "%lld" : {
+
+    },
+    "%lld / 5000" : {
+
+    },
+    "%lld credits" : {
+
+    },
+    "%lld credits remaining" : {
+
+    },
+    "+%lld" : {
+
+    },
+    "100 credits" : {
+
+    },
+    "500 credits" : {
+
+    },
+    "2500 credits" : {
+
+    },
+    "Accent Color" : {
+
+    },
+    "Accept" : {
+
+    },
+    "Accepted: %lld  •  Rejected: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accepted: %1$lld  •  Rejected: %2$lld"
+          }
+        }
+      }
+    },
+    "Account" : {
+
+    },
+    "AI Optimized" : {
+
+    },
+    "Already have an account?" : {
+
+    },
     "app_name" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resumely" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "Resumely" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumely"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "Resumely"
+          }
+        }
       }
     },
-    "tab_home" : {
+    "Application" : {
+
+    },
+    "Applied" : {
+
+    },
+    "ATS Score" : {
+
+    },
+    "Balance" : {
+
+    },
+    "Buy Credits" : {
+
+    },
+    "Buy More" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Change Resume" : {
+
+    },
+    "Company" : {
+
+    },
+    "Continue Editing" : {
+
+    },
+    "Credit Packs" : {
+
+    },
+    "Credits" : {
+
+    },
+    "design_apply_cta" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "בית" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "החל עיצוב"
+          }
+        }
       }
     },
-    "tab_scan" : {
+    "Diff Review" : {
+
+    },
+    "Don't have an account?" : {
+
+    },
+    "e.g. Make it more concise and add leadership examples…" : {
+
+    },
+    "Edit Section" : {
+
+    },
+    "Email" : {
+
+    },
+    "export_download_pdf" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "סריקה" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download PDF"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "הורד PDF"
+          }
+        }
       }
     },
-    "tab_improve" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Improve" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "שיפור" } }
-      }
+    "Font Style" : {
+
     },
-    "tab_design" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Design" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "עיצוב" } }
-      }
+    "Free plan" : {
+
     },
-    "tab_profile" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "פרופיל" } }
-      }
+    "Get Credits" : {
+
+    },
+    "Hello, world!" : {
+
+    },
+    "Hi %@ 👋" : {
+
     },
     "home_score_excellent" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Excellent — ready to apply" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "מצוין — מוכן להגשה" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excellent — ready to apply"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "מצוין — מוכן להגשה"
+          }
+        }
       }
     },
     "home_score_good" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Good — a few improvements left" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "טוב — כמה שיפורים נותרו" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good — a few improvements left"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "טוב — כמה שיפורים נותרו"
+          }
+        }
       }
     },
     "home_score_needs_work" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Needs work — let's improve it" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "דורש שיפור — בואו נשפר" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs work — let's improve it"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "דורש שיפור — בואו נשפר"
+          }
+        }
       }
     },
-    "scan_import_resume" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import Resume" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "ייבוא קורות חיים" } }
-      }
+    "Import PDF or DOCX" : {
+
     },
-    "scan_analyze_cta" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Analyze Resume" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "ניתוח קורות חיים" } }
-      }
+    "Import Resume" : {
+
     },
     "improve_optimize_cta" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optimize for This Job" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "אופטימיזציה לתפקיד זה" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimize for This Job"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "אופטימיזציה לתפקיד זה"
+          }
+        }
       }
     },
-    "design_apply_cta" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply Design" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "החל עיצוב" } }
-      }
+    "Job Description" : {
+
     },
-    "export_download_pdf" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download PDF" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "הורד PDF" } }
-      }
+    "Job Description ID" : {
+
+    },
+    "Master Resume" : {
+
+    },
+    "Master resume preview will appear here." : {
+
+    },
+    "Missing Keywords" : {
+
+    },
+    "My Applications" : {
+
+    },
+    "My Resume" : {
+
+    },
+    "No master resume uploaded yet." : {
+
+    },
+    "Not yet exported" : {
+
+    },
+    "Optimize" : {
+
+    },
+    "Optimized Resume" : {
+
+    },
+    "Optimizing your resume..." : {
+
+    },
+    "or" : {
+
+    },
+    "Original" : {
+
+    },
+    "Password" : {
+
+    },
+    "Paste the job description here…" : {
+
+    },
+    "PDF generated and ready" : {
+
+    },
+    "PDF or DOCX" : {
+
+    },
+    "PDF Ready" : {
+
+    },
+    "Preview & Export" : {
+
+    },
+    "Preview PDF" : {
+
+    },
+    "Profile" : {
+
     },
     "profile_my_applications" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "My Applications" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "המועמדויות שלי" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Applications"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "המועמדויות שלי"
+          }
+        }
       }
     },
     "profile_sign_out" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign Out" } },
-        "he" : { "stringUnit" : { "state" : "needs_translation", "value" : "התנתק" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign Out"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "התנתק"
+          }
+        }
       }
+    },
+    "Recent Activity" : {
+
+    },
+    "Recent Exports" : {
+
+    },
+    "Refinement Instruction" : {
+
+    },
+    "Reject" : {
+
+    },
+    "Resume" : {
+
+    },
+    "Resume Health Score" : {
+
+    },
+    "Resume ID" : {
+
+    },
+    "Resumely" : {
+
+    },
+    "Review ID: %@" : {
+
+    },
+    "Role" : {
+
+    },
+    "Run ATS Score" : {
+
+    },
+    "scan_analyze_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyze Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ניתוח קורות חיים"
+          }
+        }
+      }
+    },
+    "scan_import_resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ייבוא קורות חיים"
+          }
+        }
+      }
+    },
+    "Score" : {
+
+    },
+    "Sign In" : {
+
+    },
+    "Sign Out" : {
+
+    },
+    "Sign Up" : {
+
+    },
+    "Spacing" : {
+
+    },
+    "Status" : {
+
+    },
+    "StoreKit wiring is scaffolded and intentionally left minimal in this pass." : {
+
+    },
+    "Suggested" : {
+
+    },
+    "tab_design" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "עיצוב"
+          }
+        }
+      }
+    },
+    "tab_home" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "בית"
+          }
+        }
+      }
+    },
+    "tab_improve" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improve"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "שיפור"
+          }
+        }
+      }
+    },
+    "tab_profile" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "פרופיל"
+          }
+        }
+      }
+    },
+    "tab_scan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "סריקה"
+          }
+        }
+      }
+    },
+    "Tailor" : {
+
+    },
+    "Tailor your resume to any job in 60 seconds." : {
+
+    },
+    "Tap any section to refine with custom instructions" : {
+
+    },
+    "Tap Download to generate PDF" : {
+
+    },
+    "Top Fixes" : {
+
+    },
+    "Track" : {
+
+    },
+    "Track your job applications" : {
+
+    },
+    "Use Tailor to improve weak bullets and keyword alignment." : {
+
+    },
+    "View Credits" : {
+
+    },
+    "Your resume data is encrypted end-to-end." : {
+
+    },
+    "Your resume is encrypted and never shared." : {
+
     }
   },
   "version" : "1.0"
