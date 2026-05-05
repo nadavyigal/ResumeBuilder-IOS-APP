@@ -21,6 +21,20 @@
                ReferencedContainer = "container:IOS RunSmart app.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "33F1D5D22FA0B36A006C1A3C"
+               BuildableName = "IOS RunSmart appTests.xctest"
+               BlueprintName = "IOS RunSmart appTests"
+               ReferencedContainer = "container:IOS RunSmart app.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -29,6 +43,17 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "33F1D5D22FA0B36A006C1A3C"
+               BuildableName = "IOS RunSmart appTests.xctest"
+               BlueprintName = "IOS RunSmart appTests"
+               ReferencedContainer = "container:IOS RunSmart app.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

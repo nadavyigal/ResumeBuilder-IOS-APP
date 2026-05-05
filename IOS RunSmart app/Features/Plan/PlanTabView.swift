@@ -51,11 +51,6 @@ struct PlanTabView: View {
                     )
                     .runSmartStaggeredAppear(index: 0)
 
-                    PlanWeekStripSection(workouts: weekWorkouts, weekRange: weekRangeLabel) { workout in
-                        navPath.append(.workoutDetail(workout))
-                    }
-                    .runSmartStaggeredAppear(index: 1)
-
                     PlanMonthOverviewStrip(
                         displayedMonth: displayedMonth,
                         workoutsByDate: workoutsByDate,
@@ -67,30 +62,26 @@ struct PlanTabView: View {
                             displayedMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
                         }
                     )
-                    .runSmartStaggeredAppear(index: 2)
+                    .runSmartStaggeredAppear(index: 1)
 
                     PlanCoachNotesCard(workouts: nextWorkouts, goal: goal) { workout in
                         navPath.append(.workoutDetail(workout))
                     } onAll: {
-                        viewMode = .week
+                        viewMode = .month
                     }
-                    .runSmartStaggeredAppear(index: 3)
+                    .runSmartStaggeredAppear(index: 2)
 
                     InsightCard(
                         title: "Coach Notes",
                         message: recovery.recommendation,
                         action: { router.openCoach(context: "Plan") }
                     )
-                    .runSmartStaggeredAppear(index: 4)
+                    .runSmartStaggeredAppear(index: 3)
 
                     SegmentedPillPicker(values: PlanViewMode.allCases, selection: $viewMode) { $0.rawValue }
-                        .runSmartStaggeredAppear(index: 5)
+                        .runSmartStaggeredAppear(index: 4)
 
                     switch viewMode {
-                    case .week:
-                        PlanWeekSection(workouts: weekWorkouts, weekRange: weekRangeLabel) { workout in
-                            navPath.append(.workoutDetail(workout))
-                        }
                     case .month:
                         MonthlyScheduleCard(
                             displayedMonth: displayedMonth,
@@ -131,8 +122,8 @@ struct PlanTabView: View {
                 }
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
-                .padding(.top, 14)
-                .padding(.bottom, 10)
+                .padding(.top, 18)
+                .padding(.bottom, 132)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: SecondaryDestination.self) { destination in
@@ -201,7 +192,6 @@ struct PlanTabView: View {
 }
 
 private enum PlanViewMode: String, CaseIterable, Hashable, Identifiable {
-    case week = "Week"
     case month = "Month"
     case progress = "Progress"
     var id: String { rawValue }
@@ -398,7 +388,7 @@ private struct PlanCoachNotesCard: View {
         RunSmartPanel(cornerRadius: 20, padding: 14) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("This Week from Your Coach")
+                    Text("Upcoming from Your Coach")
                         .font(.bodyLG.weight(.semibold))
                     Spacer()
                     Button("View all", action: onAll)
@@ -409,10 +399,7 @@ private struct PlanCoachNotesCard: View {
                 ForEach(Array(workouts.prefix(2))) { workout in
                     Button { onWorkout(workout) } label: {
                         HStack(spacing: 14) {
-                            Image(systemName: workout.kind.symbol)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(Color.accentPrimary)
-                                .frame(width: 58, height: 58)
+                            RunSmartIconMark(size: 58, tint: .accentPrimary)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(workout.weekday.capitalized): \(workout.title)")
                                     .font(.bodyLG.weight(.semibold))
@@ -425,9 +412,7 @@ private struct PlanCoachNotesCard: View {
                                     .lineLimit(2)
                             }
                             Spacer()
-                            Image(systemName: "text.bubble")
-                                .font(.title3)
-                                .foregroundStyle(Color.textSecondary)
+                            RunSmartIconMark(size: 28, tint: .textSecondary)
                         }
                         .padding(10)
                         .background(Color.surfaceCard.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -480,9 +465,7 @@ struct WorkoutDayCard: View {
                 .foregroundStyle(Color.textSecondary)
             Text(workout.date)
                 .font(.title3.weight(workout.isToday ? .bold : .semibold))
-            Image(systemName: workout.kind.symbol)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(workout.isToday ? Color.accentPrimary : Color.accentSuccess.opacity(0.78))
+            RunSmartIconMark(size: 32, tint: workout.isToday ? .accentPrimary : .accentSuccess, selected: workout.isToday)
             Text(workout.title)
                 .font(.caption2.weight(.semibold))
                 .multilineTextAlignment(.center)
@@ -492,9 +475,7 @@ struct WorkoutDayCard: View {
                 .font(.caption2)
                 .foregroundStyle(Color.textSecondary)
             Spacer(minLength: 0)
-            Image(systemName: workout.isComplete ? "checkmark.circle.fill" : "text.bubble")
-                .font(.caption.bold())
-                .foregroundStyle(workout.isComplete ? Color.accentPrimary : Color.textTertiary)
+            RunSmartIconMark(size: 18, tint: workout.isComplete ? .accentPrimary : .textTertiary, selected: workout.isComplete)
         }
         .frame(width: 76, height: 152)
         .padding(.vertical, 10)
@@ -538,14 +519,11 @@ struct PlanWorkoutDayCard: View {
                 }
                 Spacer()
                 if workout.isComplete {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.accentSuccess)
+                    RunSmartIconMark(size: 24, tint: .accentSuccess, selected: true)
                 }
             }
             Spacer(minLength: 0)
-            Image(systemName: workout.kind.symbol)
-                .font(.system(size: 30, weight: .bold))
-                .foregroundStyle(tint)
+            RunSmartIconMark(size: 36, tint: tint)
                 .frame(maxWidth: .infinity)
             Text(workout.title)
                 .font(.bodyMD.weight(.semibold))
@@ -629,12 +607,7 @@ private struct PlanActionTile: View {
         Button(action: action) {
             ContentCard {
                 HStack(spacing: 10) {
-                    Image(systemName: symbol)
-                        .font(.headline)
-                        .foregroundStyle(Color.accentPrimary)
-                        .frame(width: 38, height: 38)
-                        .background(Color.accentPrimary.opacity(0.12))
-                        .clipShape(Circle())
+                    RunSmartIconMark(size: 38, tint: .accentPrimary)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(title)
                             .font(.headline)
@@ -670,8 +643,7 @@ private struct ChallengePlanCard: View {
                             .foregroundStyle(Color.textSecondary)
                     }
                     Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(Color.textSecondary)
+                    RunSmartIconMark(size: 24, tint: .textSecondary)
                 }
             }
         }

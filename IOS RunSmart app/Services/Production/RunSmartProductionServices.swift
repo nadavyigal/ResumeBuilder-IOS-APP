@@ -448,6 +448,7 @@ struct ProductionRunSmartServices: RunSmartServiceProviding, RouteProviding, Dev
     func activeTrainingPlan() async -> TrainingPlanSnapshot? { nil }
     func planWorkouts(from startDate: Date, to endDate: Date) async -> [WorkoutSummary] { [] }
     func nextWorkouts(limit: Int) async -> [WorkoutSummary] { [] }
+    func saveSuggestedWorkout(_ suggestion: StructuredNextWorkout, from report: RunReportDetail) async -> Bool { false }
 
     func recentMessages() async -> [CoachMessage] {
         [

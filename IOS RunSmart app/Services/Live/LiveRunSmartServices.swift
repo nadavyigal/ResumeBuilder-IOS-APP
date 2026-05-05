@@ -39,6 +39,9 @@ struct LivePlanService: PlanProviding {
     func activeTrainingPlan() async -> TrainingPlanSnapshot? { nil }
     func planWorkouts(from startDate: Date, to endDate: Date) async -> [WorkoutSummary] { [] }
     func nextWorkouts(limit: Int) async -> [WorkoutSummary] { [] }
+    func saveSuggestedWorkout(_ suggestion: StructuredNextWorkout, from report: RunReportDetail) async -> Bool {
+        await ProductionRunSmartServices().saveSuggestedWorkout(suggestion, from: report)
+    }
 }
 
 struct LiveCoachChatService: CoachChatting {
@@ -171,6 +174,10 @@ struct LiveRunSmartServices: RunSmartServiceProviding {
 
     func nextWorkouts(limit: Int) async -> [WorkoutSummary] {
         await planService.nextWorkouts(limit: limit)
+    }
+
+    func saveSuggestedWorkout(_ suggestion: StructuredNextWorkout, from report: RunReportDetail) async -> Bool {
+        await planService.saveSuggestedWorkout(suggestion, from: report)
     }
 
     func recentMessages() async -> [CoachMessage] {

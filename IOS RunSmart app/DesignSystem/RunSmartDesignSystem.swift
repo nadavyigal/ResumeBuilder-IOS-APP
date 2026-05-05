@@ -133,38 +133,53 @@ struct RunSmartBackground: View {
 
 struct RunSmartLogoMark: View {
     var size: CGFloat = 34
+    var filled = true
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.051, green: 0.133, blue: 0.094),
-                            Color(red: 0.035, green: 0.102, blue: 0.063)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                .fill(filled ? Color.accentPrimary : Color.surfaceCard)
+                .overlay(
+                    RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
+                        .stroke(Color.accentPrimary.opacity(filled ? 0 : 0.85), lineWidth: max(1, size * 0.045))
                 )
 
-            Image(systemName: "sparkle")
-                .font(.system(size: size * 0.52, weight: .bold))
-                .foregroundStyle(Color.accentSuccess)
-                .shadow(color: Color.accentSuccess.opacity(0.70), radius: 5)
+            Text("RS")
+                .font(.system(size: size * 0.34, weight: .black, design: .rounded))
+                .monospaced()
+                .foregroundStyle(filled ? Color.black : Color.accentPrimary)
 
-            Image(systemName: "plus")
-                .font(.system(size: size * 0.18, weight: .bold))
-                .foregroundStyle(Color.accentSuccess.opacity(0.90))
-                .offset(x: size * 0.25, y: -size * 0.22)
-
-            Circle()
-                .fill(Color.accentSuccess.opacity(0.75))
-                .frame(width: size * 0.10, height: size * 0.10)
-                .offset(x: -size * 0.22, y: size * 0.23)
+            Capsule(style: .continuous)
+                .fill(filled ? Color.black.opacity(0.86) : Color.accentPrimary)
+                .frame(width: size * 0.42, height: max(2, size * 0.070))
+                .rotationEffect(.degrees(-24))
+                .offset(x: size * 0.08, y: size * 0.23)
         }
         .frame(width: size, height: size)
-        .shadow(color: Color.accentSuccess.opacity(0.30), radius: size * 0.45)
+        .shadow(color: Color.accentPrimary.opacity(0.28), radius: size * 0.34)
+    }
+}
+
+struct RunSmartIconMark: View {
+    var size: CGFloat = 34
+    var tint: Color = .accentPrimary
+    var selected = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(selected ? tint : Color.surfaceElevated)
+                .overlay(Circle().stroke(tint.opacity(selected ? 0 : 0.50), lineWidth: 1))
+            Text("RS")
+                .font(.system(size: size * 0.28, weight: .black, design: .rounded))
+                .foregroundStyle(selected ? Color.black : tint)
+            Capsule(style: .continuous)
+                .fill(selected ? Color.black.opacity(0.82) : tint)
+                .frame(width: size * 0.34, height: max(2, size * 0.055))
+                .rotationEffect(.degrees(-24))
+                .offset(x: size * 0.05, y: size * 0.18)
+        }
+        .frame(width: size, height: size)
     }
 }
 
@@ -265,16 +280,8 @@ struct CoachGlowBadge: View {
     var size: CGFloat = 52
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: size * 0.43, weight: .black))
-            .foregroundStyle(Color.accentPrimary)
-            .frame(width: size, height: size)
-            .background(
-                Circle()
-                    .fill(Color.accentPrimary.opacity(0.14))
-                    .shadow(color: Color.accentPrimary.opacity(0.45), radius: size * 0.32)
-            )
-            .overlay(Circle().stroke(Color.accentPrimary.opacity(0.28), lineWidth: 1))
+        RunSmartIconMark(size: size, tint: .accentPrimary, selected: false)
+            .shadow(color: Color.accentPrimary.opacity(0.45), radius: size * 0.32)
     }
 }
 
@@ -534,9 +541,7 @@ struct CoachAvatar: View {
                     LinearGradient(colors: [Color.textPrimary.opacity(0.22), Color.surfaceCard, .black], startPoint: .topLeading, endPoint: .bottomTrailing)
                 )
                 .overlay(
-                    Image(systemName: "figure.run.circle.fill")
-                        .font(.system(size: size * 0.66))
-                        .foregroundStyle(Color.textPrimary.opacity(0.80), Color.accentPrimary.opacity(0.18))
+                    RunSmartLogoMark(size: size * 0.62, filled: false)
                 )
                 .overlay(
                     Circle()
@@ -551,12 +556,7 @@ struct CoachAvatar: View {
                 .frame(width: size, height: size)
 
             if showBolt {
-                Image(systemName: "bolt.fill")
-                    .font(.caption.bold())
-                    .foregroundStyle(.black)
-                    .padding(7)
-                    .background(Color.accentPrimary)
-                    .clipShape(Circle())
+                RunSmartIconMark(size: max(24, size * 0.28), tint: .accentPrimary, selected: true)
                     .offset(x: -2, y: -2)
             }
         }
@@ -726,9 +726,8 @@ struct CustomTabBar: View {
 
     private func tabButton(_ tab: RunSmartTab, isSelected: Bool) -> some View {
         VStack(spacing: 4) {
-            Image(systemName: isSelected ? tab.filledSymbol : tab.symbol)
-                .font(.system(size: 23, weight: .semibold))
-                .frame(width: 44, height: 28)
+            RunSmartIconMark(size: 32, tint: isSelected ? .accentPrimary : .textSecondary, selected: isSelected)
+                .frame(width: 44, height: 32)
             Text(tab.rawValue)
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
@@ -741,15 +740,7 @@ struct CustomTabBar: View {
 
     private func runButton(isSelected: Bool) -> some View {
         VStack(spacing: 3) {
-            Image(systemName: isSelected ? RunSmartTab.run.filledSymbol : RunSmartTab.run.symbol)
-                .font(.system(size: 25, weight: .black))
-                .foregroundStyle(isSelected ? Color.black : Color.textSecondary)
-                .frame(width: 64, height: 64)
-                .background(
-                    Circle()
-                        .fill(isSelected ? Color.accentPrimary : Color.surfaceCard)
-                )
-                .overlay(Circle().stroke(Color.white.opacity(0.10), lineWidth: 1))
+            RunSmartIconMark(size: 64, tint: isSelected ? .accentPrimary : .textSecondary, selected: isSelected)
                 .shadow(color: Color.accentPrimary.opacity(isSelected ? 0.46 : 0.0), radius: isSelected ? 20 : 0)
                 .scaleEffect(isSelected ? 1.04 : 1.0)
             Text("Run")

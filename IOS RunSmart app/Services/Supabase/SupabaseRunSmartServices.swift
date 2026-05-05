@@ -246,6 +246,17 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         return removed
     }
 
+    func saveSuggestedWorkout(_ suggestion: StructuredNextWorkout, from report: RunReportDetail) async -> Bool {
+        guard let userID = currentUserID else { return false }
+        let saved = await planRepo.saveSuggestedWorkout(authUserID: userID, suggestion: suggestion, report: report)
+        if saved {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+        return saved
+    }
+
     // MARK: CoachChatting
 
     func recentMessages() async -> [CoachMessage] {
@@ -1156,7 +1167,7 @@ private struct DBWellnessCheckin: Decodable {
     }
 }
 
-private extension SupabaseRunSmartServices {
+extension SupabaseRunSmartServices {
     static func reportRunID(for run: RecordedRun) -> String {
         run.providerActivityID ?? run.id.uuidString
     }
@@ -1180,7 +1191,8 @@ private extension SupabaseRunSmartServices {
                 recovery: "No recovery note yet.",
                 nextSessionNudge: "No next-run recommendation yet."
             ),
-            structuredNextWorkout: nil
+            structuredNextWorkout: nil,
+            isGenerated: false
         )
     }
 
@@ -1215,7 +1227,8 @@ private extension SupabaseRunSmartServices {
                 biomechanics: firstMarkdownSection(named: "biomechan", in: text),
                 recoveryTimeline: nil
             ),
-            structuredNextWorkout: nil
+            structuredNextWorkout: nil,
+            isGenerated: true
         )
     }
 
@@ -1242,7 +1255,8 @@ private extension SupabaseRunSmartServices {
                 biomechanics: payload.biomechanics,
                 recoveryTimeline: payload.recoveryTimeline
             ),
-            structuredNextWorkout: payload.structuredNextWorkout
+            structuredNextWorkout: payload.structuredNextWorkout,
+            isGenerated: true
         )
     }
 

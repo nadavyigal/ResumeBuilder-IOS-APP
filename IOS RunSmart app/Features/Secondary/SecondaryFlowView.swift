@@ -269,14 +269,7 @@ private struct FlowHeader: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(systemName: symbol)
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(Color.black)
-                .frame(width: 58, height: 58)
-                .background(
-                    LinearGradient(colors: [Color.accentPrimary, Color.accentEnergy], startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            RunSmartLogoMark(size: 58)
                 .shadow(color: Color.accentPrimary.opacity(0.38), radius: 16)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -1092,10 +1085,16 @@ private struct RunReportCoachNotesCard: View {
     var body: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                SectionLabel(title: "Coach Notes", trailing: scoreLabel)
+                SectionLabel(title: report.hasGeneratedReport ? "Coach Notes" : "Coach Report", trailing: scoreLabel)
                 DetailLine(label: "Insight", value: report.notes.summary)
-                DetailLine(label: "Effort", value: report.notes.effort)
-                DetailLine(label: "Recovery", value: report.notes.recovery)
+                if report.hasGeneratedReport {
+                    DetailLine(label: "Effort", value: report.notes.effort)
+                    DetailLine(label: "Recovery", value: report.notes.recovery)
+                } else {
+                    Text("This is a real activity, but no generated coach report has been saved yet.")
+                        .font(.callout)
+                        .foregroundStyle(Color.mutedText)
+                }
             }
         }
     }
@@ -1157,7 +1156,10 @@ private struct RunReportRichSignalsCard: View {
 }
 
 private struct RunReportNextWorkoutCard: View {
+    @Environment(\.runSmartServices) private var services
     var report: RunReportDetail
+    @State private var isSaving = false
+    @State private var saveState: SaveState = .idle
 
     var body: some View {
         GlassCard {
@@ -1169,11 +1171,58 @@ private struct RunReportNextWorkoutCard: View {
                     if let distance = next.distance { DetailLine(label: "Distance", value: distance) }
                     if let target = next.target { DetailLine(label: "Target", value: target) }
                     if let notes = next.notes { DetailLine(label: "Notes", value: notes) }
+
+                    Button {
+                        Task { await save(next) }
+                    } label: {
+                        HStack {
+                            RunSmartLogoMark(size: 24)
+                            Text(saveState.buttonTitle(isSaving: isSaving))
+                                .font(.buttonLabel)
+                            Spacer()
+                        }
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 16)
+                        .frame(height: 50)
+                        .background(Color.lime, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isSaving || saveState == .saved)
+
+                    if saveState == .failed {
+                        Text("Could not save this workout to your plan. Make sure an active plan is loaded and try again.")
+                            .font(.caption)
+                            .foregroundStyle(Color.accentHeart)
+                    }
                 } else {
                     Text(report.notes.nextSessionNudge)
                         .font(.callout)
                         .foregroundStyle(Color.mutedText)
                 }
+            }
+        }
+    }
+
+    private func save(_ next: StructuredNextWorkout) async {
+        isSaving = true
+        saveState = .idle
+        let saved = await services.saveSuggestedWorkout(next, from: report)
+        isSaving = false
+        saveState = saved ? .saved : .failed
+        if saved { RunSmartHaptics.success() }
+    }
+
+    private enum SaveState {
+        case idle
+        case saved
+        case failed
+
+        func buttonTitle(isSaving: Bool) -> String {
+            if isSaving { return "Saving..." }
+            switch self {
+            case .idle: return "Save to Training Plan"
+            case .saved: return "Saved to Plan"
+            case .failed: return "Try Saving Again"
             }
         }
     }
@@ -1615,12 +1664,7 @@ private struct ActionRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.title3.bold())
-                    .foregroundStyle(Color.lime)
-                    .frame(width: 42, height: 42)
-                    .background(Color.lime.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                RunSmartIconMark(size: 42, tint: .lime)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.headline)
@@ -1629,8 +1673,7 @@ private struct ActionRow: View {
                         .foregroundStyle(Color.mutedText)
                 }
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.mutedText)
+                RunSmartIconMark(size: 22, tint: .mutedText)
             }
             .padding(10)
             .background(.white.opacity(0.045))
@@ -1649,9 +1692,7 @@ private struct ActionTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: symbol)
-                    .font(.title3.bold())
-                    .foregroundStyle(tint)
+                RunSmartIconMark(size: 34, tint: tint)
                 Text(title.uppercased())
                     .font(.caption.bold())
                     .multilineTextAlignment(.center)
@@ -1876,11 +1917,7 @@ private struct FlowSelectionTile: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: symbol)
-                .foregroundStyle(selected ? Color.black : Color.lime)
-                .frame(width: 34, height: 34)
-                .background(selected ? Color.lime : Color.lime.opacity(0.12))
-                .clipShape(Circle())
+            RunSmartIconMark(size: 34, tint: .lime, selected: selected)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.headline)
@@ -1907,8 +1944,7 @@ private struct RouteOptionRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(selected ? Color.lime : Color.mutedText)
+            RunSmartIconMark(size: 30, tint: selected ? .lime : .mutedText, selected: selected)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.headline)
@@ -1931,11 +1967,7 @@ private struct PreferenceRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .foregroundStyle(Color.lime)
-                .frame(width: 38, height: 38)
-                .background(Color.lime.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            RunSmartIconMark(size: 38, tint: .lime)
             Text(title)
                 .font(.headline)
             Spacer()

@@ -323,6 +323,11 @@ struct RunReportSummary: Identifiable, Codable, Hashable {
     var runID: String? = nil
     var duration: String = "—"
     var averageHeartRate: String = "—"
+    var isGenerated: Bool? = true
+
+    var hasGeneratedReport: Bool {
+        isGenerated ?? true
+    }
 }
 
 struct CoachRunNotes: Codable, Hashable {
@@ -357,6 +362,11 @@ struct RunReportDetail: Identifiable, Codable, Hashable {
     var coachScore: Int?
     var notes: CoachRunNotes
     var structuredNextWorkout: StructuredNextWorkout?
+    var isGenerated: Bool? = true
+
+    var hasGeneratedReport: Bool {
+        isGenerated ?? true
+    }
 
     var summary: RunReportSummary {
         RunReportSummary(
@@ -370,7 +380,8 @@ struct RunReportDetail: Identifiable, Codable, Hashable {
             source: source,
             runID: runID,
             duration: duration,
-            averageHeartRate: averageHeartRate
+            averageHeartRate: averageHeartRate,
+            isGenerated: isGenerated
         )
     }
 }

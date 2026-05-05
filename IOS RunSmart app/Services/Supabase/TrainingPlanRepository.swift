@@ -55,6 +55,11 @@ struct RunSmartIdentity: Sendable {
         values.append(authUserID)
         return values
     }
+
+    func profileReference(fallback: UUID) -> DBProfileReference {
+        if let numericUserID { return .numeric(numericUserID) }
+        return .uuid(profileUUID ?? fallback)
+    }
 }
 
 private struct DBProfileIdentity: Decodable, Sendable {
@@ -92,6 +97,12 @@ private struct DBProfileIdentity: Decodable, Sendable {
 extension DBWorkout {
     var scheduledDateAsDate: Date? {
         ISO8601DateFormatter.shortDate.date(from: scheduledDate)
+    }
+}
+
+extension DBPlan {
+    var startDateAsDate: Date? {
+        ISO8601DateFormatter.shortDate.date(from: startDate)
     }
 }
 
@@ -169,6 +180,12 @@ final class TrainingPlanRepository {
             return active
         }
 
+        if let numericID = resolved.numericUserID,
+           let active = await activePlanByNumericProfile(numericProfileID: numericID) {
+            print("[TrainingPlanRepo] ✅ found active plan via numeric profileID=\(numericID)")
+            return active
+        }
+
         if resolved.planOwnerCandidates.isEmpty {
             print("[TrainingPlanRepo] ❌ identity unresolved for auth=\(authUserID)")
             return nil
@@ -212,6 +229,38 @@ final class TrainingPlanRepository {
         } catch {
             if !(error is CancellationError) {
                 print("[TrainingPlanRepo] activePlan auth error:", error)
+            }
+            return nil
+        }
+    }
+
+    func activePlanByNumericProfile(numericProfileID: Int) async -> ActivePlan? {
+        do {
+            let plans: [DBPlan] = try await supabase
+                .from("plans")
+                .select()
+                .eq("profile_id", value: numericProfileID)
+                .eq("is_active", value: true)
+                .limit(1)
+                .execute()
+                .value
+
+            print("[TrainingPlanRepo] activePlan numeric profileID=\(numericProfileID) plans=\(plans.count)")
+            guard let plan = plans.first else { return nil }
+
+            let workouts: [DBWorkout] = try await supabase
+                .from("workouts")
+                .select()
+                .eq("plan_id", value: plan.id.uuidString)
+                .order("scheduled_date")
+                .execute()
+                .value
+
+            print("[TrainingPlanRepo] activePlan numeric planID=\(plan.id) workouts=\(workouts.count)")
+            return ActivePlan(plan: plan, workouts: workouts)
+        } catch {
+            if !(error is CancellationError) {
+                print("[TrainingPlanRepo] activePlan numeric error:", error)
             }
             return nil
         }
@@ -305,16 +354,33 @@ final class TrainingPlanRepository {
 
     func persistGeneratedPlan(authUserID: UUID, request: TrainingGoalRequest, generated: RunSmartDTO.GeneratedPlan) async -> Bool {
         let resolved = await identity(authUserID: authUserID)
-        let profileIDValue = (resolved.profileUUID ?? authUserID).uuidString
-        print("[TrainingPlanRepo] persistGeneratedPlan using UUID profileID=\(profileIDValue)")
+        let profileID = resolved.profileReference(fallback: authUserID)
+        print("[TrainingPlanRepo] persistGeneratedPlan using profileID=\(profileID.debugValue)")
 
         do {
-            try await supabase
-                .from("plans")
-                .update(DBPlanActiveUpdate(isActive: false))
-                .eq("profile_id", value: profileIDValue)
-                .eq("is_active", value: true)
-                .execute()
+            switch profileID {
+            case .numeric(let value):
+                try await supabase
+                    .from("plans")
+                    .update(DBPlanActiveUpdate(isActive: false))
+                    .eq("profile_id", value: value)
+                    .eq("is_active", value: true)
+                    .execute()
+            case .uuid(let value):
+                try await supabase
+                    .from("plans")
+                    .update(DBPlanActiveUpdate(isActive: false))
+                    .eq("profile_id", value: value.uuidString)
+                    .eq("is_active", value: true)
+                    .execute()
+            case .string(let value):
+                try await supabase
+                    .from("plans")
+                    .update(DBPlanActiveUpdate(isActive: false))
+                    .eq("profile_id", value: value)
+                    .eq("is_active", value: true)
+                    .execute()
+            }
 
             let startDate = Date()
             let totalWeeks = max(1, min(16, generated.totalWeeks))
@@ -322,7 +388,7 @@ final class TrainingPlanRepository {
             let planRows: [DBPlan] = try await supabase
                 .from("plans")
                 .insert(DBPlanInsert(
-                    profileID: profileIDValue,
+                    profileID: profileID,
                     authUserID: authUserID.uuidString,
                     title: generated.title,
                     description: generated.description,
@@ -371,11 +437,62 @@ final class TrainingPlanRepository {
                     .execute()
             }
 
-            print("[TrainingPlanRepo] ✅ persisted generated plan=\(plan.id) workouts=\(workouts.count) profileID=\(profileIDValue)")
+            print("[TrainingPlanRepo] ✅ persisted generated plan=\(plan.id) workouts=\(workouts.count) profileID=\(profileID.debugValue)")
             return true
         } catch {
             if !(error is CancellationError) {
                 print("[TrainingPlanRepo] ❌ persistGeneratedPlan error:", error)
+            }
+            return false
+        }
+    }
+
+    func saveSuggestedWorkout(authUserID: UUID, suggestion: StructuredNextWorkout, report: RunReportDetail) async -> Bool {
+        guard let active = await activePlan(authUserID: authUserID) else {
+            print("[TrainingPlanRepo] saveSuggestedWorkout failed: no active plan")
+            return false
+        }
+
+        let targetDate = Self.suggestedWorkoutDate(suggestion.dateLabel)
+        let day = Self.dayLabel(for: targetDate)
+        let planStart = active.plan.startDateAsDate ?? Date()
+        let week = max(1, Calendar.current.dateComponents([.weekOfYear], from: planStart, to: targetDate).weekOfYear.map { $0 + 1 } ?? 1)
+        let type = Self.suggestedWorkoutType(title: suggestion.title)
+        let distance = Self.distanceKm(from: suggestion.distance) ?? Self.distanceKm(from: suggestion.title) ?? 0
+        let notes = [suggestion.notes, suggestion.target, "Suggested from \(report.title) on \(report.dateLabel)"]
+            .compactMap { value -> String? in
+                guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+                return value
+            }
+            .joined(separator: "\n")
+
+        let insert = DBWorkoutInsert(
+            planID: active.plan.id.uuidString,
+            authUserID: authUserID.uuidString,
+            week: week,
+            day: day,
+            type: type,
+            distance: distance,
+            duration: Self.durationMinutes(from: suggestion),
+            pace: Self.paceSecondsPerKm(from: suggestion.target),
+            completed: false,
+            scheduledDate: ISO8601DateFormatter.shortDate.string(from: targetDate),
+            notes: notes.isEmpty ? nil : notes,
+            workoutStructure: suggestion.notes,
+            intensity: suggestion.target,
+            trainingPhase: "coach-recommendation"
+        )
+
+        do {
+            try await supabase
+                .from("workouts")
+                .insert(insert)
+                .execute()
+            print("[TrainingPlanRepo] ✅ saved suggested workout plan=\(active.plan.id) date=\(insert.scheduledDate) type=\(type)")
+            return true
+        } catch {
+            if !(error is CancellationError) {
+                print("[TrainingPlanRepo] saveSuggestedWorkout error:", error)
             }
             return false
         }
@@ -462,6 +579,93 @@ final class TrainingPlanRepository {
         return ISO8601DateFormatter.shortDate.string(from: date)
     }
 
+    static func suggestedWorkoutDate(_ label: String?) -> Date {
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: Date())) ?? Date()
+        guard let label = label?.trimmingCharacters(in: .whitespacesAndNewlines), !label.isEmpty else {
+            return tomorrow
+        }
+
+        if let isoDate = ISO8601DateFormatter.shortDate.date(from: label) {
+            return isoDate
+        }
+
+        let formatters: [DateFormatter] = ["MMM d, yyyy", "MMMM d, yyyy", "MMM d", "MMMM d", "EEEE", "EEE"].map { format in
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = format
+            formatter.defaultDate = Date()
+            return formatter
+        }
+
+        for formatter in formatters {
+            if var date = formatter.date(from: label) {
+                if !label.contains(String(Calendar.current.component(.year, from: Date()))) {
+                    let year = calendar.component(.year, from: Date())
+                    var components = calendar.dateComponents([.month, .day, .weekday], from: date)
+                    components.year = year
+                    date = calendar.date(from: components) ?? date
+                    if date < calendar.startOfDay(for: Date()) {
+                        date = calendar.date(byAdding: .year, value: 1, to: date) ?? date
+                    }
+                }
+                return calendar.startOfDay(for: date)
+            }
+        }
+
+        return tomorrow
+    }
+
+    static func suggestedWorkoutType(title: String) -> String {
+        let value = title.lowercased()
+        if value.contains("interval") { return "intervals" }
+        if value.contains("tempo") || value.contains("threshold") { return "tempo" }
+        if value.contains("hill") { return "hill" }
+        if value.contains("long") { return "long" }
+        if value.contains("recover") || value.contains("rest") { return "recovery" }
+        if value.contains("strength") { return "strength" }
+        if value.contains("race") { return "race-pace" }
+        return "easy"
+    }
+
+    static func distanceKm(from value: String?) -> Double? {
+        guard let value else { return nil }
+        let normalized = value.replacingOccurrences(of: ",", with: ".")
+        guard let match = normalized.range(of: #"(\d+(\.\d+)?)"#, options: .regularExpression) else {
+            return nil
+        }
+        return Double(normalized[match])
+    }
+
+    static func durationMinutes(from suggestion: StructuredNextWorkout) -> Int? {
+        let source = [suggestion.notes, suggestion.target, suggestion.title].compactMap { $0 }.joined(separator: " ")
+        guard let match = source.range(of: #"(\d+)\s*(min|minute)"#, options: [.regularExpression, .caseInsensitive]) else {
+            return nil
+        }
+        let text = String(source[match])
+        guard let numberRange = text.range(of: #"\d+"#, options: .regularExpression) else {
+            return nil
+        }
+        return Int(text[numberRange])
+    }
+
+    static func paceSecondsPerKm(from value: String?) -> Int? {
+        guard let value,
+              let match = value.range(of: #"(\d{1,2}):(\d{2})"#, options: .regularExpression) else {
+            return nil
+        }
+        let parts = value[match].split(separator: ":").compactMap { Int($0) }
+        guard parts.count == 2 else { return nil }
+        return parts[0] * 60 + parts[1]
+    }
+
+    private static func dayLabel(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+
     private func workout(id: UUID) async -> DBWorkout? {
         do {
             let workouts: [DBWorkout] = try await supabase
@@ -508,7 +712,7 @@ private struct DBPlanActiveUpdate: Encodable {
 }
 
 private struct DBPlanInsert: Encodable {
-    let profileID: String
+    let profileID: DBProfileReference
     let authUserID: String
     let title: String
     let description: String?
