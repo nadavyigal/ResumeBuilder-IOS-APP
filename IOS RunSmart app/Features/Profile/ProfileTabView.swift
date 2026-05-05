@@ -136,9 +136,7 @@ struct ProfileTabView: View {
                         .stroke(Color.accentPrimary.opacity(0.42), lineWidth: 3)
                         .frame(width: 122, height: 122)
                         .shadow(color: Color.accentPrimary.opacity(0.45), radius: 24)
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 52, weight: .black))
-                        .foregroundStyle(Color.accentPrimary)
+                    RunSmartLogoMark(size: 82, filled: false, glow: true)
                 }
                 .frame(width: 128)
             }

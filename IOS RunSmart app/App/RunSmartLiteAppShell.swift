@@ -52,6 +52,7 @@ struct RunSmartLiteAppShell: View {
     @StateObject private var session = SupabaseSession()
     @StateObject private var recorder = RunRecorder()
     @State private var didPresentMorningCheckin = false
+    @State private var isShowingLaunch = true
     private let services = SupabaseRunSmartServices.shared
 
     var body: some View {
@@ -59,9 +60,7 @@ struct RunSmartLiteAppShell: View {
             RunSmartBackground(context: RunSmartBackgroundContext(tab: router.selectedTab))
 
             if session.isLoading {
-                ProgressView()
-                    .tint(Color.accentPrimary)
-                    .scaleEffect(1.5)
+                RunSmartLaunchView()
             } else if !session.isAuthenticated {
                 SignInView()
                     .environmentObject(session)
@@ -83,12 +82,24 @@ struct RunSmartLiteAppShell: View {
 
                 CustomTabBar(selectedTab: $router.selectedTab)
             }
+
+            if isShowingLaunch {
+                RunSmartLaunchView()
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
         }
         .environmentObject(router)
         .environmentObject(session)
         .environment(\.runSmartServices, services)
         .environment(\.runRecorder, recorder)
         .preferredColorScheme(.dark)
+        .task {
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            withAnimation(.easeOut(duration: 0.32)) {
+                isShowingLaunch = false
+            }
+        }
         .task(id: session.hasCompletedOnboarding) {
             guard session.isAuthenticated, session.hasCompletedOnboarding, !didPresentMorningCheckin else { return }
             didPresentMorningCheckin = true

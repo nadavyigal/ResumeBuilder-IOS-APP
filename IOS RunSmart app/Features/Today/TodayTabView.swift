@@ -51,28 +51,35 @@ struct TodayTabView: View {
                 )
                 .runSmartStaggeredAppear(index: 2)
 
+                TodayQuickActions(
+                    onRecord: { router.startRun(with: todayWorkout) },
+                    onAddActivity: { router.open(.addActivity) },
+                    onCoach: { router.openCoach(context: "Today") }
+                )
+                .runSmartStaggeredAppear(index: 3)
+
                 InsightCard(
                     title: "Coach Insight",
                     message: recommendation.coachMessage,
                     action: { router.openCoach(context: "Today") }
                 )
-                .runSmartStaggeredAppear(index: 3)
+                .runSmartStaggeredAppear(index: 4)
 
                 if !coachMessages.isEmpty {
                     TodayConversationPreview(messages: coachMessages) {
                         router.openCoach(context: "Today")
                     }
-                    .runSmartStaggeredAppear(index: 4)
+                    .runSmartStaggeredAppear(index: 5)
                 }
 
                 quickStats
-                    .runSmartStaggeredAppear(index: 5)
+                    .runSmartStaggeredAppear(index: 6)
 
                 if !nextWorkouts.isEmpty {
                     UpcomingRunsCard(workouts: nextWorkouts) { workout in
                         router.open(.workoutDetail(workout))
                     }
-                    .runSmartStaggeredAppear(index: 6)
+                    .runSmartStaggeredAppear(index: 7)
                 }
 
                 if !runReports.isEmpty {
@@ -81,11 +88,11 @@ struct TodayTabView: View {
                             router.open(.runReportDetail(detail))
                         }
                     }
-                    .runSmartStaggeredAppear(index: 7)
+                    .runSmartStaggeredAppear(index: 8)
                 }
 
                 WeatherConditionsCard()
-                    .runSmartStaggeredAppear(index: 8)
+                    .runSmartStaggeredAppear(index: 9)
             }
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
@@ -190,6 +197,48 @@ struct TodayTabView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
         return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
+    }
+}
+
+private struct TodayQuickActions: View {
+    var onRecord: () -> Void
+    var onAddActivity: () -> Void
+    var onCoach: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            QuickActionButton(title: "Record Run", symbol: "figure.run", tint: .accentPrimary, action: onRecord)
+            QuickActionButton(title: "Add Activity", symbol: "plus.circle.fill", tint: .accentRecovery, action: onAddActivity)
+            QuickActionButton(title: "Ask Coach", symbol: "sparkles", tint: .accentPrimary, action: onCoach)
+        }
+    }
+}
+
+private struct QuickActionButton: View {
+    var title: String
+    var symbol: String
+    var tint: Color
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(tint)
+                    .frame(width: 42, height: 42)
+                    .background(tint.opacity(0.12), in: Circle())
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.68)
+            }
+            .frame(maxWidth: .infinity, minHeight: 92)
+            .background(Color.surfaceDeepCard.opacity(0.86), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(tint.opacity(0.22), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 }
 

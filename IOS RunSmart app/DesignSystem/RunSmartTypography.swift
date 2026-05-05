@@ -24,10 +24,10 @@ extension Font {
 
 extension View {
     func displayTightTracking(_ value: CGFloat = -1.68) -> some View {
-        tracking(value)
+        tracking(0)
     }
 
     func runSmartSectionLabelTracking(_ value: CGFloat = 1.5) -> some View {
-        tracking(value)
+        tracking(0)
     }
 }

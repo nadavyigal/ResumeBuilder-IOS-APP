@@ -4,8 +4,11 @@ extension Color {
     static let surfaceBase = Color(red: 0.024, green: 0.024, blue: 0.039) // #06060A
     static let surfaceElevated = Color(red: 0.047, green: 0.047, blue: 0.078) // #0C0C14
     static let surfaceCard = Color(red: 0.067, green: 0.067, blue: 0.110) // #11111C
+    static let surfaceDeepCard = Color(red: 0.012, green: 0.018, blue: 0.016) // #030504
+    static let surfaceGreenBlack = Color(red: 0.016, green: 0.055, blue: 0.035) // #040E09
 
     static let accentPrimary = Color(red: 0.800, green: 1.000, blue: 0.000) // #CCFF00
+    static let accentLime = Color(red: 0.750, green: 1.000, blue: 0.000) // #BFFF00
     static let accentEnergy = Color(red: 0.984, green: 0.573, blue: 0.235) // #FB923C
     static let accentRecovery = Color(red: 0.376, green: 0.647, blue: 0.980) // #60A5FA
     static let accentHeart = Color(red: 0.984, green: 0.443, blue: 0.522) // #FB7185
@@ -134,29 +137,35 @@ struct RunSmartBackground: View {
 struct RunSmartLogoMark: View {
     var size: CGFloat = 34
     var filled = true
+    var glow = true
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
-                .fill(filled ? Color.accentPrimary : Color.surfaceCard)
+                .fill(
+                    filled
+                    ? LinearGradient(colors: [Color.accentPrimary, Color.accentLime], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    : LinearGradient(colors: [Color.surfaceGreenBlack, Color.surfaceDeepCard], startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: size * 0.30, style: .continuous)
                         .stroke(Color.accentPrimary.opacity(filled ? 0 : 0.85), lineWidth: max(1, size * 0.045))
                 )
 
             Text("RS")
-                .font(.system(size: size * 0.34, weight: .black, design: .rounded))
-                .monospaced()
+                .font(.system(size: size * 0.37, weight: .black, design: .rounded))
+                .italic()
                 .foregroundStyle(filled ? Color.black : Color.accentPrimary)
+                .offset(x: size * 0.01, y: -size * 0.02)
 
             Capsule(style: .continuous)
                 .fill(filled ? Color.black.opacity(0.86) : Color.accentPrimary)
-                .frame(width: size * 0.42, height: max(2, size * 0.070))
+                .frame(width: size * 0.50, height: max(2, size * 0.065))
                 .rotationEffect(.degrees(-24))
-                .offset(x: size * 0.08, y: size * 0.23)
+                .offset(x: size * 0.10, y: size * 0.24)
         }
         .frame(width: size, height: size)
-        .shadow(color: Color.accentPrimary.opacity(0.28), radius: size * 0.34)
+        .shadow(color: Color.accentPrimary.opacity(glow ? 0.34 : 0), radius: size * 0.34)
     }
 }
 
@@ -192,10 +201,7 @@ struct RunSmartTopBar: View {
     var body: some View {
         HStack(spacing: 12) {
             if showBrand {
-                RunSmartLogoMark(size: 34)
-                Text("RunSmart")
-                    .font(.headingMD.weight(.bold))
-                    .foregroundStyle(Color.textPrimary)
+                RunSmartWordmark(mode: .compact, size: 36, glow: true)
             } else if let title {
                 Text(title)
                     .font(.displayMD)
@@ -640,14 +646,7 @@ struct RunSmartHeader: View {
     var body: some View {
         HStack {
             if showLogo {
-                HStack(spacing: 10) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 30, weight: .black))
-                        .foregroundStyle(Color.accentPrimary)
-                    Text("RunSmart")
-                        .font(.headingMD)
-                        .foregroundStyle(Color.textPrimary)
-                }
+                RunSmartWordmark(mode: .compact, size: 36, glow: true)
             }
             if let title {
                 Text(title)

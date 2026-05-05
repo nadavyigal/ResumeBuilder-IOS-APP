@@ -9,6 +9,7 @@ struct OnboardingView: View {
     private let experiences = ["Getting started", "Building base", "Consistent runner", "Race focused"]
     private let tones = ["Motivating", "Calm", "Direct"]
     private let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    private let stepCount = 5
 
     init(initialProfile: OnboardingProfile, onComplete: @escaping (OnboardingProfile) -> Void) {
         _profile = State(initialValue: initialProfile)
@@ -21,13 +22,11 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 progress
                 TabView(selection: $step) {
-                    welcome.tag(0)
-                    goalStep.tag(1)
-                    experienceStep.tag(2)
-                    scheduleStep.tag(3)
-                    preferencesStep.tag(4)
-                    devicesStep.tag(5)
-                    completionStep.tag(6)
+                    goalStep.tag(0)
+                    experienceStep.tag(1)
+                    scheduleStep.tag(2)
+                    privacyStep.tag(3)
+                    completionStep.tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
@@ -37,7 +36,7 @@ struct OnboardingView: View {
 
     private var progress: some View {
         HStack(spacing: 6) {
-            ForEach(0..<7, id: \.self) { index in
+            ForEach(0..<stepCount, id: \.self) { index in
                 Capsule()
                     .fill(index <= step ? Color.accentPrimary : Color.border)
                     .frame(height: 4)
@@ -47,18 +46,10 @@ struct OnboardingView: View {
         .padding(.top, 18)
     }
 
-    private var welcome: some View {
-        OnboardingStepShell(title: "RunSmart", subtitle: "Your AI Running Coach", symbol: "bolt.fill") {
+    private var goalStep: some View {
+        OnboardingStepShell(title: "Goal", subtitle: "Pick the result your AI coach should build around.", symbol: "target") {
             TextField("Your name", text: $profile.displayName)
                 .textFieldStyle(OnboardingFieldStyle())
-            OnboardingPrimaryButton(title: "Get Started", symbol: "arrow.right") {
-                advance()
-            }
-        }
-    }
-
-    private var goalStep: some View {
-        OnboardingStepShell(title: "What are we training for?", subtitle: "Pick the goal that should shape your plan.", symbol: "target") {
             OnboardingChoiceGrid(options: goals, selection: $profile.goal)
             OnboardingPrimaryButton(title: "Continue", symbol: "arrow.right", action: advance)
         }
@@ -101,25 +92,20 @@ struct OnboardingView: View {
         }
     }
 
-    private var preferencesStep: some View {
-        OnboardingStepShell(title: "Coach personality", subtitle: "Pick how direct your coach should feel.", symbol: "sparkles") {
+    private var privacyStep: some View {
+        OnboardingStepShell(title: "Privacy", subtitle: "Choose coaching tone and data signals. You can connect devices later.", symbol: "lock.shield.fill") {
             OnboardingChoiceGrid(options: tones, selection: $profile.coachingTone)
             Toggle("Workout reminders", isOn: $profile.notificationsEnabled)
                 .tint(Color.accentPrimary)
-            OnboardingPrimaryButton(title: "Continue", symbol: "arrow.right", action: advance)
-        }
-    }
-
-    private var devicesStep: some View {
-        OnboardingStepShell(title: "Connect devices", subtitle: "Garmin and HealthKit improve coaching context.", symbol: "applewatch") {
             DevicePreviewRow(title: "Garmin Connect", detail: "Import runs, HRV, sleep, and body battery.", symbol: "link.circle.fill")
             DevicePreviewRow(title: "HealthKit", detail: "Read and write completed workouts.", symbol: "heart.fill")
-            OnboardingPrimaryButton(title: "Skip for now", symbol: "arrow.right", action: advance)
+            RookieChallengeCallout()
+            OnboardingPrimaryButton(title: "Confirm Privacy", symbol: "arrow.right", action: advance)
         }
     }
 
     private var completionStep: some View {
-        OnboardingStepShell(title: "Your coach is ready", subtitle: "The first plan decision is waiting in Today.", symbol: "checkmark.seal.fill") {
+        OnboardingStepShell(title: "Ready", subtitle: "Your 21-Day Rookie Challenge and first plan decision are waiting in Today.", symbol: "checkmark.seal.fill") {
             OnboardingPrimaryButton(title: "Start RunSmart", symbol: "figure.run") {
                 var completed = profile
                 if completed.displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -132,7 +118,7 @@ struct OnboardingView: View {
 
     private func advance() {
         withAnimation(RunSmartMotion.tabSpring) {
-            step = min(6, step + 1)
+            step = min(stepCount - 1, step + 1)
         }
     }
 
@@ -154,12 +140,15 @@ private struct OnboardingStepShell<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             Spacer(minLength: 20)
-            Image(systemName: symbol)
-                .font(.system(size: 44, weight: .black))
-                .foregroundStyle(Color.black)
-                .frame(width: 84, height: 84)
-                .background(Color.accentPrimary, in: Circle())
-                .shadow(color: Color.accentPrimary.opacity(0.36), radius: 22)
+            HStack(spacing: 14) {
+                RunSmartLogoMark(size: 76, filled: false, glow: true)
+                Image(systemName: symbol)
+                    .font(.system(size: 24, weight: .black))
+                    .foregroundStyle(Color.black)
+                    .frame(width: 52, height: 52)
+                    .background(Color.accentPrimary, in: Circle())
+                    .shadow(color: Color.accentPrimary.opacity(0.36), radius: 18)
+            }
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
                     .font(.displayMD)
@@ -176,6 +165,24 @@ private struct OnboardingStepShell<Content: View>: View {
             Spacer(minLength: 20)
         }
         .padding(24)
+    }
+}
+
+private struct RookieChallengeCallout: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            RunSmartLogoMark(size: 42, filled: false, glow: false)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("21-Day Rookie Challenge")
+                    .font(.bodyMD.weight(.semibold))
+                Text("A lightweight starter block for confidence, consistency, and safe progression.")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+        .padding(12)
+        .background(Color.accentPrimary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.accentPrimary.opacity(0.24), lineWidth: 1))
     }
 }
 

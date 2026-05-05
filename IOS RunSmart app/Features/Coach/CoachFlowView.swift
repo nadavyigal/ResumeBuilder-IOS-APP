@@ -28,7 +28,7 @@ struct CoachFlowView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            CoachAvatar(size: 54, showBolt: true)
+            RunSmartAppBadge(mode: .iconOnly, size: 54, glow: true)
             VStack(alignment: .leading, spacing: 3) {
                 Text("RunSmart Coach")
                     .font(.headingMD)
