@@ -33,7 +33,7 @@ final class OnboardingViewModel {
         defer { isLoading = false }
         do {
             let session = try await AuthService.shared.signInWithApple()
-            appState.session = session
+            await appState.setSession(session)
         } catch {
             // User cancelled the sheet — don't show an error in that case
             let code = (error as? ASAuthorizationError)?.code
@@ -75,7 +75,7 @@ final class OnboardingViewModel {
         defer { isLoading = false }
         do {
             let session = try await action()
-            appState.session = session
+            await appState.setSession(session)
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 struct ScanResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: ScanViewModel
-    var onAnalyze: ((String, String) -> Void)? = nil
+    var onAnalyze: ((ResumeJobInput) -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -16,8 +16,12 @@ struct ScanResumeView: View {
                 // Upload card
                 uploadCard
 
-                // Job description input
+                // Job link / description input
                 jdInputCard
+
+                if let result = viewModel.publicATSResult {
+                    atsResultCard(result)
+                }
 
                 // Detected file row
                 if let filename = viewModel.detectedFilename {
@@ -30,12 +34,18 @@ struct ScanResumeView: View {
 
                 // Analyze CTA
                 GradientButton(
-                    title: "Analyze Resume",
+                    title: appState.isAuthenticated ? "Analyze & Optimize" : "Run Free ATS Check",
                     icon: "wand.and.stars",
-                    isLoading: viewModel.isUploading
+                    isLoading: viewModel.isUploading || viewModel.isCheckingATS
                 ) {
-                    if let id = viewModel.uploadedResumeId {
-                        onAnalyze?(id, viewModel.jobDescription)
+                    Task {
+                        if appState.isAuthenticated {
+                            if let input = await viewModel.uploadForOptimization(token: appState.session?.accessToken) {
+                                onAnalyze?(input)
+                            }
+                        } else {
+                            await viewModel.runFreeATS(appState: appState)
+                        }
                     }
                 }
                 .disabled(!viewModel.canAnalyze)
@@ -59,6 +69,9 @@ struct ScanResumeView: View {
         }
         .scrollIndicators(.hidden)
         .screenBackground(showRadialGlow: false)
+        .onAppear {
+            viewModel.useSharedJobURLIfNeeded(from: appState)
+        }
         .fileImporter(
             isPresented: $viewModel.isImporterPresented,
             allowedContentTypes: [.pdf, .data],
@@ -118,7 +131,20 @@ struct ScanResumeView: View {
 
     private var jdInputCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text("Job Description")
+            Text("LinkedIn or Job Link")
+                .font(.appSubheadline)
+                .foregroundStyle(AppColors.textPrimary)
+
+            TextField("https://www.linkedin.com/jobs/view/...", text: $viewModel.jobDescriptionURL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+                .font(.appBody)
+                .foregroundStyle(AppColors.textPrimary)
+                .padding(AppSpacing.lg)
+                .glassCard(cornerRadius: AppRadii.md)
+
+            Text("Or paste the job description")
                 .font(.appSubheadline)
                 .foregroundStyle(AppColors.textPrimary)
 
@@ -131,7 +157,7 @@ struct ScanResumeView: View {
                     )
 
                 if viewModel.jobDescription.isEmpty {
-                    Text("Paste the job description here…")
+                    Text("Paste the job description here if the link is unavailable…")
                         .font(.appBody)
                         .foregroundStyle(AppColors.textTertiary)
                         .padding(AppSpacing.lg)
@@ -156,6 +182,45 @@ struct ScanResumeView: View {
                 .foregroundStyle(AppColors.textTertiary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
+        .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private func atsResultCard(_ result: ATSScoreResult) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            HStack {
+                ScoreRingView(score: result.score?.overall ?? 0, size: 96)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Free ATS Preview")
+                        .font(.appHeadline)
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text(appState.isAuthenticated ? "Ready for full optimization." : "Sign in to unlock full optimization.")
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                    if let remaining = result.checksRemaining {
+                        Text("\(remaining) free checks remaining")
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.accentTeal)
+                    }
+                }
+            }
+
+            if let wins = result.quickWins, !wins.isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    Text("Quick Wins")
+                        .font(.appSubheadline)
+                        .foregroundStyle(AppColors.textPrimary)
+                    ForEach(wins.prefix(3)) { win in
+                        FixItemRow(
+                            title: win.title ?? win.keyword ?? "Improve resume match",
+                            description: win.action ?? win.reason ?? "Add the missing signal to your resume.",
+                            impact: .medium
+                        )
+                    }
+                }
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
         .padding(.horizontal, AppSpacing.lg)
     }
 }

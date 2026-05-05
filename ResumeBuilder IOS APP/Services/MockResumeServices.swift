@@ -3,9 +3,40 @@ import Foundation
 // MARK: - Mock Upload
 
 struct MockResumeUploadService: ResumeUploadServiceProtocol {
-    func upload(fileURL: URL, token: String) async throws -> ResumeUploadResponse {
+    func upload(fileURL: URL, jobDescription: String?, jobDescriptionURL: String?, token: String) async throws -> ResumeUploadResponse {
         try await Task.sleep(for: .milliseconds(800))
-        return ResumeUploadResponse(success: true, resumeId: "mock-resume-001", error: nil)
+        return ResumeUploadResponse(
+            success: true,
+            resumeId: "mock-resume-001",
+            jobDescriptionId: "mock-jd-001",
+            reviewId: "mock-review-001",
+            nextStep: "review",
+            matchScore: 82,
+            keyImprovements: ["Added role-specific keywords", "Strengthened summary"],
+            missingKeywords: ["TypeScript", "CI/CD"],
+            error: nil
+        )
+    }
+
+    func publicATS(fileURL: URL, jobDescription: String?, jobDescriptionURL: String?, sessionId: String?) async throws -> ATSScoreResult {
+        try await Task.sleep(for: .milliseconds(800))
+        return ATSScoreResult(
+            success: true,
+            score: .init(overall: 74, timestamp: nil),
+            preview: .init(
+                topIssues: [
+                    ATSIssue(category: "Keywords", severity: "medium", message: "Add more job-specific keywords.", text: nil, suggestion: nil)
+                ],
+                totalIssues: 3,
+                lockedCount: 2
+            ),
+            quickWins: [
+                QuickWin(title: "Add TypeScript", action: "Mention TypeScript in skills.", keyword: "TypeScript", impact: "high", reason: nil)
+            ],
+            checksRemaining: 4,
+            sessionId: "mock-anon-session",
+            error: nil
+        )
     }
 }
 
@@ -31,7 +62,7 @@ struct MockResumeAnalysisService: ResumeAnalysisServiceProtocol {
 // MARK: - Mock Optimization
 
 struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+    func optimize(resumeId: String, jobDescriptionId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
         try await Task.sleep(for: .seconds(2))
         return OptimizeResponse(
             success: true,
@@ -41,6 +72,8 @@ struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
                 OptimizedResumeSection(id: "s3", type: .skills, body: "TypeScript, React, Node.js, Kubernetes, Docker, CI/CD, PostgreSQL, Redis, AWS", status: "optimized", aiNote: "Reordered by relevance to job"),
             ],
             optimizationId: "mock-opt-001",
+            reviewId: nil,
+            nextStep: nil,
             error: nil
         )
     }

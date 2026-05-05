@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileViewV2: View {
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
+    @State private var showAuth = false
 
     var body: some View {
         NavigationStack {
@@ -30,7 +31,11 @@ struct ProfileViewV2: View {
                     }
 
                     // Sign out
-                    signOutButton
+                    if appState.isAuthenticated {
+                        signOutButton
+                    } else {
+                        signInButton
+                    }
 
                     Spacer(minLength: 100)
                 }
@@ -40,6 +45,9 @@ struct ProfileViewV2: View {
             .navigationBarHidden(true)
             .sheet(isPresented: $showPaywall) {
                 NavigationStack { PaywallView() }
+            }
+            .sheet(isPresented: $showAuth) {
+                OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
     }
@@ -63,15 +71,20 @@ struct ProfileViewV2: View {
                     )
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(appState.session?.email ?? "Signed in")
+                    Text(appState.session?.email ?? "Guest mode")
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
 
-                    Text("Free plan")
+                    Text(appState.isAuthenticated ? "Free plan" : "Free ATS checks available")
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                 }
             }
+
+            Text(appState.identityDebugSummary())
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .textSelection(.enabled)
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,6 +171,13 @@ struct ProfileViewV2: View {
             .glassCard(cornerRadius: AppRadii.lg)
         }
         .buttonStyle(GradientButtonStyle())
+        .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private var signInButton: some View {
+        GradientButton(title: "Sign In to Optimize", icon: "person.crop.circle.badge.plus") {
+            showAuth = true
+        }
         .padding(.horizontal, AppSpacing.lg)
     }
 

@@ -20,12 +20,19 @@ enum APIClientError: Error, LocalizedError {
 struct APIClient {
     var baseURL: URL = BackendConfig.apiBaseURL
 
+    func supabaseIdentityDebugSummary(session: AuthSession?) -> String {
+        let projectRef = BackendConfig.supabaseURL.host?
+            .components(separatedBy: ".")
+            .first ?? "unknown"
+        return "Supabase: \(projectRef)\nUser: \(session?.userId ?? "not signed in")"
+    }
+
     func postJSON<T: Decodable>(
         endpoint: Endpoint,
         body: [String: Any],
         token: String?
     ) async throws -> T {
-        var request = URLRequest(url: baseURL.appendingPathComponent(endpoint.path))
+        var request = URLRequest(url: url(for: endpoint))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -37,7 +44,7 @@ struct APIClient {
     }
 
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
-        var request = URLRequest(url: baseURL.appendingPathComponent(endpoint.path))
+        var request = URLRequest(url: url(for: endpoint))
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -47,12 +54,12 @@ struct APIClient {
 
     func getWithQuery<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
         var components = URLComponents(
-            url: baseURL.appendingPathComponent(endpoint.path),
+            url: url(for: endpoint),
             resolvingAgainstBaseURL: false
         )
         let items = endpoint.queryItems
         if !items.isEmpty { components?.queryItems = items }
-        let url = components?.url ?? baseURL.appendingPathComponent(endpoint.path)
+        let url = components?.url ?? url(for: endpoint)
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         if let token {
@@ -62,7 +69,7 @@ struct APIClient {
     }
 
     func getData(endpoint: Endpoint, token: String?) async throws -> Data {
-        var request = URLRequest(url: baseURL.appendingPathComponent(endpoint.path))
+        var request = URLRequest(url: url(for: endpoint))
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -77,13 +84,58 @@ struct APIClient {
         return data
     }
 
-    func uploadResume(fileURL: URL, token: String?) async throws -> ResumeUploadResponse {
+    func uploadResume(
+        fileURL: URL,
+        jobDescription: String? = nil,
+        jobDescriptionURL: String? = nil,
+        token: String?
+    ) async throws -> ResumeUploadResponse {
+        try await uploadMultipart(
+            endpoint: .uploadResume,
+            fileURL: fileURL,
+            token: token,
+            sessionId: nil,
+            fields: [
+                "jobDescription": jobDescription,
+                "jobDescriptionUrl": jobDescriptionURL,
+            ]
+        )
+    }
+
+    func runPublicATSCheck(
+        resumeURL: URL,
+        jobDescription: String?,
+        jobDescriptionURL: String?,
+        sessionId: String?
+    ) async throws -> ATSScoreResult {
+        try await uploadMultipart(
+            endpoint: .publicATSCheck,
+            fileURL: resumeURL,
+            token: nil,
+            sessionId: sessionId,
+            fields: [
+                "jobDescription": jobDescription,
+                "jobDescriptionUrl": jobDescriptionURL,
+            ]
+        )
+    }
+
+    private func uploadMultipart<T: Decodable>(
+        endpoint: Endpoint,
+        fileURL: URL,
+        token: String?,
+        sessionId: String?,
+        fields: [String: String?]
+    ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: baseURL.appendingPathComponent(Endpoint.uploadResume.path))
+        var request = URLRequest(url: url(for: endpoint))
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        if let sessionId {
+            request.setValue(sessionId, forHTTPHeaderField: "x-session-id")
         }
 
         let filename = fileURL.lastPathComponent
@@ -94,9 +146,13 @@ struct APIClient {
         body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
         body.append(fileData)
-        body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"jobDescription\"\r\n\r\n".data(using: .utf8)!)
-        body.append("Imported resume baseline for mobile profile.\r\n".data(using: .utf8)!)
+
+        for (name, value) in fields {
+            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
+            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append(value.data(using: .utf8)!)
+        }
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
 
         request.httpBody = body
@@ -119,5 +175,9 @@ struct APIClient {
         }
 
         return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    private func url(for endpoint: Endpoint) -> URL {
+        URL(string: endpoint.path, relativeTo: baseURL)!.absoluteURL
     }
 }

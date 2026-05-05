@@ -3,6 +3,7 @@ import Foundation
 enum Endpoint {
     // Existing
     case publicATSCheck
+    case convertAnonymousSession
     case atsScore
     case optimize
     case applications
@@ -23,6 +24,7 @@ enum Endpoint {
     var path: String {
         switch self {
         case .publicATSCheck:                  return "/api/public/ats-check"
+        case .convertAnonymousSession:         return "/api/public/convert-session"
         case .atsScore:                        return "/api/ats/score"
         case .optimize:                        return "/api/optimize"
         case .applications:                    return "/api/v1/applications"

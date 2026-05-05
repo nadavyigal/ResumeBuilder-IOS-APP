@@ -12,26 +12,37 @@ final class ImproveViewModel {
     var optimizationId: String? = nil
 
     private let resumeId: String?
+    private let jobDescriptionId: String?
     private let jobDescription: String
+    private let jobDescriptionURL: String
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
     init(
         resumeId: String?,
+        jobDescriptionId: String? = nil,
         jobDescription: String,
+        jobDescriptionURL: String = "",
+        initialAnalysis: ResumeAnalysis? = nil,
+        initialImprovements: [ResumeImprovement] = [],
         analysisService: any ResumeAnalysisServiceProtocol = BackendConfig.useMockServices
             ? MockResumeAnalysisService() : ResumeAnalysisService(),
         optimizationService: any ResumeOptimizationServiceProtocol = BackendConfig.useMockServices
             ? MockResumeOptimizationService() : ResumeOptimizationService()
     ) {
         self.resumeId = resumeId
+        self.jobDescriptionId = jobDescriptionId
         self.jobDescription = jobDescription
+        self.jobDescriptionURL = jobDescriptionURL
+        self.analysis = initialAnalysis
+        self.improvements = initialImprovements
         self.analysisService = analysisService
         self.optimizationService = optimizationService
     }
 
     func loadAnalysis(token: String?) async {
         guard let token, let resumeId else { return }
+        guard analysis == nil || improvements.isEmpty else { return }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -46,12 +57,21 @@ final class ImproveViewModel {
 
     func optimize(token: String?) async -> String? {
         guard let token, let resumeId else { return nil }
+        guard let jobDescriptionId else {
+            errorMessage = "Scan your resume with a job link before optimizing."
+            return nil
+        }
         isOptimizing = true
         defer { isOptimizing = false }
         do {
-            let response = try await optimizationService.optimize(resumeId: resumeId, jobDescription: jobDescription, token: token)
-            optimizationId = response.optimizationId
-            return response.optimizationId
+            let response = try await optimizationService.optimize(
+                resumeId: resumeId,
+                jobDescriptionId: jobDescriptionId,
+                jobDescription: jobDescription,
+                token: token
+            )
+            optimizationId = response.optimizationId ?? response.reviewId
+            return optimizationId
         } catch {
             errorMessage = error.localizedDescription
             return nil

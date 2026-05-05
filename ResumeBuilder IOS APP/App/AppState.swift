@@ -6,9 +6,11 @@ import Observation
 final class AppState {
     var session: AuthSession?
     var pendingSharedJobURL: URL?
+    var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
 
     let apiClient = APIClient()
+    private let anonymousSessionKey = "anonymous_ats_session_id"
 
     var isAuthenticated: Bool {
         session != nil
@@ -16,6 +18,7 @@ final class AppState {
 
     func bootstrap() {
         session = AuthService.shared.restoreSession()
+        anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
     }
 
     func handleIncomingURL(_ url: URL) {
@@ -28,6 +31,42 @@ final class AppState {
         AuthService.shared.clearSession()
         session = nil
         creditsBalance = 0
+    }
+
+    func setSession(_ session: AuthSession) async {
+        self.session = session
+        await convertAnonymousSessionIfNeeded()
+        await refreshCredits()
+    }
+
+    func storeAnonymousATSSessionId(_ sessionId: String?) {
+        guard let sessionId, !sessionId.isEmpty else { return }
+        anonymousATSSessionId = sessionId
+        UserDefaults.standard.set(sessionId, forKey: anonymousSessionKey)
+    }
+
+    func clearPendingSharedJobURL() {
+        pendingSharedJobURL = nil
+    }
+
+    func identityDebugSummary() -> String {
+        apiClient.supabaseIdentityDebugSummary(session: session)
+    }
+
+    func convertAnonymousSessionIfNeeded() async {
+        guard let token = session?.accessToken,
+              let sessionId = anonymousATSSessionId else { return }
+        do {
+            let _: APIStatusResponse = try await apiClient.postJSON(
+                endpoint: .convertAnonymousSession,
+                body: ["sessionId": sessionId],
+                token: token
+            )
+            anonymousATSSessionId = nil
+            UserDefaults.standard.removeObject(forKey: anonymousSessionKey)
+        } catch {
+            // Keep the anonymous ID so conversion can be retried later.
+        }
     }
 
     func refreshCredits() async {

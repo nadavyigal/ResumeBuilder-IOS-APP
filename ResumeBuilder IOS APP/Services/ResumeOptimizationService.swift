@@ -4,10 +4,12 @@ struct OptimizeResponse: Codable, Sendable {
     let success: Bool?
     let sections: [OptimizedResumeSection]?
     let optimizationId: String?
+    let reviewId: String?
+    let nextStep: String?
     let error: String?
 
     private enum CodingKeys: String, CodingKey {
-        case success, sections, error
+        case success, sections, reviewId, nextStep, error
         case optimizationId = "optimization_id"
     }
 }
@@ -44,7 +46,7 @@ struct RefineSectionApplyRequest: Codable, Sendable {
 }
 
 protocol ResumeOptimizationServiceProtocol: Sendable {
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse
+    func optimize(resumeId: String, jobDescriptionId: String, jobDescription: String, token: String) async throws -> OptimizeResponse
     func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse
     func applySectionRefine(_ request: RefineSectionApplyRequest, token: String) async throws -> Bool
 }
@@ -52,8 +54,11 @@ protocol ResumeOptimizationServiceProtocol: Sendable {
 struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
     private let apiClient = APIClient()
 
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
-        let body: [String: Any] = ["resume_id": resumeId, "job_description": jobDescription]
+    func optimize(resumeId: String, jobDescriptionId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+        let body: [String: Any] = [
+            "resumeId": resumeId,
+            "jobDescriptionId": jobDescriptionId,
+        ]
         return try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
     }
 

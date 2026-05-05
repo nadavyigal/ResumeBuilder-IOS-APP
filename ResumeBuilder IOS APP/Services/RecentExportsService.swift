@@ -11,8 +11,9 @@ struct RecentExportsService: RecentExportsServiceProtocol {
         struct Response: Decodable {
             let optimizations: [ResumeExport]?
             let data: [ResumeExport]?
+            let items: [ResumeExport]?
         }
         let response: Response = try await apiClient.get(endpoint: .optimizations, token: token)
-        return response.optimizations ?? response.data ?? []
+        return response.optimizations ?? response.data ?? response.items ?? []
     }
 }

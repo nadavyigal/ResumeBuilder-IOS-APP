@@ -5,7 +5,11 @@ struct MainTabViewV2: View {
 
     // Shared state threaded through tabs
     @State private var resumeId: String? = nil
+    @State private var jobDescriptionId: String? = nil
     @State private var jobDescription: String = ""
+    @State private var jobDescriptionURL: String = ""
+    @State private var initialAnalysis: ResumeAnalysis? = nil
+    @State private var initialImprovements: [ResumeImprovement] = []
     @State private var analysis: ResumeAnalysis? = nil
     @State private var optimizationId: String? = nil
 
@@ -21,9 +25,28 @@ struct MainTabViewV2: View {
                 case .scan:
                     ScanResumeView(
                         viewModel: ScanViewModel(),
-                        onAnalyze: { id, jd in
-                            resumeId = id
-                            jobDescription = jd
+                        onAnalyze: { input in
+                            resumeId = input.resumeId
+                            jobDescriptionId = input.jobDescriptionId
+                            jobDescription = input.jobDescription
+                            jobDescriptionURL = input.jobDescriptionURL
+                            if let score = input.initialScore {
+                                initialAnalysis = ResumeAnalysis(
+                                    overall: score,
+                                    ats: score,
+                                    content: 0,
+                                    design: 0,
+                                    missingKeywords: input.missingKeywords
+                                )
+                            }
+                            initialImprovements = input.keyImprovements.enumerated().map { index, improvement in
+                                ResumeImprovement(
+                                    id: "upload-improvement-\(index)",
+                                    title: improvement,
+                                    description: "Recommended by the optimizer for this job.",
+                                    impact: index == 0 ? "high" : "medium"
+                                )
+                            }
                             selectedTab = .improve
                         }
                     )
@@ -31,7 +54,11 @@ struct MainTabViewV2: View {
                     ImproveView(
                         viewModel: ImproveViewModel(
                             resumeId: resumeId,
-                            jobDescription: jobDescription
+                            jobDescriptionId: jobDescriptionId,
+                            jobDescription: jobDescription,
+                            jobDescriptionURL: jobDescriptionURL,
+                            initialAnalysis: initialAnalysis,
+                            initialImprovements: initialImprovements
                         ),
                         onOptimized: { optId in
                             optimizationId = optId

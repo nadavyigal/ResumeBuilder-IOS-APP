@@ -4,15 +4,10 @@ struct RootView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        Group {
-            if appState.isAuthenticated {
-                MainTabViewV2()
-            } else {
-                OnboardingView(viewModel: OnboardingViewModel(appState: appState))
-            }
-        }
+        MainTabViewV2()
         .task {
             if appState.isAuthenticated {
+                await appState.convertAnonymousSessionIfNeeded()
                 await appState.refreshCredits()
             }
         }
