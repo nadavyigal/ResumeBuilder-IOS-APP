@@ -34,6 +34,36 @@ struct ResumeOptimizationServiceSwiftTestingTests {
         #expect(viewModel.errorMessage == "Network unavailable")
     }
 
+    @Test("ImproveViewModel optimize surfaces invalid data errors")
+    @MainActor
+    func improveViewModelOptimizeInvalidData() async {
+        let viewModel = ImproveViewModel(
+            resumeId: "resume_1",
+            jobDescription: "iOS Engineer",
+            analysisService: MockResumeAnalysisService(),
+            optimizationService: InvalidDataResumeOptimizationService()
+        )
+
+        let result = await viewModel.optimize(token: "token")
+        #expect(result == nil)
+        #expect(viewModel.errorMessage == "Server returned invalid optimization payload.")
+    }
+
+    @Test("ImproveViewModel optimize surfaces decode errors gracefully")
+    @MainActor
+    func improveViewModelOptimizeDecodeError() async {
+        let viewModel = ImproveViewModel(
+            resumeId: "resume_1",
+            jobDescription: "iOS Engineer",
+            analysisService: MockResumeAnalysisService(),
+            optimizationService: DecodeFailureResumeOptimizationService()
+        )
+
+        let result = await viewModel.optimize(token: "token")
+        #expect(result == nil)
+        #expect(viewModel.errorMessage == "We couldn't parse the optimization response. Please try again.")
+    }
+
     @Test("OptimizeResponse decodes nested optimized resume payload")
     func optimizeResponseDecoding() throws {
         let json = """
@@ -78,4 +108,32 @@ private enum ResumeOptimizationFailure: LocalizedError {
     case network
 
     var errorDescription: String? { "Network unavailable" }
+}
+
+private struct InvalidDataResumeOptimizationService: ResumeOptimizationServiceProtocol {
+    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+        throw ResumeOptimizationError.invalidResponse("Server returned invalid optimization payload.")
+    }
+
+    func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse {
+        throw ResumeOptimizationError.invalidResponse("Server returned invalid optimization payload.")
+    }
+
+    func applySectionRefine(_ request: RefineSectionApplyRequest, token: String) async throws -> Bool {
+        throw ResumeOptimizationError.invalidResponse("Server returned invalid optimization payload.")
+    }
+}
+
+private struct DecodeFailureResumeOptimizationService: ResumeOptimizationServiceProtocol {
+    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+        throw ResumeOptimizationError.invalidResponse("We couldn't parse the optimization response. Please try again.")
+    }
+
+    func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse {
+        throw ResumeOptimizationError.invalidResponse("We couldn't parse the optimization response. Please try again.")
+    }
+
+    func applySectionRefine(_ request: RefineSectionApplyRequest, token: String) async throws -> Bool {
+        throw ResumeOptimizationError.invalidResponse("We couldn't parse the optimization response. Please try again.")
+    }
 }

@@ -54,11 +54,7 @@ struct MainTabViewV2: View {
                     ImproveView(
                         viewModel: ImproveViewModel(
                             resumeId: resumeId,
-                            jobDescriptionId: jobDescriptionId,
-                            jobDescription: jobDescription,
-                            jobDescriptionURL: jobDescriptionURL,
-                            initialAnalysis: initialAnalysis,
-                            initialImprovements: initialImprovements
+                            jobDescription: jobDescription
                         ),
                         onOptimized: { optId in
                             optimizationId = optId

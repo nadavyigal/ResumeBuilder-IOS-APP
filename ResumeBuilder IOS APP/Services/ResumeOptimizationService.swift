@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 enum ResumeOptimizationError: LocalizedError, Sendable {
     case missingToken
@@ -99,17 +100,29 @@ protocol ResumeOptimizationServiceProtocol: Sendable {
 
 struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
     private let apiClient = APIClient()
+    private let logger = Logger(subsystem: "ResumeBuilder", category: "ResumeOptimizationService")
 
     func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+        logger.info("Optimize start resumeId=\(resumeId, privacy: .public)")
         let body: [String: Any] = ["resume_id": resumeId, "job_description": jobDescription]
-        let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
-        if response.success == false {
-            throw ResumeOptimizationError.invalidResponse(response.error ?? "Optimization failed.")
+        do {
+            let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
+            logger.info("Optimize response success=\(response.success ?? false) sections=\(response.sections?.count ?? 0)")
+            if response.success == false {
+                throw ResumeOptimizationError.invalidResponse(response.error ?? "Optimization failed.")
+            }
+            guard response.optimizationId != nil else {
+                throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")
+            }
+            logger.info("Optimize decode complete optimizationId=\(response.optimizationId ?? "missing", privacy: .public)")
+            return response
+        } catch let decodeError as DecodingError {
+            logger.error("Optimize decode error: \(decodeError.localizedDescription)")
+            throw ResumeOptimizationError.invalidResponse("We couldn't parse the optimization response. Please try again.")
+        } catch {
+            logger.error("Optimize request failed: \(error.localizedDescription)")
+            throw error
         }
-        guard response.optimizationId != nil else {
-            throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")
-        }
-        return response
     }
 
     func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse {

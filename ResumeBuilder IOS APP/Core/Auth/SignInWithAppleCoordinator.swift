@@ -6,10 +6,16 @@ import UIKit
 /// The static `current` property keeps the coordinator alive during the auth presentation.
 @MainActor
 final class SignInWithAppleCoordinator: NSObject {
+    private enum SignInError: LocalizedError {
+        case timedOut
+
+        var errorDescription: String? { "Apple sign in timed out. Please try again." }
+    }
 
     private static var current: SignInWithAppleCoordinator?
 
     private var continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>?
+    private var timeoutTask: Task<Void, Never>?
 
     // MARK: - Public entry point
 
@@ -26,18 +32,33 @@ final class SignInWithAppleCoordinator: NSObject {
     // MARK: - Private
 
     private func present(hashedNonce: String) async throws -> ASAuthorizationAppleIDCredential {
-        try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                self.continuation = continuation
 
-            let provider = ASAuthorizationAppleIDProvider()
-            let request = provider.createRequest()
-            request.requestedScopes = [.fullName, .email]
-            request.nonce = hashedNonce
+                timeoutTask = Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(20))
+                    guard self.continuation != nil else { return }
+                    self.continuation?.resume(throwing: SignInError.timedOut)
+                    self.continuation = nil
+                }
 
-            let controller = ASAuthorizationController(authorizationRequests: [request])
-            controller.delegate = self
-            controller.presentationContextProvider = self
-            controller.performRequests()
+                let provider = ASAuthorizationAppleIDProvider()
+                let request = provider.createRequest()
+                request.requestedScopes = [.fullName, .email]
+                request.nonce = hashedNonce
+
+                let controller = ASAuthorizationController(authorizationRequests: [request])
+                controller.delegate = self
+                controller.presentationContextProvider = self
+                controller.performRequests()
+            }
+        } onCancel: {
+            guard continuation != nil else { return }
+            continuation?.resume(throwing: CancellationError())
+            continuation = nil
+            timeoutTask?.cancel()
+            timeoutTask = nil
         }
     }
 
@@ -68,6 +89,8 @@ extension SignInWithAppleCoordinator: ASAuthorizationControllerDelegate {
             continuation?.resume(throwing: AuthServiceError.invalidResponse)
         }
         continuation = nil
+        timeoutTask?.cancel()
+        timeoutTask = nil
     }
 
     func authorizationController(
@@ -76,6 +99,8 @@ extension SignInWithAppleCoordinator: ASAuthorizationControllerDelegate {
     ) {
         continuation?.resume(throwing: error)
         continuation = nil
+        timeoutTask?.cancel()
+        timeoutTask = nil
     }
 }
 

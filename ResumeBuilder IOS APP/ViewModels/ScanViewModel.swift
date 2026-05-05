@@ -44,8 +44,15 @@ final class ScanViewModel {
     }
 
     func handlePickedFile(url: URL, token: String?) async {
-        selectedFileURL = url
-        detectedFilename = url.lastPathComponent
+        let fileURL = url.standardizedFileURL
+        guard await isReadableFileURL(fileURL) else {
+            errorMessage = "Unable to read the selected file. Please choose a local PDF or DOCX file."
+            selectedFileURL = nil
+            detectedFilename = nil
+            return
+        }
+        selectedFileURL = fileURL
+        detectedFilename = fileURL.lastPathComponent
         uploadedResumeId = nil
         uploadedJobDescriptionId = nil
         publicATSResult = nil
@@ -113,7 +120,7 @@ final class ScanViewModel {
                 keyImprovements: response.keyImprovements ?? []
             )
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "Upload failed: \(error.localizedDescription)"
             return nil
         }
     }
@@ -132,5 +139,18 @@ final class ScanViewModel {
     private var normalizedJobURL: String? {
         let value = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.isEmpty ? nil : value
+    }
+
+    private func isReadableFileURL(_ fileURL: URL) async -> Bool {
+        await Task.detached(priority: .userInitiated) {
+            guard fileURL.isFileURL else { return false }
+            let didAccess = fileURL.startAccessingSecurityScopedResource()
+            defer {
+                if didAccess {
+                    fileURL.stopAccessingSecurityScopedResource()
+                }
+            }
+            return FileManager.default.isReadableFile(atPath: fileURL.path)
+        }.value
     }
 }

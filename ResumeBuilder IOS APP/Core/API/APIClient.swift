@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 enum APIClientError: Error, LocalizedError {
     case unauthorized
@@ -19,6 +20,9 @@ enum APIClientError: Error, LocalizedError {
 
 struct APIClient {
     var baseURL: URL = BackendConfig.apiBaseURL
+    var session: URLSession = .shared
+    var requestTimeout: TimeInterval = 30
+    private let logger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
 
     func supabaseIdentityDebugSummary(session: AuthSession?) -> String {
         let projectRef = BackendConfig.supabaseURL.host?
@@ -32,7 +36,7 @@ struct APIClient {
         body: [String: Any],
         token: String?
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -44,7 +48,7 @@ struct APIClient {
     }
 
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -60,7 +64,7 @@ struct APIClient {
         let items = endpoint.queryItems
         if !items.isEmpty { components?.queryItems = items }
         let url = components?.url ?? url(for: endpoint)
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: url, timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -69,12 +73,12 @@ struct APIClient {
     }
 
     func getData(endpoint: Endpoint, token: String?) async throws -> Data {
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
         if httpResponse.statusCode == 401 { throw APIClientError.unauthorized }
         if !(200...299).contains(httpResponse.statusCode) {
@@ -128,7 +132,7 @@ struct APIClient {
         fields: [String: String?]
     ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -139,7 +143,9 @@ struct APIClient {
         }
 
         let filename = fileURL.lastPathComponent
-        let fileData = try Data(contentsOf: fileURL)
+        let fileData = try await Task.detached(priority: .userInitiated) {
+            try Data(contentsOf: fileURL)
+        }.value
 
         var body = Data()
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -160,10 +166,13 @@ struct APIClient {
     }
 
     private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        logger.info("HTTP start \(request.httpMethod ?? "UNKNOWN") \(request.url?.absoluteString ?? "unknown-url")")
+        let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
+            logger.error("HTTP invalid response for \(request.url?.absoluteString ?? "unknown-url")")
             throw APIClientError.invalidResponse
         }
+        logger.info("HTTP response status=\(httpResponse.statusCode) bytes=\(data.count)")
 
         if httpResponse.statusCode == 401 {
             throw APIClientError.unauthorized
@@ -171,10 +180,18 @@ struct APIClient {
 
         if !(200...299).contains(httpResponse.statusCode) {
             let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            logger.error("HTTP failure status=\(httpResponse.statusCode) message=\(message)")
             throw APIClientError.serverError(status: httpResponse.statusCode, message: message)
         }
 
-        return try JSONDecoder().decode(T.self, from: data)
+        do {
+            let decoded = try JSONDecoder().decode(T.self, from: data)
+            logger.info("HTTP decode success for \(request.url?.lastPathComponent ?? "unknown-endpoint")")
+            return decoded
+        } catch {
+            logger.error("HTTP decode failure: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     private func url(for endpoint: Endpoint) -> URL {

@@ -34,9 +34,12 @@ final class ResumePreviewViewModel {
             if let exportId = exportResponse.exportId {
                 let data = try await exportService.downloadPDF(id: exportId, token: token)
                 pdfData = data
-                let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("resume_export.pdf")
-                try data.write(to: tempURL)
+                let tempURL = try await Task.detached(priority: .utility) {
+                    let destination = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("resume_export.pdf")
+                    try data.write(to: destination)
+                    return destination
+                }.value
                 exportedFileURL = tempURL
             }
         } catch {
