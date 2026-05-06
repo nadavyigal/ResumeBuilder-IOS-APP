@@ -16,6 +16,9 @@
     "%lld credits remaining" : {
 
     },
+    "%lld free checks remaining" : {
+
+    },
     "+%lld" : {
 
     },
@@ -158,13 +161,16 @@
     "Font Style" : {
 
     },
+    "Free ATS checks available" : {
+
+    },
+    "Free ATS Preview" : {
+
+    },
     "Free plan" : {
 
     },
     "Get Credits" : {
-
-    },
-    "Hello, world!" : {
 
     },
     "Hi %@ 👋" : {
@@ -221,6 +227,9 @@
         }
       }
     },
+    "https://www.linkedin.com/jobs/view/..." : {
+
+    },
     "Import PDF or DOCX" : {
 
     },
@@ -244,10 +253,10 @@
         }
       }
     },
-    "Job Description" : {
+    "Job Description ID" : {
 
     },
-    "Job Description ID" : {
+    "LinkedIn or Job Link" : {
 
     },
     "Master Resume" : {
@@ -283,13 +292,16 @@
     "or" : {
 
     },
+    "Or paste the job description" : {
+
+    },
     "Original" : {
 
     },
     "Password" : {
 
     },
-    "Paste the job description here…" : {
+    "Paste the job description here if the link is unavailable…" : {
 
     },
     "PDF generated and ready" : {
@@ -343,6 +355,12 @@
           }
         }
       }
+    },
+    "Quick Wins" : {
+
+    },
+    "Ready for full optimization." : {
+
     },
     "Recent Activity" : {
 
@@ -415,6 +433,9 @@
 
     },
     "Sign In" : {
+
+    },
+    "Sign in to unlock full optimization." : {
 
     },
     "Sign Out" : {

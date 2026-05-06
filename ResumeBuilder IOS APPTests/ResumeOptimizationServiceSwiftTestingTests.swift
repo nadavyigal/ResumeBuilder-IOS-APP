@@ -65,6 +65,7 @@ struct ResumeOptimizationServiceSwiftTestingTests {
     }
 
     @Test("OptimizeResponse decodes nested optimized resume payload")
+    @MainActor
     func optimizeResponseDecoding() throws {
         let json = """
         {

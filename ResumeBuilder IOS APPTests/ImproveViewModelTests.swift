@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class ImproveViewModelTests: XCTestCase {
     func testOptimizeReturnsErrorWhenTokenMissing() async {
         let viewModel = ImproveViewModel(

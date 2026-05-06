@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class ResumeOptimizationParsingTests: XCTestCase {
     func testOptimizeResponseDecodesFlatPayload() throws {
         let json = """

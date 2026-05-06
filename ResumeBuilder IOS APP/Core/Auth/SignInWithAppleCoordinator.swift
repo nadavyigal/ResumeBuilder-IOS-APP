@@ -33,7 +33,7 @@ final class SignInWithAppleCoordinator: NSObject {
 
     private func present(hashedNonce: String) async throws -> ASAuthorizationAppleIDCredential {
         try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>) in
                 self.continuation = continuation
 
                 timeoutTask = Task { @MainActor in
@@ -53,12 +53,14 @@ final class SignInWithAppleCoordinator: NSObject {
                 controller.presentationContextProvider = self
                 controller.performRequests()
             }
-        } onCancel: {
-            guard continuation != nil else { return }
-            continuation?.resume(throwing: CancellationError())
-            continuation = nil
-            timeoutTask?.cancel()
-            timeoutTask = nil
+        } onCancel: { [self] in
+            Task { @MainActor in
+                guard self.continuation != nil else { return }
+                self.continuation?.resume(throwing: CancellationError())
+                self.continuation = nil
+                self.timeoutTask?.cancel()
+                self.timeoutTask = nil
+            }
         }
     }
 
@@ -84,23 +86,32 @@ extension SignInWithAppleCoordinator: ASAuthorizationControllerDelegate {
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
         if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            continuation?.resume(returning: credential)
+            Task { @MainActor in
+                continuation?.resume(returning: credential)
+                continuation = nil
+                timeoutTask?.cancel()
+                timeoutTask = nil
+            }
         } else {
-            continuation?.resume(throwing: AuthServiceError.invalidResponse)
+            Task { @MainActor in
+                continuation?.resume(throwing: AuthServiceError.invalidResponse)
+                continuation = nil
+                timeoutTask?.cancel()
+                timeoutTask = nil
+            }
         }
-        continuation = nil
-        timeoutTask?.cancel()
-        timeoutTask = nil
     }
 
     func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
-        continuation?.resume(throwing: error)
-        continuation = nil
-        timeoutTask?.cancel()
-        timeoutTask = nil
+        Task { @MainActor in
+            continuation?.resume(throwing: error)
+            continuation = nil
+            timeoutTask?.cancel()
+            timeoutTask = nil
+        }
     }
 }
 
