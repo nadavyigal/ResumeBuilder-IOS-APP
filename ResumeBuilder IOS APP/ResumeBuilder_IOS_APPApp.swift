@@ -10,6 +10,7 @@ struct ResumeBuilder_IOS_APPApp: App {
                 .environment(appState)
                 .task {
                     appState.bootstrap()
+                    await appState.refreshSessionIfNeeded()
                 }
                 .onOpenURL { url in
                     appState.handleIncomingURL(url)

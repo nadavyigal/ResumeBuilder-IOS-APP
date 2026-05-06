@@ -143,8 +143,10 @@ struct APIClient {
         }
 
         let filename = fileURL.lastPathComponent
+        let didAccess = fileURL.startAccessingSecurityScopedResource()
         let fileData = try await Task.detached(priority: .userInitiated) {
-            try Data(contentsOf: fileURL)
+            defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
+            return try Data(contentsOf: fileURL)
         }.value
 
         var body = Data()

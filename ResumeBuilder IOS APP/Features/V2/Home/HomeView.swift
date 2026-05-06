@@ -37,7 +37,7 @@ struct HomeView: View {
         }
         .scrollIndicators(.hidden)
         .screenBackground(showRadialGlow: true)
-        .task { await viewModel.load(token: appState.session?.accessToken) }
+        .task(id: appState.session?.accessToken) { await viewModel.load(token: appState.session?.accessToken) }
     }
 
     // MARK: - Subviews

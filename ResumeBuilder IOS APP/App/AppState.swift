@@ -69,6 +69,16 @@ final class AppState {
         }
     }
 
+    func refreshSessionIfNeeded() async {
+        guard let refreshToken = session?.refreshToken else { return }
+        do {
+            let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
+            session = newSession
+        } catch {
+            signOut()
+        }
+    }
+
     func refreshCredits() async {
         guard BackendConfig.isMonetizationEnabled else { return }
         guard let token = session?.accessToken else { return }
