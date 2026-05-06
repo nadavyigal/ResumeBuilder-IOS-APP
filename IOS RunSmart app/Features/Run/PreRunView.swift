@@ -76,7 +76,7 @@ struct PreRunView: View {
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
             .padding(.top, 14)
-            .padding(.bottom, 10)
+            .padding(.bottom, 128)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .background(Color.black.opacity(0.52).ignoresSafeArea())

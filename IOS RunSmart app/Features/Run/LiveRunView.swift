@@ -41,14 +41,14 @@ struct LiveRunView: View {
                         }
                     }
                 }
-                .frame(height: max(208, min(260, proxy.size.height * 0.31)))
+                .frame(height: max(174, min(218, proxy.size.height * 0.25)))
 
                 if routePoints.isEmpty {
-                    RunSmartRoutePreview(title: "GPS", showGPS: true, height: max(112, min(154, proxy.size.height * 0.18)))
+                    RunSmartRoutePreview(title: "GPS", showGPS: true, height: max(82, min(124, proxy.size.height * 0.14)))
                 } else {
                     RunSmartPanel(cornerRadius: 20, padding: 8) {
                         RouteMapView(points: routePoints, title: "GPS")
-                            .frame(height: max(104, min(146, proxy.size.height * 0.17)))
+                            .frame(height: max(78, min(116, proxy.size.height * 0.13)))
                     }
                 }
 
@@ -58,12 +58,12 @@ struct LiveRunView: View {
                     LiveControlButton(title: phase == .paused ? "Resume" : "Pause", symbol: phase == .paused ? "play.fill" : "pause.fill", tint: .accentPrimary, prominent: true, action: onPauseResume)
                     LiveControlButton(title: "Finish", symbol: "stop.fill", tint: .accentHeart, prominent: false, action: onFinish)
                 }
-                .padding(.bottom, 4)
+                .padding(.bottom, 96)
             }
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 18)
             .padding(.top, 14)
-            .padding(.bottom, 10)
+            .padding(.bottom, 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .foregroundStyle(Color.textPrimary)
@@ -164,7 +164,7 @@ private struct LiveControlButton: View {
                 Image(systemName: symbol)
                     .font(.system(size: prominent ? 34 : 24, weight: .bold))
                     .foregroundStyle(prominent ? Color.black : tint)
-                    .frame(width: prominent ? 128 : 86, height: prominent ? 128 : 86)
+                    .frame(width: prominent ? 112 : 78, height: prominent ? 112 : 78)
                     .background(prominent ? tint : Color.surfaceCard)
                     .clipShape(Circle())
                 Text(title)

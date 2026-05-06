@@ -37,7 +37,7 @@ struct ProfileTabView: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
                 .padding(.top, 14)
-                .padding(.bottom, 24)
+                .padding(.bottom, 140)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: SecondaryDestination.self) { destination in

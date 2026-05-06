@@ -38,6 +38,15 @@ struct PlanTabView: View {
         return PlanPresentationModels.makeWeeks(displayedMonth: displayedMonth, workouts: workouts)
     }
 
+    private var currentWeek: PlanWeekSummary? {
+        planWeeks.first(where: \.isCurrentWeek) ?? planWeeks.first
+    }
+
+    private var reviewWeeks: [PlanWeekSummary] {
+        let currentID = currentWeek?.id
+        return planWeeks.filter { $0.id != currentID }
+    }
+
     var body: some View {
         NavigationStack(path: $navPath) {
             ScrollView(showsIndicators: false) {
@@ -52,27 +61,15 @@ struct PlanTabView: View {
                     )
                     .runSmartStaggeredAppear(index: 0)
 
-                    PlanWeeklyListSection(weeks: planWeeks) { workout in
-                        navPath.append(.workoutDetail(workout))
+                    if let currentWeek {
+                        PlanCurrentWeekSection(week: currentWeek) { workout in
+                            navPath.append(.workoutDetail(workout))
+                        }
+                        .runSmartStaggeredAppear(index: 1)
                     }
-                    .runSmartStaggeredAppear(index: 1)
-
-                    PlanCoachNotesCard(workouts: nextWorkouts, goal: goal) { workout in
-                        navPath.append(.workoutDetail(workout))
-                    } onAll: {
-                        viewMode = .month
-                    }
-                    .runSmartStaggeredAppear(index: 2)
-
-                    InsightCard(
-                        title: "Coach Notes",
-                        message: recovery.recommendation,
-                        action: { router.openCoach(context: "Plan") }
-                    )
-                    .runSmartStaggeredAppear(index: 3)
 
                     SegmentedPillPicker(values: PlanViewMode.allCases, selection: $viewMode) { $0.rawValue }
-                        .runSmartStaggeredAppear(index: 4)
+                        .runSmartStaggeredAppear(index: 2)
 
                     switch viewMode {
                     case .month:
@@ -87,6 +84,10 @@ struct PlanTabView: View {
                                 displayedMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
                             }
                         )
+                    case .weekly:
+                        PlanWeeklyReviewSection(weeks: reviewWeeks.isEmpty ? planWeeks : reviewWeeks) { workout in
+                            navPath.append(.workoutDetail(workout))
+                        }
                     case .progress:
                         PlanProgressSection(
                             goal: goal,
@@ -95,6 +96,20 @@ struct PlanTabView: View {
                             runs: recentRuns
                         )
                     }
+
+                    PlanCoachNotesCard(workouts: nextWorkouts, goal: goal) { workout in
+                        navPath.append(.workoutDetail(workout))
+                    } onAll: {
+                        viewMode = .weekly
+                    }
+                    .runSmartStaggeredAppear(index: 3)
+
+                    InsightCard(
+                        title: "Coach Notes",
+                        message: recovery.recommendation,
+                        action: { router.openCoach(context: "Plan") }
+                    )
+                    .runSmartStaggeredAppear(index: 4)
 
                     PlanActionGrid(
                         onAdd: { router.open(.addActivity) },
@@ -116,7 +131,7 @@ struct PlanTabView: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 18)
                 .padding(.top, 18)
-                .padding(.bottom, 24)
+                .padding(.bottom, 140)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: SecondaryDestination.self) { destination in
@@ -185,7 +200,8 @@ struct PlanTabView: View {
 }
 
 private enum PlanViewMode: String, CaseIterable, Hashable, Identifiable {
-    case month = "Month"
+    case month = "Monthly"
+    case weekly = "Weekly"
     case progress = "Progress"
     var id: String { rawValue }
 }
@@ -417,19 +433,38 @@ private struct PlanCoachNotesCard: View {
     }
 }
 
-private struct PlanWeeklyListSection: View {
+private struct PlanCurrentWeekSection: View {
+    var week: PlanWeekSummary
+    var onWorkout: (WorkoutSummary) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("This Week")
+                    .font(.headingMD)
+                Spacer()
+                Text(week.dateRangeLabel)
+                    .font(.labelSM)
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            PlanWeekSummaryCard(week: week, onWorkout: onWorkout)
+        }
+    }
+}
+
+private struct PlanWeeklyReviewSection: View {
     var weeks: [PlanWeekSummary]
     var onWorkout: (WorkoutSummary) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Training Weeks")
+                Text("Weekly Review")
                     .font(.headingMD)
                 Spacer()
-                Text("Plan list")
+                Text("Week by week")
                     .font(.labelSM)
-                    .tracking(1.1)
                     .foregroundStyle(Color.textSecondary)
             }
 
@@ -459,15 +494,18 @@ private struct PlanWeekSummaryCard: View {
         max(1, week.totalWorkouts)
     }
 
+    private var weekTitle: String {
+        week.isCurrentWeek ? "This Week" : "Week \(week.weekNumber)"
+    }
+
     var body: some View {
         RunSmartPanel(cornerRadius: 20, padding: 0, accent: week.isCurrentWeek ? .accentPrimary : nil) {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(week.dateRangeLabel)
                         .font(.labelSM)
-                        .tracking(1.0)
                         .foregroundStyle(Color.textSecondary)
-                    Text("Week \(week.weekNumber)")
+                    Text(weekTitle)
                         .font(.displayMD)
                         .lineLimit(1)
                         .minimumScaleFactor(0.78)
