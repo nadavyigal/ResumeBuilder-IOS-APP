@@ -24,6 +24,14 @@ struct APIClient {
     var requestTimeout: TimeInterval = 30
     private let logger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
 
+    // Long-lived session for upload-resume: AI optimization can take 60-90s.
+    private static let uploadSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 120
+        config.timeoutIntervalForResource = 600
+        return URLSession(configuration: config)
+    }()
+
     func supabaseIdentityDebugSummary(session: AuthSession?) -> String {
         let projectRef = BackendConfig.supabaseURL.host?
             .components(separatedBy: ".")
@@ -132,7 +140,7 @@ struct APIClient {
         fields: [String: String?]
     ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: 120)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -164,12 +172,13 @@ struct APIClient {
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
 
         request.httpBody = body
-        return try await send(request)
+        return try await send(request, using: Self.uploadSession)
     }
 
-    private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
+    private func send<T: Decodable>(_ request: URLRequest, using urlSession: URLSession? = nil) async throws -> T {
+        let activeSession = urlSession ?? session
         logger.info("HTTP start \(request.httpMethod ?? "UNKNOWN") \(request.url?.absoluteString ?? "unknown-url")")
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await activeSession.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             logger.error("HTTP invalid response for \(request.url?.absoluteString ?? "unknown-url")")
             throw APIClientError.invalidResponse

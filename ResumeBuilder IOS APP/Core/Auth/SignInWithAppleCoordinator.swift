@@ -37,7 +37,7 @@ final class SignInWithAppleCoordinator: NSObject {
                 self.continuation = continuation
 
                 timeoutTask = Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(20))
+                    try? await Task.sleep(for: .seconds(60))
                     guard self.continuation != nil else { return }
                     self.continuation?.resume(throwing: SignInError.timedOut)
                     self.continuation = nil
