@@ -251,6 +251,10 @@ struct LiveRunSmartServices: RunSmartServiceProviding {
         await ProductionRunSmartServices().requestHealthAccess()
     }
 
+    func syncHealthData() async -> ConnectedDeviceStatus {
+        await ProductionRunSmartServices().syncHealthData()
+    }
+
     func saveToHealth(_ run: RecordedRun) async {
         await ProductionRunSmartServices().saveToHealth(run)
     }

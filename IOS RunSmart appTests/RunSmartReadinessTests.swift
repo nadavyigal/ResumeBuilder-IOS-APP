@@ -178,4 +178,94 @@ final class RunSmartReadinessTests: XCTestCase {
 
         XCTAssertEqual(moving, 90)
     }
+
+    func testHealthKitWorkoutMapperUsesStableProviderIDAndPace() {
+        let providerID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let snapshot = HealthKitWorkoutSnapshot(
+            uuid: providerID,
+            startedAt: Date(timeIntervalSince1970: 2_000),
+            endedAt: Date(timeIntervalSince1970: 3_800),
+            duration: 1_800,
+            distanceMeters: 6_000,
+            averageHeartRateBPM: 148,
+            routePoints: []
+        )
+
+        let run = HealthKitRecordedRunMapper.recordedRun(from: snapshot, syncedAt: Date(timeIntervalSince1970: 4_000))
+        let second = HealthKitRecordedRunMapper.recordedRun(from: snapshot, syncedAt: Date(timeIntervalSince1970: 5_000))
+
+        XCTAssertEqual(run.id, second.id)
+        XCTAssertEqual(run.providerActivityID, providerID.uuidString)
+        XCTAssertEqual(run.source, .healthKit)
+        XCTAssertEqual(run.averagePaceSecondsPerKm, 300)
+        XCTAssertEqual(run.averageHeartRateBPM, 148)
+    }
+
+    func testHealthKitWorkoutMapperHandlesMissingDistanceAndHeartRate() {
+        let snapshot = HealthKitWorkoutSnapshot(
+            uuid: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
+            startedAt: Date(timeIntervalSince1970: 2_000),
+            endedAt: Date(timeIntervalSince1970: 2_900),
+            duration: 900,
+            distanceMeters: nil,
+            averageHeartRateBPM: nil,
+            routePoints: []
+        )
+
+        let run = HealthKitRecordedRunMapper.recordedRun(from: snapshot)
+
+        XCTAssertEqual(run.distanceMeters, 0)
+        XCTAssertEqual(run.averagePaceSecondsPerKm, 0)
+        XCTAssertNil(run.averageHeartRateBPM)
+    }
+
+    func testLocalStoreDedupesAndTombstonesHealthKitProviderRuns() {
+        let store = RunSmartLocalStore.shared
+        let providerID = UUID().uuidString
+        let run = RecordedRun(
+            id: HealthKitRecordedRunMapper.stableUUID(for: providerID),
+            providerActivityID: providerID,
+            source: .healthKit,
+            startedAt: Date(timeIntervalSince1970: 10_000),
+            endedAt: Date(timeIntervalSince1970: 10_600),
+            distanceMeters: 2_000,
+            movingTimeSeconds: 600,
+            averagePaceSecondsPerKm: 300,
+            averageHeartRateBPM: nil,
+            routePoints: [],
+            syncedAt: nil
+        )
+
+        store.saveRun(run)
+        store.saveRun(run)
+        XCTAssertEqual(store.loadRuns().filter { $0.source == .healthKit && $0.providerActivityID == providerID }.count, 1)
+
+        XCTAssertTrue(store.removeRun(run))
+        store.saveRun(run)
+        XCTAssertFalse(store.visibleRuns(store.loadRuns()).contains { $0.source == .healthKit && $0.providerActivityID == providerID })
+    }
+
+    func testDBRunInsertUsesHealthKitProviderForHealthImports() throws {
+        let providerID = UUID(uuidString: "44444444-4444-4444-4444-444444444444")!.uuidString
+        let run = RecordedRun(
+            id: HealthKitRecordedRunMapper.stableUUID(for: providerID),
+            providerActivityID: providerID,
+            source: .healthKit,
+            startedAt: Date(timeIntervalSince1970: 20_000),
+            endedAt: Date(timeIntervalSince1970: 20_900),
+            distanceMeters: 3_000,
+            movingTimeSeconds: 900,
+            averagePaceSecondsPerKm: 300,
+            averageHeartRateBPM: 140,
+            routePoints: [],
+            syncedAt: nil
+        )
+
+        let data = try JSONEncoder().encode(DBRunInsert(run: run, profileID: 7, kind: .easy, notes: "Imported from Apple Health"))
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        XCTAssertEqual(json["source_provider"] as? String, "healthkit")
+        XCTAssertEqual(json["source_activity_id"] as? String, providerID)
+        XCTAssertEqual(json["heart_rate"] as? Int, 140)
+    }
 }

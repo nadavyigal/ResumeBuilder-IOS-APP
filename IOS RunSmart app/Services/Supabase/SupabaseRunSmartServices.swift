@@ -38,6 +38,9 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         if let bb = metrics?.bodyBattery {
             readiness = min(100, bb)
             readinessLabel = bb > 70 ? "Ready to train" : bb > 40 ? "Moderate energy" : "Low energy — easy day"
+        } else if let health = store.loadHealthKitDailySnapshot() {
+            readiness = healthReadiness(from: health)
+            readinessLabel = readiness > 80 ? "Ready from Health" : readiness > 60 ? "Moderate from Health" : "Low recovery signals"
         } else {
             let weeklyKm = activePlan?.completedKmThisWeek ?? 0
             readiness = min(95, max(55, 72 + min(18, Int(weeklyKm))))
@@ -50,11 +53,17 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         let weeklyDone = String(format: "%.1f", Double(activePlan?.completedKmThisWeek ?? 0.0))
         let weeklyTotal = String(format: "%.1f", Double(activePlan?.totalKmThisWeek ?? 0.0))
         let streakDays = streak?.currentStreak ?? 0
+        let healthSnapshot = store.loadHealthKitDailySnapshot()
         let sleepHours = metrics?.sleepDurationS.map {
             let totalSeconds = Int($0)
             return String(format: "%dh %02dm", Int32(totalSeconds / 3600), Int32((totalSeconds % 3600) / 60))
-        } ?? "--"
-        let hrvLabel = metrics?.hrv != nil ? (metrics!.hrv! > 50 ? "Stable" : "Lower") : "--"
+        } ?? healthSnapshot?.sleepSeconds.map(formatDuration) ?? "--"
+        let hrvLabel: String
+        if let hrv = metrics?.hrv ?? healthSnapshot?.hrvMilliseconds {
+            hrvLabel = hrv > 50 ? "Stable" : "Lower"
+        } else {
+            hrvLabel = "--"
+        }
 
         return TodayRecommendation(
             readiness: readiness,
@@ -310,14 +319,12 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         }
 
         async let streakTask = fetchStreak(userID: userID)
-        async let activitiesTask = GarminBridge.shared.recentActivities(authUserID: userID, limit: 200)
-        let (streak, activities) = await (streakTask, activitiesTask)
+        async let runsTask = recentRuns(limit: 250)
+        let (streak, runs) = await (streakTask, runsTask)
 
-        let localRuns = store.visibleRuns(store.loadRuns())
-        let garminRuns = store.visibleRuns(activities.compactMap { $0.toRecordedRun() })
-        let totalRuns = garminRuns.count + localRuns.count
-        let totalMeters = garminRuns.reduce(0.0) { $0 + $1.distanceMeters } + localRuns.reduce(0.0) { $0 + $1.distanceMeters }
-        let totalSeconds = garminRuns.reduce(0.0) { $0 + $1.movingTimeSeconds } + localRuns.reduce(0.0) { $0 + $1.movingTimeSeconds }
+        let totalRuns = runs.count
+        let totalMeters = runs.reduce(0.0) { $0 + $1.distanceMeters }
+        let totalSeconds = runs.reduce(0.0) { $0 + $1.movingTimeSeconds }
         let totalTime = formatTotalTime(seconds: totalSeconds)
 
         return RunnerProfile(
@@ -338,6 +345,25 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         let minutes = (total % 3600) / 60
         if hours == 0 { return "\(minutes)m" }
         return String(format: "%dh %02dm", hours, minutes)
+    }
+
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let total = max(0, Int(seconds.rounded()))
+        return String(format: "%dh %02dm", total / 3600, (total % 3600) / 60)
+    }
+
+    private func healthReadiness(from snapshot: HealthKitDailySnapshot) -> Int {
+        var score = 65
+        if let sleep = snapshot.sleepSeconds {
+            score += sleep >= 25_200 ? 15 : sleep >= 21_600 ? 8 : -8
+        }
+        if let hrv = snapshot.hrvMilliseconds {
+            score += hrv >= 50 ? 10 : hrv >= 35 ? 4 : -6
+        }
+        if let resting = snapshot.restingHeartRateBPM {
+            score += resting <= 55 ? 6 : resting <= 70 ? 2 : -5
+        }
+        return max(20, min(95, score))
     }
 
     func achievements() async -> [Achievement] {
@@ -365,10 +391,14 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     }
 
     func recentRuns() async -> [RecordedRun] {
+        await recentRuns(limit: 100)
+    }
+
+    private func recentRuns(limit: Int) async -> [RecordedRun] {
         var runs = store.visibleRuns(store.loadRuns())
         if let userID = currentUserID {
             let garminRuns = store.visibleRuns(await GarminBridge.shared
-                .recentActivities(authUserID: userID, limit: 100)
+                .recentActivities(authUserID: userID, limit: limit)
                 .compactMap { $0.toRecordedRun() })
             runs.append(contentsOf: garminRuns)
         }
@@ -377,7 +407,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         return runs
             .sorted { $0.startedAt > $1.startedAt }
             .filter { run in
-                let key = run.providerActivityID ?? run.id.uuidString
+                let key = "\(run.source.rawValue)|\(run.providerActivityID ?? run.id.uuidString)"
                 guard !seen.contains(key) else { return false }
                 seen.insert(key)
                 return true
@@ -516,7 +546,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         }
 
         let garmin = await fetchGarminConnection(userID: userID)
-        let health = ConnectedDeviceStatus(
+        let health = store.loadDeviceStatuses().first(where: { $0.provider == "HealthKit" }) ?? ConnectedDeviceStatus(
             provider: "HealthKit",
             state: .disconnected,
             lastSuccessfulSync: nil,
@@ -528,7 +558,9 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
 
     func connect(provider: String) async -> ConnectedDeviceStatus {
         guard provider == "Garmin Connect" else {
-            return await healthSync.requestAccess()
+            let status = await healthSync.requestAccess()
+            store.saveDeviceStatus(status)
+            return status
         }
         do {
             try await GarminBridge.shared.connect()
@@ -548,7 +580,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         if provider == "Garmin Connect" {
             return await fetchGarminConnection(userID: userID)
         }
-        return await healthSync.requestAccess()
+        return await syncHealthData()
     }
 
     func disconnect(provider: String) async -> ConnectedDeviceStatus {
@@ -558,7 +590,24 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     // MARK: HealthSyncing
 
     func requestHealthAccess() async -> ConnectedDeviceStatus {
-        await healthSync.requestAccess()
+        let status = await healthSync.requestAccess()
+        store.saveDeviceStatus(status)
+        return status
+    }
+
+    func syncHealthData() async -> ConnectedDeviceStatus {
+        let result = await healthSync.importHealthData(localStore: store)
+        var status = result.status
+        if !result.runs.isEmpty {
+            let syncedCount = await upsertHealthKitRuns(result.runs)
+            status.message = "Imported \(result.runs.count) Health workouts. Synced \(syncedCount) to RunSmart."
+            if result.skippedDuplicates > 0 {
+                status.message?.append(" Skipped \(result.skippedDuplicates) already saved or hidden.")
+            }
+            await postRunsChanged()
+        }
+        store.saveDeviceStatus(status)
+        return status
     }
 
     func saveToHealth(_ run: RecordedRun) async {
@@ -664,8 +713,21 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     func activeChallenge() async -> ChallengeSummary { .loading }
 
     func recoverySnapshot() async -> RecoverySnapshot {
-        guard let userID = currentUserID,
-              let metrics = await latestGarminMetrics(userID: userID) else { return .loading }
+        guard let userID = currentUserID else { return .loading }
+        guard let metrics = await latestGarminMetrics(userID: userID) else {
+            guard let health = store.loadHealthKitDailySnapshot() else { return .loading }
+            let sleep = health.sleepSeconds.map(formatDuration) ?? "—"
+            let hrv = health.hrvMilliseconds.map { String(format: "%.0f ms", $0) } ?? "—"
+            let readiness = healthReadiness(from: health)
+            return RecoverySnapshot(
+                readiness: readiness,
+                bodyBattery: readiness,
+                sleep: sleep,
+                hrv: hrv,
+                stress: health.restingHeartRateBPM.map { "\($0) bpm resting" } ?? "—",
+                recommendation: "Recovery data synced from Apple Health."
+            )
+        }
         return RecoverySnapshot(
             readiness: metrics.bodyBattery ?? 0,
             bodyBattery: metrics.bodyBattery ?? 0,
@@ -704,6 +766,16 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             )
         }
 
+        if let health = store.loadHealthKitDailySnapshot() {
+            return WellnessSnapshot(
+                calories: health.steps.map { "\($0) steps" } ?? "—",
+                hydration: health.activeEnergyKilocalories.map { String(format: "%.0f kcal active", $0) } ?? "—",
+                soreness: "Apple Health",
+                mood: health.restingHeartRateBPM.map { "\($0) bpm resting" } ?? "—",
+                checkInStatus: health.sleepSeconds.map { "\(formatDuration($0)) sleep from Health." } ?? "Apple Health synced."
+            )
+        }
+
         return .empty
     }
     func shoes() async -> [ShoeSummary] { [] }
@@ -720,7 +792,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             acwr: "Real activity",
             consistency: min(100, runs.count * 10),
             paceTrend: runs.first.map { RunRecorder.paceLabel(secondsPerKm: $0.averagePaceSecondsPerKm) } ?? "—",
-            weeklyRecap: "Based on synced Garmin and local runs."
+            weeklyRecap: "Based on synced Garmin, HealthKit, and local runs."
         )
     }
 
@@ -819,6 +891,31 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         await MainActor.run {
             NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
         }
+    }
+
+    private func upsertHealthKitRuns(_ runs: [RecordedRun]) async -> Int {
+        guard let userID = currentUserID else { return 0 }
+        let identity = await planRepo.identity(authUserID: userID)
+        guard let profileID = identity.numericUserID else { return 0 }
+
+        var synced = 0
+        for run in runs {
+            do {
+                try await supabase
+                    .from("runs")
+                    .upsert(
+                        DBRunInsert(run: run, profileID: profileID, kind: .easy, notes: "Imported from Apple Health"),
+                        onConflict: "source_provider,source_activity_id"
+                    )
+                    .execute()
+                synced += 1
+            } catch {
+                if !(error is CancellationError) {
+                    print("[SupabaseServices] HealthKit run upsert error:", error)
+                }
+            }
+        }
+        return synced
     }
 
     private func latestGarminMetrics(userID: UUID) async -> DBGarminDailyMetrics? {
@@ -1094,7 +1191,7 @@ private extension ISO8601DateFormatter {
     }()
 }
 
-private struct DBRunInsert: Encodable {
+struct DBRunInsert: Encodable {
     let profileID: Int
     let type: String
     let distance: Double
@@ -1118,8 +1215,8 @@ private struct DBRunInsert: Encodable {
         let trimmedNotes = notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.notes = trimmedNotes?.isEmpty == false ? trimmedNotes : nil
         self.completedAt = ISO8601DateFormatter.internet.string(from: run.startedAt)
-        self.sourceProvider = "runsmart_ios"
-        self.sourceActivityID = run.id.uuidString
+        self.sourceProvider = run.supabaseSourceProvider
+        self.sourceActivityID = run.providerActivityID ?? run.id.uuidString
         self.lastSyncedAt = ISO8601DateFormatter.internet.string(from: syncedAt)
     }
 
@@ -1131,6 +1228,19 @@ private struct DBRunInsert: Encodable {
         case sourceProvider = "source_provider"
         case sourceActivityID = "source_activity_id"
         case lastSyncedAt = "last_synced_at"
+    }
+}
+
+private extension RecordedRun {
+    var supabaseSourceProvider: String {
+        switch source {
+        case .runSmart:
+            return "runsmart_ios"
+        case .garmin:
+            return "garmin"
+        case .healthKit:
+            return "healthkit"
+        }
     }
 }
 

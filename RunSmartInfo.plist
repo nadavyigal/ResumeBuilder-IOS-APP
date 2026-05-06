@@ -32,7 +32,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>RunSmart reads workouts to keep coaching recommendations based on real activity data.</string>
+	<string>RunSmart reads workouts, routes, heart rate, HRV, sleep, steps, and active energy to personalize coaching, readiness, and training load.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>RunSmart writes completed GPS runs to Health when you allow it.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

@@ -1534,6 +1534,7 @@ private struct ConnectedServiceDetailScaffold: View {
     @State private var status: ConnectedDeviceStatus?
     @State private var isWorking = false
     @State private var recentActivities: [DBGarminActivity] = []
+    @State private var healthRuns: [RecordedRun] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: RunSmartSpacing.md) {
@@ -1559,7 +1560,11 @@ private struct ConnectedServiceDetailScaffold: View {
                     SectionLabel(title: "Permissions")
                     PermissionRow(title: "Activities", enabled: permissions.contains("Activities") || permissions.contains("Workouts"))
                     PermissionRow(title: "Sleep", enabled: permissions.contains("Sleep"))
-                    PermissionRow(title: "Heart rate", enabled: permissions.contains("Heart Rate"))
+                    PermissionRow(title: "Heart rate", enabled: permissions.contains("Heart Rate") || permissions.contains("Resting HR"))
+                    if serviceName == "HealthKit" {
+                        PermissionRow(title: "HRV", enabled: permissions.contains("HRV"))
+                        PermissionRow(title: "Steps", enabled: permissions.contains("Steps"))
+                    }
                     PermissionRow(title: "Routes", enabled: permissions.contains("Routes"))
                 }
             }
@@ -1604,13 +1609,30 @@ private struct ConnectedServiceDetailScaffold: View {
                     }
                 }
             }
+
+            if serviceName == "HealthKit" {
+                GlassCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        SectionLabel(title: "Imported From Health")
+                        if healthRuns.isEmpty {
+                            Text("No Health workouts imported yet. Tap Sync Now after granting Health access.")
+                                .font(.callout)
+                                .foregroundStyle(Color.mutedText)
+                        } else {
+                            VStack(spacing: 8) {
+                                ForEach(healthRuns.prefix(8)) { run in
+                                    ActivityRow(run: run) {
+                                        router.open(.postRunSummary(run))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         .task {
-            let statuses = await services.deviceStatuses()
-            status = statuses.first(where: { $0.provider == serviceName })
-            if serviceName == "Garmin Connect", let userID = session.currentUserID {
-                recentActivities = await GarminBridge.shared.recentActivities(authUserID: userID, limit: 10)
-            }
+            await load()
         }
     }
 
@@ -1654,7 +1676,20 @@ private struct ConnectedServiceDetailScaffold: View {
         isWorking = true
         Task {
             status = await action()
+            await load()
             isWorking = false
+        }
+    }
+
+    private func load() async {
+        let statuses = await services.deviceStatuses()
+        status = statuses.first(where: { $0.provider == serviceName })
+        if serviceName == "Garmin Connect", let userID = session.currentUserID {
+            recentActivities = await GarminBridge.shared.recentActivities(authUserID: userID, limit: 10)
+        }
+        if serviceName == "HealthKit" {
+            let runs = await services.recentRuns()
+            healthRuns = runs.filter { $0.source == .healthKit }
         }
     }
 }

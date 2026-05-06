@@ -2,9 +2,6 @@ import Foundation
 import SwiftUI
 import CoreLocation
 import Combine
-#if canImport(HealthKit)
-import HealthKit
-#endif
 
 @MainActor
 final class RunSmartAppSession: ObservableObject {
@@ -133,6 +130,14 @@ final class RunSmartLocalStore {
             ConnectedDeviceStatus(provider: "Garmin Connect", state: .disconnected, lastSuccessfulSync: nil, permissions: [], message: "Connect Garmin to import real activities."),
             ConnectedDeviceStatus(provider: "HealthKit", state: .disconnected, lastSuccessfulSync: nil, permissions: [], message: "Allow Health access to sync workouts.")
         ]
+    }
+
+    func saveHealthKitDailySnapshot(_ snapshot: HealthKitDailySnapshot) {
+        save(snapshot, key: "runsmart.healthkit.dailySnapshot")
+    }
+
+    func loadHealthKitDailySnapshot() -> HealthKitDailySnapshot? {
+        load(HealthKitDailySnapshot.self, key: "runsmart.healthkit.dailySnapshot")
     }
 
     private func save<Value: Encodable>(_ value: Value, key: String) {
@@ -434,6 +439,7 @@ protocol DeviceSyncing {
 
 protocol HealthSyncing {
     func requestHealthAccess() async -> ConnectedDeviceStatus
+    func syncHealthData() async -> ConnectedDeviceStatus
     func saveToHealth(_ run: RecordedRun) async
 }
 
@@ -614,9 +620,7 @@ struct ProductionRunSmartServices: RunSmartServiceProviding, RouteProviding, Dev
             return result.status
         }
         if provider == "HealthKit" {
-            let status = await health.importWorkouts(store: store)
-            store.saveDeviceStatus(status)
-            return status
+            return await syncHealthData()
         }
         return ConnectedDeviceStatus(provider: provider, state: .error, lastSuccessfulSync: nil, permissions: [], message: "Unsupported provider.")
     }
@@ -631,6 +635,17 @@ struct ProductionRunSmartServices: RunSmartServiceProviding, RouteProviding, Dev
         let status = await health.requestAccess()
         store.saveDeviceStatus(status)
         return status
+    }
+
+    func syncHealthData() async -> ConnectedDeviceStatus {
+        let result = await health.importHealthData(localStore: store)
+        store.saveDeviceStatus(result.status)
+        if !result.runs.isEmpty {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
+            }
+        }
+        return result.status
     }
 
     func saveToHealth(_ run: RecordedRun) async {
@@ -688,91 +703,4 @@ struct GarminGatewayClient {
             runs: []
         )
     }
-}
-
-struct HealthKitSyncService {
-    func requestAccess() async -> ConnectedDeviceStatus {
-#if canImport(HealthKit)
-        guard HKHealthStore.isHealthDataAvailable() else {
-            return ConnectedDeviceStatus(provider: "HealthKit", state: .error, lastSuccessfulSync: nil, permissions: [], message: "Health data is not available on this device.")
-        }
-        let store = HKHealthStore()
-        let workout = HKObjectType.workoutType()
-        let share: Set<HKSampleType> = [workout]
-        let read: Set<HKObjectType> = [workout]
-        do {
-            try await store.requestAuthorization(toShare: share, read: read)
-            return ConnectedDeviceStatus(provider: "HealthKit", state: .connected, lastSuccessfulSync: nil, permissions: ["Workouts"], message: "HealthKit access granted.")
-        } catch {
-            return ConnectedDeviceStatus(provider: "HealthKit", state: .error, lastSuccessfulSync: nil, permissions: [], message: error.localizedDescription)
-        }
-#else
-        return ConnectedDeviceStatus(provider: "HealthKit", state: .error, lastSuccessfulSync: nil, permissions: [], message: "HealthKit is unavailable in this build.")
-#endif
-    }
-
-    func save(_ run: RecordedRun) async {
-#if canImport(HealthKit)
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        let store = HKHealthStore()
-        let workout = HKWorkout(
-            activityType: .running,
-            start: run.startedAt,
-            end: run.endedAt,
-            duration: run.movingTimeSeconds,
-            totalEnergyBurned: nil,
-            totalDistance: HKQuantity(unit: .meter(), doubleValue: run.distanceMeters),
-            metadata: ["RunSmartSource": run.source.rawValue]
-        )
-        try? await store.save(workout)
-#endif
-    }
-
-    func importWorkouts(store: RunSmartLocalStore) async -> ConnectedDeviceStatus {
-#if canImport(HealthKit)
-        guard HKHealthStore.isHealthDataAvailable() else {
-            return ConnectedDeviceStatus(provider: "HealthKit", state: .error, lastSuccessfulSync: nil, permissions: [], message: "Health data is not available on this device.")
-        }
-        let healthStore = HKHealthStore()
-        let workouts = await readRecentRunningWorkouts(store: healthStore)
-        workouts.forEach(store.saveRun)
-        return ConnectedDeviceStatus(provider: "HealthKit", state: .connected, lastSuccessfulSync: Date(), permissions: ["Workouts"], message: "Imported \(workouts.count) HealthKit running workouts.")
-#else
-        return ConnectedDeviceStatus(provider: "HealthKit", state: .error, lastSuccessfulSync: nil, permissions: [], message: "HealthKit is unavailable in this build.")
-#endif
-    }
-
-#if canImport(HealthKit)
-    private func readRecentRunningWorkouts(store: HKHealthStore) async -> [RecordedRun] {
-        await withCheckedContinuation { continuation in
-            let calendar = Calendar.current
-            let start = calendar.date(byAdding: .day, value: -90, to: Date()) ?? Date()
-            let datePredicate = HKQuery.predicateForSamples(withStart: start, end: Date(), options: [])
-            let runPredicate = HKQuery.predicateForWorkouts(with: .running)
-            let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [datePredicate, runPredicate])
-            let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-            let query = HKSampleQuery(sampleType: .workoutType(), predicate: predicate, limit: 50, sortDescriptors: [sort]) { _, samples, _ in
-                let runs = (samples as? [HKWorkout] ?? []).map { workout in
-                    let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
-                    let duration = workout.duration
-                    return RecordedRun(
-                        id: UUID(),
-                        providerActivityID: workout.uuid.uuidString,
-                        source: .healthKit,
-                        startedAt: workout.startDate,
-                        endedAt: workout.endDate,
-                        distanceMeters: distance,
-                        movingTimeSeconds: duration,
-                        averagePaceSecondsPerKm: distance > 0 ? duration / (distance / 1_000) : 0,
-                        averageHeartRateBPM: nil,
-                        routePoints: [],
-                        syncedAt: Date()
-                    )
-                }
-                continuation.resume(returning: runs)
-            }
-            store.execute(query)
-        }
-    }
-#endif
 }

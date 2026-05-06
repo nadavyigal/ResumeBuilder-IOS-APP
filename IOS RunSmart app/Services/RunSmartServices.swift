@@ -212,6 +212,10 @@ struct MockRunSmartServices: TodayProviding, PlanProviding, CoachChatting, Profi
         ConnectedDeviceStatus(provider: "HealthKit", state: .connected, lastSuccessfulSync: nil, permissions: ["Preview"], message: "Preview HealthKit")
     }
 
+    func syncHealthData() async -> ConnectedDeviceStatus {
+        ConnectedDeviceStatus(provider: "HealthKit", state: .connected, lastSuccessfulSync: Date(), permissions: ["Preview"], message: "Preview HealthKit sync")
+    }
+
     func saveToHealth(_ run: RecordedRun) async {}
 }
 #endif
