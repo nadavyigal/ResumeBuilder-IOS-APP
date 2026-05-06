@@ -7,11 +7,19 @@ struct RunTabView: View {
 
     @State private var metrics: [MetricTile] = []
     @State private var finishedRun: RecordedRun?
+    @State private var postActivityOutcome: PostActivityOutcome?
+    @State private var isProcessingFinishedRun = false
 
     var body: some View {
         Group {
             if let finishedRun {
-                PostRunSummaryView(run: finishedRun, onSave: saveFinishedRun, onDelete: deleteFinishedRun)
+                PostRunSummaryView(
+                    run: postActivityOutcome?.canonicalRun ?? finishedRun,
+                    outcome: postActivityOutcome,
+                    isProcessing: isProcessingFinishedRun,
+                    onSave: saveFinishedRun,
+                    onDelete: deleteFinishedRun
+                )
             } else if recorder.phase == .recording || recorder.phase == .paused {
                 LiveRunView(
                     metrics: liveMetrics,
@@ -114,8 +122,17 @@ struct RunTabView: View {
         let run = recorder.finish()
         if let run {
             Task { await services.saveToHealth(run) }
+            postActivityOutcome = nil
+            isProcessingFinishedRun = true
             NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
             finishedRun = run
+            Task {
+                let outcome = await services.processCompletedActivity(run)
+                await MainActor.run {
+                    postActivityOutcome = outcome
+                    isProcessingFinishedRun = false
+                }
+            }
         } else {
             router.open(.postRunSummary(nil))
         }
@@ -123,6 +140,8 @@ struct RunTabView: View {
 
     private func saveFinishedRun() {
         finishedRun = nil
+        postActivityOutcome = nil
+        isProcessingFinishedRun = false
         Task { metrics = await services.currentRunMetrics() }
     }
 
@@ -135,6 +154,8 @@ struct RunTabView: View {
             _ = await services.removeRun(run)
             await MainActor.run {
                 finishedRun = nil
+                postActivityOutcome = nil
+                isProcessingFinishedRun = false
                 NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
             }
         }

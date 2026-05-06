@@ -186,6 +186,7 @@ struct RunRoutePoint: Identifiable, Codable, Hashable {
 struct RecordedRun: Identifiable, Codable, Hashable {
     var id: UUID
     var providerActivityID: String?
+    var consolidatedActivityID: String? = nil
     var source: RunSmartDataSource
     var startedAt: Date
     var endedAt: Date
@@ -384,6 +385,13 @@ struct RunReportDetail: Identifiable, Codable, Hashable {
             isGenerated: isGenerated
         )
     }
+}
+
+struct PostActivityOutcome: Hashable {
+    var canonicalRun: RecordedRun
+    var report: RunReportDetail?
+    var completedWorkout: WorkoutSummary?
+    var didCompletePlannedWorkout: Bool
 }
 
 struct TrainingLoadSnapshot: Hashable {

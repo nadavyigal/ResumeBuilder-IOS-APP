@@ -498,6 +498,31 @@ final class TrainingPlanRepository {
         }
     }
 
+    func completeBestMatchingWorkout(authUserID: UUID, for run: RecordedRun) async -> WorkoutSummary? {
+        guard let active = await activePlan(authUserID: authUserID) else { return nil }
+        let candidates = active.workouts
+            .filter { !$0.completed }
+            .map { $0.toWorkoutSummary() }
+
+        guard let match = Self.bestWorkoutMatch(for: run, in: candidates) else { return nil }
+        do {
+            try await supabase
+                .from("workouts")
+                .update(DBWorkoutCompletionUpdate(completed: true))
+                .eq("id", value: match.id.uuidString)
+                .execute()
+            var completed = match
+            completed.isComplete = true
+            print("[TrainingPlanRepo] ✅ completed workout=\(match.id) from run=\(run.consolidatedActivityID ?? run.providerActivityID ?? run.id.uuidString)")
+            return completed
+        } catch {
+            if !(error is CancellationError) {
+                print("[TrainingPlanRepo] completeBestMatchingWorkout error:", error)
+            }
+            return nil
+        }
+    }
+
     func amendWorkout(workoutID: UUID, patch: WorkoutPatch) async -> Bool {
         do {
             try await supabase
@@ -659,6 +684,43 @@ final class TrainingPlanRepository {
         return parts[0] * 60 + parts[1]
     }
 
+    static func bestWorkoutMatch(for run: RecordedRun, in workouts: [WorkoutSummary], calendar: Calendar = .current) -> WorkoutSummary? {
+        let sameDay = workouts.filter { workout in
+            !workout.isComplete && calendar.isDate(workout.scheduledDate, inSameDayAs: run.startedAt)
+        }
+        guard !sameDay.isEmpty else { return nil }
+
+        let runKm = run.distanceMeters / 1_000
+        let runMinutes = run.movingTimeSeconds / 60
+        let scored = sameDay.compactMap { workout -> (WorkoutSummary, Double)? in
+            let plannedKm = distanceKm(from: workout.distance)
+            let plannedMinutes = workout.durationMinutes.map(Double.init)
+            var score = 0.0
+
+            if let plannedKm, plannedKm > 0, runKm > 0 {
+                let distanceDelta = abs(plannedKm - runKm)
+                guard distanceDelta <= max(1.5, plannedKm * 0.35) else { return nil }
+                score += distanceDelta
+            } else {
+                score += 1.0
+            }
+
+            if let plannedMinutes, plannedMinutes > 0, runMinutes > 0 {
+                let minuteDelta = abs(plannedMinutes - runMinutes)
+                guard minuteDelta <= max(15, plannedMinutes * 0.40) else { return nil }
+                score += minuteDelta / 10
+            }
+
+            if workout.kind == .recovery || workout.kind == .strength {
+                score += 2.5
+            }
+
+            return (workout, score)
+        }
+
+        return scored.min(by: { $0.1 < $1.1 })?.0
+    }
+
     private static func dayLabel(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -813,6 +875,10 @@ private struct DBWorkoutUpdate: Encodable {
         try c.encodeIfPresent(notes, forKey: .notes)
         try c.encodeIfPresent(workoutStructure, forKey: .workoutStructure)
     }
+}
+
+private struct DBWorkoutCompletionUpdate: Encodable {
+    let completed: Bool
 }
 
 // MARK: - DBWorkout → WorkoutSummary

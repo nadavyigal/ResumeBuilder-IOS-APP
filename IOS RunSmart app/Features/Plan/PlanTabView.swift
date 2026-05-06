@@ -150,6 +150,12 @@ struct PlanTabView: View {
                 await loadMonthData()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .runSmartRunsDidChange)) { _ in
+            Task {
+                await loadPlanData()
+                await loadMonthData()
+            }
+        }
     }
 
     private func loadPlanData() async {

@@ -1,7 +1,10 @@
 import SwiftUI
 
 struct PostRunSummaryView: View {
+    @Environment(\.runSmartServices) private var services
     var run: RecordedRun?
+    var outcome: PostActivityOutcome? = nil
+    var isProcessing: Bool = false
     var onSave: () -> Void
     var onDelete: () -> Void
 
@@ -38,6 +41,7 @@ struct PostRunSummaryView: View {
                 RPESelector(value: $rpe)
 
                 CoachAnalysisCard(run: run, rpe: rpe)
+                PostActivityPlanCard(outcome: outcome, isProcessing: isProcessing)
                 SplitPreviewCard(splits: splitRows)
                 RecoveryPlanCard()
 
@@ -102,6 +106,146 @@ struct PostRunSummaryView: View {
             let drift = Double((km % 3) - 1) * 4
             let pace = max(1, run.averagePaceSecondsPerKm + drift)
             return SplitRow(km: km, pace: RunRecorder.paceLabel(secondsPerKm: pace))
+        }
+    }
+}
+
+private struct PostActivityPlanCard: View {
+    @Environment(\.runSmartServices) private var services
+    var outcome: PostActivityOutcome?
+    var isProcessing: Bool
+
+    @State private var isSavingSuggestedWorkout = false
+    @State private var saveState: SaveState = .idle
+
+    var body: some View {
+        RunSmartPanel(cornerRadius: 22, padding: 16, accent: .accentPrimary) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Label("PLAN UPDATE", systemImage: "calendar.badge.checkmark")
+                        .font(.labelLG)
+                        .foregroundStyle(Color.accentPrimary)
+                    Spacer()
+                    StatusChip(text: statusText, tint: statusTint)
+                }
+
+                if isProcessing {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                            .tint(Color.accentPrimary)
+                        Text("Building your report and matching this run to your plan...")
+                            .font(.bodyMD)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                } else {
+                    Text(planFitText)
+                        .font(.bodyMD)
+                        .foregroundStyle(Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if let report = outcome?.report {
+                    PostRunDetailLine(label: "Coach Report", value: report.notes.summary)
+
+                    if let next = report.structuredNextWorkout {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Recommended Next Run")
+                                .font(.bodyMD.weight(.semibold))
+                                .foregroundStyle(Color.textPrimary)
+                            PostRunDetailLine(label: "Workout", value: next.title)
+                            if let date = next.dateLabel { PostRunDetailLine(label: "Date", value: date) }
+                            if let distance = next.distance { PostRunDetailLine(label: "Distance", value: distance) }
+                            if let target = next.target { PostRunDetailLine(label: "Target", value: target) }
+                            if let notes = next.notes { PostRunDetailLine(label: "Notes", value: notes) }
+
+                            Button {
+                                Task { await save(next, report: report) }
+                            } label: {
+                                Label(saveState.buttonTitle(isSaving: isSavingSuggestedWorkout), systemImage: saveState.symbol)
+                                    .font(.buttonLabel)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .foregroundStyle(Color.black)
+                                    .background(Color.accentPrimary, in: Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isSavingSuggestedWorkout || saveState == .saved)
+                        }
+                    } else {
+                        PostRunDetailLine(label: "Next Run", value: report.notes.nextSessionNudge)
+                    }
+                }
+            }
+        }
+    }
+
+    private var statusText: String {
+        if isProcessing { return "Updating" }
+        if outcome?.didCompletePlannedWorkout == true { return "Plan Complete" }
+        if outcome?.report != nil { return "Reported" }
+        return "Saved"
+    }
+
+    private var statusTint: Color {
+        outcome?.didCompletePlannedWorkout == true ? .accentSuccess : .accentPrimary
+    }
+
+    private var planFitText: String {
+        guard let outcome else {
+            return "RunSmart will use this activity to update recent load, report context, and the next recommendation."
+        }
+        if let workout = outcome.completedWorkout {
+            return "Matched to \(workout.title) on your training plan and marked complete. Future suggested workouts still wait for your approval."
+        }
+        return "No scheduled workout was close enough to mark complete, so this stays as an extra run in your training history."
+    }
+
+    private func save(_ next: StructuredNextWorkout, report: RunReportDetail) async {
+        isSavingSuggestedWorkout = true
+        saveState = .idle
+        let saved = await services.saveSuggestedWorkout(next, from: report)
+        isSavingSuggestedWorkout = false
+        saveState = saved ? .saved : .failed
+        if saved { RunSmartHaptics.success() }
+    }
+
+    private enum SaveState {
+        case idle
+        case saved
+        case failed
+
+        var symbol: String {
+            switch self {
+            case .idle: "calendar.badge.plus"
+            case .saved: "checkmark.circle.fill"
+            case .failed: "exclamationmark.triangle.fill"
+            }
+        }
+
+        func buttonTitle(isSaving: Bool) -> String {
+            if isSaving { return "Saving..." }
+            switch self {
+            case .idle: return "Save to Training Plan"
+            case .saved: return "Saved to Plan"
+            case .failed: return "Try Saving Again"
+            }
+        }
+    }
+}
+
+private struct PostRunDetailLine: View {
+    var label: String
+    var value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label.uppercased())
+                .font(.labelSM)
+                .foregroundStyle(Color.textTertiary)
+            Text(value)
+                .font(.bodyMD)
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

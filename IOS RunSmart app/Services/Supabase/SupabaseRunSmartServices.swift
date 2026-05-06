@@ -403,15 +403,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             runs.append(contentsOf: garminRuns)
         }
 
-        var seen = Set<String>()
-        return runs
-            .sorted { $0.startedAt > $1.startedAt }
-            .filter { run in
-                let key = "\(run.source.rawValue)|\(run.providerActivityID ?? run.id.uuidString)"
-                guard !seen.contains(key) else { return false }
-                seen.insert(key)
-                return true
-            }
+        return Array(ActivityConsolidationService.consolidatedRuns(runs).prefix(limit))
     }
 
     func saveManualRun(kind: WorkoutKind, date: Date, distanceKm: Double, durationMinutes: Int, averageHeartRateBPM: Int?, notes: String) async -> RecordedRun {
@@ -578,7 +570,14 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             return ConnectedDeviceStatus(provider: provider, state: .disconnected, lastSuccessfulSync: nil, permissions: [], message: nil)
         }
         if provider == "Garmin Connect" {
-            return await fetchGarminConnection(userID: userID)
+            let status = await fetchGarminConnection(userID: userID)
+            if let run = await GarminBridge.shared
+                .recentActivities(authUserID: userID, limit: 3)
+                .compactMap({ $0.toRecordedRun() })
+                .first {
+                _ = await processCompletedActivity(run)
+            }
+            return status
         }
         return await syncHealthData()
     }
@@ -604,7 +603,11 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             if result.skippedDuplicates > 0 {
                 status.message?.append(" Skipped \(result.skippedDuplicates) already saved or hidden.")
             }
-            await postRunsChanged()
+            if let newest = result.runs.sorted(by: { $0.startedAt > $1.startedAt }).first {
+                _ = await processCompletedActivity(newest)
+            } else {
+                await postRunsChanged()
+            }
         }
         store.saveDeviceStatus(status)
         return status
@@ -620,26 +623,9 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         guard limit > 0 else { return [] }
 
         var reports: [RunReportDetail] = []
-        let localRuns = store.visibleRuns(store.loadRuns()).prefix(limit)
-        for run in localRuns {
-            if let report = await runReport(for: run) {
-                reports.append(report)
-            } else {
-                reports.append(Self.reportSkeleton(for: run))
-            }
-        }
-
-        if let userID = currentUserID {
-            let garminActivities = await GarminBridge.shared.recentActivities(authUserID: userID, limit: limit)
-            for activity in garminActivities {
-                guard let run = activity.toRecordedRun() else { continue }
-                guard !store.isRunHidden(run) else { continue }
-                if let report = await runReport(for: run) {
-                    reports.append(report)
-                } else {
-                    reports.append(Self.reportSkeleton(for: run))
-                }
-            }
+        let runs = await recentRuns(limit: max(limit * 3, limit))
+        for run in runs {
+            reports.append(await runReport(for: run) ?? Self.reportSkeleton(for: run))
         }
 
         var seen = Set<String>()
@@ -694,6 +680,27 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             }
             return nil
         }
+    }
+
+    func processCompletedActivity(_ run: RecordedRun) async -> PostActivityOutcome {
+        let canonical = ActivityConsolidationService.canonicalRun(for: run, in: await recentRuns(limit: 100))
+        async let reportTask = generateRunReportIfMissing(for: canonical)
+        async let completedTask = completeMatchingWorkout(for: canonical)
+        let (report, completed) = await (reportTask, completedTask)
+
+        await MainActor.run {
+            NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
+            if completed != nil {
+                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+            }
+        }
+
+        return PostActivityOutcome(
+            canonicalRun: canonical,
+            report: report,
+            completedWorkout: completed,
+            didCompletePlannedWorkout: completed != nil
+        )
     }
 
     func activeGoal() async -> GoalSummary {
@@ -891,6 +898,11 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         await MainActor.run {
             NotificationCenter.default.post(name: .runSmartRunsDidChange, object: nil)
         }
+    }
+
+    private func completeMatchingWorkout(for run: RecordedRun) async -> WorkoutSummary? {
+        guard let userID = currentUserID else { return nil }
+        return await planRepo.completeBestMatchingWorkout(authUserID: userID, for: run)
     }
 
     private func upsertHealthKitRuns(_ runs: [RecordedRun]) async -> Int {
@@ -1279,7 +1291,7 @@ private struct DBWellnessCheckin: Decodable {
 
 extension SupabaseRunSmartServices {
     static func reportRunID(for run: RecordedRun) -> String {
-        run.providerActivityID ?? run.id.uuidString
+        run.consolidatedActivityID ?? run.providerActivityID ?? run.id.uuidString
     }
 
     static func reportSkeleton(for run: RecordedRun) -> RunReportDetail {

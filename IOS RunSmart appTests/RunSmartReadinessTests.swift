@@ -37,6 +37,31 @@ final class RunSmartReadinessTests: XCTestCase {
         )
     }
 
+    private func makeRun(
+        id: UUID = UUID(),
+        providerActivityID: String? = nil,
+        source: RunSmartDataSource,
+        startedAt: Date,
+        distanceMeters: Double,
+        movingTimeSeconds: TimeInterval,
+        heartRate: Int? = nil,
+        routePoints: [RunRoutePoint] = []
+    ) -> RecordedRun {
+        RecordedRun(
+            id: id,
+            providerActivityID: providerActivityID,
+            source: source,
+            startedAt: startedAt,
+            endedAt: startedAt.addingTimeInterval(movingTimeSeconds),
+            distanceMeters: distanceMeters,
+            movingTimeSeconds: movingTimeSeconds,
+            averagePaceSecondsPerKm: movingTimeSeconds / max(distanceMeters / 1_000, 0.1),
+            averageHeartRateBPM: heartRate,
+            routePoints: routePoints,
+            syncedAt: Date(timeIntervalSince1970: 30_000)
+        )
+    }
+
     func testPlanWeeksGroupByCalendarWeekAndTotalDistance() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 1
@@ -267,5 +292,73 @@ final class RunSmartReadinessTests: XCTestCase {
         XCTAssertEqual(json["source_provider"] as? String, "healthkit")
         XCTAssertEqual(json["source_activity_id"] as? String, providerID)
         XCTAssertEqual(json["heart_rate"] as? Int, 140)
+    }
+
+    func testActivityConsolidationMergesSameRunAndKeepsRichestCanonical() {
+        let start = makeDate("2026-05-05").addingTimeInterval(7 * 3600)
+        let points = [
+            RunRoutePoint(latitude: 32.0, longitude: 34.0, timestamp: start, horizontalAccuracy: 8, altitude: nil),
+            RunRoutePoint(latitude: 32.001, longitude: 34.001, timestamp: start.addingTimeInterval(60), horizontalAccuracy: 8, altitude: nil)
+        ]
+        let runSmart = makeRun(source: .runSmart, startedAt: start, distanceMeters: 5_020, movingTimeSeconds: 1_510, routePoints: points)
+        let health = makeRun(providerActivityID: "hk-1", source: .healthKit, startedAt: start.addingTimeInterval(40), distanceMeters: 5_000, movingTimeSeconds: 1_500, heartRate: 148)
+        let garmin = makeRun(providerActivityID: "garmin-1", source: .garmin, startedAt: start.addingTimeInterval(30), distanceMeters: 5_010, movingTimeSeconds: 1_505, heartRate: 150)
+
+        let consolidated = ActivityConsolidationService.consolidatedRuns([health, runSmart, garmin])
+
+        XCTAssertEqual(consolidated.count, 1)
+        XCTAssertEqual(consolidated[0].source, .garmin)
+        XCTAssertEqual(consolidated[0].providerActivityID, "garmin-1")
+        XCTAssertEqual(consolidated[0].averageHeartRateBPM, 150)
+        XCTAssertEqual(consolidated[0].routePoints.count, 2)
+        XCTAssertNotNil(consolidated[0].consolidatedActivityID)
+    }
+
+    func testActivityConsolidationLeavesSeparateSameDayRunsAlone() {
+        let start = makeDate("2026-05-05").addingTimeInterval(7 * 3600)
+        let morning = makeRun(providerActivityID: "garmin-morning", source: .garmin, startedAt: start, distanceMeters: 5_000, movingTimeSeconds: 1_500)
+        let afternoon = makeRun(providerActivityID: "garmin-afternoon", source: .garmin, startedAt: start.addingTimeInterval(5 * 3600), distanceMeters: 6_000, movingTimeSeconds: 1_900)
+
+        let consolidated = ActivityConsolidationService.consolidatedRuns([morning, afternoon])
+
+        XCTAssertEqual(consolidated.count, 2)
+    }
+
+    func testActivityConsolidationDedupesSameSourceProviderRows() {
+        let start = makeDate("2026-05-05").addingTimeInterval(7 * 3600)
+        let first = makeRun(providerActivityID: "garmin-dup", source: .garmin, startedAt: start, distanceMeters: 5_000, movingTimeSeconds: 1_500)
+        let richer = makeRun(providerActivityID: "garmin-dup", source: .garmin, startedAt: start, distanceMeters: 5_000, movingTimeSeconds: 1_500, heartRate: 150)
+
+        let consolidated = ActivityConsolidationService.consolidatedRuns([first, richer])
+
+        XCTAssertEqual(consolidated.count, 1)
+        XCTAssertEqual(consolidated[0].averageHeartRateBPM, 150)
+    }
+
+    func testConsolidatedReportIDIsStableWhenGarminArrivesAfterHealthKit() {
+        let start = makeDate("2026-05-05").addingTimeInterval(7 * 3600)
+        let health = makeRun(providerActivityID: "hk-stable", source: .healthKit, startedAt: start, distanceMeters: 5_000, movingTimeSeconds: 1_500)
+        let garmin = makeRun(providerActivityID: "garmin-stable", source: .garmin, startedAt: start.addingTimeInterval(30), distanceMeters: 5_010, movingTimeSeconds: 1_505, heartRate: 150)
+
+        let healthOnly = ActivityConsolidationService.consolidatedRuns([health])[0]
+        let afterGarmin = ActivityConsolidationService.consolidatedRuns([health, garmin])[0]
+
+        XCTAssertEqual(SupabaseRunSmartServices.reportRunID(for: healthOnly), SupabaseRunSmartServices.reportRunID(for: afterGarmin))
+        XCTAssertEqual(afterGarmin.source, .garmin)
+    }
+
+    func testWorkoutMatchSelectsSameDayIncompleteWorkout() {
+        let run = makeRun(
+            source: .garmin,
+            startedAt: makeDate("2026-05-05").addingTimeInterval(7 * 3600),
+            distanceMeters: 8_100,
+            movingTimeSeconds: 2_700
+        )
+        let matchingWorkout = makeWorkout(id: UUID(uuidString: "55555555-5555-5555-5555-555555555555")!, date: "2026-05-05", kind: .tempo, distance: "8.0 km", durationMinutes: 45)
+        let wrongDay = makeWorkout(date: "2026-05-06", distance: "8.0 km", durationMinutes: 45)
+
+        let match = TrainingPlanRepository.bestWorkoutMatch(for: run, in: [wrongDay, matchingWorkout])
+
+        XCTAssertEqual(match?.id, matchingWorkout.id)
     }
 }

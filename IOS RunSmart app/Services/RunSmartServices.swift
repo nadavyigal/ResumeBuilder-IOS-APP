@@ -58,6 +58,7 @@ protocol WebParityProviding {
     func latestRunReports(limit: Int) async -> [RunReportSummary]
     func runReport(for run: RecordedRun) async -> RunReportDetail?
     func generateRunReportIfMissing(for run: RecordedRun) async -> RunReportDetail?
+    func processCompletedActivity(_ run: RecordedRun) async -> PostActivityOutcome
     func trainingLoadSnapshot() async -> TrainingLoadSnapshot
     func shareableAchievements() async -> [ShareableAchievement]
     func shouldPresentManualMorningCheckin() async -> Bool
@@ -75,6 +76,9 @@ extension WebParityProviding {
     func latestRunReports(limit: Int) async -> [RunReportSummary] { [] }
     func runReport(for run: RecordedRun) async -> RunReportDetail? { nil }
     func generateRunReportIfMissing(for run: RecordedRun) async -> RunReportDetail? { nil }
+    func processCompletedActivity(_ run: RecordedRun) async -> PostActivityOutcome {
+        PostActivityOutcome(canonicalRun: run, report: nil, completedWorkout: nil, didCompletePlannedWorkout: false)
+    }
     func trainingLoadSnapshot() async -> TrainingLoadSnapshot { .loading }
     func shareableAchievements() async -> [ShareableAchievement] { [] }
     func shouldPresentManualMorningCheckin() async -> Bool { true }
