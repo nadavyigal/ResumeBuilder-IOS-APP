@@ -243,6 +243,7 @@ final class RunSmartReadinessTests: XCTestCase {
             ),
             trainingHistory: nil,
             goals: nil,
+            challenge: nil,
             targetDistance: "Half Marathon",
             totalWeeks: 16,
             planPreferences: .init(
@@ -288,11 +289,44 @@ final class RunSmartReadinessTests: XCTestCase {
         profile.goal = "Build Habit"
 
         XCTAssertEqual(request.supabaseGoal, "fitness")
+        XCTAssertEqual(request.webPlanGoal, "speed")
         XCTAssertEqual(profile.supabaseGoal, "habit")
 
         XCTAssertEqual(GoalWizardOption.option(matching: "race")?.title, "Get Faster")
         XCTAssertEqual(GoalWizardOption.option(matching: "Half Marathon")?.planGoal, "Half Marathon")
         XCTAssertEqual(GoalWizardOption.option(matching: "fitness")?.title, "Stay Fit")
+    }
+
+    func testRunSmartAPIClientDecodesFallbackPlanFromNonSuccessStatus() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [RunSmartAPIStubProtocol.self]
+        let session = URLSession(configuration: config)
+        let client = URLSessionRunSmartAPIClient(baseURL: URL(string: "https://example.test")!, session: session)
+
+        RunSmartAPIStubProtocol.responseStatusCode = 503
+        RunSmartAPIStubProtocol.responseData = """
+        {
+          "plan": {
+            "title": "Fallback Plan",
+            "description": "Generated without AI",
+            "totalWeeks": 2,
+            "workouts": [
+              { "week": 1, "day": "Mon", "type": "easy", "distance": 4.0, "duration": 24, "notes": "Easy effort" }
+            ]
+          },
+          "source": "fallback",
+          "error": "AI service unavailable"
+        }
+        """.data(using: .utf8)!
+
+        let response = try await client.send(
+            RunSmartAPI.Endpoint(path: "api/generate-plan", method: .post, body: Data("{}".utf8)),
+            as: RunSmartDTO.GeneratePlanResponse.self
+        )
+
+        XCTAssertEqual(response.source, "fallback")
+        XCTAssertEqual(response.plan?.title, "Fallback Plan")
+        XCTAssertEqual(response.plan?.workouts.first?.day, "Mon")
     }
 
     func testHealthKitWorkoutMapperUsesStableProviderIDAndPace() {
@@ -468,4 +502,31 @@ final class RunSmartReadinessTests: XCTestCase {
 
         XCTAssertEqual(match?.id, matchingWorkout.id)
     }
+}
+
+final class RunSmartAPIStubProtocol: URLProtocol {
+    static var responseStatusCode = 200
+    static var responseData = Data()
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        let response = HTTPURLResponse(
+            url: request.url!,
+            statusCode: Self.responseStatusCode,
+            httpVersion: nil,
+            headerFields: ["Content-Type": "application/json"]
+        )!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Self.responseData)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
 }

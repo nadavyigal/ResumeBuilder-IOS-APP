@@ -90,6 +90,19 @@ struct TrainingGoalRequest: Hashable {
     var preferredDays: [String]
     var coachingTone: String
     var targetDate: Date
+    var challenge: TrainingChallengeContext? = nil
+}
+
+struct TrainingChallengeContext: Hashable {
+    var slug: String?
+    var name: String
+    var category: String
+    var difficulty: String?
+    var durationDays: Int
+    var workoutPattern: String?
+    var coachTone: String?
+    var targetAudience: String?
+    var promise: String?
 }
 
 struct WorkoutPatch: Hashable {

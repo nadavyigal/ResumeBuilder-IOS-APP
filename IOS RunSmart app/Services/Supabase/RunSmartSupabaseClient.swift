@@ -450,6 +450,16 @@ extension OnboardingProfile {
 }
 
 extension TrainingGoalRequest {
+    var webPlanGoal: String {
+        let lower = goal.lowercased()
+        if lower.contains("habit") || lower.contains("consistency") || lower.contains("just") { return "habit" }
+        if lower.contains("fast") || lower.contains("speed") || lower.contains("pr") || lower.contains("breakthrough") { return "speed" }
+        if lower.contains("race") || lower.contains("5k") || lower.contains("10k") || lower.contains("half") || lower.contains("marathon") || lower.contains("distance") {
+            return "distance"
+        }
+        return "habit"
+    }
+
     var supabaseGoal: String {
         let lower = goal.lowercased()
         if lower.contains("habit") || lower.contains("consistency") || lower.contains("just") { return "habit" }

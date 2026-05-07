@@ -321,6 +321,7 @@ enum RunSmartDTO {
         let userContext: UserContext
         let trainingHistory: TrainingHistory?
         let goals: GoalsContext?
+        let challenge: Challenge?
         let targetDistance: String?
         let totalWeeks: Int?
         let planPreferences: PlanPreferences
@@ -363,6 +364,18 @@ enum RunSmartDTO {
                 let deadline: String
                 let progressPercentage: Int
             }
+        }
+
+        struct Challenge: Encodable {
+            let slug: String?
+            let name: String
+            let category: String
+            let difficulty: String?
+            let durationDays: Int
+            let workoutPattern: String?
+            let coachTone: String?
+            let targetAudience: String?
+            let promise: String?
         }
 
         struct PlanPreferences: Encodable {
@@ -555,6 +568,9 @@ struct URLSessionRunSmartAPIClient: RunSmartAPIClient {
 
         let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            if let decoded = try? JSONDecoder().decode(Response.self, from: data) {
+                return decoded
+            }
             throw RunSmartAPIError.badStatus(http.statusCode)
         }
         return try JSONDecoder().decode(Response.self, from: data)

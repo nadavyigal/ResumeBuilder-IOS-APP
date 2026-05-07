@@ -167,7 +167,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
             let payload = RunSmartDTO.GeneratePlanRequest(
                 userContext: .init(
                     userId: identity.numericUserID,
-                    goal: request.supabaseGoal,
+                    goal: request.webPlanGoal,
                     experience: request.supabaseExperience,
                     age: request.age,
                     daysPerWeek: request.weeklyRunDays,
@@ -192,12 +192,25 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
                 ),
                 goals: .init(primaryGoal: .init(
                     title: request.goal,
-                    goalType: request.supabaseGoal,
+                    goalType: request.webPlanGoal,
                     category: request.supabaseGoal,
                     target: request.goal,
                     deadline: ISO8601DateFormatter.shortDate.string(from: request.targetDate),
                     progressPercentage: 0
                 )),
+                challenge: request.challenge.map {
+                    .init(
+                        slug: $0.slug,
+                        name: $0.name,
+                        category: $0.category,
+                        difficulty: $0.difficulty,
+                        durationDays: $0.durationDays,
+                        workoutPattern: $0.workoutPattern,
+                        coachTone: $0.coachTone,
+                        targetAudience: $0.targetAudience,
+                        promise: $0.promise
+                    )
+                },
                 targetDistance: targetDistanceSlug(for: request.goal),
                 totalWeeks: planWeeks(until: request.targetDate),
                 planPreferences: .init(

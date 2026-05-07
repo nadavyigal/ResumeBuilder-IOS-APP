@@ -163,8 +163,31 @@ struct ChallengeDetailView: View {
             weeklyRunDays: profile.weeklyRunDays,
             preferredDays: profile.preferredDays,
             coachingTone: profile.coachingTone.isEmpty ? "Motivating" : profile.coachingTone,
-            targetDate: Calendar.current.date(byAdding: .day, value: max(21, challenge.durationDays), to: Date()) ?? Date().addingTimeInterval(21 * 86_400)
+            targetDate: Calendar.current.date(byAdding: .day, value: max(21, challenge.durationDays), to: Date()) ?? Date().addingTimeInterval(21 * 86_400),
+            challenge: TrainingChallengeContext(
+                slug: challenge.slug,
+                name: challenge.title,
+                category: challenge.planCategory,
+                difficulty: profile.experience.isEmpty ? "intermediate" : profile.experience.lowercased(),
+                durationDays: challenge.durationDays,
+                workoutPattern: challenge.description,
+                coachTone: profile.coachingTone.isEmpty ? "Motivating" : profile.coachingTone,
+                targetAudience: "RunSmart iOS runner",
+                promise: challenge.description
+            )
         )
         return await services.saveTrainingGoal(request)
+    }
+}
+
+private extension ChallengeItem {
+    var planCategory: String {
+        let text = "\(slug) \(title) \(description)".lowercased()
+        if text.contains("recovery") { return "recovery" }
+        if text.contains("mindful") { return "mindful" }
+        if text.contains("10k") || text.contains("speed") || text.contains("breakthrough") || text.contains("performance") {
+            return "performance"
+        }
+        return "habit"
     }
 }
