@@ -113,8 +113,6 @@ struct PlanTabView: View {
 
                     PlanActionGrid(
                         onAdd: { router.open(.addActivity) },
-                        onAdjust: { router.open(.goalWizard) },
-                        onChallenges: { navPath.append(.challenges) },
                         onCoach: { router.openCoach(context: "Plan") }
                     )
 
@@ -191,17 +189,6 @@ struct PlanTabView: View {
 
     private var header: some View {
         RunSmartTopBar(title: "Plan")
-            .overlay(alignment: .trailing) {
-                Button { router.open(.goalWizard) } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.headline)
-                        .foregroundStyle(Color.accentPrimary)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .offset(x: -92)
-            }
     }
 }
 
@@ -782,15 +769,11 @@ private struct PlanProgressSection: View {
 
 private struct PlanActionGrid: View {
     var onAdd: () -> Void
-    var onAdjust: () -> Void
-    var onChallenges: () -> Void
     var onCoach: () -> Void
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
             PlanActionTile(title: "Add Run", detail: "Manual or synced", symbol: "plus.circle.fill", action: onAdd)
-            PlanActionTile(title: "Adjust Plan", detail: "Keep load safe", symbol: "slider.horizontal.3", action: onAdjust)
-            PlanActionTile(title: "Challenges", detail: "Sync to plan", symbol: "trophy.fill", action: onChallenges)
             PlanActionTile(title: "Coach", detail: "Ask about the week", symbol: "sparkles", action: onCoach)
         }
     }

@@ -10,6 +10,7 @@ struct ProfileTabView: View {
     @State private var deviceStatuses: [ConnectedDeviceStatus] = []
     @State private var runReports: [RunReportSummary] = []
     @State private var recentRuns: [RecordedRun] = []
+    @State private var challenge: ChallengeSummary = .loading
     @State private var navPath: [SecondaryDestination] = []
 
     var body: some View {
@@ -52,6 +53,9 @@ struct ProfileTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .runSmartRunsDidChange)) { _ in
             Task { await loadProfileData() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .runSmartPlanDidChange)) { _ in
+            Task { await loadProfileData() }
+        }
     }
 
     private func loadProfileData() async {
@@ -60,7 +64,15 @@ struct ProfileTabView: View {
         async let statusesTask = services.deviceStatuses()
         async let reportsTask = services.latestRunReports(limit: 3)
         async let runsTask = services.recentRuns()
-        (runner, achievements, deviceStatuses, runReports, recentRuns) = await (runnerTask, achievementsTask, statusesTask, reportsTask, runsTask)
+        async let challengeTask = services.activeChallenge()
+        (runner, achievements, deviceStatuses, runReports, recentRuns, challenge) = await (
+            runnerTask,
+            achievementsTask,
+            statusesTask,
+            reportsTask,
+            runsTask,
+            challengeTask
+        )
     }
 
     private var identityHeader: some View {
@@ -158,8 +170,11 @@ struct ProfileTabView: View {
                     ProfileActionTile(title: "Coaching Tone", value: session.onboardingProfile.coachingTone, symbol: "waveform") {
                         navPath.append(.coachingTone)
                     }
-                    ProfileActionTile(title: "Goal Focus", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target") {
+                    ProfileActionTile(title: "Goal & Plan", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target") {
                         navPath.append(.goalWizard)
+                    }
+                    ProfileActionTile(title: "Challenges", value: challenge.isActive ? challenge.dayLabel : "Adopt", symbol: "trophy.fill") {
+                        navPath.append(.challenges)
                     }
                     ProfileActionTile(title: "Training Data", value: weeklyDistanceLabel, symbol: "figure.run") {
                         navPath.append(.trainingData)
@@ -298,7 +313,8 @@ struct ProfileTabView: View {
             ProfileSettingsSection(title: "Coach Settings", rows: [
                 .init(title: "Tone", value: session.onboardingProfile.coachingTone, symbol: "sparkles", destination: .coachingTone),
                 .init(title: "Voice Coaching", value: session.onboardingProfile.notificationsEnabled ? "On" : "Off", symbol: "speaker.wave.2.fill", destination: .voiceCoaching),
-                .init(title: "Goal Focus", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target", destination: .goalWizard),
+                .init(title: "Goal & Plan", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target", destination: .goalWizard),
+                .init(title: "Challenges", value: challenge.isActive ? challenge.dayLabel : "Adopt", symbol: "trophy.fill", destination: .challenges),
                 .init(title: "Weekly Recap", value: "Ready", symbol: "calendar.badge.checkmark", destination: .weeklyRecap)
             ], onSelect: { navPath.append($0) })
 

@@ -274,6 +274,23 @@ final class RunSmartReadinessTests: XCTestCase {
         XCTAssertEqual(reference.debugValue, authID.uuidString)
     }
 
+    func testGoalMappingUsesProfileConstraintSafeValues() {
+        let request = TrainingGoalRequest(
+            displayName: "Runner",
+            goal: "10K PR",
+            experience: "Advanced",
+            weeklyRunDays: 4,
+            preferredDays: ["Mon", "Wed", "Fri", "Sun"],
+            coachingTone: "Supportive",
+            targetDate: makeDate("2026-08-01")
+        )
+        var profile = OnboardingProfile.empty
+        profile.goal = "Just Run More"
+
+        XCTAssertEqual(request.supabaseGoal, "race")
+        XCTAssertEqual(profile.supabaseGoal, "habit")
+    }
+
     func testHealthKitWorkoutMapperUsesStableProviderIDAndPace() {
         let providerID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
         let snapshot = HealthKitWorkoutSnapshot(

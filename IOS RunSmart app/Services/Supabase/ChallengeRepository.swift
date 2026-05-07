@@ -60,6 +60,31 @@ final class ChallengeRepository {
         }
     }
 
+    func activeChallenge(authUserID: UUID) async -> ChallengeSummary {
+        guard let challenge = await availableChallenges(authUserID: authUserID)
+            .first(where: \.isEnrolled) else {
+            return .loading
+        }
+
+        let elapsedDays: Int
+        if let startedAt = challenge.startedAt {
+            let days = Calendar.current.dateComponents([.day], from: startedAt, to: Date()).day ?? 0
+            elapsedDays = max(1, days + 1)
+        } else {
+            elapsedDays = 1
+        }
+        let boundedDay = min(challenge.durationDays, elapsedDays)
+
+        return ChallengeSummary(
+            id: challenge.id.uuidString,
+            title: challenge.title,
+            detail: challenge.description.isEmpty ? "\(challenge.durationDays)-day challenge" : challenge.description,
+            progress: min(1, Double(boundedDay) / Double(max(1, challenge.durationDays))),
+            dayLabel: "Day \(boundedDay)/\(challenge.durationDays)",
+            isActive: true
+        )
+    }
+
     func enroll(challengeID: UUID, authUserID: UUID) async throws {
         let userID = userIdInt64(from: authUserID)
         let today = ISO8601DateFormatter.shortDate.string(from: Date())

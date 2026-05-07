@@ -75,7 +75,7 @@ struct GoalWizardView: View {
                             ProgressView()
                                 .tint(.black)
                         } else {
-                            Label("Create Goal & Training Plan", systemImage: "target")
+                            Label("Save Goal & Generate Plan", systemImage: "target")
                         }
                     }
                 }
@@ -102,7 +102,13 @@ struct GoalWizardView: View {
     private func saveGoal() async {
         isSaving = true
         errorMessage = nil
-        let profile = session.onboardingProfile
+        var profile = session.onboardingProfile
+        let preferredDays = normalizedPreferredDays(profile.preferredDays, weeklyRuns: Int(weeklyRuns))
+        profile.goal = goal
+        profile.weeklyRunDays = Int(weeklyRuns)
+        profile.preferredDays = preferredDays
+        await session.completeOnboarding(profile)
+
         let request = TrainingGoalRequest(
             displayName: profile.displayName,
             goal: goal,
@@ -111,7 +117,7 @@ struct GoalWizardView: View {
             averageWeeklyDistanceKm: profile.averageWeeklyDistanceKm,
             trainingDataSource: profile.trainingDataSource,
             weeklyRunDays: Int(weeklyRuns),
-            preferredDays: normalizedPreferredDays(profile.preferredDays, weeklyRuns: Int(weeklyRuns)),
+            preferredDays: preferredDays,
             coachingTone: profile.coachingTone.isEmpty ? "Motivating" : profile.coachingTone,
             targetDate: targetDate
         )

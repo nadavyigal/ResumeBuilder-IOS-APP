@@ -423,9 +423,13 @@ struct DBChallengeEnrollment: Codable, Sendable {
 extension OnboardingProfile {
     var supabaseGoal: String {
         let lower = goal.lowercased()
-        if lower.contains("habit") || lower.contains("consistency") { return "habit" }
-        if lower.contains("speed") || lower.contains("5k") || lower.contains("interval") { return "speed" }
-        return "distance"
+        if lower.contains("habit") || lower.contains("consistency") || lower.contains("just") { return "habit" }
+        if lower.contains("injury") || lower.contains("prevent") { return "injury_prevention" }
+        if lower.contains("weight") { return "weight_loss" }
+        if lower.contains("race") || lower.contains("5k") || lower.contains("10k") || lower.contains("half") || lower.contains("marathon") || lower.contains("pr") {
+            return "race"
+        }
+        return "fitness"
     }
 
     var supabaseExperience: String {
@@ -449,8 +453,12 @@ extension TrainingGoalRequest {
     var supabaseGoal: String {
         let lower = goal.lowercased()
         if lower.contains("habit") || lower.contains("consistency") || lower.contains("just") { return "habit" }
-        if lower.contains("speed") || lower.contains("5k") || lower.contains("pr") { return "speed" }
-        return "distance"
+        if lower.contains("injury") || lower.contains("prevent") { return "injury_prevention" }
+        if lower.contains("weight") { return "weight_loss" }
+        if lower.contains("race") || lower.contains("5k") || lower.contains("10k") || lower.contains("half") || lower.contains("marathon") || lower.contains("pr") {
+            return "race"
+        }
+        return "fitness"
     }
 
     var supabaseExperience: String {

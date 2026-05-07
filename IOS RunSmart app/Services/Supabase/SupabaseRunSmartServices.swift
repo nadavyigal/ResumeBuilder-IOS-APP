@@ -10,6 +10,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
 
     private let supabase = SupabaseManager.client
     private let planRepo = TrainingPlanRepository()
+    private let challengeRepo = ChallengeRepository()
     private let healthSync = HealthKitSyncService()
     private let store = RunSmartLocalStore.shared
 
@@ -747,7 +748,10 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
         )
     }
 
-    func activeChallenge() async -> ChallengeSummary { .loading }
+    func activeChallenge() async -> ChallengeSummary {
+        guard let userID = currentUserID else { return .loading }
+        return await challengeRepo.activeChallenge(authUserID: userID)
+    }
 
     func recoverySnapshot() async -> RecoverySnapshot {
         guard let userID = currentUserID else { return .loading }
