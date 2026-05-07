@@ -23,10 +23,11 @@ struct GoalWizardView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 22) {
-                    progressStrip
-                        .padding(.top, 6)
-
                     hero
+
+                    if let errorMessage {
+                        errorBanner(errorMessage)
+                    }
 
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(GoalWizardOption.options) { option in
@@ -41,11 +42,15 @@ struct GoalWizardView: View {
                     }
 
                     rhythmCard
+                    primaryActionButton(title: "Continue & Generate Plan")
                 }
                 .foregroundStyle(Color.textPrimary)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 124)
+                .padding(.top, 78)
+                .padding(.bottom, 148)
             }
+
+            topBar
         }
         .safeAreaInset(edge: .bottom) {
             saveBar
@@ -54,31 +59,68 @@ struct GoalWizardView: View {
         .onAppear(perform: hydrateFromProfile)
     }
 
-    private var progressStrip: some View {
-        HStack(spacing: 12) {
-            ForEach(0..<4, id: \.self) { index in
-                Capsule()
-                    .fill(index == 0 ? Color.accentPrimary : Color.white.opacity(0.12))
-                    .frame(height: 5)
+    private var topBar: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.bodyMD.weight(.bold))
+                        .foregroundStyle(Color.textPrimary)
+                        .frame(width: 40, height: 40)
+                        .background(Color.white.opacity(0.08), in: Circle())
+                        .overlay(Circle().stroke(Color.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Back")
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Goal & Plan")
+                        .font(.bodyMD.weight(.bold))
+                        .foregroundStyle(Color.textPrimary)
+                    Text(selectedGoal.title)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.textSecondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Button { Task { await saveGoal() } } label: {
+                    HStack(spacing: 6) {
+                        if isSaving {
+                            ProgressView()
+                                .tint(.black)
+                        } else {
+                            Image(systemName: "checkmark")
+                        }
+                        Text(isSaving ? "Saving" : "Save")
+                    }
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(Color.black)
+                    .frame(minWidth: 82)
+                    .frame(height: 40)
+                    .background(Color.accentPrimary, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .disabled(isSaving)
+                .accessibilityLabel("Save goal and generate plan")
             }
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .padding(.bottom, 12)
+            .background(.ultraThinMaterial)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+
+            Spacer()
         }
     }
 
     private var hero: some View {
         VStack(spacing: 16) {
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.bodyMD.weight(.bold))
-                        .foregroundStyle(Color.textPrimary)
-                        .frame(width: 38, height: 38)
-                        .background(Color.white.opacity(0.07), in: Circle())
-                        .overlay(Circle().stroke(Color.border, lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-                Spacer()
-            }
-
             ZStack {
                 RoundedRectangle(cornerRadius: 32, style: .continuous)
                     .fill(Color.surfaceGreenBlack.opacity(0.82))
@@ -105,6 +147,24 @@ struct GoalWizardView: View {
         }
     }
 
+    private func errorBanner(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(Color.accentHeart)
+            Text(message)
+                .font(.callout)
+                .foregroundStyle(Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(Color.accentHeart.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.accentHeart.opacity(0.35), lineWidth: 1)
+        )
+    }
+
     private var rhythmCard: some View {
         RunSmartPanel(cornerRadius: 20, padding: 16, accent: selectedGoal.tint) {
             VStack(alignment: .leading, spacing: 14) {
@@ -128,6 +188,22 @@ struct GoalWizardView: View {
         }
     }
 
+    private func primaryActionButton(title: String) -> some View {
+        Button { Task { await saveGoal() } } label: {
+            HStack {
+                if isSaving {
+                    ProgressView()
+                        .tint(.black)
+                    Text("Saving goal")
+                } else {
+                    Label(title, systemImage: "target")
+                }
+            }
+        }
+        .buttonStyle(NeonButtonStyle())
+        .disabled(isSaving)
+    }
+
     private var saveBar: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let errorMessage {
@@ -137,19 +213,7 @@ struct GoalWizardView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Button { Task { await saveGoal() } } label: {
-                HStack {
-                    if isSaving {
-                        ProgressView()
-                            .tint(.black)
-                        Text("Saving goal")
-                    } else {
-                        Label("Save Goal & Generate Plan", systemImage: "target")
-                    }
-                }
-            }
-            .buttonStyle(NeonButtonStyle())
-            .disabled(isSaving)
+            primaryActionButton(title: "Save Goal & Generate Plan")
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
