@@ -11,8 +11,6 @@ struct RootView: View {
                 OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
-        .preferredColorScheme(.dark)
-        .tint(Theme.accent)
         .task {
             if appState.isAuthenticated {
                 await appState.convertAnonymousSessionIfNeeded()
@@ -25,4 +23,6 @@ struct RootView: View {
 #Preview {
     RootView()
         .environment(AppState())
+        .preferredColorScheme(.dark)
+        .tint(Theme.accent)
 }

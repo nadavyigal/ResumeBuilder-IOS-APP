@@ -8,6 +8,8 @@ struct ResumeBuilder_IOS_APPApp: App {
         WindowGroup {
             RootView()
                 .environment(appState)
+                .preferredColorScheme(.dark)
+                .tint(Theme.accent)
                 .task {
                     appState.bootstrap()
                 }
