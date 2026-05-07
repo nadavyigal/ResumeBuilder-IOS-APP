@@ -277,7 +277,7 @@ final class RunSmartReadinessTests: XCTestCase {
     func testGoalMappingUsesProfileConstraintSafeValues() {
         let request = TrainingGoalRequest(
             displayName: "Runner",
-            goal: "10K PR",
+            goal: "Get Faster",
             experience: "Advanced",
             weeklyRunDays: 4,
             preferredDays: ["Mon", "Wed", "Fri", "Sun"],
@@ -285,10 +285,14 @@ final class RunSmartReadinessTests: XCTestCase {
             targetDate: makeDate("2026-08-01")
         )
         var profile = OnboardingProfile.empty
-        profile.goal = "Just Run More"
+        profile.goal = "Build Habit"
 
-        XCTAssertEqual(request.supabaseGoal, "race")
+        XCTAssertEqual(request.supabaseGoal, "fitness")
         XCTAssertEqual(profile.supabaseGoal, "habit")
+
+        XCTAssertEqual(GoalWizardOption.option(matching: "race")?.title, "Get Faster")
+        XCTAssertEqual(GoalWizardOption.option(matching: "Half Marathon")?.planGoal, "Half Marathon")
+        XCTAssertEqual(GoalWizardOption.option(matching: "fitness")?.title, "Stay Fit")
     }
 
     func testHealthKitWorkoutMapperUsesStableProviderIDAndPace() {
