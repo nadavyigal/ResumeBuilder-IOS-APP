@@ -8,75 +8,133 @@ struct TailorView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Tailor")
-                        .font(.largeTitle.bold())
+            ZStack {
+                Theme.bgPrimary.ignoresSafeArea()
 
-                    Text("Upload your resume and paste a LinkedIn/job link. The backend extracts the job description like the web app.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
 
-                    Button {
-                        isImporterPresented = true
-                    } label: {
-                        Label(
-                            viewModel.selectedResumeName ?? "Choose Resume PDF",
-                            systemImage: "doc.badge.plus"
-                        )
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
+                        // ── Hero header ───────────────────────────────────────
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Tailor Resume")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.textPrimary)
+                            Text("Upload your resume and a job link. AI rewrites it to beat ATS filters.")
+                                .font(.subheadline)
+                                .foregroundStyle(Theme.textSecondary)
+                        }
 
-                    TextField("LinkedIn or job post URL", text: $viewModel.jobDescriptionURL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.URL)
-                        .textFieldStyle(.roundedBorder)
+                        // ── Upload PDF ────────────────────────────────────────
+                        Button {
+                            isImporterPresented = true
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "doc.badge.plus")
+                                    .font(.body.weight(.semibold))
+                                Text(viewModel.selectedResumeName ?? "Choose Resume PDF")
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                Spacer()
+                            }
+                            .padding(14)
+                            .foregroundStyle(viewModel.selectedResumeName != nil ? Theme.accent : Theme.textSecondary)
+                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                    .stroke(
+                                        viewModel.selectedResumeName != nil ? Theme.accent.opacity(0.6) : Theme.textTertiary,
+                                        lineWidth: 1
+                                    )
+                            )
+                        }
 
-                    TextEditor(text: $viewModel.jobDescription)
-                        .frame(minHeight: 140)
-                        .padding(8)
-                        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(alignment: .topLeading) {
+                        // ── Job URL ───────────────────────────────────────────
+                        TextField("LinkedIn or job post URL", text: $viewModel.jobDescriptionURL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .padding(14)
+                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                    .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
+                            )
+                            .foregroundStyle(Theme.textPrimary)
+                            .tint(Theme.accent)
+
+                        // ── Job description paste ─────────────────────────────
+                        ZStack(alignment: .topLeading) {
+                            Theme.bgCard
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                        .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
+                                )
+
                             if viewModel.jobDescription.isEmpty {
                                 Text("Optional: paste job description instead")
-                                    .foregroundStyle(.tertiary)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 16)
+                                    .foregroundStyle(Theme.textTertiary)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 20)
                             }
-                        }
 
-                    Button {
-                        Task { await viewModel.optimize(appState: appState) }
-                    } label: {
+                            TextEditor(text: $viewModel.jobDescription)
+                                .scrollContentBackground(.hidden)
+                                .background(.clear)
+                                .frame(minHeight: 130)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 12)
+                                .foregroundStyle(Theme.textPrimary)
+                                .tint(Theme.accent)
+                        }
+                        .frame(minHeight: 130)
+
+                        // ── Optimize button ───────────────────────────────────
+                        Button {
+                            Task { await viewModel.optimize(appState: appState) }
+                        } label: {
+                            Group {
+                                if viewModel.isOptimizing {
+                                    ProgressView().tint(.white)
+                                } else {
+                                    Text(appState.isAuthenticated ? "Optimize Resume" : "Sign in to Optimize")
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .foregroundStyle(.white)
+                            .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                        }
+                        .disabled(viewModel.isOptimizing)
+
+                        // ── Optimizing indicator ──────────────────────────────
                         if viewModel.isOptimizing {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text(appState.isAuthenticated ? "Optimize" : "Sign in to Optimize")
-                                .frame(maxWidth: .infinity)
+                            OptimizingView()
+                        }
+
+                        // ── Diff review ───────────────────────────────────────
+                        if let reviewId = viewModel.reviewId {
+                            DiffReviewView(reviewId: reviewId)
+                        }
+
+                        // ── Error ─────────────────────────────────────────────
+                        if let errorMessage = viewModel.errorMessage {
+                            Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                                .multilineTextAlignment(.leading)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    if viewModel.isOptimizing {
-                        OptimizingView()
-                    }
-
-                    if let reviewId = viewModel.reviewId {
-                        DiffReviewView(reviewId: reviewId)
-                    }
-
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
                 }
-                .padding()
+                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationTitle("Tailor")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
             }

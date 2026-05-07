@@ -7,23 +7,40 @@ struct DiffReviewView: View {
     @State private var viewModel = DiffReviewViewModel()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
+
             if viewModel.isLoading {
-                ProgressView("Loading review...")
+                HStack {
+                    Spacer()
+                    ProgressView("Loading review…").tint(Theme.accent)
+                    Spacer()
+                }
+                .padding(.vertical, 24)
             }
 
             if let review = viewModel.review {
-                Text(review.jobDescription?.title ?? "Optimization Review")
-                    .font(.title2.bold())
-                Text([review.jobDescription?.company, review.jobDescription?.sourceURL].compactMap { $0 }.joined(separator: " • "))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-
-                if let score = viewModel.afterScore {
-                    ATSDial(score: score)
-                        .frame(height: 120)
+                // ── Header ────────────────────────────────────────────────────
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(review.jobDescription?.title ?? "Optimization Review")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text([review.jobDescription?.company, review.jobDescription?.sourceURL]
+                        .compactMap { $0 }.joined(separator: " • "))
+                        .font(.footnote)
+                        .foregroundStyle(Theme.textSecondary)
                 }
 
+                // ── Score dial ────────────────────────────────────────────────
+                if let score = viewModel.afterScore {
+                    HStack {
+                        Spacer()
+                        ATSDial(score: score)
+                            .frame(width: 100, height: 100)
+                        Spacer()
+                    }
+                }
+
+                // ── Change groups ─────────────────────────────────────────────
                 ForEach(viewModel.changeGroups) { group in
                     BulletDiffRow(
                         original: group.original,
@@ -37,46 +54,66 @@ struct DiffReviewView: View {
                     ResumePreviewCard(snapshot: viewModel.resumeSnapshot)
                 }
 
+                // ── Apply button ──────────────────────────────────────────────
                 Button {
                     Task { await viewModel.apply(token: appState.session?.accessToken) }
                 } label: {
-                    if viewModel.isApplying {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Apply Accepted Changes")
-                            .frame(maxWidth: .infinity)
+                    Group {
+                        if viewModel.isApplying {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Apply Accepted Changes")
+                                .fontWeight(.semibold)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .foregroundStyle(.white)
+                    .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .opacity(viewModel.isApplying || viewModel.acceptedGroupIds.isEmpty ? 0.4 : 1.0)
                 }
-                .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isApplying || viewModel.acceptedGroupIds.isEmpty)
             }
 
+            // ── Design link ───────────────────────────────────────────────────
             if let optimizationId = viewModel.appliedOptimizationId {
-                NavigationLink("Design Optimized Resume") {
-                    DesignTemplatesView(optimizationId: optimizationId, snapshot: viewModel.resumeSnapshot)
+                NavigationLink {
+                    DesignTemplatesView(
+                        optimizationId: optimizationId,
+                        snapshot: viewModel.resumeSnapshot
+                    )
+                } label: {
+                    Label("Design Optimized Resume", systemImage: "paintbrush.fill")
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .foregroundStyle(Theme.accent)
+                        .background(Theme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                 }
-                .buttonStyle(.bordered)
             }
 
+            // ── Error ─────────────────────────────────────────────────────────
             if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
+                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
         }
-        .padding()
         .task(id: reviewId) {
             await viewModel.load(reviewId: reviewId, token: appState.session?.accessToken)
         }
     }
 }
 
+// MARK: - Supporting types
+
 struct ReviewChangeGroup: Identifiable, Sendable {
     let id: String
     let original: String
     let optimized: String
 }
+
+// MARK: - ViewModel
 
 @Observable
 @MainActor
@@ -109,10 +146,7 @@ final class DiffReviewViewModel {
     }
 
     func load(reviewId: String, token: String?) async {
-        guard let token else {
-            errorMessage = "Please sign in first."
-            return
-        }
+        guard let token else { errorMessage = "Please sign in first."; return }
         self.reviewId = reviewId
         isLoading = true
         errorMessage = nil
@@ -139,10 +173,7 @@ final class DiffReviewViewModel {
     }
 
     func apply(token: String?) async {
-        guard let token, let reviewId else {
-            errorMessage = "Please sign in first."
-            return
-        }
+        guard let token, let reviewId else { errorMessage = "Please sign in first."; return }
 
         struct ApplyRequest: Encodable {
             let approvedGroupIds: [String]

@@ -8,74 +8,128 @@ struct ScoreView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Score")
-                        .font(.largeTitle.bold())
+            ZStack {
+                Theme.bgPrimary.ignoresSafeArea()
 
-                    Text("Free ATS check")
-                        .font(.headline)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
 
-                    Text("Upload your resume PDF and paste a LinkedIn/job link. Full optimization unlocks after sign-in.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        // ── Hero header ───────────────────────────────────────
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("ATS Score")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundStyle(Theme.textPrimary)
+                            Text("Upload your resume and a job link for a free ATS check.")
+                                .font(.subheadline)
+                                .foregroundStyle(Theme.textSecondary)
+                        }
 
-                    Button {
-                        isImporterPresented = true
-                    } label: {
-                        Label(
-                            viewModel.selectedResumeName ?? "Choose Resume PDF",
-                            systemImage: "doc.badge.plus"
-                        )
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
+                        // ── Upload PDF ────────────────────────────────────────
+                        Button {
+                            isImporterPresented = true
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "doc.badge.plus")
+                                    .font(.body.weight(.semibold))
+                                Text(viewModel.selectedResumeName ?? "Choose Resume PDF")
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                Spacer()
+                            }
+                            .padding(14)
+                            .foregroundStyle(viewModel.selectedResumeName != nil ? Theme.accent : Theme.textSecondary)
+                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                    .stroke(
+                                        viewModel.selectedResumeName != nil ? Theme.accent.opacity(0.6) : Theme.textTertiary,
+                                        lineWidth: 1
+                                    )
+                            )
+                        }
 
-                    TextField("LinkedIn or job post URL", text: $viewModel.jobDescriptionURL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.URL)
-                        .textFieldStyle(.roundedBorder)
+                        // ── Job URL ───────────────────────────────────────────
+                        TextField("LinkedIn or job post URL", text: $viewModel.jobDescriptionURL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .padding(14)
+                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                    .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
+                            )
+                            .foregroundStyle(Theme.textPrimary)
+                            .tint(Theme.accent)
 
-                    TextEditor(text: $viewModel.jobDescription)
-                        .frame(minHeight: 180)
-                        .padding(8)
-                        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(alignment: .topLeading) {
+                        // ── Job description paste ─────────────────────────────
+                        ZStack(alignment: .topLeading) {
+                            Theme.bgCard
+                                .clipShape(RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
+                                        .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
+                                )
+
                             if viewModel.jobDescription.isEmpty {
                                 Text("Or paste the full job description")
-                                    .foregroundStyle(.tertiary)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 16)
+                                    .foregroundStyle(Theme.textTertiary)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 20)
                             }
+
+                            TextEditor(text: $viewModel.jobDescription)
+                                .scrollContentBackground(.hidden)
+                                .background(.clear)
+                                .frame(minHeight: 160)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 12)
+                                .foregroundStyle(Theme.textPrimary)
+                                .tint(Theme.accent)
+                        }
+                        .frame(minHeight: 160)
+
+                        // ── Run button ────────────────────────────────────────
+                        Button {
+                            Task { await viewModel.runScore(appState: appState) }
+                        } label: {
+                            Group {
+                                if viewModel.isLoading {
+                                    ProgressView().tint(.white)
+                                } else {
+                                    Text("Run ATS Score")
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .foregroundStyle(.white)
+                            .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                        }
+                        .disabled(viewModel.isLoading)
+
+                        // ── Error ─────────────────────────────────────────────
+                        if let error = viewModel.errorMessage {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                                .multilineTextAlignment(.leading)
                         }
 
-                    Button {
-                        Task { await viewModel.runScore(appState: appState) }
-                    } label: {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Run ATS Score")
-                                .frame(maxWidth: .infinity)
+                        // ── Result card ───────────────────────────────────────
+                        if let result = viewModel.result {
+                            ScoreResultView(result: result, isAuthenticated: appState.isAuthenticated)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    if let error = viewModel.errorMessage {
-                        Text(error)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-
-                    if let result = viewModel.result {
-                        ScoreResultView(result: result, isAuthenticated: appState.isAuthenticated)
-                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
                 }
-                .padding()
+                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationTitle("Score")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
             }

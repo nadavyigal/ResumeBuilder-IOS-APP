@@ -5,28 +5,41 @@ struct ATSDial: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let size = min(geometry.size.width, geometry.size.height)
             let progress = max(0, min(1, Double(score) / 100.0))
+            let lineWidth: CGFloat = size * 0.12
 
             ZStack {
+                // Track
                 Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 16)
+                    .stroke(Theme.bgCard, lineWidth: lineWidth)
 
+                // Arc
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
                         AngularGradient(
-                            colors: [.orange, .green],
-                            center: .center
+                            gradient: Gradient(colors: [Theme.accent, Theme.accentBlue, Theme.accentCyan]),
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
                         ),
-                        style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
-                    .animation(.spring(response: 0.45, dampingFraction: 0.8), value: progress)
+                    .animation(.spring(response: 0.55, dampingFraction: 0.75), value: progress)
 
-                Text("\(score)")
-                    .font(.title.bold())
+                // Score label
+                VStack(spacing: 0) {
+                    Text("\(score)")
+                        .font(.system(size: size * 0.28, weight: .bold, design: .rounded))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text("/ 100")
+                        .font(.system(size: size * 0.12, weight: .medium))
+                        .foregroundStyle(Theme.textTertiary)
+                }
             }
-            .frame(width: min(geometry.size.width, geometry.size.height), height: min(geometry.size.width, geometry.size.height))
+            .frame(width: size, height: size)
         }
     }
 }
