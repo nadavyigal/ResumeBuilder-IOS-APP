@@ -22,8 +22,8 @@ struct ProfileTabView: View {
 
                     identityHeader
                     statsBar
-                    coachSparkCard
                     trainingDataCard
+                    coachSparkCard
                     coachSettingsGrid
                     optimizationCards
                     achievementsGallery
@@ -160,6 +160,9 @@ struct ProfileTabView: View {
                     }
                     ProfileActionTile(title: "Goal Focus", value: session.onboardingProfile.goal.isEmpty ? "Not set" : session.onboardingProfile.goal, symbol: "target") {
                         navPath.append(.goalWizard)
+                    }
+                    ProfileActionTile(title: "Training Data", value: weeklyDistanceLabel, symbol: "figure.run") {
+                        navPath.append(.trainingData)
                     }
                     ProfileActionTile(title: "Check-in Cadence", value: "Every 3 Days", symbol: "calendar") {
                         navPath.append(.reminders)
@@ -313,6 +316,12 @@ struct ProfileTabView: View {
     private var estimatedTrainingDataSourceLabel: String {
         guard TrainingDataBaseline.averageWeeklyDistanceKm(from: recentRuns) != nil else { return "Manual setup needed" }
         return TrainingDataBaseline.inferredSource(from: recentRuns)?.displayName ?? "Recent runs"
+    }
+
+    private var weeklyDistanceLabel: String {
+        let value = session.onboardingProfile.averageWeeklyDistanceKm
+            ?? TrainingDataBaseline.averageWeeklyDistanceKm(from: recentRuns)
+        return value.map { String(format: "%.0f km/wk", $0) } ?? "Set baseline"
     }
 
     private var levelNumber: String {
