@@ -60,6 +60,10 @@ struct RunSmartIdentity: Sendable {
         if let numericUserID { return .numeric(numericUserID) }
         return .uuid(profileUUID ?? fallback)
     }
+
+    func planWriteProfileReference(fallback: UUID) -> DBProfileReference {
+        .uuid(profileUUID ?? fallback)
+    }
 }
 
 private struct DBProfileIdentity: Decodable, Sendable {
@@ -383,10 +387,17 @@ final class TrainingPlanRepository {
 
     func persistGeneratedPlan(authUserID: UUID, request: TrainingGoalRequest, generated: RunSmartDTO.GeneratedPlan) async -> Bool {
         let resolved = await identity(authUserID: authUserID)
-        let profileID = resolved.profileReference(fallback: authUserID)
+        let profileID = resolved.planWriteProfileReference(fallback: authUserID)
         print("[TrainingPlanRepo] persistGeneratedPlan using profileID=\(profileID.debugValue)")
 
         do {
+            try await supabase
+                .from("plans")
+                .update(DBPlanActiveUpdate(isActive: false))
+                .eq("auth_user_id", value: authUserID.uuidString)
+                .eq("is_active", value: true)
+                .execute()
+
             switch profileID {
             case .numeric(let value):
                 try await supabase

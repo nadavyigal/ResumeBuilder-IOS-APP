@@ -127,13 +127,25 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
     func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool {
         guard let userID = currentUserID else { return false }
         let saved = await planRepo.saveTrainingGoal(authUserID: userID, request: request)
-        let regenerated = await regenerateTrainingPlan(request)
-        if saved || regenerated {
+        guard saved else { return false }
+
+        await MainActor.run {
+            NotificationCenter.default.post(name: .runSmartPlanGenerationStatusDidChange, object: RunSmartPlanGenerationStatus.generating)
+            NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+        }
+
+        Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
+            let regenerated = await self.regenerateTrainingPlan(request)
             await MainActor.run {
-                NotificationCenter.default.post(name: .runSmartPlanDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .runSmartPlanGenerationStatusDidChange,
+                    object: regenerated ? RunSmartPlanGenerationStatus.amended : RunSmartPlanGenerationStatus.failed
+                )
             }
         }
-        return saved && regenerated
+
+        return true
     }
 
     func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool {
@@ -1210,6 +1222,7 @@ final class SupabaseRunSmartServices: RunSmartServiceProviding {
 
 extension Notification.Name {
     static let runSmartPlanDidChange = Notification.Name("RunSmartPlanDidChange")
+    static let runSmartPlanGenerationStatusDidChange = Notification.Name("RunSmartPlanGenerationStatusDidChange")
     static let runSmartRunsDidChange = Notification.Name("RunSmartRunsDidChange")
 }
 

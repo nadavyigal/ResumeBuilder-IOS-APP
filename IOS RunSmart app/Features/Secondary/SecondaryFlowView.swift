@@ -1532,7 +1532,7 @@ private struct TrainingDataEditor: View {
             }
 
             if failed {
-                Text("Training data saved locally, but the web coach did not regenerate a plan. Try again after connection is stable.")
+                Text("Training data could not be saved to your RunSmart profile. Check your connection and try again.")
                     .font(.callout)
                     .foregroundStyle(Color.red)
             }
@@ -1634,7 +1634,7 @@ private struct TrainingDataEditor: View {
         )
         let savedToPlan = await services.saveTrainingGoal(request)
         isSaving = false
-        saved = true
+        saved = savedToPlan
         failed = !savedToPlan
 
         if savedToPlan {

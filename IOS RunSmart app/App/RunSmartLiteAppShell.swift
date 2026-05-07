@@ -53,6 +53,8 @@ struct RunSmartLiteAppShell: View {
     @StateObject private var recorder = RunRecorder()
     @State private var didPresentMorningCheckin = false
     @State private var isShowingLaunch = true
+    @State private var planNotice: RunSmartPlanNotice?
+    @State private var planNoticeDismissTask: Task<Void, Never>?
     private let services = SupabaseRunSmartServices.shared
 
     var body: some View {
@@ -88,6 +90,17 @@ struct RunSmartLiteAppShell: View {
                     .transition(.opacity)
                     .zIndex(10)
             }
+
+            if let planNotice {
+                VStack {
+                    RunSmartPlanNoticeBanner(notice: planNotice)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(9)
+            }
         }
         .environmentObject(router)
         .environmentObject(session)
@@ -95,6 +108,10 @@ struct RunSmartLiteAppShell: View {
         .environment(\.runSmartServices, services)
         .environment(\.runRecorder, recorder)
         .preferredColorScheme(.dark)
+        .onReceive(NotificationCenter.default.publisher(for: .runSmartPlanGenerationStatusDidChange)) { notification in
+            guard let status = notification.object as? RunSmartPlanGenerationStatus else { return }
+            showPlanGenerationNotice(status)
+        }
         .task {
             try? await Task.sleep(nanoseconds: 900_000_000)
             withAnimation(.easeOut(duration: 0.32)) {
@@ -131,5 +148,100 @@ struct RunSmartLiteAppShell: View {
                     .environment(\.runRecorder, recorder)
             }
         }
+    }
+
+    private func showPlanGenerationNotice(_ status: RunSmartPlanGenerationStatus) {
+        let notice = RunSmartPlanNotice(status: status)
+        planNoticeDismissTask?.cancel()
+        withAnimation(.spring(response: 0.34, dampingFraction: 0.86)) {
+            planNotice = notice
+        }
+
+        planNoticeDismissTask = Task {
+            try? await Task.sleep(nanoseconds: status.displayNanoseconds)
+            await MainActor.run {
+                guard planNotice == notice else { return }
+                withAnimation(.easeInOut(duration: 0.24)) {
+                    planNotice = nil
+                }
+            }
+        }
+    }
+}
+
+private struct RunSmartPlanNotice: Equatable {
+    let id = UUID()
+    let status: RunSmartPlanGenerationStatus
+    let title: String
+    let message: String
+    let symbol: String
+    let tint: Color
+
+    init(status: RunSmartPlanGenerationStatus) {
+        self.status = status
+        switch status {
+        case .generating:
+            title = "Generating Training Plan"
+            message = "Coach is building a new plan from your updated training data."
+            symbol = "sparkles"
+            tint = .accentRecovery
+        case .amended:
+            title = "Training Plan Amended"
+            message = "Your updated plan is ready. Today and Plan are refreshing."
+            symbol = "checkmark.seal.fill"
+            tint = .accentSuccess
+        case .failed:
+            title = "Plan Update Delayed"
+            message = "Training data was saved. Open Training Data to retry the plan update."
+            symbol = "exclamationmark.triangle.fill"
+            tint = .accentHeart
+        }
+    }
+
+    static func == (lhs: RunSmartPlanNotice, rhs: RunSmartPlanNotice) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+private extension RunSmartPlanGenerationStatus {
+    var displayNanoseconds: UInt64 {
+        switch self {
+        case .generating: 4_500_000_000
+        case .amended, .failed: 5_500_000_000
+        }
+    }
+}
+
+private struct RunSmartPlanNoticeBanner: View {
+    var notice: RunSmartPlanNotice
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: notice.symbol)
+                .font(.body.weight(.bold))
+                .foregroundStyle(Color.black)
+                .frame(width: 36, height: 36)
+                .background(notice.tint, in: Circle())
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(notice.title)
+                    .font(.bodyMD.weight(.bold))
+                    .foregroundStyle(Color.textPrimary)
+                Text(notice.message)
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(notice.tint.opacity(0.32), lineWidth: 1)
+        )
+        .shadow(color: notice.tint.opacity(0.18), radius: 20, x: 0, y: 10)
+        .accessibilityElement(children: .combine)
     }
 }

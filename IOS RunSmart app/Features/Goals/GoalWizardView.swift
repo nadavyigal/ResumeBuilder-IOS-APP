@@ -122,7 +122,7 @@ struct GoalWizardView: View {
             RunSmartHaptics.success()
             dismiss()
         } else {
-            errorMessage = "Could not create the plan. Check the console for Supabase/API details."
+            errorMessage = "Could not save your goal. Check your connection and try again."
         }
     }
 

@@ -265,6 +265,15 @@ final class RunSmartReadinessTests: XCTestCase {
         XCTAssertEqual(userContext["trainingDataSource"] as? String, "manual")
     }
 
+    func testGeneratedPlanPersistenceUsesUUIDOwnerWhenProfileHasNumericID() {
+        let authID = UUID(uuidString: "068053FD-204E-4053-B1AF-C70CF74A0440")!
+        let identity = RunSmartIdentity(authUserID: authID, profileUUID: authID, numericUserID: 2)
+
+        let reference = identity.planWriteProfileReference(fallback: authID)
+
+        XCTAssertEqual(reference.debugValue, authID.uuidString)
+    }
+
     func testHealthKitWorkoutMapperUsesStableProviderIDAndPace() {
         let providerID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
         let snapshot = HealthKitWorkoutSnapshot(

@@ -20,6 +20,12 @@ protocol PlanProviding {
     func saveSuggestedWorkout(_ suggestion: StructuredNextWorkout, from report: RunReportDetail) async -> Bool
 }
 
+enum RunSmartPlanGenerationStatus {
+    case generating
+    case amended
+    case failed
+}
+
 extension PlanProviding {
     func saveTrainingGoal(_ request: TrainingGoalRequest) async -> Bool { false }
     func regenerateTrainingPlan(_ request: TrainingGoalRequest) async -> Bool { false }
