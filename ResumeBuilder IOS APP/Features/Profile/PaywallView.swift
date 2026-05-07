@@ -1,3 +1,4 @@
+// Stage 2 — parked. Reachable only when BackendConfig.isMonetizationEnabled is true.
 import SwiftUI
 
 struct PaywallView: View {

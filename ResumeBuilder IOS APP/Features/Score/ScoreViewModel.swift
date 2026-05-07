@@ -5,15 +5,25 @@ import Observation
 @MainActor
 final class ScoreViewModel {
     var jobDescription = ""
+    var jobDescriptionURL = ""
+    var selectedResumeURL: URL?
+    var selectedResumeName: String?
     var isLoading = false
     var result: ATSScoreResult?
     var errorMessage: String?
 
     private let apiClient = APIClient()
 
-    func runScore(token: String?) async {
-        guard !jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Job description is required."
+    func runScore(appState: AppState) async {
+        guard let selectedResumeURL else {
+            errorMessage = "Choose a PDF resume first."
+            return
+        }
+
+        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
+            errorMessage = "Paste a job description or add a job link."
             return
         }
 
@@ -22,18 +32,22 @@ final class ScoreViewModel {
         defer { isLoading = false }
 
         do {
-            if let token {
-                let payload: [String: Any] = [
-                    "resume_original": jobDescription,
-                    "resume_optimized": jobDescription,
-                    "job_description": jobDescription,
-                ]
-                result = try await apiClient.postJSON(endpoint: .atsScore, body: payload, token: token)
-            } else {
-                errorMessage = "Public scoring requires resume upload flow from onboarding."
-            }
+            let response = try await apiClient.runPublicATSCheck(
+                resumeURL: selectedResumeURL,
+                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                sessionId: appState.anonymousATSSessionId
+            )
+            result = response
+            appState.storeAnonymousATSSessionId(response.sessionId)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func useSharedJobURLIfNeeded(from appState: AppState) {
+        guard jobDescriptionURL.isEmpty, let sharedURL = appState.pendingSharedJobURL else { return }
+        jobDescriptionURL = sharedURL.absoluteString
+        appState.clearPendingSharedJobURL()
     }
 }

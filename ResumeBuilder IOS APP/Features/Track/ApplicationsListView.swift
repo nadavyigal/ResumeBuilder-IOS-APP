@@ -7,16 +7,36 @@ struct ApplicationsListView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(viewModel.applications) { app in
-                    NavigationLink {
-                        ApplicationDetailView(application: app)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(app.jobTitle ?? "Untitled role")
-                                .font(.headline)
-                            Text(app.companyName ?? "Unknown company")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                if !viewModel.optimizations.isEmpty {
+                    Section("Optimized Resumes") {
+                        ForEach(viewModel.optimizations) { optimization in
+                            NavigationLink {
+                                OptimizationDetailView(optimization: optimization)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(optimization.jobTitle ?? "Optimized resume")
+                                        .font(.headline)
+                                    Text(optimization.company ?? "Saved optimization")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section("Applications") {
+                    ForEach(viewModel.applications) { app in
+                        NavigationLink {
+                            ApplicationDetailView(application: app)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(app.jobTitle ?? "Untitled role")
+                                    .font(.headline)
+                                Text(app.companyName ?? "Unknown company")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }

@@ -1,3 +1,4 @@
+// Stage 2 — parked. Wired only when BackendConfig.isMonetizationEnabled is true.
 import Foundation
 import Observation
 

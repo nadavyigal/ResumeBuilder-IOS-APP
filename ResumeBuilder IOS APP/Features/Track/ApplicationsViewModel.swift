@@ -5,6 +5,7 @@ import Observation
 @MainActor
 final class ApplicationsViewModel {
     var applications: [ApplicationItem] = []
+    var optimizations: [OptimizationItem] = []
     var isLoading = false
     var errorMessage: String?
 
@@ -21,7 +22,10 @@ final class ApplicationsViewModel {
         defer { isLoading = false }
 
         do {
-            applications = try await apiClient.get(endpoint: .applications, token: token)
+            let applicationsResponse: ApplicationsResponse = try await apiClient.get(endpoint: .applications, token: token)
+            applications = applicationsResponse.applications
+            let optimizationsResponse: OptimizationHistoryResponse = try await apiClient.get(endpoint: .optimizations, token: token)
+            optimizations = optimizationsResponse.resolvedOptimizations
         } catch {
             errorMessage = error.localizedDescription
         }

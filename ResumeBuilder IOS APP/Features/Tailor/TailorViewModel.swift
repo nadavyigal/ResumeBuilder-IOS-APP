@@ -4,21 +4,31 @@ import Observation
 @Observable
 @MainActor
 final class TailorViewModel {
-    var resumeId = ""
-    var jobDescriptionId = ""
+    var selectedResumeURL: URL?
+    var selectedResumeName: String?
+    var jobDescriptionURL = ""
+    var jobDescription = ""
     var isOptimizing = false
     var reviewId: String?
+    var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
 
     private let apiClient = APIClient()
 
-    func optimize(token: String?) async {
-        guard !resumeId.isEmpty, !jobDescriptionId.isEmpty else {
-            errorMessage = "resumeId and jobDescriptionId are required."
+    func optimize(appState: AppState) async {
+        guard let selectedResumeURL else {
+            errorMessage = "Choose a PDF resume first."
             return
         }
 
-        guard let token else {
+        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
+            errorMessage = "Paste a job description or add a job link."
+            return
+        }
+
+        guard let token = appState.session?.accessToken else {
             errorMessage = "Please sign in first."
             return
         }
@@ -28,11 +38,13 @@ final class TailorViewModel {
         defer { isOptimizing = false }
 
         do {
-            let payload: [String: Any] = [
-                "resumeId": resumeId,
-                "jobDescriptionId": jobDescriptionId,
-            ]
-            let response: TailorResponse = try await apiClient.postJSON(endpoint: .optimize, body: payload, token: token)
+            let response = try await apiClient.uploadResume(
+                fileURL: selectedResumeURL,
+                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                token: token
+            )
+            uploadResponse = response
             reviewId = response.reviewId
             if response.reviewId == nil {
                 errorMessage = response.error ?? "Optimization did not return review id."
@@ -40,5 +52,11 @@ final class TailorViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func useSharedJobURLIfNeeded(from appState: AppState) {
+        guard jobDescriptionURL.isEmpty, let sharedURL = appState.pendingSharedJobURL else { return }
+        jobDescriptionURL = sharedURL.absoluteString
+        appState.clearPendingSharedJobURL()
     }
 }

@@ -1,7 +1,44 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld" : {
+
+    },
+    "%lld credits" : {
+
+    },
+    "%lld free checks remaining this week." : {
+
+    },
+    "%lld more recommendations unlock with full optimization." : {
+
+    },
+    "• %@" : {
+
+    },
+    "+%lld" : {
+
+    },
+    "100 credits" : {
+
+    },
+    "500 credits" : {
+
+    },
+    "2500 credits" : {
+
+    },
+    "Accept" : {
+
+    },
+    "Account" : {
+
+    },
+    "Already have an account?" : {
+
+    },
     "app_name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -10,6 +47,213 @@
           }
         }
       }
+    },
+    "Application" : {
+
+    },
+    "Applications" : {
+
+    },
+    "Applied" : {
+
+    },
+    "Apply Accepted Changes" : {
+
+    },
+    "Apply Redesign Request" : {
+
+    },
+    "Ask for a style change" : {
+
+    },
+    "ATS" : {
+
+    },
+    "ATS Score" : {
+
+    },
+    "ATS-safe score %lld" : {
+
+    },
+    "Balance" : {
+
+    },
+    "Buy Credits" : {
+
+    },
+    "Company" : {
+
+    },
+    "Create Account" : {
+
+    },
+    "Credit Packs" : {
+
+    },
+    "Credits" : {
+
+    },
+    "Design Optimized Resume" : {
+
+    },
+    "Design Resume" : {
+
+    },
+    "Don't have an account?" : {
+
+    },
+    "Email" : {
+
+    },
+    "Free ATS check" : {
+
+    },
+    "Get Credits" : {
+
+    },
+    "Import PDF or DOCX" : {
+
+    },
+    "Job URL" : {
+
+    },
+    "LinkedIn or job post URL" : {
+
+    },
+    "Loading review..." : {
+
+    },
+    "Master Resume" : {
+
+    },
+    "Optimization" : {
+
+    },
+    "Optimize" : {
+
+    },
+    "Optimized Resume" : {
+
+    },
+    "Optimized resume preview will appear after applying the review." : {
+
+    },
+    "Optimized Resumes" : {
+
+    },
+    "Optimizing your resume..." : {
+
+    },
+    "Optional: paste job description instead" : {
+
+    },
+    "or" : {
+
+    },
+    "Or paste the full job description" : {
+
+    },
+    "Original" : {
+
+    },
+    "Password" : {
+
+    },
+    "Premium" : {
+
+    },
+    "Preview" : {
+
+    },
+    "Profile" : {
+
+    },
+    "Quick Wins" : {
+
+    },
+    "Recent Activity" : {
+
+    },
+    "Redesign" : {
+
+    },
+    "Redesign Resume" : {
+
+    },
+    "Reject" : {
+
+    },
+    "Resume" : {
+
+    },
+    "Resumely" : {
+
+    },
+    "Role" : {
+
+    },
+    "Run ATS Score" : {
+
+    },
+    "Score" : {
+
+    },
+    "Sign In" : {
+
+    },
+    "Sign in to Optimize" : {
+
+    },
+    "Sign in to unlock full resume optimization." : {
+
+    },
+    "Sign Out" : {
+
+    },
+    "Sign Up" : {
+
+    },
+    "Source" : {
+
+    },
+    "Status" : {
+
+    },
+    "StoreKit wiring is scaffolded and intentionally left minimal in this pass." : {
+
+    },
+    "Suggested" : {
+
+    },
+    "Tailor" : {
+
+    },
+    "Tailor your resume to any job in 60 seconds." : {
+
+    },
+    "Template" : {
+
+    },
+    "Templates" : {
+
+    },
+    "Top Issues" : {
+
+    },
+    "Track" : {
+
+    },
+    "Upload your resume and paste a LinkedIn/job link. The backend extracts the job description like the web app." : {
+
+    },
+    "Upload your resume PDF and paste a LinkedIn/job link. Full optimization unlocks after sign-in." : {
+
+    },
+    "Use Tailor to generate the optimized resume." : {
+
+    },
+    "View Credits" : {
+
     }
   },
   "version" : "1.0"

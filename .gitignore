@@ -1,3 +1,4 @@
 DerivedData/
 *.xcresult
 *.xcactivitylog
+build/

@@ -13,6 +13,7 @@ struct RootView: View {
         }
         .task {
             if appState.isAuthenticated {
+                await appState.convertAnonymousSessionIfNeeded()
                 await appState.refreshCredits()
             }
         }
