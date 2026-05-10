@@ -1,33 +1,38 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @State private var selection: ResumlyTab = .score
+
     var body: some View {
-        TabView {
-            ScoreView(viewModel: ScoreViewModel())
-                .tabItem {
-                    Label("Score", systemImage: "gauge.medium")
-                }
+        ZStack(alignment: .bottom) {
+            // Tab content — all views stay alive to preserve state
+            Group {
+                ScoreView(viewModel: ScoreViewModel())
+                    .opacity(selection == .score ? 1 : 0)
+                    .allowsHitTesting(selection == .score)
 
-            TailorView(viewModel: TailorViewModel())
-                .tabItem {
-                    Label("Improve", systemImage: "wand.and.stars")
-                }
+                TailorView(viewModel: TailorViewModel())
+                    .opacity(selection == .tailor ? 1 : 0)
+                    .allowsHitTesting(selection == .tailor)
 
-            DesignHubView()
-                .tabItem {
-                    Label("Design", systemImage: "paintbrush.fill")
-                }
+                DesignHubView()
+                    .opacity(selection == .design ? 1 : 0)
+                    .allowsHitTesting(selection == .design)
 
-            ApplicationsListView(viewModel: ApplicationsViewModel())
-                .tabItem {
-                    Label("Track", systemImage: "tray.full")
-                }
+                ApplicationsListView(viewModel: ApplicationsViewModel())
+                    .opacity(selection == .track ? 1 : 0)
+                    .allowsHitTesting(selection == .track)
 
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle")
-                }
+                ProfileView()
+                    .opacity(selection == .profile ? 1 : 0)
+                    .allowsHitTesting(selection == .profile)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // Custom floating tab bar
+            ResumlyTabBar(selection: $selection)
         }
+        .ignoresSafeArea(edges: .bottom)
         .tint(Theme.accent)
     }
 }

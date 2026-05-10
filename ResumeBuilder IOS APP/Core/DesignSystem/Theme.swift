@@ -48,8 +48,47 @@ enum Theme {
         endPoint: .bottom
     )
 
-    // MARK: Corner Radii
+    // MARK: - Gradients (extended)
+
+    static let cyanGradient = LinearGradient(
+        colors: [accentCyan, accentBlue],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    // MARK: - Corner Radii
+
     static let radiusCard:   CGFloat = 16
-    static let radiusButton: CGFloat = 12
+    static let radiusButton: CGFloat = 14
     static let radiusBadge:  CGFloat = 10
+
+    // MARK: - Spacing constants
+
+    static let pagePadding:       CGFloat = 20
+    static let cardPadding:       CGFloat = 16
+    static let sectionGap:        CGFloat = 24
+    /// Bottom padding needed to clear the floating tab bar
+    static let tabBarClearance:   CGFloat = 100
+}
+
+// MARK: - Convenience View Modifier
+
+extension View {
+    /// Standard Resumely page background with optional ambient radial glow at top.
+    func resumelyBackground(glow: Color = .clear) -> some View {
+        background(
+            ZStack {
+                Theme.bgPrimary.ignoresSafeArea()
+                if glow != .clear {
+                    RadialGradient(
+                        colors: [glow.opacity(0.13), .clear],
+                        center: .top,
+                        startRadius: 0,
+                        endRadius: 380
+                    )
+                    .ignoresSafeArea()
+                }
+            }
+        )
+    }
 }
