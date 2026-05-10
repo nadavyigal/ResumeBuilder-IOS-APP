@@ -4,13 +4,7 @@ struct RootView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        Group {
-            if appState.isAuthenticated {
-                MainTabView()
-            } else {
-                OnboardingView(viewModel: OnboardingViewModel(appState: appState))
-            }
-        }
+        MainTabViewV2()
         .task {
             if appState.isAuthenticated {
                 await appState.convertAnonymousSessionIfNeeded()
@@ -23,6 +17,4 @@ struct RootView: View {
 #Preview {
     RootView()
         .environment(AppState())
-        .preferredColorScheme(.dark)
-        .tint(Theme.accent)
 }

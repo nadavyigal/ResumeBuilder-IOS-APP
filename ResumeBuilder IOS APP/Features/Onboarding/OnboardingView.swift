@@ -5,112 +5,81 @@ struct OnboardingView: View {
     @Bindable var viewModel: OnboardingViewModel
 
     var body: some View {
-        ZStack {
-            // ── Background ──────────────────────────────────────────────────
-            Theme.bgPrimary.ignoresSafeArea()
-
-            // Subtle top violet glow
-            RadialGradient(
-                colors: [Theme.accent.opacity(0.18), .clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 420
-            )
-            .ignoresSafeArea()
-
+        NavigationStack {
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: AppSpacing.xxl) {
+                    // Hero
+                    VStack(spacing: AppSpacing.md) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.gradientMid.opacity(0.15))
+                                .frame(width: 88, height: 88)
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 40, weight: .semibold))
+                                .foregroundStyle(AppGradients.primary)
+                        }
 
-                    // ── Hero ─────────────────────────────────────────────────
-                    VStack(spacing: 16) {
-                        // Brand mark
-                        Image("ResumelyMark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .shadow(color: Theme.accent.opacity(0.45), radius: 20, y: 8)
-
-                        // Wordmark
                         Text("Resumely")
-                            .font(.system(size: 34, weight: .black, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Theme.accent, Theme.accentBlue],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .font(.appTitle)
+                            .foregroundStyle(AppColors.textPrimary)
 
-                        Text("Your AI-powered resume edge.\nATS-optimized in seconds.")
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.textSecondary)
+                        Text("Tailor your resume to any job in 60 seconds.")
+                            .font(.appBody)
+                            .foregroundStyle(AppColors.textSecondary)
                             .multilineTextAlignment(.center)
-                            .lineSpacing(3)
                     }
-                    .padding(.top, 60)
-                    .padding(.bottom, 40)
+                    .padding(.top, AppSpacing.xxxl)
 
-                    // ── Sign in with Apple ───────────────────────────────────
+                    // Sign in with Apple — auth flow unchanged
                     SignInWithAppleButton(
                         viewModel.isSignUp ? .signUp : .signIn,
                         onRequest: { request in
                             request.requestedScopes = [.fullName, .email]
                         },
-                        onCompletion: { _ in }
+                        onCompletion: { _ in
+                            // Handled by the ViewModel via its own coordinator call.
+                        }
                     )
-                    .signInWithAppleButtonStyle(.white)
-                    .frame(height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 50)
                     .onTapGesture {
                         Task { await viewModel.signInWithApple() }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, AppSpacing.lg)
 
-                    // ── Divider ──────────────────────────────────────────────
-                    HStack(spacing: 12) {
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(Theme.textTertiary)
+                    // Divider
+                    HStack {
+                        Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
                         Text("or")
-                            .font(.footnote)
-                            .foregroundStyle(Theme.textTertiary)
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(Theme.textTertiary)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textSecondary)
+                        Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 20)
+                    .padding(.horizontal, AppSpacing.lg)
 
-                    // ── Email form ───────────────────────────────────────────
-                    VStack(spacing: 12) {
+                    // Email form
+                    VStack(spacing: AppSpacing.md) {
                         TextField("Email", text: $viewModel.email)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .keyboardType(.emailAddress)
                             .textContentType(.emailAddress)
-                            .padding(14)
-                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
-                                    .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
-                            )
-                            .foregroundStyle(Theme.textPrimary)
-                            .tint(Theme.accent)
+                            .font(.appBody)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(AppSpacing.lg)
+                            .glassCard(cornerRadius: AppRadii.md)
 
                         SecureField("Password", text: $viewModel.password)
                             .textContentType(viewModel.isSignUp ? .newPassword : .password)
-                            .padding(14)
-                            .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Theme.radiusBadge, style: .continuous)
-                                    .stroke(Theme.accent.opacity(0.25), lineWidth: 1)
-                            )
-                            .foregroundStyle(Theme.textPrimary)
-                            .tint(Theme.accent)
+                            .font(.appBody)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(AppSpacing.lg)
+                            .glassCard(cornerRadius: AppRadii.md)
 
-                        // Primary CTA button
-                        Button {
+                        GradientButton(
+                            title: viewModel.isSignUp ? "Create Account" : "Sign In",
+                            isLoading: viewModel.isLoading
+                        ) {
                             Task {
                                 if viewModel.isSignUp {
                                     await viewModel.signUp()
@@ -118,56 +87,38 @@ struct OnboardingView: View {
                                     await viewModel.signInWithEmail()
                                 }
                             }
-                        } label: {
-                            Group {
-                                if viewModel.isLoading {
-                                    ProgressView()
-                                        .tint(.white)
-                                } else {
-                                    Text(viewModel.isSignUp ? "Create Account" : "Sign In")
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .foregroundStyle(.white)
-                            .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                         }
-                        .disabled(viewModel.isLoading)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, AppSpacing.lg)
 
-                    // ── Toggle sign-in / sign-up ─────────────────────────────
+                    // Toggle sign-in / sign-up
                     Button {
                         withAnimation { viewModel.isSignUp.toggle() }
                     } label: {
                         HStack(spacing: 4) {
                             Text(viewModel.isSignUp ? "Already have an account?" : "Don't have an account?")
-                                .foregroundStyle(Theme.textSecondary)
+                                .foregroundStyle(AppColors.textSecondary)
                             Text(viewModel.isSignUp ? "Sign In" : "Sign Up")
+                                .foregroundStyle(AppColors.gradientMid)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(Theme.accentBlue)
                         }
-                        .font(.footnote)
+                        .font(.appCaption)
                     }
-                    .padding(.top, 16)
 
-                    // ── Error ────────────────────────────────────────────────
+                    // Error
                     if let errorMessage = viewModel.errorMessage {
                         Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                            .font(.footnote)
+                            .font(.appCaption)
                             .foregroundStyle(.red)
-                            .padding(.horizontal, 24)
+                            .padding(.horizontal, AppSpacing.lg)
                             .multilineTextAlignment(.center)
-                            .padding(.top, 8)
                     }
-
-                    Spacer(minLength: 40)
                 }
+                .padding(.bottom, AppSpacing.xxxl)
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
+            .screenBackground(showRadialGlow: true)
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .preferredColorScheme(.dark)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }

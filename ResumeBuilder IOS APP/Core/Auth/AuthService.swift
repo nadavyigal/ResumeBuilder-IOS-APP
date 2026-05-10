@@ -21,7 +21,7 @@ enum AuthServiceError: Error, LocalizedError {
     }
 }
 
-final class AuthService {
+final class AuthService: @unchecked Sendable {
     static let shared = AuthService()
 
     private let keychain = KeychainStore.shared

@@ -1,22 +1,86 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "—" : {
+
+    },
+    "· %@" : {
+
+    },
+    "/ 100" : {
+
+    },
+    "%@, %lld percent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld percent"
+          }
+        }
+      }
+    },
+    "%@: %@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@. %3$@"
+          }
+        }
+      }
+    },
     "%lld" : {
+
+    },
+    "%lld / 5000" : {
 
     },
     "%lld credits" : {
 
     },
-    "%lld free checks remaining this week." : {
+    "%lld credits remaining" : {
 
     },
-    "%lld more recommendations unlock with full optimization." : {
+    "%lld free checks remaining" : {
+
+    },
+    "%lld of %lld changes selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld changes selected"
+          }
+        }
+      }
+    },
+    "%lld saved report%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld saved report%2$@"
+          }
+        }
+      }
+    },
+    "%lld." : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lld%% match" : {
 
     },
     "• %@" : {
 
     },
     "+%lld" : {
+
+    },
+    "+%lldpts" : {
 
     },
     "100 credits" : {
@@ -28,13 +92,47 @@
     "2500 credits" : {
 
     },
+    "Accent Color" : {
+
+    },
     "Accept" : {
 
+    },
+    "Accepted: %lld  •  Rejected: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Accepted: %1$lld  •  Rejected: %2$lld"
+          }
+        }
+      }
     },
     "Account" : {
 
     },
+    "Actions" : {
+
+    },
+    "After" : {
+
+    },
+    "After (est.)" : {
+
+    },
+    "After %@" : {
+
+    },
+    "AI Chat" : {
+
+    },
+    "AI Optimized" : {
+
+    },
     "Already have an account?" : {
+
+    },
+    "Analyzing…" : {
 
     },
     "app_name" : {
@@ -43,7 +141,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ResumeBuilder"
+            "value" : "Resumely"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "Resumely"
           }
         }
       }
@@ -51,40 +155,91 @@
     "Application" : {
 
     },
-    "Applications" : {
-
-    },
     "Applied" : {
 
     },
-    "Apply Accepted Changes" : {
+    "Apply is temporarily unavailable — a server update is required. Changes will be available again once the update is complete." : {
 
     },
-    "Apply Redesign Request" : {
-
-    },
-    "Ask for a style change" : {
+    "Ask AI to tweak your optimized resume…" : {
 
     },
     "ATS" : {
 
     },
+    "ATS breakdown" : {
+
+    },
+    "ATS score" : {
+
+    },
     "ATS Score" : {
 
     },
-    "ATS-safe score %lld" : {
+    "ATS score %lld percent" : {
+
+    },
+    "Attach Optimized Resume" : {
+
+    },
+    "Attach resume" : {
+
+    },
+    "Attached resume" : {
+
+    },
+    "Attaching…" : {
 
     },
     "Balance" : {
 
     },
+    "Before" : {
+
+    },
+    "Before %@" : {
+
+    },
     "Buy Credits" : {
+
+    },
+    "Buy More" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Change" : {
+
+    },
+    "Change from original: %@" : {
+
+    },
+    "Change Resume" : {
+
+    },
+    "Chat unavailable" : {
+
+    },
+    "Close" : {
 
     },
     "Company" : {
 
     },
-    "Create Account" : {
+    "Compare" : {
+
+    },
+    "Continue Editing" : {
+
+    },
+    "Copied to clipboard" : {
+
+    },
+    "Copy share text" : {
+
+    },
+    "Copy Text" : {
 
     },
     "Credit Packs" : {
@@ -93,40 +248,274 @@
     "Credits" : {
 
     },
-    "Design Optimized Resume" : {
+    "Design" : {
 
     },
-    "Design Resume" : {
+    "design_apply_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "החל עיצוב"
+          }
+        }
+      }
+    },
+    "Diff Review" : {
 
     },
     "Don't have an account?" : {
 
     },
+    "Done" : {
+
+    },
+    "Download PDF" : {
+
+    },
+    "Downloading…" : {
+
+    },
+    "e.g. Make it more concise and add leadership examples…" : {
+
+    },
+    "Edit Section" : {
+
+    },
+    "Edits from refine, chat, and expert tools will appear here." : {
+
+    },
+    "Effort" : {
+
+    },
     "Email" : {
 
     },
-    "Free ATS check" : {
+    "Estimated effort %@" : {
+
+    },
+    "Evidence gaps (%lld)" : {
+
+    },
+    "Expert Analysis" : {
+
+    },
+    "Expert analysis unavailable" : {
+
+    },
+    "Expert modes" : {
+
+    },
+    "export_download_pdf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download PDF"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "הורד PDF"
+          }
+        }
+      }
+    },
+    "Font Style" : {
+
+    },
+    "Free ATS checks available" : {
+
+    },
+    "Free ATS Preview" : {
+
+    },
+    "Free plan" : {
 
     },
     "Get Credits" : {
 
     },
+    "Hi %@ 👋" : {
+
+    },
+    "High-level gauges from your latest optimization summary. Run Improve with a job description connected for granular ATS wiring." : {
+
+    },
+    "History" : {
+
+    },
+    "home_score_excellent" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excellent — ready to apply"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "מצוין — מוכן להגשה"
+          }
+        }
+      }
+    },
+    "home_score_good" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good — a few improvements left"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "טוב — כמה שיפורים נותרו"
+          }
+        }
+      }
+    },
+    "home_score_needs_work" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs work — let's improve it"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "דורש שיפור — בואו נשפר"
+          }
+        }
+      }
+    },
+    "https://www.linkedin.com/jobs/view/..." : {
+
+    },
     "Import PDF or DOCX" : {
 
     },
-    "Job URL" : {
+    "Import Resume" : {
 
     },
-    "LinkedIn or job post URL" : {
+    "improve_optimize_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimize for This Job"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "אופטימיזציה לתפקיד זה"
+          }
+        }
+      }
+    },
+    "Include" : {
 
     },
-    "Loading review..." : {
+    "Job Description ID" : {
+
+    },
+    "LinkedIn or Job Link" : {
+
+    },
+    "Loading optimization history..." : {
+
+    },
+    "Loading resume…" : {
+
+    },
+    "Main issues" : {
+
+    },
+    "Mark as Applied" : {
+
+    },
+    "Marking…" : {
 
     },
     "Master Resume" : {
 
     },
-    "Optimization" : {
+    "Master resume preview will appear here." : {
+
+    },
+    "Missing Keywords" : {
+
+    },
+    "Modification History" : {
+
+    },
+    "My Applications" : {
+
+    },
+    "My resume" : {
+
+    },
+    "My Resume" : {
+
+    },
+    "Needs your input" : {
+
+    },
+    "No master resume uploaded yet." : {
+
+    },
+    "No matching optimizations" : {
+
+    },
+    "No modifications yet" : {
+
+    },
+    "No optimizations" : {
+
+    },
+    "No optimizations yet" : {
+
+    },
+    "Not yet exported" : {
+
+    },
+    "OK" : {
+
+    },
+    "Open in Safari" : {
+
+    },
+    "Opens the ATS breakdown pillars." : {
+
+    },
+    "Opens the four ATS pillars with animations." : {
+
+    },
+    "Optimization id missing — return and run Optimize first." : {
+
+    },
+    "Optimization not available." : {
+
+    },
+    "Optimization Review" : {
 
     },
     "Optimize" : {
@@ -135,76 +524,228 @@
     "Optimized Resume" : {
 
     },
-    "Optimized resume preview will appear after applying the review." : {
-
-    },
-    "Optimized Resumes" : {
-
-    },
     "Optimizing your resume..." : {
-
-    },
-    "Optional: paste job description instead" : {
 
     },
     "or" : {
 
     },
-    "Or paste the full job description" : {
+    "Or paste the job description" : {
 
     },
     "Original" : {
 
     },
+    "Overview" : {
+
+    },
     "Password" : {
 
     },
-    "Premium" : {
+    "Paste the job description here if the link is unavailable…" : {
+
+    },
+    "PDF generated and ready" : {
+
+    },
+    "PDF or DOCX" : {
+
+    },
+    "PDF Ready" : {
 
     },
     "Preview" : {
 
     },
+    "Preview & Export" : {
+
+    },
+    "Priority actions" : {
+
+    },
     "Profile" : {
+
+    },
+    "profile_my_applications" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Applications"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "המועמדויות שלי"
+          }
+        }
+      }
+    },
+    "profile_sign_out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign Out"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "התנתק"
+          }
+        }
+      }
+    },
+    "Quick wins" : {
 
     },
     "Quick Wins" : {
 
     },
+    "Re-scan resume" : {
+
+    },
+    "Re-scanning…" : {
+
+    },
+    "Ready for full optimization." : {
+
+    },
     "Recent Activity" : {
 
     },
-    "Redesign" : {
+    "Recent Exports" : {
 
     },
-    "Redesign Resume" : {
+    "Refinement Instruction" : {
 
     },
     "Reject" : {
 
     },
+    "Rendering preview…" : {
+
+    },
     "Resume" : {
+
+    },
+    "Resume Health Score" : {
+
+    },
+    "Resume ID" : {
+
+    },
+    "Resume PDF" : {
 
     },
     "Resumely" : {
 
     },
+    "Return after running Optimize to unlock expert workflows." : {
+
+    },
+    "Revert" : {
+
+    },
+    "Review" : {
+
+    },
+    "Review Changes" : {
+
+    },
+    "Review changes before approving" : {
+
+    },
+    "Review ID: %@" : {
+
+    },
     "Role" : {
+
+    },
+    "Run a scan and optimization to see it here." : {
 
     },
     "Run ATS Score" : {
 
     },
+    "Run expert workflows for this optimization" : {
+
+    },
+    "Run Optimize first to attach a version here." : {
+
+    },
+    "Saved resume" : {
+
+    },
+    "scan_analyze_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyze Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ניתוח קורות חיים"
+          }
+        }
+      }
+    },
+    "scan_import_resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ייבוא קורות חיים"
+          }
+        }
+      }
+    },
     "Score" : {
+
+    },
+    "Scores are still loading." : {
+
+    },
+    "Search job title or company" : {
+
+    },
+    "Search title or company" : {
+
+    },
+    "Send message" : {
+
+    },
+    "Share link" : {
+
+    },
+    "Share score" : {
 
     },
     "Sign In" : {
 
     },
-    "Sign in to Optimize" : {
+    "Sign in to manage your master resume." : {
 
     },
-    "Sign in to unlock full resume optimization." : {
+    "Sign in to unlock full optimization." : {
+
+    },
+    "Sign in to view history" : {
 
     },
     "Sign Out" : {
@@ -213,7 +754,10 @@
     "Sign Up" : {
 
     },
-    "Source" : {
+    "Skip" : {
+
+    },
+    "Spacing" : {
 
     },
     "Status" : {
@@ -222,8 +766,99 @@
     "StoreKit wiring is scaffolded and intentionally left minimal in this pass." : {
 
     },
+    "Subscores" : {
+
+    },
     "Suggested" : {
 
+    },
+    "Suggested resume updates (%lld)" : {
+
+    },
+    "tab_design" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "עיצוב"
+          }
+        }
+      }
+    },
+    "tab_home" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "בית"
+          }
+        }
+      }
+    },
+    "tab_improve" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improve"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "שיפור"
+          }
+        }
+      }
+    },
+    "tab_profile" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "פרופיל"
+          }
+        }
+      }
+    },
+    "tab_scan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "סריקה"
+          }
+        }
+      }
     },
     "Tailor" : {
 
@@ -231,28 +866,58 @@
     "Tailor your resume to any job in 60 seconds." : {
 
     },
-    "Template" : {
+    "Tap any section to refine with custom instructions" : {
 
     },
-    "Templates" : {
+    "Tap Download to generate PDF" : {
 
     },
-    "Top Issues" : {
+    "This review was already applied on the web or another device." : {
+
+    },
+    "Tip %lld" : {
+
+    },
+    "Top Fixes" : {
+
+    },
+    "Top signals" : {
 
     },
     "Track" : {
 
     },
-    "Upload your resume and paste a LinkedIn/job link. The backend extracts the job description like the web app." : {
+    "Track your job applications" : {
 
     },
-    "Upload your resume PDF and paste a LinkedIn/job link. Full optimization unlocks after sign-in." : {
+    "Try Again" : {
 
     },
-    "Use Tailor to generate the optimized resume." : {
+    "Try another job title or company." : {
+
+    },
+    "Typing…" : {
+
+    },
+    "Undo" : {
+
+    },
+    "Use Tailor to improve weak bullets and keyword alignment." : {
+
+    },
+    "View ATS breakdown" : {
 
     },
     "View Credits" : {
+
+    },
+    "Your optimized resumes and PDF downloads are linked to your account." : {
+
+    },
+    "Your resume data is encrypted end-to-end." : {
+
+    },
+    "Your resume is encrypted and never shared." : {
 
     }
   },

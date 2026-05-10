@@ -1,80 +1,39 @@
 import SwiftUI
 
-// MARK: - Resumely Brand Palette
-// Source: design-assets/Brand_Reference.png
-// Primary bg:    #050814  →  r:0.020  g:0.031  b:0.078
-// Card bg:       #0D1224  →  r:0.051  g:0.071  b:0.141
-// Accent violet: #6C63FF  →  r:0.424  g:0.388  b:1.000
-// Accent blue:   #4EA8FF  →  r:0.306  g:0.659  b:1.000
-// Accent cyan:   #40E0D0  →  r:0.251  g:0.878  b:0.816
-
 enum Theme {
-
-    // MARK: Backgrounds
-    /// Near-black deep navy — primary app background
-    static let bgPrimary   = Color(red: 0.020, green: 0.031, blue: 0.078)
-    /// Dark card surface
-    static let bgCard      = Color(red: 0.051, green: 0.071, blue: 0.141)
-    /// Light surface — forms, sheets (system-adaptive)
-    static let canvas      = Color(uiColor: .systemBackground)
-
-    // MARK: Accents
-    /// Blue-violet — buttons, highlights, progress rings
-    static let accent      = Color(red: 0.424, green: 0.388, blue: 1.000)
-    /// Bright blue — secondary highlights, links, score badges
-    static let accentBlue  = Color(red: 0.306, green: 0.659, blue: 1.000)
-    /// Cyan — optional tertiary accent, export/success states
-    static let accentCyan  = Color(red: 0.251, green: 0.878, blue: 0.816)
-
-    // MARK: Text
-    static let textPrimary    = Color.white
-    static let textSecondary  = Color.white.opacity(0.65)
-    static let textTertiary   = Color.white.opacity(0.40)
-
-    // MARK: Semantic
-    /// Legacy alias — maps to bgPrimary for backward compatibility
-    static let primary     = bgPrimary
-
-    // MARK: Gradients
-    static let brandGradient = LinearGradient(
-        colors: [accent, accentBlue],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    static let bgGradient = LinearGradient(
-        colors: [bgPrimary, bgCard],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
-    // MARK: - Gradients (extended)
-
-    static let cyanGradient = LinearGradient(
-        colors: [accentCyan, accentBlue],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    // MARK: - Corner Radii
-
-    static let radiusCard:   CGFloat = 16
+    static var primaryGradient: LinearGradient { AppGradients.primary }
+    static var backgroundGradient: LinearGradient { AppGradients.background }
+    static var background: Color { AppColors.backgroundBottom }
+    static var surface: Color { AppColors.glassTint }
+    static var textPrimary: Color { AppColors.textPrimary }
+    static var textSecondary: Color { AppColors.textSecondary }
+    static var accent: Color { AppColors.gradientMid }
+    static var bgPrimary: Color { AppColors.backgroundBottom }
+    static var bgCard: Color { AppColors.backgroundMid }
+    static var canvas: Color { Color(uiColor: .systemBackground) }
+    static var accentBlue: Color { AppColors.accentSky }
+    static var accentCyan: Color { AppColors.accentCyan }
+    static var textTertiary: Color { AppColors.textTertiary }
+    static var primary: Color { bgPrimary }
+    static var brandGradient: LinearGradient { AppGradients.primary }
+    static var bgGradient: LinearGradient { AppGradients.background }
+    static var cyanGradient: LinearGradient {
+        LinearGradient(
+            colors: [AppColors.accentCyan, AppColors.accentSky],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    static let radiusCard: CGFloat = 16
     static let radiusButton: CGFloat = 14
-    static let radiusBadge:  CGFloat = 10
-
-    // MARK: - Spacing constants
-
-    static let pagePadding:       CGFloat = 20
-    static let cardPadding:       CGFloat = 16
-    static let sectionGap:        CGFloat = 24
-    /// Bottom padding needed to clear the floating tab bar
-    static let tabBarClearance:   CGFloat = 100
+    static let radiusBadge: CGFloat = 10
+    static let pagePadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let sectionGap: CGFloat = 24
+    static let tabBarClearance: CGFloat = 100
 }
 
-// MARK: - Convenience View Modifier
-
 extension View {
-    /// Standard Resumely page background with optional ambient radial glow at top.
     func resumelyBackground(glow: Color = .clear) -> some View {
         background(
             ZStack {

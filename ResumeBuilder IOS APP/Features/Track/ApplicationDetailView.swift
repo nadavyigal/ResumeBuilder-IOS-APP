@@ -1,144 +1,189 @@
 import SwiftUI
+import UIKit
 
 struct ApplicationDetailView: View {
-    let application: ApplicationItem
+    @Environment(AppState.self) private var appState
+    @State private var vm: ApplicationDetailViewModel
+    @State private var showAttachPicker = false
+
+    private var token: String? { appState.session?.accessToken }
+
+    init(application: ApplicationItem) {
+        _vm = State(wrappedValue: ApplicationDetailViewModel(application: application))
+    }
 
     var body: some View {
         ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
-
             List {
-                Section {
-                    DetailRow(label: "Role",    value: application.jobTitle ?? "-")
-                    DetailRow(label: "Company", value: application.companyName ?? "-")
-                    DetailRow(label: "Applied", value: application.appliedDate ?? "-")
-                    DetailRow(label: "Status",  value: application.status ?? "applied")
-                    if let score = application.atsScore {
-                        DetailRow(label: "ATS Score", value: "\(score)")
-                    }
-                    if let url = application.sourceURL {
-                        DetailRow(label: "Source", value: url)
-                    }
-                } header: {
-                    Text("Details")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.textTertiary)
-                        .textCase(nil)
-                }
-                .listRowBackground(Theme.bgCard)
-            }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .background(Theme.bgPrimary)
-        }
-        .navigationTitle("Application")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-    }
-}
-
-struct OptimizationDetailView: View {
-    let optimization: OptimizationItem
-
-    var body: some View {
-        ZStack {
-            Theme.bgPrimary.ignoresSafeArea()
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    ResumePreviewCard(
-                        snapshot: ResumeSnapshot(
-                            id: optimization.id,
-                            title: optimization.jobTitle ?? "Optimized Resume",
-                            subtitle: optimization.company ?? optimization.jobURL ?? "Saved resume",
-                            matchScore: optimization.matchScore,
-                            json: optimization.rewriteData
-                        )
-                    )
-
-                    // ── Meta ──────────────────────────────────────────────────
-                    VStack(spacing: 1) {
-                        if let template = optimization.templateKey {
-                            MetaRow(label: "Template", value: template)
-                        }
-                        if let status = optimization.status {
-                            MetaRow(label: "Status", value: status)
-                        }
-                        if let url = optimization.jobURL {
-                            MetaRow(label: "Job URL", value: url)
-                        }
-                    }
-                    .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: Theme.radiusCard, style: .continuous))
-
-                    // ── Redesign CTA ──────────────────────────────────────────
-                    NavigationLink {
-                        DesignTemplatesView(
-                            optimizationId: optimization.id,
-                            snapshot: ResumeSnapshot(
-                                id: optimization.id,
-                                title: optimization.jobTitle ?? "Optimized Resume",
-                                subtitle: optimization.company ?? "Saved resume",
-                                matchScore: optimization.matchScore,
-                                json: optimization.rewriteData
+                Section("Actions") {
+                    if vm.item.applyClickedAt == nil {
+                        Button {
+                            Task { await vm.markApplied(token: token) }
+                        } label: {
+                            Label(
+                                vm.isMarkingApplied ? "Marking…" : "Mark as Applied",
+                                systemImage: "checkmark.circle"
                             )
-                        )
+                        }
+                        .disabled(vm.isMarkingApplied)
+                    } else if let badge = formattedAppliedBadge(from: vm.item.applyClickedAt) {
+                        Label(badge, systemImage: "checkmark.seal.fill")
+                            .foregroundStyle(.green)
+                    }
+
+                    Button {
+                        showAttachPicker = true
                     } label: {
-                        Text("Redesign Resume")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .foregroundStyle(.white)
-                            .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                        Label(
+                            vm.isAttaching ? "Attaching…" : "Attach Optimized Resume",
+                            systemImage: "doc.badge.plus"
+                        )
+                    }
+                    .disabled(vm.isAttaching)
+
+                    if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        NavigationLink {
+                            ExpertModesView(optimizationId: oid, resumeViewModel: nil)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Expert Analysis")
+                                    .foregroundStyle(AppColors.textPrimary)
+                                Text(
+                                    vm.expertReportsCount == 0
+                                        ? "Run expert workflows for this optimization"
+                                        : "\(vm.expertReportsCount) saved report\(vm.expertReportsCount == 1 ? "" : "s")"
+                                )
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                    } else {
+                        LabeledContent("Expert Analysis", value: "Requires optimization linked to this application")
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 32)
+
+                if let summary = optimizedAttachmentSummary {
+                    Section("Attached resume") {
+                        Text(summary.filename)
+                            .font(.body)
+
+                        if let url = summary.url {
+                            ShareLink(item: url) {
+                                Label("Share link", systemImage: "square.and.arrow.up")
+                            }
+                        }
+
+                        if let url = summary.url {
+                            Button {
+                                UIApplication.shared.open(url)
+                            } label: {
+                                Label("Open in Safari", systemImage: "safari")
+                            }
+                        }
+                    }
+                }
+
+                Section("Overview") {
+                    LabeledContent("Role", value: vm.item.jobTitle ?? "—")
+                    LabeledContent("Company", value: vm.item.companyName ?? "—")
+                    LabeledContent("Applied", value: vm.item.appliedDate.map { formattedListDate(from: $0) } ?? "—")
+                    if let score = vm.item.atsScore {
+                        LabeledContent("ATS score", value: "\(score)%")
+                    }
+                    LabeledContent("Status", value: vm.item.status ?? "applied")
+                }
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .navigationTitle("Application")
+
+            if vm.isLoading {
+                ProgressView()
+                    .padding(AppSpacing.lg)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppRadii.md))
+            }
         }
-        .navigationTitle("Optimized Resume")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .sheet(isPresented: $showAttachPicker) {
+            OptimizeAttachmentPickerView(accessToken: token) { picked in
+                Task { await vm.attachOptimizedResume(optimizationHistoryId: picked.id, token: token) }
+            }
+        }
+        .task {
+            await vm.refresh(token: token)
+        }
+        .refreshable {
+            await vm.refresh(token: token)
+        }
+        .alert(
+            "Application",
+            isPresented: Binding(
+                get: { vm.actionError != nil },
+                set: { if !$0 { vm.clearActionError() } }
+            )
+        ) {
+            Button("OK", role: .cancel) { vm.clearActionError() }
+        } message: {
+            Text(vm.actionError ?? "")
+        }
     }
-}
 
-// MARK: - Shared row components
-
-private struct DetailRow: View {
-    let label: String
-    let value: String
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary)
-            Spacer()
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(Theme.textPrimary)
-                .multilineTextAlignment(.trailing)
-        }
-        .padding(.vertical, 2)
+    private struct AttachmentSummary {
+        let filename: String
+        let url: URL?
     }
-}
 
-private struct MetaRow: View {
-    let label: String
-    let value: String
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary)
-            Spacer()
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(Theme.textPrimary)
-                .multilineTextAlignment(.trailing)
-                .lineLimit(1)
+    private var optimizedAttachmentSummary: AttachmentSummary? {
+        let id = vm.item.optimizedResumeId
+        let link = vm.item.optimizedResumeURL
+        guard id != nil || (link?.isEmpty == false) else { return nil }
+
+        let name: String
+        if let urlStr = link, let url = URL(string: urlStr) {
+            let last = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
+            name = last.isEmpty ? "Optimized Resume" : last
+        } else {
+            name = id.map { "Optimization \($0.prefix(8))…" } ?? "Optimized Resume"
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+
+        let urlParsed = link.flatMap { URL(string: $0) }
+        return AttachmentSummary(filename: name, url: urlParsed)
+    }
+
+    private func formattedAppliedBadge(from iso: String?) -> String? {
+        guard let iso, !iso.isEmpty else { return nil }
+        let parsers: [ISO8601DateFormatter] = {
+            let f1 = ISO8601DateFormatter()
+            f1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let f2 = ISO8601DateFormatter()
+            f2.formatOptions = [.withInternetDateTime]
+            return [f1, f2]
+        }()
+        for p in parsers {
+            if let d = p.date(from: iso) {
+                let fmt = DateFormatter()
+                fmt.dateStyle = .long
+                fmt.timeStyle = .none
+                return "Applied on \(fmt.string(from: d))"
+            }
+        }
+        return "Applied"
+    }
+
+    private func formattedListDate(from iso: String) -> String {
+        let parsers: [ISO8601DateFormatter] = {
+            let f1 = ISO8601DateFormatter()
+            f1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let f2 = ISO8601DateFormatter()
+            f2.formatOptions = [.withInternetDateTime]
+            return [f1, f2]
+        }()
+        for p in parsers {
+            if let d = p.date(from: iso) {
+                let fmt = DateFormatter()
+                fmt.dateStyle = .medium
+                fmt.timeStyle = .none
+                return fmt.string(from: d)
+            }
+        }
+        return iso
     }
 }

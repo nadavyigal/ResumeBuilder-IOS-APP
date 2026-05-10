@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-final class KeychainStore {
+final class KeychainStore: @unchecked Sendable {
     static let shared = KeychainStore()
 
     private init() {}

@@ -5,11 +5,10 @@ import Observation
 @MainActor
 final class ApplicationsViewModel {
     var applications: [ApplicationItem] = []
-    var optimizations: [OptimizationItem] = []
     var isLoading = false
     var errorMessage: String?
 
-    private let apiClient = APIClient()
+    private let service = ApplicationTrackingService()
 
     func load(token: String?) async {
         guard let token else {
@@ -22,12 +21,13 @@ final class ApplicationsViewModel {
         defer { isLoading = false }
 
         do {
-            let applicationsResponse: ApplicationsResponse = try await apiClient.get(endpoint: .applications, token: token)
-            applications = applicationsResponse.applications
-            let optimizationsResponse: OptimizationHistoryResponse = try await apiClient.get(endpoint: .optimizations, token: token)
-            optimizations = optimizationsResponse.resolvedOptimizations
+            applications = try await service.listApplications(token: token)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func application(withId id: String) -> ApplicationItem? {
+        applications.first { $0.id == id }
     }
 }

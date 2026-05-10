@@ -6,10 +6,16 @@ import UIKit
 /// The static `current` property keeps the coordinator alive during the auth presentation.
 @MainActor
 final class SignInWithAppleCoordinator: NSObject {
+    private enum SignInError: LocalizedError {
+        case timedOut
+
+        var errorDescription: String? { "Apple sign in timed out. Please try again." }
+    }
 
     private static var current: SignInWithAppleCoordinator?
 
     private var continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>?
+    private var timeoutTask: Task<Void, Never>?
 
     // MARK: - Public entry point
 
@@ -26,18 +32,35 @@ final class SignInWithAppleCoordinator: NSObject {
     // MARK: - Private
 
     private func present(hashedNonce: String) async throws -> ASAuthorizationAppleIDCredential {
-        try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>) in
+                self.continuation = continuation
 
-            let provider = ASAuthorizationAppleIDProvider()
-            let request = provider.createRequest()
-            request.requestedScopes = [.fullName, .email]
-            request.nonce = hashedNonce
+                timeoutTask = Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(60))
+                    guard self.continuation != nil else { return }
+                    self.continuation?.resume(throwing: SignInError.timedOut)
+                    self.continuation = nil
+                }
 
-            let controller = ASAuthorizationController(authorizationRequests: [request])
-            controller.delegate = self
-            controller.presentationContextProvider = self
-            controller.performRequests()
+                let provider = ASAuthorizationAppleIDProvider()
+                let request = provider.createRequest()
+                request.requestedScopes = [.fullName, .email]
+                request.nonce = hashedNonce
+
+                let controller = ASAuthorizationController(authorizationRequests: [request])
+                controller.delegate = self
+                controller.presentationContextProvider = self
+                controller.performRequests()
+            }
+        } onCancel: { [self] in
+            Task { @MainActor in
+                guard self.continuation != nil else { return }
+                self.continuation?.resume(throwing: CancellationError())
+                self.continuation = nil
+                self.timeoutTask?.cancel()
+                self.timeoutTask = nil
+            }
         }
     }
 
@@ -63,19 +86,32 @@ extension SignInWithAppleCoordinator: ASAuthorizationControllerDelegate {
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
         if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            continuation?.resume(returning: credential)
+            Task { @MainActor in
+                continuation?.resume(returning: credential)
+                continuation = nil
+                timeoutTask?.cancel()
+                timeoutTask = nil
+            }
         } else {
-            continuation?.resume(throwing: AuthServiceError.invalidResponse)
+            Task { @MainActor in
+                continuation?.resume(throwing: AuthServiceError.invalidResponse)
+                continuation = nil
+                timeoutTask?.cancel()
+                timeoutTask = nil
+            }
         }
-        continuation = nil
     }
 
     func authorizationController(
         controller: ASAuthorizationController,
         didCompleteWithError error: Error
     ) {
-        continuation?.resume(throwing: error)
-        continuation = nil
+        Task { @MainActor in
+            continuation?.resume(throwing: error)
+            continuation = nil
+            timeoutTask?.cancel()
+            timeoutTask = nil
+        }
     }
 }
 

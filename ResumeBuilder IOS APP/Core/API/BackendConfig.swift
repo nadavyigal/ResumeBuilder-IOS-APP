@@ -4,6 +4,7 @@ enum BackendConfig {
     /// Stage 1 ships without monetization. Flip to `true` once the backend
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
     static let isMonetizationEnabled = false
+    static let useMockServices = false
 
     // Supabase credentials — anon key is intentionally client-visible (same as NEXT_PUBLIC_*).
     // RLS policies enforce data isolation; the anon key alone grants no elevated access.
