@@ -1,7 +1,9 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ProfileViewV2: View {
     @Environment(AppState.self) private var appState
+    @State private var resumeViewModel = ResumeManagementViewModel()
     @State private var showPaywall = false
     @State private var showAuth = false
 
@@ -48,6 +50,24 @@ struct ProfileViewV2: View {
             }
             .sheet(isPresented: $showAuth) {
                 OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+            }
+            .fileImporter(
+                isPresented: $resumeViewModel.isImporterPresented,
+                allowedContentTypes: [.pdf, .data],
+                allowsMultipleSelection: false
+            ) { result in
+                Task {
+                    switch result {
+                    case .success(let urls):
+                        guard let url = urls.first else { return }
+                        await resumeViewModel.upload(fileURL: url, token: appState.session?.accessToken)
+                    case .failure(let error):
+                        resumeViewModel.errorMessage = error.localizedDescription
+                    }
+                }
+            }
+            .task {
+                await resumeViewModel.load(token: appState.session?.accessToken)
             }
         }
     }
@@ -98,9 +118,53 @@ struct ProfileViewV2: View {
                 .font(.appCaption)
                 .foregroundStyle(AppColors.textSecondary)
 
-            Text("No master resume uploaded yet.")
-                .font(.appBody)
-                .foregroundStyle(AppColors.textSecondary)
+            if resumeViewModel.isLoading {
+                ProgressView()
+                    .tint(AppColors.gradientMid)
+            } else if let resume = resumeViewModel.currentResume {
+                ResumeFileCard(
+                    filename: resume.filename,
+                    metadata: "Uploaded \(resume.formattedDate)"
+                )
+
+                if let preview = resume.previewText {
+                    Text(preview)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(4)
+                        .padding(AppSpacing.md)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppColors.glassTint, in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+                }
+            } else {
+                Text(appState.isAuthenticated ? "No master resume uploaded yet." : "Sign in to manage your master resume.")
+                    .font(.appBody)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            if let uploadStatus = resumeViewModel.uploadStatus {
+                Text(uploadStatus)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+
+            if let error = resumeViewModel.errorMessage {
+                Text(error)
+                    .font(.appCaption)
+                    .foregroundStyle(.red)
+            }
+
+            GradientButton(
+                title: resumeViewModel.currentResume == nil ? "Upload Resume" : "Upload New Resume",
+                icon: "arrow.up.doc.fill",
+                isLoading: resumeViewModel.isUploading
+            ) {
+                if appState.isAuthenticated {
+                    resumeViewModel.isImporterPresented = true
+                } else {
+                    showAuth = true
+                }
+            }
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)

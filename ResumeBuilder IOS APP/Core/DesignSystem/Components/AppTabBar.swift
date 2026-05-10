@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppTab: Int, CaseIterable {
-    case home, scan, improve, design, profile
+    case home, scan, improve, design, history, profile
 
     var title: String {
         switch self {
@@ -9,6 +9,7 @@ enum AppTab: Int, CaseIterable {
         case .scan:    return "Scan"
         case .improve: return "Improve"
         case .design:  return "Design"
+        case .history: return "History"
         case .profile: return "Profile"
         }
     }
@@ -19,6 +20,7 @@ enum AppTab: Int, CaseIterable {
         case .scan:    return "doc.viewfinder.fill"
         case .improve: return "wand.and.stars"
         case .design:  return "paintbrush.fill"
+        case .history: return "clock.arrow.circlepath"
         case .profile: return "person.crop.circle.fill"
         }
     }

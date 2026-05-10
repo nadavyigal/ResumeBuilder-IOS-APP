@@ -96,6 +96,22 @@ struct APIClient {
         return data
     }
 
+    func deleteJSON<T: Decodable>(
+        endpoint: Endpoint,
+        body: [String: Any],
+        token: String?
+    ) async throws -> T {
+        var request = URLRequest(url: url(for: endpoint))
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        return try await send(request)
+    }
+
     func uploadResume(
         fileURL: URL,
         jobDescription: String? = nil,

@@ -70,9 +70,9 @@ struct HomeView: View {
     private var metricsGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.md) {
             MetricCard(icon: "doc.text.magnifyingglass", label: "ATS Match", value: "\(viewModel.overallScore)%", subtitle: "Keyword alignment", accentColor: AppColors.accentTeal)
-            MetricCard(icon: "pencil.and.list.clipboard", label: "Content", value: "–", subtitle: "Clarity & impact", accentColor: AppColors.accentViolet)
-            MetricCard(icon: "paintbrush.pointed", label: "Design", value: "–", subtitle: "Visual appeal", accentColor: AppColors.accentSky)
-            MetricCard(icon: "key.fill", label: "Keywords", value: "–", subtitle: "Missing terms", accentColor: AppColors.accentTeal)
+            MetricCard(icon: "pencil.and.list.clipboard", label: "Content", value: metricValue(viewModel.contentScore), subtitle: "Clarity & impact", accentColor: AppColors.accentViolet)
+            MetricCard(icon: "paintbrush.pointed", label: "Design", value: metricValue(viewModel.designScore), subtitle: "Visual appeal", accentColor: AppColors.accentSky)
+            MetricCard(icon: "key.fill", label: "Keywords", value: metricValue(viewModel.keywordScore), subtitle: "Missing terms", accentColor: AppColors.accentTeal)
         }
         .padding(.horizontal, AppSpacing.lg)
     }
@@ -129,6 +129,11 @@ struct HomeView: View {
         case 60..<80:  return "Good — a few improvements left"
         default:       return "Needs work — let's improve it"
         }
+    }
+
+    private func metricValue(_ score: Int?) -> String {
+        guard let score else { return "–" }
+        return "\(score)%"
     }
 }
 

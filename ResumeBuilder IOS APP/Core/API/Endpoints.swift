@@ -10,6 +10,7 @@ enum Endpoint {
     case credits
     case uploadResume
     case iapVerify
+    case resumeText(id: String)
 
     // New – v1 surface
     case refineSection
@@ -18,6 +19,7 @@ enum Endpoint {
     case designRenderPreview
     case designCustomize(optimizationId: String)
     case optimizations
+    case optimizationsBulk
     case optimizationsExport
     case download(id: String)
 
@@ -31,12 +33,14 @@ enum Endpoint {
         case .credits:                         return "/api/v1/credits"
         case .uploadResume:                    return "/api/upload-resume"
         case .iapVerify:                       return "/api/v1/iap/verify"
+        case .resumeText(let id):              return "/api/resumes/\(id)"
         case .refineSection:                   return "/api/v1/refine-section"
         case .refineSectionApply:              return "/api/v1/refine-section/apply"
         case .designTemplates:                 return "/api/v1/design/templates"
         case .designRenderPreview:             return "/api/v1/design/render-preview"
         case .designCustomize(let id):         return "/api/v1/design/\(id)/customize"
         case .optimizations:                   return "/api/optimizations"
+        case .optimizationsBulk:               return "/api/optimizations/bulk"
         case .optimizationsExport:             return "/api/optimizations/export"
         case .download(let id):                return "/api/download/\(id)"
         }

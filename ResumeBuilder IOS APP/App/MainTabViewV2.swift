@@ -66,6 +66,8 @@ struct MainTabViewV2: View {
                         viewModel: DesignViewModel(optimizationId: optimizationId),
                         onPreview: { selectedTab = .profile }
                     )
+                case .history:
+                    HistoryView(viewModel: HistoryViewModel())
                 case .profile:
                     ProfileViewV2()
                 }
