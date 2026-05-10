@@ -13,8 +13,12 @@ struct ScanResumeView: View {
                     .padding(.horizontal, AppSpacing.lg)
                     .padding(.top, AppSpacing.xl)
 
-                // Upload card
-                uploadCard
+                // Resume card: saved resume with Change option, or fresh upload prompt
+                if viewModel.isUsingCachedResume, let filename = viewModel.detectedFilename {
+                    savedResumeCard(filename: filename)
+                } else {
+                    uploadCard
+                }
 
                 // Job link / description input
                 jdInputCard
@@ -127,6 +131,43 @@ struct ScanResumeView: View {
             .padding(.horizontal, AppSpacing.lg)
         }
         .buttonStyle(GradientButtonStyle())
+    }
+
+    private func savedResumeCard(filename: String) -> some View {
+        HStack(spacing: AppSpacing.lg) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadii.sm, style: .continuous)
+                    .fill(AppColors.accentTeal.opacity(0.18))
+                    .frame(width: 52, height: 52)
+
+                Image(systemName: "doc.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(filename)
+                    .font(.appSubheadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
+
+                Text("Saved resume")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Spacer()
+
+            Button("Change") {
+                viewModel.clearSavedResume()
+                viewModel.isImporterPresented = true
+            }
+            .font(.appCaption.weight(.semibold))
+            .foregroundStyle(AppColors.accentSky)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+        .padding(.horizontal, AppSpacing.lg)
     }
 
     private var jdInputCard: some View {

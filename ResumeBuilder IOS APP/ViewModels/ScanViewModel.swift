@@ -26,13 +26,21 @@ final class ScanViewModel {
     var isCheckingATS = false
     var isImporterPresented = false
     var errorMessage: String? = nil
+    /// True when the current resume was pre-loaded from the local sandbox cache.
+    var isUsingCachedResume = false
+
+    private static let filenameKey = "savedResumeFilename"
+    private static let pathKey    = "savedResumeLocalPath"
 
     private let uploadService: any ResumeUploadServiceProtocol
 
     init(uploadService: any ResumeUploadServiceProtocol = BackendConfig.useMockServices
          ? MockResumeUploadService() : ResumeUploadService()) {
         self.uploadService = uploadService
+        loadCachedResume()
     }
+
+    // MARK: - Computed
 
     var canAnalyze: Bool {
         selectedFileURL != nil && hasJobInput
@@ -43,21 +51,65 @@ final class ScanViewModel {
             || !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    // MARK: - File handling
+
     func handlePickedFile(url: URL, token: String?) async {
         let fileURL = url.standardizedFileURL
-        guard await isReadableFileURL(fileURL) else {
+
+        // Copy to sandbox + verify readability inside a single security-scope window.
+        let (readable, localURL) = await Task.detached(priority: .userInitiated) { () -> (Bool, URL?) in
+            guard fileURL.isFileURL else { return (false, nil) }
+            let didAccess = fileURL.startAccessingSecurityScopedResource()
+            defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
+            guard FileManager.default.isReadableFile(atPath: fileURL.path) else { return (false, nil) }
+            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let dest = docs.appendingPathComponent("cached_resume.pdf")
+            try? FileManager.default.removeItem(at: dest)
+            try? FileManager.default.copyItem(at: fileURL, to: dest)
+            let copied = FileManager.default.fileExists(atPath: dest.path)
+            return (true, copied ? dest : nil)
+        }.value
+
+        guard readable else {
             errorMessage = "Unable to read the selected file. Please choose a local PDF or DOCX file."
             selectedFileURL = nil
             detectedFilename = nil
             return
         }
-        selectedFileURL = fileURL
-        detectedFilename = fileURL.lastPathComponent
+
+        let filename = fileURL.lastPathComponent
+        if let local = localURL {
+            UserDefaults.standard.set(filename, forKey: Self.filenameKey)
+            UserDefaults.standard.set(local.path, forKey: Self.pathKey)
+            selectedFileURL = local
+        } else {
+            selectedFileURL = fileURL
+        }
+        detectedFilename = filename
+        isUsingCachedResume = false
         uploadedResumeId = nil
         uploadedJobDescriptionId = nil
         publicATSResult = nil
         errorMessage = nil
     }
+
+    /// Clears the cached resume so the user can pick a new one.
+    func clearSavedResume() {
+        UserDefaults.standard.removeObject(forKey: Self.filenameKey)
+        UserDefaults.standard.removeObject(forKey: Self.pathKey)
+        if let path = (selectedFileURL?.path) {
+            try? FileManager.default.removeItem(atPath: path)
+        }
+        selectedFileURL = nil
+        detectedFilename = nil
+        isUsingCachedResume = false
+        uploadedResumeId = nil
+        uploadedJobDescriptionId = nil
+        publicATSResult = nil
+        errorMessage = nil
+    }
+
+    // MARK: - Upload / ATS
 
     func runFreeATS(appState: AppState) async {
         guard let fileURL = selectedFileURL, hasJobInput else {
@@ -131,6 +183,22 @@ final class ScanViewModel {
         appState.clearPendingSharedJobURL()
     }
 
+    // MARK: - Private
+
+    private func loadCachedResume() {
+        guard let filename = UserDefaults.standard.string(forKey: Self.filenameKey),
+              let path = UserDefaults.standard.string(forKey: Self.pathKey),
+              FileManager.default.fileExists(atPath: path) else {
+            // Clear stale keys if file is gone.
+            UserDefaults.standard.removeObject(forKey: Self.filenameKey)
+            UserDefaults.standard.removeObject(forKey: Self.pathKey)
+            return
+        }
+        selectedFileURL = URL(fileURLWithPath: path)
+        detectedFilename = filename
+        isUsingCachedResume = true
+    }
+
     private var normalizedJobDescription: String? {
         let value = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.isEmpty ? nil : value
@@ -139,18 +207,5 @@ final class ScanViewModel {
     private var normalizedJobURL: String? {
         let value = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.isEmpty ? nil : value
-    }
-
-    private func isReadableFileURL(_ fileURL: URL) async -> Bool {
-        await Task.detached(priority: .userInitiated) {
-            guard fileURL.isFileURL else { return false }
-            let didAccess = fileURL.startAccessingSecurityScopedResource()
-            defer {
-                if didAccess {
-                    fileURL.stopAccessingSecurityScopedResource()
-                }
-            }
-            return FileManager.default.isReadableFile(atPath: fileURL.path)
-        }.value
     }
 }
