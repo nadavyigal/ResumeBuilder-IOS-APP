@@ -22,6 +22,10 @@ struct OptimizedResumeView: View {
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
 
+    // Phase 6 — design sheet
+    @State private var showDesignSheet = false
+    @State private var designVM: DesignViewModel? = nil
+
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
@@ -37,19 +41,25 @@ struct OptimizedResumeView: View {
                     .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                     .padding(.horizontal, AppSpacing.lg)
 
-                // Section cards
-                ForEach(viewModel.sections) { section in
-                    ResumeSectionCard(
-                        icon: section.type.icon,
-                        title: section.type.displayName,
-                        content: section.body,
-                        status: section.sectionStatus
-                    ) {
-                        editingSectionId = section.id
-                        refineInstruction = ""
-                        showRefineSheet = true
+                // Section cards (or loading placeholder while fetching)
+                if viewModel.isLoadingSections {
+                    ProgressView("Loading resume…")
+                        .tint(AppColors.accentViolet)
+                        .padding(.top, AppSpacing.xl)
+                } else {
+                    ForEach(viewModel.sections) { section in
+                        ResumeSectionCard(
+                            icon: section.type.icon,
+                            title: section.type.displayName,
+                            content: section.body,
+                            status: section.sectionStatus
+                        ) {
+                            editingSectionId = section.id
+                            refineInstruction = ""
+                            showRefineSheet = true
+                        }
+                        .padding(.horizontal, AppSpacing.lg)
                     }
-                    .padding(.horizontal, AppSpacing.lg)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -63,6 +73,9 @@ struct OptimizedResumeView: View {
             }
         }
         .scrollIndicators(.hidden)
+        .task {
+            await viewModel.loadSections(token: appState.session?.accessToken)
+        }
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Optimized Resume")
         .navigationBarTitleDisplayMode(.inline)
@@ -127,6 +140,12 @@ struct OptimizedResumeView: View {
                     .ignoresSafeArea()
             }
         }
+        .sheet(isPresented: $showDesignSheet) {
+            if let vm = designVM {
+                OptimizationDesignSheet(isPresented: $showDesignSheet, designVM: vm)
+                    .environment(appState)
+            }
+        }
         .overlay(alignment: .top) {
             if showCopyConfirmation {
                 Label("Copied to clipboard", systemImage: "checkmark.circle.fill")
@@ -162,6 +181,11 @@ struct OptimizedResumeView: View {
             } else {
                 Text("Optimization not available.")
                     .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .navigationDestination(isPresented: $navigateToPreview) {
+            if let optId = viewModel.optimizationIdentifier {
+                ResumePreviewWebView(optimizationId: optId)
             }
         }
     }
@@ -270,7 +294,7 @@ struct OptimizedResumeView: View {
                 Button {
                     navigateToPreview = true
                 } label: {
-                    Label("Preview PDF", systemImage: "doc.richtext")
+                    Label("Preview", systemImage: "doc.richtext")
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -279,9 +303,20 @@ struct OptimizedResumeView: View {
                 .buttonStyle(GradientButtonStyle())
                 .disabled(viewModel.optimizationIdentifier == nil)
 
-                GradientButton(title: "Save Changes", isLoading: viewModel.isSaving) {
-                    // Saving is handled per-section via refine apply
+                Button {
+                    if designVM == nil, let optId = viewModel.optimizationIdentifier {
+                        designVM = DesignViewModel(optimizationId: optId)
+                    }
+                    showDesignSheet = true
+                } label: {
+                    Label("Design", systemImage: "paintbrush")
+                        .font(.appSubheadline)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .glassCard(cornerRadius: AppRadii.md)
                 }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.optimizationIdentifier == nil)
             }
         }
         .padding(AppSpacing.lg)

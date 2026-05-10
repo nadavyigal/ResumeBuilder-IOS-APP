@@ -21,6 +21,12 @@ struct RenderPreviewResponse: Codable, Sendable {
     let previewHTML: String?
     let error: String?
 
+    init(success: Bool?, previewHTML: String?, error: String?) {
+        self.success = success
+        self.previewHTML = previewHTML
+        self.error = error
+    }
+
     private enum CodingKeys: String, CodingKey {
         case success
         case previewHTML = "preview_html"
@@ -50,7 +56,22 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
               let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
-        return try await apiClient.postJSON(endpoint: .designRenderPreview, body: body, token: token)
+        // The backend returns raw HTML (Content-Type: text/html), not a JSON envelope.
+        // Build the request manually so we can read the raw string response.
+        var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
+        components.path = Endpoint.designRenderPreview.path
+        guard let url = components.url else { throw APIClientError.invalidResponse }
+        var urlRequest = URLRequest(url: url, timeoutInterval: 60)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (responseData, response) = try await URLSession.shared.data(for: urlRequest)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw APIClientError.invalidResponse
+        }
+        let html = String(data: responseData, encoding: .utf8) ?? ""
+        return RenderPreviewResponse(success: true, previewHTML: html, error: nil)
     }
 
     func applyCustomization(optimizationId: String, customization: DesignCustomization, token: String) async throws -> Bool {

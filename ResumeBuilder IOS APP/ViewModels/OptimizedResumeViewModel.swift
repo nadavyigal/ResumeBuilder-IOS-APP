@@ -9,6 +9,7 @@ final class OptimizedResumeViewModel {
     var resumeId: String?
     var isRefining = false
     var isSaving = false
+    var isLoadingSections = false
     var errorMessage: String? = nil
     var pendingRefine: (original: String, suggested: String)? = nil
     var activeSectionId: String? = nil
@@ -73,6 +74,26 @@ final class OptimizedResumeViewModel {
             .appendingPathComponent("Resume_\(optId).pdf")
         try data.write(to: dest, options: .atomic)
         return dest
+    }
+
+    /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
+    /// from OptimizationReviewView where the apply response contains only the optimizationId).
+    func loadSections(token: String?) async {
+        guard sections.isEmpty, let optId = optimizationId, let token else { return }
+        isLoadingSections = true
+        defer { isLoadingSections = false }
+        do {
+            let detail: OptimizationDetailDTO = try await APIClient().get(
+                endpoint: .optimizationDetail(id: optId), token: token
+            )
+            sections = detail.sections
+            if jobTitle == nil { jobTitle = detail.jobTitle }
+            if company == nil  { company  = detail.company  }
+            if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
+            if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func refineSection(sectionId: String, instruction: String, token: String?) async {
