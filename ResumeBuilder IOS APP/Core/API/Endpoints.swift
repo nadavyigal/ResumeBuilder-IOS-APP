@@ -5,6 +5,7 @@ enum Endpoint {
     case publicATSCheck
     case convertAnonymousSession
     case atsScore
+    case atsRescan
     case optimize
     case applications
     case credits
@@ -28,6 +29,7 @@ enum Endpoint {
         case .publicATSCheck:                  return "/api/public/ats-check"
         case .convertAnonymousSession:         return "/api/public/convert-session"
         case .atsScore:                        return "/api/ats/score"
+        case .atsRescan:                       return "/api/ats/rescan"
         case .optimize:                        return "/api/optimize"
         case .applications:                    return "/api/v1/applications"
         case .credits:                         return "/api/v1/credits"

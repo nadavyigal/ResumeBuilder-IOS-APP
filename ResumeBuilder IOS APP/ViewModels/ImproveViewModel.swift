@@ -15,6 +15,8 @@ final class ImproveViewModel {
     var isOptimizing = false
     var errorMessage: String? = nil
     var optimizationId: String? = nil
+    /// True while `/api/ats/rescan` is executing.
+    var isRescanning = false
 
     private let resumeId: String?
     private let jobDescriptionId: String?
@@ -28,6 +30,7 @@ final class ImproveViewModel {
         jobDescriptionId: String? = nil,
         jobDescription: String,
         jobDescriptionURL: String = "",
+        optimizationId: String? = nil,
         initialAnalysis: ResumeAnalysis? = nil,
         initialImprovements: [ResumeImprovement] = [],
         analysisService: any ResumeAnalysisServiceProtocol = BackendConfig.useMockServices
@@ -39,15 +42,18 @@ final class ImproveViewModel {
         self.jobDescriptionId = jobDescriptionId
         self.jobDescription = jobDescription
         self.jobDescriptionURL = jobDescriptionURL
+        self.optimizationId = optimizationId
         self.analysis = initialAnalysis
         self.improvements = initialImprovements
         self.analysisService = analysisService
         self.optimizationService = optimizationService
     }
 
-    func loadAnalysis(token: String?) async {
+    func loadAnalysis(token: String?, force: Bool = false) async {
         guard let token, let resumeId else { return }
-        guard analysis == nil || improvements.isEmpty else { return }
+        if !force, let analysis, analysis.subscores != nil {
+            return
+        }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -55,6 +61,32 @@ final class ImproveViewModel {
             async let improvementsTask = analysisService.improvements(resumeId: resumeId, jobDescription: jobDescription, token: token)
             analysis = try await scoreTask
             improvements = try await improvementsTask
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func rescanATS(token: String?) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optimizationId else {
+            errorMessage = "Run Optimize first to create an optimization, then rescan."
+            return
+        }
+        isRescanning = true
+        errorMessage = nil
+        defer { isRescanning = false }
+        do {
+            let response = try await analysisService.rescan(optimizationId: optimizationId, token: token)
+            guard response.success ?? true else {
+                throw APIClientError.invalidResponse
+            }
+            let updated = response.optimizedScore ?? analysis?.overall
+            if let updated {
+                analysis = analysis?.withUpdatedScores(overall: updated, ats: updated)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

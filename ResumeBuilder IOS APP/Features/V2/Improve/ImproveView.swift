@@ -8,6 +8,7 @@ struct ImproveView: View {
     @State private var navigateToOptimized = false
     @State private var optimizedSections: [OptimizedResumeSection] = []
     @State private var currentOptId: String? = nil
+    @State private var showATSBreakdown = false
 
     var body: some View {
         NavigationStack {
@@ -20,6 +21,11 @@ struct ImproveView: View {
                     // Score hero
                     scoreHero
 
+                    if let analysis = viewModel.analysis {
+                        QuickWinsSection(analysis: analysis)
+                        IssuesSummaryView(analysis: analysis)
+                    }
+
                     // 4 metric tiles
                     if let analysis = viewModel.analysis {
                         metricsGrid(analysis: analysis)
@@ -31,6 +37,38 @@ struct ImproveView: View {
                     }
 
                     // Optimize CTA
+                    if viewModel.optimizationId != nil {
+                        Button {
+                            Task { await viewModel.rescanATS(token: appState.session?.accessToken) }
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                if viewModel.isRescanning {
+                                    ProgressView()
+                                        .scaleEffect(0.88)
+                                        .tint(AppColors.accentSky)
+                                    Text("Re-scanning…")
+                                } else {
+                                    Image(systemName: "arrow.clockwise.circle.fill")
+                                    Text("Re-scan resume")
+                                    Spacer()
+                                    Image(systemName: "chevron.forward")
+                                        .foregroundStyle(AppColors.textTertiary)
+                                }
+                            }
+                            .font(.appSubheadline)
+                            .foregroundStyle(AppColors.textPrimary)
+                            .padding(AppSpacing.md)
+                            .background(AppColors.accentSky.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(AppColors.glassStroke, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(viewModel.isRescanning || appState.session?.accessToken == nil)
+                        .padding(.horizontal, AppSpacing.lg)
+                    }
+
                     GradientButton(
                         title: viewModel.isOptimizing ? "Optimizing…" : "Optimize for This Job",
                         icon: viewModel.isOptimizing ? nil : "wand.and.stars",
@@ -67,6 +105,14 @@ struct ImproveView: View {
                     )
                 )
             }
+            .navigationDestination(isPresented: $showATSBreakdown) {
+                if let analysis = viewModel.analysis {
+                    ATSBreakdownView(analysis: analysis)
+                } else {
+                    Text("Scores are still loading.")
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
             .task { await viewModel.loadAnalysis(token: appState.session?.accessToken) }
         }
     }
@@ -102,6 +148,24 @@ struct ImproveView: View {
                         .padding(.horizontal, AppSpacing.lg)
                     }
                 }
+            }
+
+            if viewModel.analysis != nil {
+                Button {
+                    showATSBreakdown = true
+                } label: {
+                    HStack(spacing: AppSpacing.xs) {
+                        Text("View ATS breakdown")
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.accentSky)
+                        Image(systemName: "arrow.right.circle.fill")
+                            .imageScale(.small)
+                            .foregroundStyle(AppColors.accentSky)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isLoading)
+                .accessibilityHint("Opens the four ATS pillars with animations.")
             }
         }
         .padding(AppSpacing.xxl)
@@ -144,6 +208,7 @@ struct ImproveView: View {
         viewModel: ImproveViewModel(
             resumeId: "test-id",
             jobDescription: "Sample job description",
+            optimizationId: "mock-opt-001",
             analysisService: MockResumeAnalysisService(),
             optimizationService: MockResumeOptimizationService()
         )

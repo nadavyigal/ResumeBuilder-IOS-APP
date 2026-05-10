@@ -49,11 +49,270 @@ struct ATSAuthScoreResult: Codable, Sendable {
     let atsScoreOriginal: Int
     let atsScoreOptimized: Int
     let confidence: Double?
+    let subscores: ATSSubScores?
+    let subscoresOriginal: ATSSubScores?
+    let suggestions: [ATSAuthSuggestion]?
+    let authQuickWins: [ATSAuthQuickWinSuggestion]?
+
+    init(
+        atsScoreOriginal: Int,
+        atsScoreOptimized: Int,
+        confidence: Double? = nil,
+        subscores: ATSSubScores? = nil,
+        subscoresOriginal: ATSSubScores? = nil,
+        suggestions: [ATSAuthSuggestion]? = nil,
+        authQuickWins: [ATSAuthQuickWinSuggestion]? = nil
+    ) {
+        self.atsScoreOriginal = atsScoreOriginal
+        self.atsScoreOptimized = atsScoreOptimized
+        self.confidence = confidence
+        self.subscores = subscores
+        self.subscoresOriginal = subscoresOriginal
+        self.suggestions = suggestions
+        self.authQuickWins = authQuickWins
+    }
 
     private enum CodingKeys: String, CodingKey {
         case atsScoreOriginal  = "ats_score_original"
         case atsScoreOptimized = "ats_score_optimized"
         case confidence
+        case subscores
+        case subscoresOriginal = "subscores_original"
+        case suggestions
+        case authQuickWins = "quick_wins"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func decodeFlexibleInt(for key: CodingKeys) -> Int? {
+            if let value = try? c.decode(Int.self, forKey: key) {
+                return value
+            }
+            if let value = try? c.decode(Double.self, forKey: key) {
+                let scaled = value <= 1 ? value * 100 : value
+                return Int(scaled.rounded())
+            }
+            return nil
+        }
+        guard
+            let orig = decodeFlexibleInt(for: .atsScoreOriginal),
+            let opt = decodeFlexibleInt(for: .atsScoreOptimized)
+        else {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Missing ATS score fields"))
+        }
+        self.atsScoreOriginal = orig
+        self.atsScoreOptimized = opt
+        self.confidence = try? c.decode(Double.self, forKey: .confidence)
+        self.subscores = try c.decodeIfPresent(ATSSubScores.self, forKey: .subscores)
+        self.subscoresOriginal = try c.decodeIfPresent(ATSSubScores.self, forKey: .subscoresOriginal)
+        self.suggestions = try c.decodeIfPresent([ATSAuthSuggestion].self, forKey: .suggestions)
+        self.authQuickWins = try c.decodeIfPresent([ATSAuthQuickWinSuggestion].self, forKey: .authQuickWins)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(atsScoreOriginal, forKey: .atsScoreOriginal)
+        try c.encode(atsScoreOptimized, forKey: .atsScoreOptimized)
+        try c.encodeIfPresent(confidence, forKey: .confidence)
+        try c.encodeIfPresent(subscores, forKey: .subscores)
+        try c.encodeIfPresent(subscoresOriginal, forKey: .subscoresOriginal)
+        try c.encodeIfPresent(suggestions, forKey: .suggestions)
+        try c.encodeIfPresent(authQuickWins, forKey: .authQuickWins)
+    }
+}
+
+/// ATS v2 engine subscores (see `src/lib/ats/types.ts` — SubScores).
+struct ATSSubScores: Codable, Sendable, Equatable {
+    let keyword_exact: Int?
+    let keyword_phrase: Int?
+    let semantic_relevance: Int?
+    let title_alignment: Int?
+    let metrics_presence: Int?
+    let section_completeness: Int?
+    let format_parseability: Int?
+    let recency_fit: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case keyword_exact
+        case keyword_phrase
+        case semantic_relevance
+        case title_alignment
+        case metrics_presence
+        case section_completeness
+        case format_parseability
+        case recency_fit
+    }
+
+    init(
+        keyword_exact: Int? = nil,
+        keyword_phrase: Int? = nil,
+        semantic_relevance: Int? = nil,
+        title_alignment: Int? = nil,
+        metrics_presence: Int? = nil,
+        section_completeness: Int? = nil,
+        format_parseability: Int? = nil,
+        recency_fit: Int? = nil
+    ) {
+        self.keyword_exact = keyword_exact
+        self.keyword_phrase = keyword_phrase
+        self.semantic_relevance = semantic_relevance
+        self.title_alignment = title_alignment
+        self.metrics_presence = metrics_presence
+        self.section_completeness = section_completeness
+        self.format_parseability = format_parseability
+        self.recency_fit = recency_fit
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        keyword_exact = Self.decodeFlexibleInt(container: c, key: .keyword_exact)
+        keyword_phrase = Self.decodeFlexibleInt(container: c, key: .keyword_phrase)
+        semantic_relevance = Self.decodeFlexibleInt(container: c, key: .semantic_relevance)
+        title_alignment = Self.decodeFlexibleInt(container: c, key: .title_alignment)
+        metrics_presence = Self.decodeFlexibleInt(container: c, key: .metrics_presence)
+        section_completeness = Self.decodeFlexibleInt(container: c, key: .section_completeness)
+        format_parseability = Self.decodeFlexibleInt(container: c, key: .format_parseability)
+        recency_fit = Self.decodeFlexibleInt(container: c, key: .recency_fit)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(keyword_exact, forKey: .keyword_exact)
+        try c.encodeIfPresent(keyword_phrase, forKey: .keyword_phrase)
+        try c.encodeIfPresent(semantic_relevance, forKey: .semantic_relevance)
+        try c.encodeIfPresent(title_alignment, forKey: .title_alignment)
+        try c.encodeIfPresent(metrics_presence, forKey: .metrics_presence)
+        try c.encodeIfPresent(section_completeness, forKey: .section_completeness)
+        try c.encodeIfPresent(format_parseability, forKey: .format_parseability)
+        try c.encodeIfPresent(recency_fit, forKey: .recency_fit)
+    }
+
+    private static func decodeFlexibleInt(container: KeyedDecodingContainer<CodingKeys>, key: CodingKeys) -> Int? {
+        if let value = try? container.decode(Int.self, forKey: key) {
+            return value
+        }
+        if let value = try? container.decode(Double.self, forKey: key) {
+            return Int(value.rounded())
+        }
+        return nil
+    }
+}
+
+struct ATSAuthSuggestion: Codable, Identifiable, Sendable {
+    let id: String
+    let text: String?
+    let category: String?
+    let quickWin: Bool?
+    let estimatedGain: Int?
+
+    init(id: String, text: String?, category: String?, quickWin: Bool?, estimatedGain: Int?) {
+        self.id = id
+        self.text = text
+        self.category = category
+        self.quickWin = quickWin
+        self.estimatedGain = estimatedGain
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case text
+        case category
+        case quickWin = "quick_win"
+        case estimatedGain = "estimated_gain"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        text = try c.decodeIfPresent(String.self, forKey: .text)
+        category = try c.decodeIfPresent(String.self, forKey: .category)
+        quickWin = try c.decodeIfPresent(Bool.self, forKey: .quickWin)
+        if let ig = try? c.decode(Int.self, forKey: .estimatedGain) {
+            estimatedGain = ig
+        } else if let d = try? c.decode(Double.self, forKey: .estimatedGain) {
+            estimatedGain = Int(d.rounded())
+        } else {
+            estimatedGain = nil
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encodeIfPresent(text, forKey: .text)
+        try c.encodeIfPresent(category, forKey: .category)
+        try c.encodeIfPresent(quickWin, forKey: .quickWin)
+        try c.encodeIfPresent(estimatedGain, forKey: .estimatedGain)
+    }
+}
+
+struct ATSAuthQuickWinSuggestion: Codable, Identifiable, Sendable {
+    let id: String
+    let originalText: String?
+    let optimizedText: String?
+    let estimatedImpact: Int?
+    let rationale: String?
+    let improvementType: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case originalText = "original_text"
+        case optimizedText = "optimized_text"
+        case estimatedImpact = "estimated_impact"
+        case rationale
+        case improvementType = "improvement_type"
+    }
+}
+
+/// POST /api/ats/rescan — client uses nested `scores` for headline ATS refresh.
+struct ATSRescanResponse: Decodable, Sendable {
+    let success: Bool?
+    let optimizedScore: Int?
+    let originalScore: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case scores
+    }
+
+    private struct FlexibleScores: Decodable, Sendable {
+        let original: LossyCodingInt?
+        let optimized: LossyCodingInt?
+    }
+
+    /// Decodes ints or fractional numbers (`0.82` scaled by API variants).
+    private struct LossyCodingInt: Decodable, Sendable {
+        let value: Int
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            if let i = try? c.decode(Int.self) {
+                value = i
+            } else if let d = try? c.decode(Double.self) {
+                let scaled = d <= 1 ? d * 100 : d
+                value = Int(scaled.rounded())
+            } else {
+                throw DecodingError.dataCorruptedError(in: c, debugDescription: "Cannot decode ATS score fraction")
+            }
+        }
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        success = try c.decodeIfPresent(Bool.self, forKey: .success)
+        if let nested = try c.decodeIfPresent(FlexibleScores.self, forKey: .scores) {
+            originalScore = nested.original?.value
+            optimizedScore = nested.optimized?.value
+        } else {
+            originalScore = nil
+            optimizedScore = nil
+        }
+    }
+
+    init(success: Bool?, optimizedScore: Int?, originalScore: Int?) {
+        self.success = success
+        self.optimizedScore = optimizedScore
+        self.originalScore = originalScore
     }
 }
 

@@ -26,6 +26,7 @@ struct MainTabViewV2: View {
                     ScanResumeView(
                         viewModel: ScanViewModel(),
                         onAnalyze: { input in
+                            optimizationId = nil
                             resumeId = input.resumeId
                             jobDescriptionId = input.jobDescriptionId
                             jobDescription = input.jobDescription
@@ -54,7 +55,12 @@ struct MainTabViewV2: View {
                     ImproveView(
                         viewModel: ImproveViewModel(
                             resumeId: resumeId,
-                            jobDescription: jobDescription
+                            jobDescriptionId: jobDescriptionId,
+                            jobDescription: jobDescription,
+                            jobDescriptionURL: jobDescriptionURL,
+                            optimizationId: optimizationId,
+                            initialAnalysis: initialAnalysis,
+                            initialImprovements: initialImprovements
                         ),
                         onOptimized: { optId in
                             optimizationId = optId

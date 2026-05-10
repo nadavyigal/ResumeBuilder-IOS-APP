@@ -5,6 +5,8 @@ struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
     var onContinueOptimize: ((AppTab) -> Void)? = nil
 
+    @State private var showATSBreakdown = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
@@ -38,6 +40,19 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .screenBackground(showRadialGlow: true)
         .task(id: appState.session?.accessToken) { await viewModel.load(token: appState.session?.accessToken) }
+        .sheet(isPresented: $showATSBreakdown) {
+            NavigationStack {
+                ATSBreakdownView(
+                    analysis: ResumeAnalysis.dashboard(
+                        overall: viewModel.overallScore,
+                        keywordScore: viewModel.keywordScore,
+                        content: viewModel.contentScore,
+                        design: viewModel.designScore
+                    ),
+                    showsDismissButton: true
+                )
+            }
+        }
     }
 
     // MARK: - Subviews
@@ -61,8 +76,14 @@ struct HomeView: View {
             .frame(maxWidth: .infinity)
             .glassCard()
             .padding(.horizontal, AppSpacing.lg)
+            .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .onTapGesture { showATSBreakdown = true }
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Opens the ATS breakdown pillars.")
+            .accessibilityAddTraits(.isButton)
 
             WaveDecorationView()
+                .allowsHitTesting(false)
                 .padding(.horizontal, AppSpacing.lg + AppSpacing.xl)
         }
     }

@@ -45,7 +45,69 @@ struct MockResumeUploadService: ResumeUploadServiceProtocol {
 struct MockResumeAnalysisService: ResumeAnalysisServiceProtocol {
     func score(resumeId: String, jobDescription: String, token: String) async throws -> ResumeAnalysis {
         try await Task.sleep(for: .seconds(1))
-        return ResumeAnalysis(overall: 74, ats: 82, content: 68, design: 71, missingKeywords: ["TypeScript", "CI/CD", "Kubernetes"])
+        let sub = ATSSubScores(
+            keyword_exact: 76,
+            keyword_phrase: 68,
+            semantic_relevance: 81,
+            title_alignment: 62,
+            metrics_presence: 58,
+            section_completeness: 73,
+            format_parseability: 84,
+            recency_fit: 70
+        )
+        let subOrig = ATSSubScores(
+            keyword_exact: 66,
+            keyword_phrase: 60,
+            semantic_relevance: 70,
+            title_alignment: 55,
+            metrics_presence: 50,
+            section_completeness: 68,
+            format_parseability: 79,
+            recency_fit: 65
+        )
+        let suggestions: [ATSAuthSuggestion] = [
+            ATSAuthSuggestion(
+                id: "suggest-1",
+                text: "Surface TypeScript & CI/CD in your skills cluster near the top of the resume.",
+                category: "keywords",
+                quickWin: true,
+                estimatedGain: 8
+            ),
+            ATSAuthSuggestion(
+                id: "suggest-2",
+                text: "Flatten multi-column bullets so ATS parsers read experience in order.",
+                category: "formatting",
+                quickWin: false,
+                estimatedGain: 6
+            ),
+            ATSAuthSuggestion(
+                id: "suggest-3",
+                text: "Rewrite your summary headline to mirror the posting title verbatim.",
+                category: "content",
+                quickWin: true,
+                estimatedGain: 5
+            ),
+        ]
+        let qw: [ATSAuthQuickWinSuggestion] = [
+            .init(id: "qw-1", originalText: "Built web apps.", optimizedText: "Built React + TypeScript web apps with measurable latency wins.", estimatedImpact: 12, rationale: "Adds missing stack keywords.", improvementType: nil),
+            .init(id: "qw-2", originalText: "Managed deployments.", optimizedText: "Owned CI/CD pipelines cutting release cadence by 40%.", estimatedImpact: 9, rationale: "Quantifies DevOps relevance.", improvementType: nil),
+        ]
+        return ResumeAnalysis(
+            overall: 74,
+            ats: 82,
+            content: 72,
+            design: 78,
+            missingKeywords: ["TypeScript", "CI/CD", "Kubernetes"],
+            subscores: sub,
+            subscoresOriginal: subOrig,
+            suggestions: suggestions,
+            authQuickWins: qw
+        )
+    }
+
+    func rescan(optimizationId: String, token: String) async throws -> ATSRescanResponse {
+        try await Task.sleep(for: .milliseconds(600))
+        return ATSRescanResponse(success: true, optimizedScore: 86, originalScore: 71)
     }
 
     func improvements(resumeId: String, jobDescription: String, token: String) async throws -> [ResumeImprovement] {
