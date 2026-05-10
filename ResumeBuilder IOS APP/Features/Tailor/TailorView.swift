@@ -149,7 +149,7 @@ struct TailorView: View {
                 // Step number badge
                 ZStack {
                     Circle()
-                        .fill(isFilled ? Theme.brandGradient : AnyShapeStyle(Theme.bgPrimary))
+                        .fill(isFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
                         .frame(width: 36, height: 36)
                     if isFilled {
                         Image(systemName: "checkmark")
@@ -224,7 +224,7 @@ struct TailorView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(jobFilled ? Theme.brandGradient : AnyShapeStyle(Theme.bgPrimary))
+                        .fill(jobFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
                         .frame(width: 36, height: 36)
                     if jobFilled {
                         Image(systemName: "checkmark")
@@ -338,7 +338,7 @@ struct TailorView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(canOptimize ? Theme.brandGradient : AnyShapeStyle(Theme.bgPrimary))
+                        .fill(canOptimize ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
                         .frame(width: 36, height: 36)
                     Text("3")
                         .font(.system(size: 14, weight: .bold))

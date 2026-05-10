@@ -79,7 +79,7 @@ struct ResumlyTabBar: View {
             .foregroundStyle(isActive ? Color.white : Theme.textTertiary)
             .padding(.vertical, 10)
             .padding(.horizontal, isActive ? 14 : 10)
-            .frame(maxWidth: isActive ? .infinity : nil, minWidth: 44)
+            .frame(minWidth: 44, maxWidth: isActive ? .infinity : nil)
             .background {
                 if isActive {
                     Capsule()
