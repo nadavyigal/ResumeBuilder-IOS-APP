@@ -83,4 +83,42 @@ final class AppState {
             // Keep prior balance on transient failures.
         }
     }
+
+    // MARK: - Token refresh
+
+    /// Refreshes the Supabase access token using the stored refresh token.
+    /// Updates `session` in place and returns the new access token, or nil if refresh fails.
+    @discardableResult
+    func refreshAccessToken() async -> String? {
+        guard let refreshToken = session?.refreshToken else {
+            session = nil
+            return nil
+        }
+        do {
+            let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
+            session = newSession
+            return newSession.accessToken
+        } catch {
+            // Refresh token itself expired — force re-login
+            session = nil
+            return nil
+        }
+    }
+
+    /// Returns a valid access token, refreshing automatically on 401.
+    /// Pass the closure that makes the authenticated API call; on unauthorized it
+    /// refreshes once and retries before propagating the error.
+    func callWithFreshToken<T>(_ work: (String) async throws -> T) async throws -> T {
+        guard let token = session?.accessToken else {
+            throw APIClientError.unauthorized
+        }
+        do {
+            return try await work(token)
+        } catch APIClientError.unauthorized {
+            guard let freshToken = await refreshAccessToken() else {
+                throw APIClientError.unauthorized
+            }
+            return try await work(freshToken)
+        }
+    }
 }

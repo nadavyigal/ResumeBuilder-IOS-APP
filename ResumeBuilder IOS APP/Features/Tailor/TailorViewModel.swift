@@ -28,7 +28,7 @@ final class TailorViewModel {
             return
         }
 
-        guard let token = appState.session?.accessToken else {
+        guard appState.session != nil else {
             errorMessage = "Please sign in first."
             return
         }
@@ -38,17 +38,21 @@ final class TailorViewModel {
         defer { isOptimizing = false }
 
         do {
-            let response = try await apiClient.uploadResume(
-                fileURL: selectedResumeURL,
-                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
-                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
-                token: token
-            )
+            let response: ResumeUploadResponse = try await appState.callWithFreshToken { token in
+                try await self.apiClient.uploadResume(
+                    fileURL: selectedResumeURL,
+                    jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                    jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                    token: token
+                )
+            }
             uploadResponse = response
             reviewId = response.reviewId
             if response.reviewId == nil {
-                errorMessage = response.error ?? "Optimization did not return review id."
+                errorMessage = response.error ?? "Optimization did not return a review ID."
             }
+        } catch APIClientError.unauthorized {
+            errorMessage = "Session expired. Please sign in again."
         } catch {
             errorMessage = error.localizedDescription
         }
