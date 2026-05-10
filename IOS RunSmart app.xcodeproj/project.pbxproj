@@ -10,14 +10,37 @@
 		CC0001022FA0B36A006C1A3C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = CC0001012FA0B36A006C1A3C /* Supabase */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		33F1D5D72FA0B36A006C1A3C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33F1D5B62FA0B36A006C1A3C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33F1D5BD2FA0B36A006C1A3C;
+			remoteInfo = "IOS RunSmart app";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		33F1D5BE2FA0B36A006C1A3C /* IOS RunSmart app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "IOS RunSmart app.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		33F1D5D02FA0B36A006C1A3C /* IOS RunSmart appTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "IOS RunSmart appTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		33F1D5E02FA0B36A006C1A3C /* Exceptions for "IOS RunSmart app" folder in "IOS RunSmart app" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Features/Goals/GoalWizardView 2.swift",
+			);
+			target = 33F1D5BD2FA0B36A006C1A3C /* IOS RunSmart app */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		33F1D5C02FA0B36A006C1A3C /* IOS RunSmart app */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				33F1D5E02FA0B36A006C1A3C /* Exceptions for "IOS RunSmart app" folder in "IOS RunSmart app" target */,
+			);
 			path = "IOS RunSmart app";
 			sourceTree = "<group>";
 		};
@@ -34,6 +57,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC0001022FA0B36A006C1A3C /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33F1D5D42FA0B36A006C1A3C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,16 +139,6 @@
 		};
 /* End PBXNativeTarget section */
 
-/* Begin PBXContainerItemProxy section */
-		33F1D5D72FA0B36A006C1A3C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 33F1D5B62FA0B36A006C1A3C /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 33F1D5BD2FA0B36A006C1A3C;
-			remoteInfo = "IOS RunSmart app";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXProject section */
 		33F1D5B62FA0B36A006C1A3C /* Project object */ = {
 			isa = PBXProject;
@@ -192,16 +212,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		33F1D5D42FA0B36A006C1A3C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		33F1D5D82FA0B36A006C1A3C /* PBXTargetDependency */ = {

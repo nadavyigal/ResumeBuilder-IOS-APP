@@ -169,6 +169,7 @@ final class RunSmartLocalStore {
 final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var phase: RunRecordingPhase = .idle
     @Published private(set) var routePoints: [RunRoutePoint] = []
+    @Published private(set) var displayRoutePoints: [RunRoutePoint] = []
     @Published private(set) var distanceMeters: Double = 0
     @Published private(set) var elapsedSeconds: TimeInterval = 0
     @Published private(set) var movingSeconds: TimeInterval = 0
@@ -183,7 +184,16 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var accumulatedPausedSeconds: TimeInterval = 0
     private var timer: Timer?
     private var lastAcceptedLocation: CLLocation?
+    private var lastDisplayLocation: CLLocation?
+    private var lastDisplayRouteUpdate: Date?
     private var shouldStartAfterPermission = false
+
+    nonisolated static let requiredStartAccuracy: CLLocationAccuracy = 35
+    nonisolated static let acceptedRecordingAccuracy: CLLocationAccuracy = 65
+    nonisolated static let maximumLocationAge: TimeInterval = 15
+    nonisolated static let liveRouteMinimumInterval: TimeInterval = 2
+    nonisolated static let liveRouteMinimumDistance: CLLocationDistance = 12
+    nonisolated static let maximumDisplayRoutePoints = 240
 
     override convenience init() {
         self.init(store: .shared)
@@ -237,22 +247,25 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
             return
         }
 
-        beginRecording()
+        startAcquiringLocation()
     }
 
-    private func beginRecording() {
+    func startAcquiringLocation(startLocationUpdates: Bool = true) {
         shouldStartAfterPermission = false
-        startedAt = Date()
+        resetCurrentRun()
+        phase = .acquiringLocation
+        if startLocationUpdates {
+            manager.startUpdatingLocation()
+        }
+    }
+
+    private func beginRecording(from firstLocation: CLLocation, startedAt startDate: Date = Date()) {
+        startedAt = startDate
         pausedAt = nil
         accumulatedPausedSeconds = 0
-        routePoints = []
-        distanceMeters = 0
-        elapsedSeconds = 0
-        movingSeconds = 0
-        lastAcceptedLocation = nil
         lastErrorMessage = nil
         phase = .recording
-        manager.startUpdatingLocation()
+        acceptRecordingLocation(firstLocation, forceDisplay: true)
         startTimer()
         tick()
     }
@@ -279,11 +292,7 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     func discard() {
         shouldStartAfterPermission = false
         stopTracking()
-        routePoints = []
-        distanceMeters = 0
-        elapsedSeconds = 0
-        movingSeconds = 0
-        lastAcceptedLocation = nil
+        resetCurrentRun()
         lastSavedRun = nil
         updatePhaseForAuthorization()
     }
@@ -324,30 +333,12 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         updatePhaseForAuthorization()
         if shouldStartAfterPermission,
            manager.authorizationStatus == .authorizedAlways || manager.authorizationStatus == .authorizedWhenInUse {
-            beginRecording()
+            startAcquiringLocation()
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard phase == .recording else { return }
-        for location in locations where location.horizontalAccuracy >= 0 && location.horizontalAccuracy <= 65 {
-            horizontalAccuracy = location.horizontalAccuracy
-            if let previous = lastAcceptedLocation {
-                let delta = location.distance(from: previous)
-                guard delta >= 1 else { continue }
-                distanceMeters += delta
-            }
-            routePoints.append(
-                RunRoutePoint(
-                    latitude: location.coordinate.latitude,
-                    longitude: location.coordinate.longitude,
-                    timestamp: location.timestamp,
-                    horizontalAccuracy: location.horizontalAccuracy,
-                    altitude: location.verticalAccuracy >= 0 ? location.altitude : nil
-                )
-            )
-            lastAcceptedLocation = location
-        }
+        handleLocationUpdates(locations)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -358,7 +349,7 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func updatePhaseForAuthorization() {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            if phase == .idle || phase == .requestingPermission || phase == .denied {
+            if phase == .idle || phase == .requestingPermission || phase == .denied || phase == .failed {
                 phase = .ready
             }
         case .denied, .restricted:
@@ -369,6 +360,100 @@ final class RunRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         @unknown default:
             phase = .failed
         }
+    }
+
+    func handleLocationUpdates(_ locations: [CLLocation], now: Date = Date()) {
+        guard phase == .acquiringLocation || phase == .recording else { return }
+
+        for location in locations {
+            if phase == .acquiringLocation {
+                guard Self.isFreshLocation(location, now: now) else { continue }
+                horizontalAccuracy = location.horizontalAccuracy
+                guard location.horizontalAccuracy <= Self.requiredStartAccuracy else { continue }
+                beginRecording(from: location, startedAt: now)
+                continue
+            }
+
+            guard Self.isUsable(location, maxAccuracy: Self.acceptedRecordingAccuracy, now: now) else { continue }
+            horizontalAccuracy = location.horizontalAccuracy
+            acceptRecordingLocation(location)
+        }
+    }
+
+    static func isUsable(_ location: CLLocation, maxAccuracy: CLLocationAccuracy, now: Date = Date()) -> Bool {
+        guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= maxAccuracy else { return false }
+        return isFreshLocation(location, now: now)
+    }
+
+    static func isFreshLocation(_ location: CLLocation, now: Date = Date()) -> Bool {
+        guard location.horizontalAccuracy >= 0 else { return false }
+        guard abs(location.timestamp.timeIntervalSince(now)) <= maximumLocationAge else { return false }
+        return location.coordinate.latitude.isFinite && location.coordinate.longitude.isFinite
+    }
+
+    static func simplifiedDisplayRoute(from points: [RunRoutePoint], maxPoints: Int = maximumDisplayRoutePoints) -> [RunRoutePoint] {
+        guard points.count > maxPoints, maxPoints > 2 else { return points }
+        let lastIndex = points.count - 1
+        let step = Double(lastIndex) / Double(maxPoints - 1)
+        var result: [RunRoutePoint] = []
+        var usedIndices = Set<Int>()
+
+        for displayIndex in 0..<maxPoints {
+            let sourceIndex = displayIndex == maxPoints - 1 ? lastIndex : Int((Double(displayIndex) * step).rounded())
+            if usedIndices.insert(sourceIndex).inserted {
+                result.append(points[sourceIndex])
+            }
+        }
+
+        if result.last?.id != points.last?.id {
+            result.append(points[lastIndex])
+        }
+        return result
+    }
+
+    private func acceptRecordingLocation(_ location: CLLocation, forceDisplay: Bool = false) {
+        if let previous = lastAcceptedLocation {
+            let delta = location.distance(from: previous)
+            guard delta >= 1 else { return }
+            distanceMeters += delta
+        }
+
+        let point = RunRoutePoint(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            timestamp: location.timestamp,
+            horizontalAccuracy: location.horizontalAccuracy,
+            altitude: location.verticalAccuracy >= 0 ? location.altitude : nil
+        )
+        routePoints.append(point)
+        lastAcceptedLocation = location
+        updateDisplayRoute(with: location, force: forceDisplay)
+    }
+
+    private func updateDisplayRoute(with location: CLLocation, force: Bool) {
+        let interval = lastDisplayRouteUpdate.map { location.timestamp.timeIntervalSince($0) } ?? .infinity
+        let distance = lastDisplayLocation.map { location.distance(from: $0) } ?? .infinity
+        guard force || interval >= Self.liveRouteMinimumInterval || distance >= Self.liveRouteMinimumDistance else { return }
+
+        displayRoutePoints = Self.simplifiedDisplayRoute(from: routePoints)
+        lastDisplayLocation = location
+        lastDisplayRouteUpdate = location.timestamp
+    }
+
+    private func resetCurrentRun() {
+        routePoints = []
+        displayRoutePoints = []
+        distanceMeters = 0
+        elapsedSeconds = 0
+        movingSeconds = 0
+        horizontalAccuracy = nil
+        lastAcceptedLocation = nil
+        lastDisplayLocation = nil
+        lastDisplayRouteUpdate = nil
+        lastErrorMessage = nil
+        startedAt = nil
+        pausedAt = nil
+        accumulatedPausedSeconds = 0
     }
 
     private func startTimer() {

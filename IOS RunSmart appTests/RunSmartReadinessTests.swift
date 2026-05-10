@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 @testable import IOS_RunSmart_app
 
 final class RunSmartReadinessTests: XCTestCase {
@@ -59,6 +60,16 @@ final class RunSmartReadinessTests: XCTestCase {
             averageHeartRateBPM: heartRate,
             routePoints: routePoints,
             syncedAt: Date(timeIntervalSince1970: 30_000)
+        )
+    }
+
+    private func makeLocation(latitude: Double, longitude: Double, accuracy: CLLocationAccuracy, timestamp: Date) -> CLLocation {
+        CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+            altitude: 0,
+            horizontalAccuracy: accuracy,
+            verticalAccuracy: -1,
+            timestamp: timestamp
         )
     }
 
@@ -202,6 +213,112 @@ final class RunSmartReadinessTests: XCTestCase {
         )
 
         XCTAssertEqual(moving, 90)
+    }
+
+    @MainActor
+    func testRunRecorderWaitsForUsableGPSLockBeforeStartingTimer() {
+        let recorder = RunRecorder()
+        let now = Date(timeIntervalSince1970: 2_000)
+
+        recorder.startAcquiringLocation(startLocationUpdates: false)
+        recorder.handleLocationUpdates([
+            makeLocation(latitude: 32.08, longitude: 34.78, accuracy: 50, timestamp: now)
+        ], now: now)
+
+        XCTAssertEqual(recorder.phase, .acquiringLocation)
+        XCTAssertEqual(recorder.routePoints.count, 0)
+        XCTAssertEqual(recorder.displayRoutePoints.count, 0)
+        XCTAssertEqual(recorder.movingSeconds, 0)
+        XCTAssertEqual(recorder.horizontalAccuracy, 50)
+        recorder.discard()
+    }
+
+    @MainActor
+    func testRunRecorderStartsWhenGPSLockMeetsThresholdAndIgnoresDuplicatePoint() {
+        let recorder = RunRecorder()
+        let now = Date(timeIntervalSince1970: 2_100)
+
+        recorder.startAcquiringLocation(startLocationUpdates: false)
+        recorder.handleLocationUpdates([
+            makeLocation(latitude: 32.0800, longitude: 34.7800, accuracy: 12, timestamp: now)
+        ], now: now)
+
+        XCTAssertEqual(recorder.phase, .recording)
+        XCTAssertEqual(recorder.routePoints.count, 1)
+        XCTAssertEqual(recorder.displayRoutePoints.count, 1)
+
+        recorder.handleLocationUpdates([
+            makeLocation(latitude: 32.0800005, longitude: 34.7800005, accuracy: 10, timestamp: now.addingTimeInterval(1))
+        ], now: now)
+
+        XCTAssertEqual(recorder.routePoints.count, 1)
+        recorder.discard()
+    }
+
+    @MainActor
+    func testRunRecorderRejectsInvalidAndStaleLocationsAndWaitsOnWeakGPS() {
+        let recorder = RunRecorder()
+        let now = Date(timeIntervalSince1970: 2_200)
+
+        recorder.startAcquiringLocation(startLocationUpdates: false)
+        recorder.handleLocationUpdates([
+            makeLocation(latitude: 32.08, longitude: 34.78, accuracy: -1, timestamp: now),
+            makeLocation(latitude: 32.08, longitude: 34.78, accuracy: 20, timestamp: now.addingTimeInterval(-30)),
+            makeLocation(latitude: 32.08, longitude: 34.78, accuracy: 80, timestamp: now)
+        ], now: now)
+
+        XCTAssertEqual(recorder.phase, .acquiringLocation)
+        XCTAssertEqual(recorder.horizontalAccuracy, 80)
+        XCTAssertTrue(recorder.routePoints.isEmpty)
+        recorder.discard()
+    }
+
+    @MainActor
+    func testRunRecorderDiscardResetsCurrentWorkoutWithoutSaving() {
+        let recorder = RunRecorder()
+        let now = Date(timeIntervalSince1970: 2_300)
+
+        recorder.startAcquiringLocation(startLocationUpdates: false)
+        recorder.handleLocationUpdates([
+            makeLocation(latitude: 32.0800, longitude: 34.7800, accuracy: 10, timestamp: now),
+            makeLocation(latitude: 32.0810, longitude: 34.7810, accuracy: 10, timestamp: now.addingTimeInterval(3))
+        ], now: now)
+
+        XCTAssertEqual(recorder.phase, .recording)
+        XCTAssertGreaterThan(recorder.distanceMeters, 0)
+        XCTAssertFalse(recorder.routePoints.isEmpty)
+
+        recorder.discard()
+
+        XCTAssertTrue(recorder.routePoints.isEmpty)
+        XCTAssertTrue(recorder.displayRoutePoints.isEmpty)
+        XCTAssertEqual(recorder.distanceMeters, 0)
+        XCTAssertEqual(recorder.elapsedSeconds, 0)
+        XCTAssertEqual(recorder.movingSeconds, 0)
+        XCTAssertNil(recorder.horizontalAccuracy)
+        XCTAssertNil(recorder.lastSavedRun)
+        XCTAssertNotEqual(recorder.phase, .recording)
+    }
+
+    @MainActor
+    func testRunRecorderDisplayRouteSimplificationPreservesRawRouteData() {
+        let now = Date(timeIntervalSince1970: 2_400)
+        let rawPoints = (0..<500).map { index in
+            RunRoutePoint(
+                latitude: 32.08 + Double(index) * 0.0001,
+                longitude: 34.78 + Double(index) * 0.0001,
+                timestamp: now.addingTimeInterval(Double(index)),
+                horizontalAccuracy: 12,
+                altitude: nil
+            )
+        }
+
+        let displayPoints = RunRecorder.simplifiedDisplayRoute(from: rawPoints, maxPoints: 50)
+
+        XCTAssertEqual(rawPoints.count, 500)
+        XCTAssertLessThanOrEqual(displayPoints.count, 51)
+        XCTAssertEqual(displayPoints.first?.id, rawPoints.first?.id)
+        XCTAssertEqual(displayPoints.last?.id, rawPoints.last?.id)
     }
 
     func testTrainingDataAverageWeeklyDistanceUsesRecentFourWeekWindow() {

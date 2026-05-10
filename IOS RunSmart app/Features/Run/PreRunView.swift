@@ -33,7 +33,7 @@ struct PreRunView: View {
                         }
 
                         HStack(alignment: .center, spacing: 16) {
-                            StartRunButton(title: startTitle, isWaiting: phase == .requestingPermission, action: onStart)
+                            StartRunButton(title: startTitle, isWaiting: phase == .requestingPermission || phase == .acquiringLocation, action: onStart)
                             Spacer()
                             VStack(alignment: .leading, spacing: 9) {
                                 Label("GPS route", systemImage: "location.fill")
@@ -98,6 +98,8 @@ struct PreRunView: View {
         switch phase {
         case .requestingPermission:
             return "Starting..."
+        case .acquiringLocation:
+            return "Finding GPS"
         case .denied:
             return "Allow GPS"
         default:
@@ -154,6 +156,7 @@ private struct StartRunButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .disabled(isWaiting)
     }
 }
 
@@ -192,7 +195,7 @@ struct GPSStatusPill: View {
         switch phase {
         case .recording:
             return "location.fill"
-        case .requestingPermission:
+        case .requestingPermission, .acquiringLocation:
             return "location.circle"
         case .denied, .failed:
             return "location.slash.fill"
@@ -205,7 +208,7 @@ struct GPSStatusPill: View {
         switch phase {
         case .denied, .failed:
             return .accentHeart
-        case .paused:
+        case .paused, .acquiringLocation:
             return .accentEnergy
         default:
             return .accentPrimary

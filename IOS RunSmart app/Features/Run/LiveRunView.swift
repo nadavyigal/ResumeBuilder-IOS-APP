@@ -9,6 +9,7 @@ struct LiveRunView: View {
     var elapsedSeconds: TimeInterval
     var onPauseResume: () -> Void
     var onFinish: () -> Void
+    var onDiscard: () -> Void
 
     var body: some View {
         GeometryReader { proxy in
@@ -57,6 +58,9 @@ struct LiveRunView: View {
                 HStack(alignment: .bottom, spacing: 18) {
                     LiveControlButton(title: phase == .paused ? "Resume" : "Pause", symbol: phase == .paused ? "play.fill" : "pause.fill", tint: .accentPrimary, prominent: true, action: onPauseResume)
                     LiveControlButton(title: "Finish", symbol: "stop.fill", tint: .accentHeart, prominent: false, action: onFinish)
+                    if phase == .paused {
+                        LiveControlButton(title: "Discard", symbol: "trash.fill", tint: .accentHeart, prominent: false, action: onDiscard)
+                    }
                 }
                 .padding(.bottom, 96)
             }

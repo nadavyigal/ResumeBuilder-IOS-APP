@@ -320,6 +320,7 @@ struct ConnectedDeviceStatus: Identifiable, Codable, Hashable {
 enum RunRecordingPhase: String {
     case idle
     case requestingPermission
+    case acquiringLocation
     case ready
     case recording
     case paused

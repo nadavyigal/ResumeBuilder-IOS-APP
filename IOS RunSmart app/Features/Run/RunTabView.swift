@@ -9,6 +9,7 @@ struct RunTabView: View {
     @State private var finishedRun: RecordedRun?
     @State private var postActivityOutcome: PostActivityOutcome?
     @State private var isProcessingFinishedRun = false
+    @State private var isConfirmingDiscard = false
 
     var body: some View {
         Group {
@@ -23,13 +24,14 @@ struct RunTabView: View {
             } else if recorder.phase == .recording || recorder.phase == .paused {
                 LiveRunView(
                     metrics: liveMetrics,
-                    routePoints: recorder.routePoints,
+                    routePoints: recorder.displayRoutePoints,
                     phase: recorder.phase,
                     gpsStatus: gpsStatus,
                     gpsDetail: gpsDetail,
                     elapsedSeconds: recorder.movingSeconds,
                     onPauseResume: primaryRunAction,
-                    onFinish: finishRun
+                    onFinish: finishRun,
+                    onDiscard: { isConfirmingDiscard = true }
                 )
             } else {
                 PreRunView(
@@ -53,6 +55,18 @@ struct RunTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .runSmartRunsDidChange)) { _ in
             Task { metrics = await services.currentRunMetrics() }
         }
+        .confirmationDialog(
+            "Discard this workout?",
+            isPresented: $isConfirmingDiscard,
+            titleVisibility: .visible
+        ) {
+            Button("Discard Workout", role: .destructive) {
+                discardRun()
+            }
+            Button("Keep Workout", role: .cancel) {}
+        } message: {
+            Text("This removes the current timer, distance, and route.")
+        }
     }
 
     private var liveMetrics: [MetricTile] {
@@ -70,6 +84,8 @@ struct RunTabView: View {
             "GPS ready to request"
         case .requestingPermission:
             "Waiting for location permission"
+        case .acquiringLocation:
+            "Finding GPS"
         case .ready:
             "GPS ready"
         case .recording:
@@ -90,6 +106,11 @@ struct RunTabView: View {
         switch recorder.phase {
         case .requestingPermission:
             return "Approve location access and the run will start automatically."
+        case .acquiringLocation:
+            if let accuracy = recorder.horizontalAccuracy {
+                return "Current accuracy \(Int(accuracy))m - move outdoors for a stronger lock."
+            }
+            return "Stand near open sky while RunSmart gets a clean first point."
         case .recording:
             if let accuracy = recorder.horizontalAccuracy {
                 return "Timer running - GPS accuracy \(Int(accuracy))m"
@@ -136,6 +157,14 @@ struct RunTabView: View {
         } else {
             router.open(.postRunSummary(nil))
         }
+    }
+
+    private func discardRun() {
+        RunSmartHaptics.medium()
+        recorder.discard()
+        finishedRun = nil
+        postActivityOutcome = nil
+        isProcessingFinishedRun = false
     }
 
     private func saveFinishedRun() {
