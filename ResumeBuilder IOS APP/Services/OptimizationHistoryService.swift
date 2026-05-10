@@ -36,7 +36,8 @@ struct MockOptimizationHistoryService: OptimizationHistoryServiceProtocol {
                 designScorePercent: 91,
                 keywordScorePercent: 76,
                 status: "completed",
-                resumeId: "resume-1"
+                resumeId: "resume-1",
+                reviewId: "mock-review-1"
             ),
             OptimizationHistoryItem(
                 id: "mock-2",
@@ -48,7 +49,8 @@ struct MockOptimizationHistoryService: OptimizationHistoryServiceProtocol {
                 designScorePercent: 80,
                 keywordScorePercent: 69,
                 status: "completed",
-                resumeId: "resume-2"
+                resumeId: "resume-2",
+                reviewId: nil
             ),
         ]
     }

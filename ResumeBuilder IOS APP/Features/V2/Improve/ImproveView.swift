@@ -91,6 +91,7 @@ struct ImproveView: View {
                             }
                         }
                     }
+                    .disabled(viewModel.isOptimizing)
                     .padding(.horizontal, AppSpacing.lg)
 
                     if let error = viewModel.errorMessage {

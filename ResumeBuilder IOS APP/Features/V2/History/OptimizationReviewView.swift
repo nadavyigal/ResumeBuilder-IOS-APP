@@ -12,6 +12,8 @@ final class OptimizationReviewViewModel {
     var isSubmitting = false
     var errorMessage: String?
     var applySuccessOptimizationId: String?
+    /// True after the apply endpoint returns 500 due to a missing DB column — disables Apply until the server is migrated.
+    var serverRequiresMigration = false
 
     private let api = APIClient()
 
@@ -76,6 +78,18 @@ final class OptimizationReviewViewModel {
                 return
             }
             applySuccessOptimizationId = result.optimizationId
+        } catch let apiError as APIClientError {
+            switch apiError {
+            case .serverError(let status, let message) where status >= 500:
+                if message.contains("operation_type") {
+                    serverRequiresMigration = true
+                    errorMessage = "The server needs a database update before changes can be applied. Please try again later or contact support."
+                } else {
+                    errorMessage = "Server error (\(status)). Please try again later."
+                }
+            default:
+                errorMessage = apiError.localizedDescription
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -100,6 +114,9 @@ struct OptimizationReviewView: View {
                     header(env)
                     if viewModel.isAlreadyApplied {
                         appliedBanner
+                    }
+                    if viewModel.serverRequiresMigration {
+                        migrationBanner
                     }
                     ForEach(env.review.groupedChanges) { group in
                         ReviewChangeCard(
@@ -145,6 +162,7 @@ struct OptimizationReviewView: View {
                             await viewModel.apply(token: appState.session?.accessToken)
                         }
                     }
+                    .disabled(viewModel.serverRequiresMigration || viewModel.isSubmitting)
                 }
                 .padding(AppSpacing.lg)
                 .background(.ultraThinMaterial.opacity(0.9))
@@ -216,6 +234,15 @@ struct OptimizationReviewView: View {
             .padding(AppSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(AppColors.accentTeal.opacity(0.12), in: RoundedRectangle(cornerRadius: AppRadii.md))
+    }
+
+    private var migrationBanner: some View {
+        Label("Apply is temporarily unavailable — a server update is required. Changes will be available again once the update is complete.", systemImage: "exclamationmark.triangle.fill")
+            .font(.appCaption)
+            .foregroundStyle(.orange)
+            .padding(AppSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: AppRadii.md))
     }
 
     private func percentLabel(_ value: Double) -> String {

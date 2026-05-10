@@ -1,8 +1,34 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "—" : {
+
+    },
+    "· %@" : {
+
+    },
     "/ 100" : {
 
+    },
+    "%@, %lld percent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld percent"
+          }
+        }
+      }
+    },
+    "%@: %@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@. %3$@"
+          }
+        }
+      }
     },
     "%lld" : {
 
@@ -19,7 +45,42 @@
     "%lld free checks remaining" : {
 
     },
+    "%lld of %lld changes selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld changes selected"
+          }
+        }
+      }
+    },
+    "%lld saved report%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld saved report%2$@"
+          }
+        }
+      }
+    },
+    "%lld." : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%lld%% match" : {
+
+    },
+    "• %@" : {
+
+    },
     "+%lld" : {
+
+    },
+    "+%lldpts" : {
 
     },
     "100 credits" : {
@@ -50,10 +111,28 @@
     "Account" : {
 
     },
+    "Actions" : {
+
+    },
+    "After" : {
+
+    },
+    "After (est.)" : {
+
+    },
+    "After %@" : {
+
+    },
+    "AI Chat" : {
+
+    },
     "AI Optimized" : {
 
     },
     "Already have an account?" : {
+
+    },
+    "Analyzing…" : {
 
     },
     "app_name" : {
@@ -79,10 +158,43 @@
     "Applied" : {
 
     },
+    "Ask AI to tweak your optimized resume…" : {
+
+    },
+    "ATS" : {
+
+    },
+    "ATS breakdown" : {
+
+    },
+    "ATS score" : {
+
+    },
     "ATS Score" : {
 
     },
+    "ATS score %lld percent" : {
+
+    },
+    "Attach Optimized Resume" : {
+
+    },
+    "Attach resume" : {
+
+    },
+    "Attached resume" : {
+
+    },
+    "Attaching…" : {
+
+    },
     "Balance" : {
+
+    },
+    "Before" : {
+
+    },
+    "Before %@" : {
 
     },
     "Buy Credits" : {
@@ -94,19 +206,43 @@
     "Cancel" : {
 
     },
+    "Change from original: %@" : {
+
+    },
     "Change Resume" : {
+
+    },
+    "Chat unavailable" : {
+
+    },
+    "Close" : {
 
     },
     "Company" : {
 
     },
+    "Compare" : {
+
+    },
     "Continue Editing" : {
+
+    },
+    "Copied to clipboard" : {
+
+    },
+    "Copy share text" : {
+
+    },
+    "Copy Text" : {
 
     },
     "Credit Packs" : {
 
     },
     "Credits" : {
+
+    },
+    "Design" : {
 
     },
     "design_apply_cta" : {
@@ -132,13 +268,43 @@
     "Don't have an account?" : {
 
     },
+    "Done" : {
+
+    },
+    "Download PDF" : {
+
+    },
+    "Downloading…" : {
+
+    },
     "e.g. Make it more concise and add leadership examples…" : {
 
     },
     "Edit Section" : {
 
     },
+    "Edits from refine, chat, and expert tools will appear here." : {
+
+    },
+    "Effort" : {
+
+    },
     "Email" : {
+
+    },
+    "Estimated effort %@" : {
+
+    },
+    "Evidence gaps (%lld)" : {
+
+    },
+    "Expert Analysis" : {
+
+    },
+    "Expert analysis unavailable" : {
+
+    },
+    "Expert modes" : {
 
     },
     "export_download_pdf" : {
@@ -174,6 +340,12 @@
 
     },
     "Hi %@ 👋" : {
+
+    },
+    "High-level gauges from your latest optimization summary. Run Improve with a job description connected for granular ATS wiring." : {
+
+    },
+    "History" : {
 
     },
     "home_score_excellent" : {
@@ -253,10 +425,28 @@
         }
       }
     },
+    "Include" : {
+
+    },
     "Job Description ID" : {
 
     },
     "LinkedIn or Job Link" : {
+
+    },
+    "Loading optimization history..." : {
+
+    },
+    "Loading resume…" : {
+
+    },
+    "Main issues" : {
+
+    },
+    "Mark as Applied" : {
+
+    },
+    "Marking…" : {
 
     },
     "Master Resume" : {
@@ -268,16 +458,58 @@
     "Missing Keywords" : {
 
     },
+    "Modification History" : {
+
+    },
     "My Applications" : {
+
+    },
+    "My resume" : {
 
     },
     "My Resume" : {
 
     },
+    "Needs your input" : {
+
+    },
     "No master resume uploaded yet." : {
 
     },
+    "No matching optimizations" : {
+
+    },
+    "No modifications yet" : {
+
+    },
+    "No optimizations" : {
+
+    },
+    "No optimizations yet" : {
+
+    },
     "Not yet exported" : {
+
+    },
+    "OK" : {
+
+    },
+    "Open in Safari" : {
+
+    },
+    "Opens the ATS breakdown pillars." : {
+
+    },
+    "Opens the four ATS pillars with animations." : {
+
+    },
+    "Optimization id missing — return and run Optimize first." : {
+
+    },
+    "Optimization not available." : {
+
+    },
+    "Optimization Review" : {
 
     },
     "Optimize" : {
@@ -298,6 +530,9 @@
     "Original" : {
 
     },
+    "Overview" : {
+
+    },
     "Password" : {
 
     },
@@ -313,10 +548,13 @@
     "PDF Ready" : {
 
     },
+    "Preview" : {
+
+    },
     "Preview & Export" : {
 
     },
-    "Preview PDF" : {
+    "Priority actions" : {
 
     },
     "Profile" : {
@@ -356,7 +594,16 @@
         }
       }
     },
+    "Quick wins" : {
+
+    },
     "Quick Wins" : {
+
+    },
+    "Re-scan resume" : {
+
+    },
+    "Re-scanning…" : {
 
     },
     "Ready for full optimization." : {
@@ -374,6 +621,9 @@
     "Reject" : {
 
     },
+    "Rendering preview…" : {
+
+    },
     "Resume" : {
 
     },
@@ -383,7 +633,25 @@
     "Resume ID" : {
 
     },
+    "Resume PDF" : {
+
+    },
     "Resumely" : {
+
+    },
+    "Return after running Optimize to unlock expert workflows." : {
+
+    },
+    "Revert" : {
+
+    },
+    "Review" : {
+
+    },
+    "Review Changes" : {
+
+    },
+    "Review changes before approving" : {
 
     },
     "Review ID: %@" : {
@@ -392,7 +660,16 @@
     "Role" : {
 
     },
+    "Run a scan and optimization to see it here." : {
+
+    },
     "Run ATS Score" : {
+
+    },
+    "Run expert workflows for this optimization" : {
+
+    },
+    "Run Optimize first to attach a version here." : {
 
     },
     "scan_analyze_cta" : {
@@ -432,16 +709,43 @@
     "Score" : {
 
     },
+    "Scores are still loading." : {
+
+    },
+    "Search job title or company" : {
+
+    },
+    "Search title or company" : {
+
+    },
+    "Send message" : {
+
+    },
+    "Share link" : {
+
+    },
+    "Share score" : {
+
+    },
     "Sign In" : {
 
     },
+    "Sign in to manage your master resume." : {
+
+    },
     "Sign in to unlock full optimization." : {
+
+    },
+    "Sign in to view history" : {
 
     },
     "Sign Out" : {
 
     },
     "Sign Up" : {
+
+    },
+    "Skip" : {
 
     },
     "Spacing" : {
@@ -453,7 +757,13 @@
     "StoreKit wiring is scaffolded and intentionally left minimal in this pass." : {
 
     },
+    "Subscores" : {
+
+    },
     "Suggested" : {
+
+    },
+    "Suggested resume updates (%lld)" : {
 
     },
     "tab_design" : {
@@ -553,7 +863,16 @@
     "Tap Download to generate PDF" : {
 
     },
+    "This review was already applied on the web or another device." : {
+
+    },
+    "Tip %lld" : {
+
+    },
     "Top Fixes" : {
+
+    },
+    "Top signals" : {
 
     },
     "Track" : {
@@ -562,10 +881,28 @@
     "Track your job applications" : {
 
     },
+    "Try Again" : {
+
+    },
+    "Try another job title or company." : {
+
+    },
+    "Typing…" : {
+
+    },
+    "Undo" : {
+
+    },
     "Use Tailor to improve weak bullets and keyword alignment." : {
 
     },
+    "View ATS breakdown" : {
+
+    },
     "View Credits" : {
+
+    },
+    "Your optimized resumes and PDF downloads are linked to your account." : {
 
     },
     "Your resume data is encrypted end-to-end." : {

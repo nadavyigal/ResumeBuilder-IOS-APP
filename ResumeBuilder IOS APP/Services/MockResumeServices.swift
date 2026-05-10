@@ -124,7 +124,7 @@ struct MockResumeAnalysisService: ResumeAnalysisServiceProtocol {
 // MARK: - Mock Optimization
 
 struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+    func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {
         try await Task.sleep(for: .seconds(2))
         return OptimizeResponse(
             success: true,

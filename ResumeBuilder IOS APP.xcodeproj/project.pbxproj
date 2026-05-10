@@ -35,8 +35,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		335AA7652FA77AB800FD6628 /* ResumeBuilder IOS APP */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "ResumeBuilder IOS APP";
 			sourceTree = "<group>";
 		};
@@ -103,7 +101,6 @@
 				54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */,
 				F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */,
 			);
-			name = "ResumeBuilder IOS APPTests";
 			path = "ResumeBuilder IOS APPTests";
 			sourceTree = "<group>";
 		};

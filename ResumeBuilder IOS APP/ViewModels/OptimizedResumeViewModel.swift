@@ -79,7 +79,7 @@ final class OptimizedResumeViewModel {
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
     /// from OptimizationReviewView where the apply response contains only the optimizationId).
     func loadSections(token: String?) async {
-        guard sections.isEmpty, let optId = optimizationId, let token else { return }
+        guard sections.isEmpty, !isLoadingSections, let optId = optimizationId, let token else { return }
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {
@@ -142,6 +142,13 @@ final class OptimizedResumeViewModel {
             }
             pendingRefine = nil
             activeSectionId = nil
+        } catch let apiError as APIClientError {
+            switch apiError {
+            case .serverError(let status, _) where status >= 500:
+                errorMessage = "The server encountered an issue saving this change (\(status)). Please try again later."
+            default:
+                errorMessage = apiError.localizedDescription
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

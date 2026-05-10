@@ -12,54 +12,75 @@ struct RedesignResumeView: View {
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: AppSpacing.xl) {
-                GreetingHeader(name: "there", screenTitle: "Redesign")
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, AppSpacing.xl)
-
-                // Category segmented control
-                categoryPicker
-
-                // Live preview card
-                previewCard
-
-                // Template strip
-                if !viewModel.templates.isEmpty {
-                    templateStrip
-                }
-
-                // Style controls
-                styleControls
-
-                // Apply CTA
-                GradientButton(
-                    title: "Apply Design",
-                    icon: "paintbrush.fill",
-                    isLoading: viewModel.isApplying
-                ) {
-                    Task {
-                        let success = await viewModel.applyDesign(token: appState.session?.accessToken)
-                        if success { onPreview?() }
-                    }
-                }
-                .padding(.horizontal, AppSpacing.lg)
-
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .font(.appCaption)
-                        .foregroundStyle(.red)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: AppSpacing.xl) {
+                    GreetingHeader(name: "there", screenTitle: "Redesign")
                         .padding(.horizontal, AppSpacing.lg)
-                }
+                        .padding(.top, AppSpacing.xl)
 
-                Spacer(minLength: 100)
+                    // Category segmented control
+                    categoryPicker
+
+                    // Live preview card
+                    previewCard
+
+                    // Template strip
+                    if !viewModel.templates.isEmpty {
+                        templateStrip
+                    }
+
+                    // Style controls
+                    styleControls
+
+                    // Apply CTA
+                    GradientButton(
+                        title: "Apply Design",
+                        icon: "paintbrush.fill",
+                        isLoading: viewModel.isApplying
+                    ) {
+                        Task {
+                            let success = await viewModel.applyDesign(token: appState.session?.accessToken)
+                            if success { onPreview?() }
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(.appCaption)
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, AppSpacing.lg)
+                    }
+
+                    Spacer(minLength: 100)
+                }
             }
-        }
-        .scrollIndicators(.hidden)
-        .screenBackground(showRadialGlow: false)
-        .task { await viewModel.loadTemplates(token: appState.session?.accessToken) }
-        .onChange(of: viewModel.activeCategory) { _, _ in
-            Task { await viewModel.loadTemplates(token: appState.session?.accessToken) }
+            .scrollIndicators(.hidden)
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Design")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task { await viewModel.undoLastDesign(token: appState.session?.accessToken) }
+                    } label: {
+                        if viewModel.isUndoing {
+                            ProgressView()
+                        } else {
+                            Text("Undo")
+                        }
+                    }
+                    .disabled(!viewModel.canUndoDesign || viewModel.isUndoing)
+                }
+            }
+            .task {
+                await viewModel.loadTemplates(token: appState.session?.accessToken)
+                await viewModel.loadStyleHistory(token: appState.session?.accessToken)
+            }
+            .onChange(of: viewModel.activeCategory) { _, _ in
+                Task { await viewModel.loadTemplates(token: appState.session?.accessToken) }
+            }
         }
     }
 

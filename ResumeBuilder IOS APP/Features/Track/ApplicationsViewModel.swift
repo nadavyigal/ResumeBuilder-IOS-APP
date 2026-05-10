@@ -8,7 +8,7 @@ final class ApplicationsViewModel {
     var isLoading = false
     var errorMessage: String?
 
-    private let apiClient = APIClient()
+    private let service = ApplicationTrackingService()
 
     func load(token: String?) async {
         guard let token else {
@@ -21,9 +21,13 @@ final class ApplicationsViewModel {
         defer { isLoading = false }
 
         do {
-            applications = try await apiClient.get(endpoint: .applications, token: token)
+            applications = try await service.listApplications(token: token)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func application(withId id: String) -> ApplicationItem? {
+        applications.first { $0.id == id }
     }
 }

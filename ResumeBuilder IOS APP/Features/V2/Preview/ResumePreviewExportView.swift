@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ResumePreviewExportView: View {
     @Environment(AppState.self) private var appState
@@ -34,13 +35,50 @@ struct ResumePreviewExportView: View {
                         Task { await viewModel.downloadPDF(token: appState.session?.accessToken) }
                     }
 
-                    ExportActionCard(
-                        icon: "square.and.arrow.up",
-                        title: "Share",
-                        subtitle: "Send via email or AirDrop",
-                        accentColor: AppColors.accentSky
-                    ) {
-                        showShareSheet = true
+                    if let fileURL = viewModel.exportedFileURL {
+                        ShareLink(
+                            item: fileURL,
+                            subject: Text("My resume"),
+                            message: Text(viewModel.shareScoreMessage),
+                            preview: SharePreview("Resume PDF", icon: Image(systemName: "doc.richtext"))
+                        ) {
+                            shareExportRow(
+                                icon: "square.and.arrow.up",
+                                title: "Share PDF",
+                                subtitle: "AirDrop, Mail, Messages…",
+                                accentColor: AppColors.accentSky
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(viewModel.isDownloading)
+                    } else {
+                        ExportActionCard(
+                            icon: "square.and.arrow.up",
+                            title: "Share",
+                            subtitle: "Generate a PDF first",
+                            accentColor: AppColors.accentSky
+                        ) {
+                            showShareSheet = true
+                        }
+                    }
+
+                    if let line = viewModel.shareScoreLine {
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            Text("Share score")
+                                .font(.appSubheadline)
+                                .foregroundStyle(AppColors.textPrimary)
+                            Text(line)
+                                .font(.appCaption)
+                                .foregroundStyle(AppColors.textSecondary)
+                            Button("Copy share text") {
+                                UIPasteboard.general.string = line
+                            }
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.gradientMid)
+                        }
+                        .padding(AppSpacing.lg)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .glassCard(cornerRadius: AppRadii.lg)
                     }
 
                     ExportActionCard(
@@ -157,6 +195,38 @@ struct ResumePreviewExportView: View {
         }
         .padding(.horizontal, AppSpacing.lg)
     }
+
+    private func shareExportRow(icon: String, title: String, subtitle: String, accentColor: Color) -> some View {
+        HStack(spacing: AppSpacing.lg) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadii.sm, style: .continuous)
+                    .fill(accentColor.opacity(0.18))
+                    .frame(width: 48, height: 48)
+
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(accentColor)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.appSubheadline)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text(subtitle)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
 }
 
 // MARK: - Helpers
@@ -182,6 +252,7 @@ struct ShareSheet: UIViewControllerRepresentable {
         ResumePreviewExportView(
             viewModel: ResumePreviewViewModel(
                 optimizationId: "mock-opt-001",
+                atsScorePercent: 82,
                 exportService: MockResumeExportService()
             )
         )

@@ -55,6 +55,23 @@ struct APIClient {
         return try await send(request)
     }
 
+    /// Chat & other endpoints that encode arrays of heterogeneous field objects reliably via `Any`.
+    func postJSONObject<T: Decodable>(
+        endpoint: Endpoint,
+        bodyObject: [String: Any],
+        token: String?,
+        timeout: TimeInterval? = nil
+    ) async throws -> T {
+        var request = URLRequest(url: url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: bodyObject)
+        return try await send(request)
+    }
+
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
         var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"

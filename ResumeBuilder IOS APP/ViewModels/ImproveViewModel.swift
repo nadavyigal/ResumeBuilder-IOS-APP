@@ -98,6 +98,7 @@ final class ImproveViewModel {
     }
 
     func optimize(token: String?) async -> OptimizationResult? {
+        guard !isOptimizing else { return nil }
         guard let token else {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return nil

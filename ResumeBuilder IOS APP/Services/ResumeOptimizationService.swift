@@ -121,7 +121,9 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
             }
 
             if response.success == false {
-                throw ResumeOptimizationError.invalidResponse(response.error ?? "Optimization failed.")
+                let msg = response.error ?? "Optimization did not produce results. Check that a valid job description is attached and try again."
+                logger.warning("Optimize success=false message=\(msg, privacy: .public)")
+                throw ResumeOptimizationError.invalidResponse(msg)
             }
             guard response.optimizationId != nil else {
                 throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")

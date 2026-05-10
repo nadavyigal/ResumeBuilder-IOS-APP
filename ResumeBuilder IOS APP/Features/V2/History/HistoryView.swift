@@ -5,6 +5,8 @@ struct HistoryView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: HistoryViewModel
 
+    @State private var reviewDestination: ReviewDestination?
+
     var body: some View {
         NavigationStack {
             Group {
@@ -25,10 +27,15 @@ struct HistoryView: View {
                 await viewModel.load(token: appState.session?.accessToken)
             }
             .refreshable {
-                await viewModel.load(token: appState.session?.accessToken)
+                await viewModel.load(token: appState.session?.accessToken, force: true)
             }
             .sheet(item: $viewModel.downloadedPDF) { pdf in
                 HistoryShareSheet(activityItems: [pdf.url])
+            }
+            .navigationDestination(item: $reviewDestination) { dest in
+                OptimizationReviewView(
+                    viewModel: OptimizationReviewViewModel(reviewId: dest.reviewId)
+                )
             }
         }
     }
@@ -38,12 +45,18 @@ struct HistoryView: View {
             ForEach(viewModel.filteredOptimizations) { item in
                 HistoryRow(
                     item: item,
-                    isDownloading: viewModel.downloadingId == item.id
-                ) {
-                    Task {
-                        await viewModel.downloadPDF(for: item, token: appState.session?.accessToken)
+                    isDownloading: viewModel.downloadingId == item.id,
+                    onOpenReview: {
+                        if let rid = item.reviewId {
+                            reviewDestination = ReviewDestination(reviewId: rid)
+                        }
+                    },
+                    onDownload: {
+                        Task {
+                            await viewModel.downloadPDF(for: item, token: appState.session?.accessToken)
+                        }
                     }
-                }
+                )
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
             }
@@ -118,9 +131,15 @@ struct HistoryView: View {
     }
 }
 
+private struct ReviewDestination: Hashable, Identifiable {
+    var id: String { reviewId }
+    let reviewId: String
+}
+
 private struct HistoryRow: View {
     let item: OptimizationHistoryItem
     let isDownloading: Bool
+    var onOpenReview: () -> Void
     let onDownload: () -> Void
 
     var body: some View {
@@ -154,6 +173,18 @@ private struct HistoryRow: View {
 
                 Spacer()
 
+                if item.reviewId != nil {
+                    Button(action: onOpenReview) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                            Text("Review")
+                        }
+                    }
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.accentViolet)
+                    .buttonStyle(.plain)
+                }
+
                 Button(action: onDownload) {
                     HStack(spacing: 6) {
                         if isDownloading {
@@ -174,6 +205,12 @@ private struct HistoryRow: View {
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
         .padding(.vertical, AppSpacing.xs)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if item.reviewId != nil {
+                onOpenReview()
+            }
+        }
     }
 
     private var scoreColor: Color {

@@ -16,6 +16,7 @@ final class HistoryViewModel {
     var errorMessage: String?
     var downloadedPDF: DownloadedPDF?
 
+    private var hasLoaded = false
     private let historyService: any OptimizationHistoryServiceProtocol
 
     init(historyService: any OptimizationHistoryServiceProtocol = BackendConfig.useMockServices
@@ -34,11 +35,13 @@ final class HistoryViewModel {
         }
     }
 
-    func load(token: String?) async {
+    func load(token: String?, force: Bool = false) async {
         guard let token else {
             optimizations = []
+            hasLoaded = false
             return
         }
+        guard !isLoading, force || !hasLoaded else { return }
 
         isLoading = true
         errorMessage = nil
@@ -46,6 +49,7 @@ final class HistoryViewModel {
 
         do {
             optimizations = try await historyService.list(token: token)
+            hasLoaded = true
         } catch {
             errorMessage = error.localizedDescription
         }

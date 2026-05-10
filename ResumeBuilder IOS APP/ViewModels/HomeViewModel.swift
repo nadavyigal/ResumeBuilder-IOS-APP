@@ -26,6 +26,7 @@ final class HomeViewModel {
 
     func load(token: String?) async {
         guard let token else { return }
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
