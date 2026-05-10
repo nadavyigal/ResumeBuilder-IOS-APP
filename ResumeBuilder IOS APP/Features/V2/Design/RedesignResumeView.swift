@@ -6,9 +6,10 @@ struct RedesignResumeView: View {
     var onPreview: (() -> Void)? = nil
 
     private let categories = [
-        ("ats_safe", "ATS Safe"),
-        ("modern",   "Modern"),
-        ("creative", "Creative")
+        ("traditional", "Traditional"),
+        ("modern",      "Modern"),
+        ("creative",    "Creative"),
+        ("corporate",   "Corporate")
     ]
 
     var body: some View {

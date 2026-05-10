@@ -3,6 +3,7 @@ import OSLog
 
 enum APIClientError: Error, LocalizedError {
     case unauthorized
+    case paymentRequired
     case serverError(status: Int, message: String)
     case invalidResponse
 
@@ -10,6 +11,8 @@ enum APIClientError: Error, LocalizedError {
         switch self {
         case .unauthorized:
             return "Unauthorized"
+        case .paymentRequired:
+            return "You've used all your optimization credits. Upgrade your plan to continue."
         case .serverError(let status, let message):
             return "Server error (\(status)): \(message)"
         case .invalidResponse:
@@ -106,6 +109,7 @@ struct APIClient {
         let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
         if httpResponse.statusCode == 401 { throw APIClientError.unauthorized }
+        if httpResponse.statusCode == 402 { throw APIClientError.paymentRequired }
         if !(200...299).contains(httpResponse.statusCode) {
             let message = String(data: data, encoding: .utf8) ?? "Unknown error"
             throw APIClientError.serverError(status: httpResponse.statusCode, message: message)
@@ -220,6 +224,10 @@ struct APIClient {
 
         if httpResponse.statusCode == 401 {
             throw APIClientError.unauthorized
+        }
+
+        if httpResponse.statusCode == 402 {
+            throw APIClientError.paymentRequired
         }
 
         if !(200...299).contains(httpResponse.statusCode) {

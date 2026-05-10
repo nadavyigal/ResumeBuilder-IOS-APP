@@ -7,7 +7,7 @@ final class DesignViewModel {
     var templates: [DesignTemplate] = []
     var selectedTemplateId: String? = nil
     var customization = DesignCustomization.default
-    var activeCategory = "ats_safe"
+    var activeCategory = "traditional"
     var isLoading = false
     var isApplying = false
     var isUndoing = false
@@ -18,7 +18,7 @@ final class DesignViewModel {
     /// True after a successful `Apply Design` this session (enables `design/undo` fallback).
     private(set) var didApplyCustomization = false
 
-    private let optimizationId: String?
+    private(set) var optimizationId: String?
     private let designService: any ResumeDesignServiceProtocol
     private let apiClient = APIClient()
 
@@ -39,6 +39,15 @@ final class DesignViewModel {
     var canUndoDesign: Bool {
         guard optimizationId != nil else { return false }
         return styleHistory.count >= 2 || didApplyCustomization
+    }
+
+    /// Called when a new optimization completes — resets template state so the next design load uses the fresh ID.
+    func setOptimizationId(_ id: String) {
+        optimizationId = id
+        templates = []
+        selectedTemplateId = nil
+        didApplyCustomization = false
+        styleHistory = []
     }
 
     func loadTemplates(token: String?) async {

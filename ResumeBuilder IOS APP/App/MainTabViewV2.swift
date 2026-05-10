@@ -3,15 +3,15 @@ import SwiftUI
 struct MainTabViewV2: View {
     @State private var selectedTab: AppTab = .home
 
-    // Shared state threaded through tabs
-    @State private var resumeId: String? = nil
-    @State private var jobDescriptionId: String? = nil
-    @State private var jobDescription: String = ""
-    @State private var jobDescriptionURL: String = ""
-    @State private var initialAnalysis: ResumeAnalysis? = nil
-    @State private var initialImprovements: [ResumeImprovement] = []
-    @State private var analysis: ResumeAnalysis? = nil
-    @State private var optimizationId: String? = nil
+    // Stable VM instances — created once and never recreated on re-render.
+    // This prevents duplicate network fetches and preserves in-flight async state.
+    @State private var homeViewModel = HomeViewModel()
+    @State private var scanViewModel = ScanViewModel()
+    @State private var improveViewModel = ImproveViewModel(
+        resumeId: nil, jobDescriptionId: nil, jobDescription: "", jobDescriptionURL: ""
+    )
+    @State private var designViewModel = DesignViewModel(optimizationId: nil)
+    @State private var historyViewModel = HistoryViewModel()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -19,20 +19,15 @@ struct MainTabViewV2: View {
                 switch selectedTab {
                 case .home:
                     HomeView(
-                        viewModel: HomeViewModel(),
+                        viewModel: homeViewModel,
                         onContinueOptimize: { tab in selectedTab = tab }
                     )
                 case .scan:
                     ScanResumeView(
-                        viewModel: ScanViewModel(),
+                        viewModel: scanViewModel,
                         onAnalyze: { input in
-                            optimizationId = nil
-                            resumeId = input.resumeId
-                            jobDescriptionId = input.jobDescriptionId
-                            jobDescription = input.jobDescription
-                            jobDescriptionURL = input.jobDescriptionURL
-                            if let score = input.initialScore {
-                                initialAnalysis = ResumeAnalysis(
+                            let initialAnalysis: ResumeAnalysis? = input.initialScore.map { score in
+                                ResumeAnalysis(
                                     overall: score,
                                     ats: score,
                                     content: 0,
@@ -40,7 +35,7 @@ struct MainTabViewV2: View {
                                     missingKeywords: input.missingKeywords
                                 )
                             }
-                            initialImprovements = input.keyImprovements.enumerated().map { index, improvement in
+                            let initialImprovements = input.keyImprovements.enumerated().map { index, improvement in
                                 ResumeImprovement(
                                     id: "upload-improvement-\(index)",
                                     title: improvement,
@@ -48,32 +43,32 @@ struct MainTabViewV2: View {
                                     impact: index == 0 ? "high" : "medium"
                                 )
                             }
+                            improveViewModel.configure(
+                                resumeId: input.resumeId,
+                                jobDescriptionId: input.jobDescriptionId,
+                                jobDescription: input.jobDescription,
+                                jobDescriptionURL: input.jobDescriptionURL,
+                                initialAnalysis: initialAnalysis,
+                                initialImprovements: initialImprovements
+                            )
                             selectedTab = .improve
                         }
                     )
                 case .improve:
                     ImproveView(
-                        viewModel: ImproveViewModel(
-                            resumeId: resumeId,
-                            jobDescriptionId: jobDescriptionId,
-                            jobDescription: jobDescription,
-                            jobDescriptionURL: jobDescriptionURL,
-                            optimizationId: optimizationId,
-                            initialAnalysis: initialAnalysis,
-                            initialImprovements: initialImprovements
-                        ),
+                        viewModel: improveViewModel,
                         onOptimized: { optId in
-                            optimizationId = optId
+                            designViewModel.setOptimizationId(optId)
                             selectedTab = .design
                         }
                     )
                 case .design:
                     RedesignResumeView(
-                        viewModel: DesignViewModel(optimizationId: optimizationId),
+                        viewModel: designViewModel,
                         onPreview: { selectedTab = .profile }
                     )
                 case .history:
-                    HistoryView(viewModel: HistoryViewModel())
+                    HistoryView(viewModel: historyViewModel)
                 case .profile:
                     ProfileViewV2()
                 }

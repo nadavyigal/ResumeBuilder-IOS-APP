@@ -23,10 +23,10 @@ final class ImproveViewModel {
     /// Resume UUID used during optimize/upload (passed into chat screens for metadata parity).
     var sourceResumeId: String? { resumeId }
 
-    private let resumeId: String?
-    private let jobDescriptionId: String?
-    private let jobDescription: String
-    private let jobDescriptionURL: String
+    private var resumeId: String?
+    private var jobDescriptionId: String?
+    private var jobDescription: String
+    private var jobDescriptionURL: String
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
@@ -52,6 +52,25 @@ final class ImproveViewModel {
         self.improvements = initialImprovements
         self.analysisService = analysisService
         self.optimizationService = optimizationService
+    }
+
+    /// Update scan input after a new upload — resets optimization state so the next optimize uses fresh data.
+    func configure(
+        resumeId: String?,
+        jobDescriptionId: String?,
+        jobDescription: String,
+        jobDescriptionURL: String,
+        initialAnalysis: ResumeAnalysis?,
+        initialImprovements: [ResumeImprovement]
+    ) {
+        self.resumeId = resumeId
+        self.jobDescriptionId = jobDescriptionId
+        self.jobDescription = jobDescription
+        self.jobDescriptionURL = jobDescriptionURL
+        self.analysis = initialAnalysis
+        self.improvements = initialImprovements
+        self.optimizationId = nil
+        self.errorMessage = nil
     }
 
     func loadAnalysis(token: String?, force: Bool = false) async {
