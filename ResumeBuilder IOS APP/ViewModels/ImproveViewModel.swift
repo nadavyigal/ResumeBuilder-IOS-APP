@@ -5,7 +5,9 @@ import Observation
 @MainActor
 final class ImproveViewModel {
     struct OptimizationResult: Sendable {
-        let optimizationId: String
+        let optimizationId: String?
+        /// Set when the server uses the review-based flow; navigate to OptimizationReviewView.
+        let reviewId: String?
         let sections: [OptimizedResumeSection]
     }
 
@@ -17,6 +19,9 @@ final class ImproveViewModel {
     var optimizationId: String? = nil
     /// True while `/api/ats/rescan` is executing.
     var isRescanning = false
+
+    /// Resume UUID used during optimize/upload (passed into chat screens for metadata parity).
+    var sourceResumeId: String? { resumeId }
 
     private let resumeId: String?
     private let jobDescriptionId: String?
@@ -101,17 +106,27 @@ final class ImproveViewModel {
             errorMessage = ResumeOptimizationError.missingResumeId.localizedDescription
             return nil
         }
+        guard let jobDescriptionId, !jobDescriptionId.isEmpty else {
+            errorMessage = "Job description is required. Please scan your resume first."
+            return nil
+        }
         isOptimizing = true
         errorMessage = nil
         defer { isOptimizing = false }
         do {
-            let response = try await optimizationService.optimize(resumeId: resumeId, jobDescription: jobDescription, token: token)
+            let response = try await optimizationService.optimize(resumeId: resumeId, jobDescriptionId: jobDescriptionId, token: token)
+
+            // Review-based flow: navigate to OptimizationReviewView.
+            if let reviewId = response.reviewId {
+                return OptimizationResult(optimizationId: nil, reviewId: reviewId, sections: [])
+            }
+
             guard let optimizationId = response.optimizationId else {
                 throw ResumeOptimizationError.missingOptimizationId
             }
             let sections = response.sections ?? []
             self.optimizationId = optimizationId
-            return OptimizationResult(optimizationId: optimizationId, sections: sections)
+            return OptimizationResult(optimizationId: optimizationId, reviewId: nil, sections: sections)
         } catch {
             errorMessage = error.localizedDescription
             return nil

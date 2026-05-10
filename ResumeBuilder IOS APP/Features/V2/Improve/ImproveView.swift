@@ -6,6 +6,8 @@ struct ImproveView: View {
     var onOptimized: ((String) -> Void)? = nil
 
     @State private var navigateToOptimized = false
+    @State private var navigateToReview = false
+    @State private var pendingReviewId: String? = nil
     @State private var optimizedSections: [OptimizedResumeSection] = []
     @State private var currentOptId: String? = nil
     @State private var showATSBreakdown = false
@@ -76,10 +78,16 @@ struct ImproveView: View {
                     ) {
                         Task {
                             if let result = await viewModel.optimize(token: appState.session?.accessToken) {
-                                currentOptId = result.optimizationId
-                                optimizedSections = result.sections
-                                navigateToOptimized = true
-                                onOptimized?(result.optimizationId)
+                                if let reviewId = result.reviewId {
+                                    // Review-based flow: show grouped changes before applying.
+                                    pendingReviewId = reviewId
+                                    navigateToReview = true
+                                } else if let optId = result.optimizationId {
+                                    currentOptId = optId
+                                    optimizedSections = result.sections
+                                    navigateToOptimized = true
+                                    onOptimized?(optId)
+                                }
                             }
                         }
                     }
@@ -101,9 +109,18 @@ struct ImproveView: View {
                 OptimizedResumeView(
                     viewModel: OptimizedResumeViewModel(
                         optimizationId: currentOptId,
+                        resumeId: viewModel.sourceResumeId,
                         sections: optimizedSections
-                    )
+                    ),
+                    atsScorePercent: viewModel.analysis.map(\.ats)
                 )
+            }
+            .navigationDestination(isPresented: $navigateToReview) {
+                if let reviewId = pendingReviewId {
+                    OptimizationReviewView(
+                        viewModel: OptimizationReviewViewModel(reviewId: reviewId)
+                    )
+                }
             }
             .navigationDestination(isPresented: $showATSBreakdown) {
                 if let analysis = viewModel.analysis {

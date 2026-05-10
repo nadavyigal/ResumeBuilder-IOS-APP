@@ -25,11 +25,14 @@ struct OptimizeResponse: Codable, Sendable {
     let success: Bool?
     let sections: [OptimizedResumeSection]?
     let optimizationId: String?
+    /// Returned by the current API when the server uses the review-based flow.
+    let reviewId: String?
     let error: String?
 
     private enum CodingKeys: String, CodingKey {
         case success, sections, error
         case optimizationId = "optimization_id"
+        case reviewId = "reviewId"
     }
 
     private enum NestedCodingKeys: String, CodingKey {
@@ -37,10 +40,11 @@ struct OptimizeResponse: Codable, Sendable {
         case optimizedResume = "optimized_resume"
     }
 
-    init(success: Bool?, sections: [OptimizedResumeSection]?, optimizationId: String?, error: String?) {
+    init(success: Bool?, sections: [OptimizedResumeSection]?, optimizationId: String?, reviewId: String? = nil, error: String?) {
         self.success = success
         self.sections = sections
         self.optimizationId = optimizationId
+        self.reviewId = reviewId
         self.error = error
     }
 
@@ -52,6 +56,7 @@ struct OptimizeResponse: Codable, Sendable {
 
         success = try container.decodeIfPresent(Bool.self, forKey: .success) ?? nestedData?.success
         optimizationId = try container.decodeIfPresent(String.self, forKey: .optimizationId) ?? nestedData?.optimizationId
+        reviewId = try container.decodeIfPresent(String.self, forKey: .reviewId) ?? nestedData?.reviewId
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
 
         let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)
@@ -93,7 +98,7 @@ struct RefineSectionApplyRequest: Codable, Sendable {
 }
 
 protocol ResumeOptimizationServiceProtocol: Sendable {
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse
+    func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse
     func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse
     func applySectionRefine(_ request: RefineSectionApplyRequest, token: String) async throws -> Bool
 }
@@ -102,12 +107,19 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
     private let apiClient = APIClient()
     private let logger = Logger(subsystem: "ResumeBuilder", category: "ResumeOptimizationService")
 
-    func optimize(resumeId: String, jobDescription: String, token: String) async throws -> OptimizeResponse {
+    func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {
         logger.info("Optimize start resumeId=\(resumeId, privacy: .public)")
-        let body: [String: Any] = ["resume_id": resumeId, "job_description": jobDescription]
+        let body: [String: Any] = ["resumeId": resumeId, "jobDescriptionId": jobDescriptionId]
         do {
             let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
             logger.info("Optimize response success=\(response.success ?? false) sections=\(response.sections?.count ?? 0)")
+
+            // Review-based flow: server returns reviewId instead of optimizationId+sections.
+            if let reviewId = response.reviewId {
+                logger.info("Optimize decode complete reviewId=\(reviewId, privacy: .public)")
+                return response
+            }
+
             if response.success == false {
                 throw ResumeOptimizationError.invalidResponse(response.error ?? "Optimization failed.")
             }

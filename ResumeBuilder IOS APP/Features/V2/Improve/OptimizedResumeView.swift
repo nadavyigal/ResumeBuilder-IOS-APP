@@ -1,19 +1,40 @@
 import SwiftUI
+import UIKit
 
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: OptimizedResumeViewModel
 
+    /// ATS headline percent for export “share score” copy (from Improve analysis).
+    var atsScorePercent: Int? = nil
+
     @State private var showRefineSheet = false
     @State private var refineInstruction = ""
     @State private var editingSectionId: String? = nil
+    @State private var navigateToChat = false
+    @State private var navigateToExpert = false
+    @State private var navigateToModifications = false
+    @State private var navigateToPreview = false
+
+    // Phase 4 — download & copy
+    @State private var isDownloadingPDF = false
+    @State private var pdfTempURL: URL? = nil
+    @State private var showPDFShare = false
+    @State private var showCopyConfirmation = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
+                // ATS score card (shown when before/after data is available)
+                if viewModel.atsScoreBefore != nil || viewModel.atsScoreAfter != nil {
+                    atsScoreCard
+                        .padding(.top, AppSpacing.xl)
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
                 // Header badge
                 headerBadge
-                    .padding(.top, AppSpacing.xl)
+                    .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                     .padding(.horizontal, AppSpacing.lg)
 
                 // Section cards
@@ -45,15 +66,163 @@ struct OptimizedResumeView: View {
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Optimized Resume")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        navigateToModifications = true
+                    } label: {
+                        Label("Modification History", systemImage: "clock.arrow.circlepath")
+                    }
+                    .disabled(viewModel.optimizationIdentifier == nil)
+
+                    Divider()
+
+                    Button {
+                        Task {
+                            guard !isDownloadingPDF else { return }
+                            isDownloadingPDF = true
+                            viewModel.errorMessage = nil
+                            do {
+                                pdfTempURL = try await viewModel.downloadPDF(
+                                    token: appState.session?.accessToken
+                                )
+                                showPDFShare = true
+                            } catch {
+                                viewModel.errorMessage = "PDF download failed: \(error.localizedDescription)"
+                            }
+                            isDownloadingPDF = false
+                        }
+                    } label: {
+                        if isDownloadingPDF {
+                            Label("Downloading…", systemImage: "arrow.down.circle")
+                        } else {
+                            Label("Download PDF", systemImage: "arrow.down.doc.fill")
+                        }
+                    }
+                    .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
+
+                    Button {
+                        UIPasteboard.general.string = viewModel.plainTextResume
+                        showCopyConfirmation = true
+                    } label: {
+                        Label("Copy Text", systemImage: "doc.on.doc")
+                    }
+                    .disabled(viewModel.sections.isEmpty)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             bottomBar
         }
         .sheet(isPresented: $showRefineSheet) {
             refineSheet
         }
+        .sheet(isPresented: $showPDFShare, onDismiss: { pdfTempURL = nil }) {
+            if let url = pdfTempURL {
+                ShareSheet(items: [url])
+                    .ignoresSafeArea()
+            }
+        }
+        .overlay(alignment: .top) {
+            if showCopyConfirmation {
+                Label("Copied to clipboard", systemImage: "checkmark.circle.fill")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColors.accentTeal, in: Capsule())
+                    .padding(.top, AppSpacing.md)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showCopyConfirmation = false }
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: showCopyConfirmation)
+        .navigationDestination(isPresented: $navigateToChat) {
+            ChatView(resumeViewModel: viewModel)
+        }
+        .navigationDestination(isPresented: $navigateToExpert) {
+            ExpertModesView(
+                optimizationId: viewModel.optimizationIdentifier ?? "",
+                resumeViewModel: viewModel
+            )
+        }
+        .navigationDestination(isPresented: $navigateToModifications) {
+            if let optId = viewModel.optimizationIdentifier {
+                ModificationHistoryView(
+                    viewModel: ModificationHistoryViewModel(optimizationId: optId)
+                )
+            } else {
+                Text("Optimization not available.")
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
     }
 
     // MARK: - Subviews
+
+    private var atsScoreCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // Job context row
+            if let title = viewModel.jobTitle {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "briefcase.fill")
+                        .imageScale(.small)
+                        .foregroundStyle(AppColors.accentTeal)
+                    Text(title)
+                        .font(.appSubheadline)
+                        .foregroundStyle(AppColors.textPrimary)
+                    if let co = viewModel.company {
+                        Text("· \(co)")
+                            .font(.appSubheadline)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                }
+            }
+
+            // ATS before → after row
+            HStack(spacing: AppSpacing.lg) {
+                if let before = viewModel.atsScoreBefore {
+                    VStack(spacing: 2) {
+                        Text("Before")
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                        Text("\(before)%")
+                            .font(.appHeadline)
+                            .foregroundStyle(AppColors.textSecondary)
+                    }
+                    Image(systemName: "arrow.right")
+                        .foregroundStyle(AppColors.textTertiary)
+                        .imageScale(.small)
+                }
+                if let after = viewModel.atsScoreAfter {
+                    VStack(spacing: 2) {
+                        Text("After")
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                        Text("\(after)%")
+                            .font(.appHeadline)
+                            .foregroundStyle(AppColors.accentTeal)
+                    }
+                    if let before = viewModel.atsScoreBefore, after > before {
+                        Label("+\(after - before)pts", systemImage: "arrow.up.circle.fill")
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                    }
+                }
+                Spacer()
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
 
     private var headerBadge: some View {
         HStack(spacing: AppSpacing.md) {
@@ -76,20 +245,43 @@ struct OptimizedResumeView: View {
     }
 
     private var bottomBar: some View {
-        HStack(spacing: AppSpacing.md) {
+        VStack(spacing: AppSpacing.sm) {
+            GradientButton(
+                title: "Chat with AI",
+                icon: "bubble.left.and.bubble.right.fill"
+            ) {
+                navigateToChat = true
+            }
+            .disabled(viewModel.optimizationIdentifier == nil)
+
             Button {
-                // Navigate to preview — handled by parent nav
+                navigateToExpert = true
             } label: {
-                Label("Preview PDF", systemImage: "doc.richtext")
+                Label("Expert Analysis", systemImage: "rectangle.stack.badge.person.crop")
                     .font(.appSubheadline)
                     .foregroundStyle(AppColors.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 50)
                     .glassCard(cornerRadius: AppRadii.md)
             }
             .buttonStyle(GradientButtonStyle())
+            .disabled(viewModel.optimizationIdentifier == nil)
 
-            GradientButton(title: "Save Changes", isLoading: viewModel.isSaving) {
-                // Saving is handled per-section via refine apply
+            HStack(spacing: AppSpacing.md) {
+                Button {
+                    navigateToPreview = true
+                } label: {
+                    Label("Preview PDF", systemImage: "doc.richtext")
+                        .font(.appSubheadline)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.optimizationIdentifier == nil)
+
+                GradientButton(title: "Save Changes", isLoading: viewModel.isSaving) {
+                    // Saving is handled per-section via refine apply
+                }
             }
         }
         .padding(AppSpacing.lg)

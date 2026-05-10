@@ -25,7 +25,7 @@ final class ImproveViewModelTests: XCTestCase {
         )
 
         let result = await viewModel.optimize(token: "token")
-        XCTAssertEqual(result?.optimizationId, "mock-opt-001")
+        XCTAssertEqual(result.flatMap(\.optimizationId), "mock-opt-001")
         XCTAssertEqual(result?.sections.count, 3)
     }
 }
