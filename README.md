@@ -2,6 +2,10 @@
 
 SwiftUI iOS client for uploading, optimizing, redesigning, and exporting resumes.
 
+**Source of truth:** [github.com/nadavyigal/ResumeBuilder-IOS-APP](https://github.com/nadavyigal/ResumeBuilder-IOS-APP), branch **`main`** only. Clone this repo and work on `main`; older feature branches have been removed to avoid drift.
+
+Historical tags include `pre-consolidation-r3` (prior `main`), `pre-consolidation-r2`, and `consolidated-2026-05-11` for provenance.
+
 ## Requirements
 
 - Xcode 16+
@@ -28,15 +32,23 @@ The project includes optimization flow tests in `ResumeBuilder IOS APPTests`:
 
 - `ResumeOptimizationParsingTests` validates decode compatibility across API payload shapes.
 - `ImproveViewModelTests` validates optimize success and user-facing error handling.
+- `ResumeOptimizationServiceSwiftTestingTests` validates injectable optimization mocks and decode paths.
 
-Run tests:
+Pick a simulator that exists on your machine (examples: **iPhone 16**, **iPhone 17**).
 
 ```bash
-xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 16" test
+xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" \
+  -scheme "ResumeBuilder IOS APP" \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  test
 ```
 
-If running in a restricted environment, set a writable local derived data directory:
+Derived data tip (CI or paths with unusual metadata):
 
 ```bash
-xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 16" -derivedDataPath ".derivedData" test
+xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" \
+  -scheme "ResumeBuilder IOS APP" \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -derivedDataPath "/tmp/RB_ios_derivedData" \
+  test
 ```

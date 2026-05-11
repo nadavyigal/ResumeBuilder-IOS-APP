@@ -19,6 +19,7 @@ final class ImproveViewModelTests: XCTestCase {
     func testOptimizeReturnsOptimizationIdAndSections() async {
         let viewModel = ImproveViewModel(
             resumeId: "resume_1",
+            jobDescriptionId: "jd_test_1",
             jobDescription: "iOS Engineer",
             analysisService: MockResumeAnalysisService(),
             optimizationService: MockResumeOptimizationService()
