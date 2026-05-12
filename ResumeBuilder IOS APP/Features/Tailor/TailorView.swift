@@ -1,11 +1,19 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Where the Tailor flow lands after optimize completes.
+/// - `review`: server returned a reviewId → show the diff/apply screen.
+/// - `direct`: server skipped review and produced an optimization → jump straight to the optimized resume.
+enum TailorDestination: Hashable {
+    case review(String)
+    case direct(String)
+}
+
 struct TailorView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: TailorViewModel
     @State private var isImporterPresented = false
-    @State private var navigateTo: String?
+    @State private var navigateTo: TailorDestination?
     @State private var appeared = false
 
     var body: some View {
@@ -67,13 +75,21 @@ struct TailorView: View {
                             errorBanner(error)
                         }
 
-                        // Hidden nav link → review diff → apply → optimized resume
+                        // Hidden nav link → review diff → apply → optimized resume,
+                        // or direct → optimized resume when the server skipped review.
                         NavigationLink(value: navigateTo) { EmptyView() }
                             .hidden()
-                            .navigationDestination(for: String.self) { reviewId in
-                                OptimizationReviewView(
-                                    viewModel: OptimizationReviewViewModel(reviewId: reviewId)
-                                )
+                            .navigationDestination(for: TailorDestination.self) { dest in
+                                switch dest {
+                                case .review(let reviewId):
+                                    OptimizationReviewView(
+                                        viewModel: OptimizationReviewViewModel(reviewId: reviewId)
+                                    )
+                                case .direct(let optimizationId):
+                                    OptimizedResumeView(
+                                        viewModel: OptimizedResumeViewModel(optimizationId: optimizationId)
+                                    )
+                                }
                             }
                     }
                     .padding(.horizontal, 20)
@@ -367,7 +383,9 @@ struct TailorView: View {
                 Task {
                     await viewModel.optimize(appState: appState)
                     if let reviewId = viewModel.reviewId {
-                        navigateTo = reviewId
+                        navigateTo = .review(reviewId)
+                    } else if let optId = viewModel.optimizationId {
+                        navigateTo = .direct(optId)
                     }
                 }
             } label: {
