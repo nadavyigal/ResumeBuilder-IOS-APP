@@ -75,13 +75,14 @@ final class ExpertModesViewModel {
         }
     }
 
-    func apply(_ type: ExpertWorkflowType, token: String?) async {
+    func apply(_ type: ExpertWorkflowType, token: String?, appState: AppState) async {
         guard case .ready(let state) = phaseByType[type] else { return }
         applyingWorkflow = type
         defer { applyingWorkflow = nil }
         do {
             let dto = try await service.apply(runId: state.runId, workflowType: type, token: token)
             if let resumeViewModel {
+                await resumeViewModel.forceReloadSections(appState: appState)
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
             }
 

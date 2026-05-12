@@ -54,11 +54,7 @@ struct ExpertModesView: View {
 
     private var content: some View {
         ScrollView {
-            LazyVGrid(
-                columns: [GridItem(.flexible()), GridItem(.flexible())],
-                alignment: .center,
-                spacing: AppSpacing.md
-            ) {
+            LazyVStack(spacing: AppSpacing.md) {
                 ForEach(ExpertWorkflowType.allCases) { mode in
                     ExpertModeTile(
                         mode: mode,
@@ -71,7 +67,7 @@ struct ExpertModesView: View {
                             }
                         },
                         onApply: {
-                            Task { await vm.apply(mode, token: token) }
+                            Task { await vm.apply(mode, token: token, appState: appState) }
                         }
                     )
                 }
@@ -156,7 +152,6 @@ private struct ExpertModeTile: View {
         }
         .padding(AppSpacing.md)
         .glassCard(cornerRadius: AppRadii.lg)
-        .gridCellColumns(2)
     }
 
     private var primaryButtonTitle: String {

@@ -14,7 +14,7 @@ struct OptimizedResumeView: View {
     @State private var navigateToChat = false
     @State private var navigateToExpert = false
     @State private var navigateToModifications = false
-    @State private var navigateToPreview = false
+    @State private var showPreviewSheet = false
 
     // Phase 4 — download & copy
     @State private var isDownloadingPDF = false
@@ -138,12 +138,6 @@ struct OptimizedResumeView: View {
                     .ignoresSafeArea()
             }
         }
-        .sheet(isPresented: $showDesignSheet) {
-            if let vm = designVM {
-                OptimizationDesignSheet(isPresented: $showDesignSheet, designVM: vm)
-                    .environment(appState)
-            }
-        }
         .overlay(alignment: .top) {
             if showCopyConfirmation {
                 Label("Copied to clipboard", systemImage: "checkmark.circle.fill")
@@ -181,9 +175,21 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .navigationDestination(isPresented: $navigateToPreview) {
+        .navigationDestination(isPresented: $showPreviewSheet) {
             if let optId = viewModel.optimizationIdentifier {
-                ResumePreviewWebView(optimizationId: optId)
+                ResumePreviewWebView(optimizationId: optId, sections: viewModel.sections)
+            } else {
+                Text("Preview not available.")
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .navigationDestination(isPresented: $showDesignSheet) {
+            if let vm = designVM {
+                OptimizationDesignSheet(isPresented: $showDesignSheet, designVM: vm)
+                    .environment(appState)
+            } else {
+                Text("Design not available.")
+                    .foregroundStyle(AppColors.textSecondary)
             }
         }
     }
@@ -290,7 +296,7 @@ struct OptimizedResumeView: View {
 
             HStack(spacing: AppSpacing.md) {
                 Button {
-                    navigateToPreview = true
+                    showPreviewSheet = true
                 } label: {
                     Label("Preview", systemImage: "doc.richtext")
                         .font(.appSubheadline)
@@ -302,7 +308,8 @@ struct OptimizedResumeView: View {
                 .disabled(viewModel.optimizationIdentifier == nil)
 
                 Button {
-                    if designVM == nil, let optId = viewModel.optimizationIdentifier {
+                    if let optId = viewModel.optimizationIdentifier,
+                       designVM?.optimizationId != optId {
                         designVM = DesignViewModel(optimizationId: optId)
                     }
                     showDesignSheet = true

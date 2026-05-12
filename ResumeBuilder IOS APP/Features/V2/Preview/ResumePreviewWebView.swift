@@ -4,6 +4,7 @@ import WebKit
 struct ResumePreviewWebView: View {
     @Environment(AppState.self) private var appState
     let optimizationId: String
+    let sections: [OptimizedResumeSection]
 
     @State private var html: String?
     @State private var isLoading = true
@@ -90,7 +91,8 @@ struct ResumePreviewWebView: View {
             let request = RenderPreviewRequest(
                 optimizationId: optimizationId,
                 templateId: "ats-clean",
-                customization: .default
+                customization: .default,
+                resumeData: resumeDataForPreview()
             )
             let response = try await designService.renderPreview(request, token: token)
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
@@ -127,6 +129,47 @@ struct ResumePreviewWebView: View {
         } catch {
             // Non-fatal — user can still use the share from OptimizedResumeView
         }
+    }
+
+    private func resumeDataForPreview() -> [String: JSONValue]? {
+        guard !sections.isEmpty else { return nil }
+
+        var resumeData: [String: JSONValue] = [:]
+        for section in sections {
+            let text = section.body.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+
+            switch section.type {
+            case .summary:
+                resumeData["summary"] = .string(text)
+            case .skills:
+                resumeData["skills"] = .array(nonEmptyLines(in: text).map(JSONValue.string))
+            case .experience:
+                resumeData["experience"] = .array([
+                    .object([
+                        "title": .string("Experience"),
+                        "achievements": .array(nonEmptyLines(in: text).map(JSONValue.string))
+                    ])
+                ])
+            case .education:
+                resumeData["education"] = .array([
+                    .object([
+                        "institution": .string(text)
+                    ])
+                ])
+            case .additional:
+                resumeData["certifications"] = .array(nonEmptyLines(in: text).map(JSONValue.string))
+            }
+        }
+
+        return resumeData.isEmpty ? nil : resumeData
+    }
+
+    private func nonEmptyLines(in text: String) -> [String] {
+        text
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
     }
 }
 

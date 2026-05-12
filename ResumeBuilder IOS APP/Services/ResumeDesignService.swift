@@ -8,11 +8,13 @@ struct RenderPreviewRequest: Codable, Sendable {
     let optimizationId: String
     let templateId: String
     let customization: DesignCustomization
+    let resumeData: [String: JSONValue]?
 
     private enum CodingKeys: String, CodingKey {
         case optimizationId = "optimization_id"
         case templateId     = "template_id"
         case customization
+        case resumeData
     }
 }
 
@@ -37,7 +39,7 @@ struct RenderPreviewResponse: Codable, Sendable {
 protocol ResumeDesignServiceProtocol: Sendable {
     func templates(category: String, token: String) async throws -> [DesignTemplate]
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse
-    func applyCustomization(optimizationId: String, customization: DesignCustomization, token: String) async throws -> Bool
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool
 }
 
 struct ResumeDesignService: ResumeDesignServiceProtocol {
@@ -74,16 +76,26 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         return RenderPreviewResponse(success: true, previewHTML: html, error: nil)
     }
 
-    func applyCustomization(optimizationId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+        struct AssignmentResponse: Decodable { let assignment: JSONValue? }
+        let _: AssignmentResponse = try await apiClient.postJSON(
+            endpoint: .designAssignment(optimizationId: optimizationId),
+            body: ["templateId": templateId],
+            token: token
+        )
+
         let encoder = JSONEncoder()
         guard let custData = try? encoder.encode(customization),
               let body = try? JSONSerialization.jsonObject(with: custData) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
-        struct ApplyResponse: Decodable { let success: Bool? }
+        struct ApplyResponse: Decodable {
+            let success: Bool?
+            let customization: JSONValue?
+        }
         let response: ApplyResponse = try await apiClient.postJSON(
             endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
         )
-        return response.success == true
+        return response.success != false || response.customization != nil
     }
 }

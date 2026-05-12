@@ -108,6 +108,20 @@ final class OptimizedResumeViewModel {
         }
     }
 
+    /// Refreshes sections from the backend even when the current screen already has content.
+    func forceReloadSections(appState: AppState) async {
+        guard !isLoadingSections else { return }
+        isLoadingSections = true
+        defer { isLoadingSections = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.loadSections(with: token)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func loadSections(token: String?) async {
         guard sections.isEmpty, !isLoadingSections, let optId = optimizationId, let token else { return }
         isLoadingSections = true

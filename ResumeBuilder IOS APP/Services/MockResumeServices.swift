@@ -172,7 +172,7 @@ struct MockResumeDesignService: ResumeDesignServiceProtocol {
         return RenderPreviewResponse(success: true, previewHTML: "<html><body><p>Resume preview</p></body></html>", error: nil)
     }
 
-    func applyCustomization(optimizationId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
         try await Task.sleep(for: .milliseconds(500))
         return true
     }

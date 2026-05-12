@@ -22,6 +22,7 @@ enum Endpoint {
     case refineSectionApply
     case designTemplates(category: String)
     case designRenderPreview
+    case designAssignment(optimizationId: String)
     case designCustomize(optimizationId: String)
     case optimizations
     case optimizationsBulk
@@ -80,6 +81,7 @@ enum Endpoint {
         case .refineSectionApply:              return "/api/v1/refine-section/apply"
         case .designTemplates:                 return "/api/v1/design/templates"
         case .designRenderPreview:             return "/api/v1/design/render-preview"
+        case .designAssignment(let id):        return "/api/v1/design/\(id)"
         case .designCustomize(let id):         return "/api/v1/design/\(id)/customize"
         case .optimizations:                   return "/api/optimizations"
         case .optimizationsBulk:               return "/api/optimizations/bulk"

@@ -78,10 +78,20 @@ final class DesignViewModel {
 
     func applyDesign(token: String?) async -> Bool {
         guard let token, let optId = optimizationId else { return false }
+        guard let templateId = selectedTemplateId else {
+            errorMessage = "Choose a design template first."
+            return false
+        }
         isApplying = true
+        errorMessage = nil
         defer { isApplying = false }
         do {
-            let ok = try await designService.applyCustomization(optimizationId: optId, customization: customization, token: token)
+            let ok = try await designService.applyCustomization(
+                optimizationId: optId,
+                templateId: templateId,
+                customization: customization,
+                token: token
+            )
             if ok {
                 didApplyCustomization = true
                 await loadStyleHistory(token: token)
