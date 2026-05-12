@@ -81,10 +81,23 @@ final class ImproveViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            async let scoreTask = analysisService.score(resumeId: resumeId, jobDescription: jobDescription, token: token)
-            async let improvementsTask = analysisService.improvements(resumeId: resumeId, jobDescription: jobDescription, token: token)
-            analysis = try await scoreTask
-            improvements = try await improvementsTask
+            try await loadAnalysis(with: token)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func loadAnalysis(appState: AppState, force: Bool = false) async {
+        guard resumeId != nil else { return }
+        if !force, let analysis, analysis.subscores != nil {
+            return
+        }
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.loadAnalysis(with: token)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -103,16 +116,49 @@ final class ImproveViewModel {
         errorMessage = nil
         defer { isRescanning = false }
         do {
-            let response = try await analysisService.rescan(optimizationId: optimizationId, token: token)
-            guard response.success ?? true else {
-                throw APIClientError.invalidResponse
-            }
-            let updated = response.optimizedScore ?? analysis?.overall
-            if let updated {
-                analysis = analysis?.withUpdatedScores(overall: updated, ats: updated)
+            try await rescanATS(with: token)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func rescanATS(appState: AppState) async {
+        guard let optimizationId else {
+            errorMessage = "Run Optimize first to create an optimization, then rescan."
+            return
+        }
+        isRescanning = true
+        errorMessage = nil
+        defer { isRescanning = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.rescanATS(with: token, optimizationId: optimizationId)
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func optimize(appState: AppState) async -> OptimizationResult? {
+        guard !isOptimizing else { return nil }
+        guard resumeId != nil else {
+            errorMessage = ResumeOptimizationError.missingResumeId.localizedDescription
+            return nil
+        }
+        guard let jobDescriptionId, !jobDescriptionId.isEmpty else {
+            errorMessage = "Job description is required. Please scan your resume first."
+            return nil
+        }
+        isOptimizing = true
+        errorMessage = nil
+        defer { isOptimizing = false }
+        do {
+            return try await appState.callWithFreshToken { token in
+                try await self.optimize(with: token, jobDescriptionId: jobDescriptionId)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            return nil
         }
     }
 
@@ -134,22 +180,59 @@ final class ImproveViewModel {
         errorMessage = nil
         defer { isOptimizing = false }
         do {
-            let response = try await optimizationService.optimize(resumeId: resumeId, jobDescriptionId: jobDescriptionId, token: token)
-
-            // Review-based flow: navigate to OptimizationReviewView.
-            if let reviewId = response.reviewId {
-                return OptimizationResult(optimizationId: nil, reviewId: reviewId, sections: [])
-            }
-
-            guard let optimizationId = response.optimizationId else {
-                throw ResumeOptimizationError.missingOptimizationId
-            }
-            let sections = response.sections ?? []
-            self.optimizationId = optimizationId
-            return OptimizationResult(optimizationId: optimizationId, reviewId: nil, sections: sections)
+            return try await optimize(with: token, jobDescriptionId: jobDescriptionId)
         } catch {
             errorMessage = error.localizedDescription
             return nil
         }
+    }
+
+    private func loadAnalysis(with token: String) async throws {
+        guard let resumeId else { return }
+        async let scoreTask = analysisService.score(resumeId: resumeId, jobDescription: jobDescription, token: token)
+        async let improvementsTask = analysisService.improvements(resumeId: resumeId, jobDescription: jobDescription, token: token)
+        analysis = try await scoreTask
+        improvements = try await improvementsTask
+    }
+
+    private func rescanATS(with token: String) async throws {
+        guard let optimizationId else {
+            throw ResumeOptimizationError.invalidResponse("Run Optimize first to create an optimization, then rescan.")
+        }
+        try await rescanATS(with: token, optimizationId: optimizationId)
+    }
+
+    private func rescanATS(with token: String, optimizationId: String) async throws {
+        let response = try await analysisService.rescan(optimizationId: optimizationId, token: token)
+        guard response.success ?? true else {
+            throw APIClientError.invalidResponse
+        }
+        let updated = response.optimizedScore ?? analysis?.overall
+        if let updated {
+            analysis = analysis?.withUpdatedScores(overall: updated, ats: updated)
+        }
+    }
+
+    private func optimize(with token: String, jobDescriptionId: String) async throws -> OptimizationResult {
+        guard let resumeId else {
+            throw ResumeOptimizationError.missingResumeId
+        }
+        let response = try await optimizationService.optimize(
+            resumeId: resumeId,
+            jobDescriptionId: jobDescriptionId,
+            token: token
+        )
+
+        // Review-based flow: navigate to OptimizationReviewView.
+        if let reviewId = response.reviewId {
+            return OptimizationResult(optimizationId: nil, reviewId: reviewId, sections: [])
+        }
+
+        guard let optimizationId = response.optimizationId else {
+            throw ResumeOptimizationError.missingOptimizationId
+        }
+        let sections = response.sections ?? []
+        self.optimizationId = optimizationId
+        return OptimizationResult(optimizationId: optimizationId, reviewId: nil, sections: sections)
     }
 }

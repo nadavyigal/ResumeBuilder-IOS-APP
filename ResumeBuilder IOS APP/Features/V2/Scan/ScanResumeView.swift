@@ -44,7 +44,7 @@ struct ScanResumeView: View {
                 ) {
                     Task {
                         if appState.isAuthenticated {
-                            if let input = await viewModel.uploadForOptimization(token: appState.session?.accessToken) {
+                            if let input = await viewModel.uploadForOptimization(appState: appState) {
                                 onAnalyze?(input)
                             }
                         } else {

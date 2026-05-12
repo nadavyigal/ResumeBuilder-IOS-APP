@@ -55,21 +55,38 @@ final class OptimizedResumeViewModel {
     }
 
     /// Downloads the PDF for this optimization and returns a temp file URL for sharing.
+    func downloadPDF(appState: AppState) async throws -> URL {
+        try await appState.callWithFreshToken { token in
+            try await self.downloadPDF(with: token)
+        }
+    }
+
     func downloadPDF(token: String?) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
+        guard let token else { throw APIClientError.unauthorized }
+        return try await downloadPDF(with: token, optimizationId: optId)
+    }
+
+    private func downloadPDF(with token: String) async throws -> URL {
+        guard let optId = optimizationId else { throw APIClientError.invalidResponse }
+        return try await downloadPDF(with: token, optimizationId: optId)
+    }
+
+    private func downloadPDF(with token: String, optimizationId optId: String) async throws -> URL {
         var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
         components.path = "/api/download/\(optId)"
         components.queryItems = [URLQueryItem(name: "fmt", value: "pdf")]
         guard let url = components.url else { throw APIClientError.invalidResponse }
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = "GET"
-        if let token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+        guard let http = response as? HTTPURLResponse else {
             throw APIClientError.invalidResponse
         }
+        if http.statusCode == 401 { throw APIClientError.unauthorized }
+        if http.statusCode == 402 { throw APIClientError.paymentRequired }
+        guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
         let dest = FileManager.default.temporaryDirectory
             .appendingPathComponent("Resume_\(optId).pdf")
         try data.write(to: dest, options: .atomic)
@@ -78,22 +95,45 @@ final class OptimizedResumeViewModel {
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
     /// from OptimizationReviewView where the apply response contains only the optimizationId).
+    func loadSections(appState: AppState) async {
+        guard sections.isEmpty, !isLoadingSections else { return }
+        isLoadingSections = true
+        defer { isLoadingSections = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.loadSections(with: token)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func loadSections(token: String?) async {
         guard sections.isEmpty, !isLoadingSections, let optId = optimizationId, let token else { return }
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {
-            let detail: OptimizationDetailDTO = try await APIClient().get(
-                endpoint: .optimizationDetail(id: optId), token: token
-            )
-            sections = detail.sections
-            if jobTitle == nil { jobTitle = detail.jobTitle }
-            if company == nil  { company  = detail.company  }
-            if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
-            if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+            try await loadSections(with: token, optimizationId: optId)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func loadSections(with token: String) async throws {
+        guard let optId = optimizationId else { return }
+        try await loadSections(with: token, optimizationId: optId)
+    }
+
+    private func loadSections(with token: String, optimizationId optId: String) async throws {
+        let detail: OptimizationDetailDTO = try await APIClient().get(
+            endpoint: .optimizationDetail(id: optId),
+            token: token
+        )
+        sections = detail.sections
+        if jobTitle == nil { jobTitle = detail.jobTitle }
+        if company == nil  { company  = detail.company  }
+        if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
+        if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
     }
 
     func refineSection(sectionId: String, instruction: String, token: String?) async {

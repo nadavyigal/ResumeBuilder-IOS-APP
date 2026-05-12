@@ -41,7 +41,7 @@ struct ImproveView: View {
                     // Optimize CTA
                     if viewModel.optimizationId != nil {
                         Button {
-                            Task { await viewModel.rescanATS(token: appState.session?.accessToken) }
+                            Task { await viewModel.rescanATS(appState: appState) }
                         } label: {
                             HStack(spacing: AppSpacing.sm) {
                                 if viewModel.isRescanning {
@@ -77,7 +77,7 @@ struct ImproveView: View {
                         isLoading: viewModel.isOptimizing
                     ) {
                         Task {
-                            if let result = await viewModel.optimize(token: appState.session?.accessToken) {
+                            if let result = await viewModel.optimize(appState: appState) {
                                 if let reviewId = result.reviewId {
                                     // Review-based flow: show grouped changes before applying.
                                     pendingReviewId = reviewId
@@ -119,7 +119,10 @@ struct ImproveView: View {
             .navigationDestination(isPresented: $navigateToReview) {
                 if let reviewId = pendingReviewId {
                     OptimizationReviewView(
-                        viewModel: OptimizationReviewViewModel(reviewId: reviewId)
+                        viewModel: OptimizationReviewViewModel(reviewId: reviewId),
+                        onAppliedOptimization: { optId in
+                            onOptimized?(optId)
+                        }
                     )
                 }
             }
@@ -131,7 +134,7 @@ struct ImproveView: View {
                         .foregroundStyle(AppColors.textSecondary)
                 }
             }
-            .task { await viewModel.loadAnalysis(token: appState.session?.accessToken) }
+            .task { await viewModel.loadAnalysis(appState: appState) }
         }
     }
 

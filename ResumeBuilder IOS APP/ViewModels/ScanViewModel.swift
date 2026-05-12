@@ -134,11 +134,31 @@ final class ScanViewModel {
         }
     }
 
+    func uploadForOptimization(appState: AppState) async -> ResumeJobInput? {
+        do {
+            return try await appState.callWithFreshToken { token in
+                try await self.uploadForOptimization(with: token)
+            }
+        } catch {
+            errorMessage = "Upload failed: \(error.localizedDescription)"
+            return nil
+        }
+    }
+
     func uploadForOptimization(token: String?) async -> ResumeJobInput? {
         guard let token else {
             errorMessage = "Sign in to unlock full resume optimization."
             return nil
         }
+        do {
+            return try await uploadForOptimization(with: token)
+        } catch {
+            errorMessage = "Upload failed: \(error.localizedDescription)"
+            return nil
+        }
+    }
+
+    private func uploadForOptimization(with token: String) async throws -> ResumeJobInput? {
         guard let fileURL = selectedFileURL, hasJobInput else {
             errorMessage = "Add a resume and a LinkedIn/job link or job description."
             return nil
@@ -147,34 +167,29 @@ final class ScanViewModel {
         isUploading = true
         errorMessage = nil
         defer { isUploading = false }
-        do {
-            let response = try await uploadService.upload(
-                fileURL: fileURL,
-                jobDescription: normalizedJobDescription,
-                jobDescriptionURL: normalizedJobURL,
-                token: token
-            )
-            guard response.success == true,
-                  let resumeId = response.resumeId,
-                  let jobDescriptionId = response.jobDescriptionId else {
-                errorMessage = response.error ?? "Upload failed"
-                return nil
-            }
-            uploadedResumeId = resumeId
-            uploadedJobDescriptionId = jobDescriptionId
-            return ResumeJobInput(
-                resumeId: resumeId,
-                jobDescriptionId: jobDescriptionId,
-                jobDescription: normalizedJobDescription ?? "",
-                jobDescriptionURL: normalizedJobURL ?? "",
-                initialScore: response.matchScore,
-                missingKeywords: response.missingKeywords ?? [],
-                keyImprovements: response.keyImprovements ?? []
-            )
-        } catch {
-            errorMessage = "Upload failed: \(error.localizedDescription)"
+        let response = try await uploadService.upload(
+            fileURL: fileURL,
+            jobDescription: normalizedJobDescription,
+            jobDescriptionURL: normalizedJobURL,
+            token: token
+        )
+        guard response.success == true,
+              let resumeId = response.resumeId,
+              let jobDescriptionId = response.jobDescriptionId else {
+            errorMessage = response.error ?? "Upload failed"
             return nil
         }
+        uploadedResumeId = resumeId
+        uploadedJobDescriptionId = jobDescriptionId
+        return ResumeJobInput(
+            resumeId: resumeId,
+            jobDescriptionId: jobDescriptionId,
+            jobDescription: normalizedJobDescription ?? "",
+            jobDescriptionURL: normalizedJobURL ?? "",
+            initialScore: response.matchScore,
+            missingKeywords: response.missingKeywords ?? [],
+            keyImprovements: response.keyImprovements ?? []
+        )
     }
 
     func useSharedJobURLIfNeeded(from appState: AppState) {

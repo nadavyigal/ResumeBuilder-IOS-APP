@@ -7,9 +7,9 @@ struct QuickWinsSection: View {
     private var cards: [QuickWinCardDisplay] {
         var items: [QuickWinCardDisplay] = []
 
-        for win in analysis.authQuickWins {
+        for (index, win) in analysis.authQuickWins.enumerated() {
             items.append(.init(
-                id: win.id,
+                id: "auth-\(index)-\(win.id)",
                 title: (win.rationale ?? win.originalText)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
                     ?? "Quick improvement",
                 detail: previewDetail(for: win),
@@ -19,10 +19,10 @@ struct QuickWinsSection: View {
             ))
         }
 
-        for suggestion in analysis.suggestions where suggestion.quickWin == true {
+        for (index, suggestion) in analysis.suggestions.filter({ $0.quickWin == true }).enumerated() {
             let label = suggestion.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Suggestion"
             items.append(.init(
-                id: suggestion.id,
+                id: "suggestion-\(index)-\(suggestion.id)",
                 title: label,
                 detail: suggestion.category.map { ucfirst($0) },
                 effort: ImpactLevel.from(estimatedImpactOrGain: suggestion.estimatedGain ?? 4),

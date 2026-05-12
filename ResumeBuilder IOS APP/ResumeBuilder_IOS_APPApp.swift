@@ -10,8 +10,7 @@ struct ResumeBuilder_IOS_APPApp: App {
                 .environment(appState)
                 .preferredColorScheme(.dark)
                 .task {
-                    appState.bootstrap()
-                    await appState.refreshSessionIfNeeded()
+                    await appState.bootstrapAndRefreshSession()
                 }
                 .onOpenURL { url in
                     appState.handleIncomingURL(url)

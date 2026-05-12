@@ -8,6 +8,7 @@ final class AppState {
     var pendingSharedJobURL: URL?
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    var hasBootstrappedSession = false
 
     let apiClient = APIClient()
     private let anonymousSessionKey = "anonymous_ats_session_id"
@@ -19,6 +20,12 @@ final class AppState {
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
+    }
+
+    func bootstrapAndRefreshSession() async {
+        bootstrap()
+        await refreshSessionIfNeeded()
+        hasBootstrappedSession = true
     }
 
     func handleIncomingURL(_ url: URL) {

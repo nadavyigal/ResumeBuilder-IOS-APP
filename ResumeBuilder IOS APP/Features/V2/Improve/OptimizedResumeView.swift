@@ -74,7 +74,7 @@ struct OptimizedResumeView: View {
         }
         .scrollIndicators(.hidden)
         .task {
-            await viewModel.loadSections(token: appState.session?.accessToken)
+            await viewModel.loadSections(appState: appState)
         }
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Optimized Resume")
@@ -97,9 +97,7 @@ struct OptimizedResumeView: View {
                             isDownloadingPDF = true
                             viewModel.errorMessage = nil
                             do {
-                                pdfTempURL = try await viewModel.downloadPDF(
-                                    token: appState.session?.accessToken
-                                )
+                                pdfTempURL = try await viewModel.downloadPDF(appState: appState)
                                 showPDFShare = true
                             } catch {
                                 viewModel.errorMessage = "PDF download failed: \(error.localizedDescription)"

@@ -35,12 +35,20 @@ final class OptimizationReviewViewModel {
         errorMessage = nil
         defer { isLoading = false }
         do {
-            let data: OptimizationReviewEnvelope = try await api.get(
-                endpoint: .optimizationReview(id: reviewId),
-                token: token
-            )
-            envelope = data
-            includedGroupIds = Set(data.review.groupedChanges.map(\.id))
+            try await load(with: token)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func load(appState: AppState) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.load(with: token)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -67,17 +75,7 @@ final class OptimizationReviewViewModel {
         errorMessage = nil
         defer { isSubmitting = false }
         do {
-            let body: [String: Any] = ["approvedGroupIds": Array(includedGroupIds)]
-            let result: OptimizationReviewApplyResponseDTO = try await api.postJSON(
-                endpoint: .optimizationReviewApply(id: reviewId),
-                body: body,
-                token: token
-            )
-            if let err = result.error, result.optimizationId == nil {
-                errorMessage = err
-                return
-            }
-            applySuccessOptimizationId = result.optimizationId
+            try await apply(with: token)
         } catch let apiError as APIClientError {
             switch apiError {
             case .serverError(let status, let message) where status >= 500:
@@ -94,12 +92,65 @@ final class OptimizationReviewViewModel {
             errorMessage = error.localizedDescription
         }
     }
+
+    func apply(appState: AppState) async {
+        guard !includedGroupIds.isEmpty else {
+            errorMessage = "Select at least one change to apply."
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+        defer { isSubmitting = false }
+        do {
+            try await appState.callWithFreshToken { token in
+                try await self.apply(with: token)
+            }
+        } catch let apiError as APIClientError {
+            switch apiError {
+            case .serverError(let status, let message) where status >= 500:
+                if message.contains("operation_type") {
+                    serverRequiresMigration = true
+                    errorMessage = "The server needs a database update before changes can be applied. Please try again later or contact support."
+                } else {
+                    errorMessage = "Server error (\(status)). Please try again later."
+                }
+            default:
+                errorMessage = apiError.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func load(with token: String) async throws {
+        let data: OptimizationReviewEnvelope = try await api.get(
+            endpoint: .optimizationReview(id: reviewId),
+            token: token
+        )
+        envelope = data
+        includedGroupIds = Set(data.review.groupedChanges.map(\.id))
+    }
+
+    private func apply(with token: String) async throws {
+        let body: [String: Any] = ["approvedGroupIds": Array(includedGroupIds)]
+        let result: OptimizationReviewApplyResponseDTO = try await api.postJSON(
+            endpoint: .optimizationReviewApply(id: reviewId),
+            body: body,
+            token: token
+        )
+        if let err = result.error, result.optimizationId == nil {
+            errorMessage = err
+            return
+        }
+        applySuccessOptimizationId = result.optimizationId
+    }
 }
 
 struct OptimizationReviewView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @Bindable var viewModel: OptimizationReviewViewModel
+    var onAppliedOptimization: ((String) -> Void)? = nil
 
     @State private var navigateToDetail = false
 
@@ -159,7 +210,7 @@ struct OptimizationReviewView: View {
                         isLoading: viewModel.isSubmitting
                     ) {
                         Task {
-                            await viewModel.apply(token: appState.session?.accessToken)
+                            await viewModel.apply(appState: appState)
                         }
                     }
                     .disabled(viewModel.serverRequiresMigration || viewModel.isSubmitting)
@@ -186,10 +237,13 @@ struct OptimizationReviewView: View {
             }
         }
         .onChange(of: viewModel.applySuccessOptimizationId) { _, newId in
-            if newId != nil { navigateToDetail = true }
+            if let newId {
+                onAppliedOptimization?(newId)
+                navigateToDetail = true
+            }
         }
         .task {
-            await viewModel.load(token: appState.session?.accessToken)
+            await viewModel.load(appState: appState)
         }
     }
 

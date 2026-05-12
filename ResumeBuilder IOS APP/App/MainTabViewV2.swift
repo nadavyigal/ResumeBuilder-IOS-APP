@@ -33,7 +33,7 @@ struct MainTabViewV2: View {
                     .opacity(selectedTab == .track ? 1 : 0)
                     .allowsHitTesting(selectedTab == .track)
 
-                ProfileViewV2()
+                ProfileView()
                     .opacity(selectedTab == .profile ? 1 : 0)
                     .allowsHitTesting(selectedTab == .profile)
             }
