@@ -5,6 +5,8 @@ struct ResumePreviewWebView: View {
     @Environment(AppState.self) private var appState
     let optimizationId: String
     let sections: [OptimizedResumeSection]
+    var templateId: String? = nil
+    var customization: DesignCustomization? = nil
 
     @State private var html: String?
     @State private var isLoading = true
@@ -90,8 +92,8 @@ struct ResumePreviewWebView: View {
         do {
             let request = RenderPreviewRequest(
                 optimizationId: optimizationId,
-                templateId: "ats-clean",
-                customization: .default,
+                templateId: templateId ?? "ats-clean",
+                customization: customization ?? .default,
                 resumeData: resumeDataForPreview()
             )
             let response = try await designService.renderPreview(request, token: token)

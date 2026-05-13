@@ -45,6 +45,12 @@
     "%lld free checks remaining" : {
 
     },
+    "%lld free checks remaining this week." : {
+
+    },
+    "%lld more recommendations unlock with full optimization." : {
+
+    },
     "%lld of %lld changes selected" : {
       "localizations" : {
         "en" : {
@@ -83,6 +89,12 @@
     "+%lldpts" : {
 
     },
+    "2" : {
+
+    },
+    "3" : {
+
+    },
     "100 credits" : {
 
     },
@@ -98,20 +110,16 @@
     "Accept" : {
 
     },
-    "Accepted: %lld  •  Rejected: %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Accepted: %1$lld  •  Rejected: %2$lld"
-          }
-        }
-      }
-    },
     "Account" : {
 
     },
     "Actions" : {
+
+    },
+    "Active account" : {
+
+    },
+    "Add Job" : {
 
     },
     "After" : {
@@ -129,7 +137,19 @@
     "AI Optimized" : {
 
     },
+    "AI POWERED" : {
+
+    },
+    "AI rewrites for this specific job" : {
+
+    },
+    "AI rewrites your resume to beat ATS filters for any job." : {
+
+    },
     "Already have an account?" : {
+
+    },
+    "Analyzing resume…" : {
 
     },
     "Analyzing…" : {
@@ -200,9 +220,6 @@
     "Before %@" : {
 
     },
-    "Buy Credits" : {
-
-    },
     "Buy More" : {
 
     },
@@ -219,6 +236,12 @@
 
     },
     "Chat unavailable" : {
+
+    },
+    "Checking keyword match and ATS signals" : {
+
+    },
+    "Choose Resume PDF" : {
 
     },
     "Close" : {
@@ -251,6 +274,9 @@
     "Design" : {
 
     },
+    "Design not available." : {
+
+    },
     "design_apply_cta" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -267,9 +293,6 @@
           }
         }
       }
-    },
-    "Diff Review" : {
-
     },
     "Don't have an account?" : {
 
@@ -337,6 +360,9 @@
 
     },
     "Free ATS Preview" : {
+
+    },
+    "FREE CHECK" : {
 
     },
     "Free plan" : {
@@ -434,10 +460,13 @@
     "Include" : {
 
     },
-    "Job Description ID" : {
+    "Job post URL or paste description" : {
 
     },
     "LinkedIn or Job Link" : {
+
+    },
+    "LinkedIn or job post URL" : {
 
     },
     "Loading optimization history..." : {
@@ -456,9 +485,6 @@
 
     },
     "Master Resume" : {
-
-    },
-    "Master resume preview will appear here." : {
 
     },
     "Missing Keywords" : {
@@ -521,13 +547,22 @@
     "Optimize" : {
 
     },
+    "Optimize Resume" : {
+
+    },
     "Optimized Resume" : {
 
     },
-    "Optimizing your resume..." : {
+    "Optimizing your resume…" : {
 
     },
     "or" : {
+
+    },
+    "Or paste job description here" : {
+
+    },
+    "Or paste the full job description here" : {
 
     },
     "Or paste the job description" : {
@@ -554,10 +589,16 @@
     "PDF Ready" : {
 
     },
+    "PDF up to 5 MB" : {
+
+    },
     "Preview" : {
 
     },
     "Preview & Export" : {
+
+    },
+    "Preview not available." : {
 
     },
     "Priority actions" : {
@@ -630,13 +671,10 @@
     "Rendering preview…" : {
 
     },
-    "Resume" : {
+    "Resume attached" : {
 
     },
     "Resume Health Score" : {
-
-    },
-    "Resume ID" : {
 
     },
     "Resume PDF" : {
@@ -658,9 +696,6 @@
 
     },
     "Review changes before approving" : {
-
-    },
-    "Review ID: %@" : {
 
     },
     "Role" : {
@@ -727,6 +762,9 @@
     "Search title or company" : {
 
     },
+    "See how your resume performs against a job before you apply." : {
+
+    },
     "Send message" : {
 
     },
@@ -742,7 +780,13 @@
     "Sign in to manage your master resume." : {
 
     },
+    "Sign in to Optimize" : {
+
+    },
     "Sign in to unlock full optimization." : {
+
+    },
+    "Sign in to unlock full resume optimization." : {
 
     },
     "Sign in to view history" : {
@@ -863,6 +907,9 @@
     "Tailor" : {
 
     },
+    "Tailor Resume" : {
+
+    },
     "Tailor your resume to any job in 60 seconds." : {
 
     },
@@ -879,6 +926,9 @@
 
     },
     "Top Fixes" : {
+
+    },
+    "Top Issues" : {
 
     },
     "Top signals" : {
@@ -902,13 +952,13 @@
     "Undo" : {
 
     },
-    "Use Tailor to improve weak bullets and keyword alignment." : {
+    "URL or paste description" : {
+
+    },
+    "Use Tailor to generate the full optimized resume." : {
 
     },
     "View ATS breakdown" : {
-
-    },
-    "View Credits" : {
 
     },
     "Your optimized resumes and PDF downloads are linked to your account." : {

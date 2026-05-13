@@ -18,6 +18,10 @@ final class TailorViewModel {
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
 
+    // Shared with ScanViewModel so a pick from either tab is visible in both.
+    private static let filenameKey = "savedResumeFilename"
+    private static let pathKey     = "savedResumeLocalPath"
+
     private let apiClient = APIClient()
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
@@ -27,6 +31,51 @@ final class TailorViewModel {
             : ResumeOptimizationService()
     ) {
         self.optimizationService = optimizationService
+    }
+
+    /// Name of the locally cached resume, if one exists on disk.
+    var cachedResumeName: String? {
+        guard let name = UserDefaults.standard.string(forKey: Self.filenameKey),
+              let path = UserDefaults.standard.string(forKey: Self.pathKey),
+              FileManager.default.fileExists(atPath: path) else {
+            return nil
+        }
+        return name
+    }
+
+    /// Pre-fills Step 1 from the cached PDF. Returns `true` on success.
+    @discardableResult
+    func useCachedResume() -> Bool {
+        guard let name = UserDefaults.standard.string(forKey: Self.filenameKey),
+              let path = UserDefaults.standard.string(forKey: Self.pathKey),
+              FileManager.default.fileExists(atPath: path) else {
+            return false
+        }
+        selectedResumeURL = URL(fileURLWithPath: path)
+        selectedResumeName = name
+        return true
+    }
+
+    /// Saves the picked file into the sandbox cache so it can be reused next session.
+    func cachePickedFile(url: URL) {
+        let filename = url.lastPathComponent
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let dest = docs.appendingPathComponent("cached_resume.pdf")
+
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+
+        try? FileManager.default.removeItem(at: dest)
+        try? FileManager.default.copyItem(at: url, to: dest)
+
+        if FileManager.default.fileExists(atPath: dest.path) {
+            UserDefaults.standard.set(filename, forKey: Self.filenameKey)
+            UserDefaults.standard.set(dest.path, forKey: Self.pathKey)
+            selectedResumeURL = dest
+        } else {
+            selectedResumeURL = url
+        }
+        selectedResumeName = filename
     }
 
     func optimize(appState: AppState) async {
