@@ -24,4 +24,10 @@ struct DesignCustomization: Codable, Sendable {
     var fontStyle: String       // "classic" | "modern" | "minimal"
 
     static let `default` = DesignCustomization(spacing: 0.5, accentColor: "6366F1", fontStyle: "modern")
+
+    private enum CodingKeys: String, CodingKey {
+        case spacing
+        case accentColor = "accent_color"
+        case fontStyle   = "font_style"
+    }
 }

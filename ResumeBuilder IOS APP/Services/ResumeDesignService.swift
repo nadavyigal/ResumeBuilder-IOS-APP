@@ -80,7 +80,7 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         struct AssignmentResponse: Decodable { let assignment: JSONValue? }
         let _: AssignmentResponse = try await apiClient.postJSON(
             endpoint: .designAssignment(optimizationId: optimizationId),
-            body: ["templateId": templateId],
+            body: ["template_id": templateId],
             token: token
         )
 
