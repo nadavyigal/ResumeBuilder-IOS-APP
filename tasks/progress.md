@@ -4,7 +4,7 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Dev Story 1 — Fix Preview Rendering, Issues 1/2/3 (2026-05-14)
+Last Completed Story: Dev Story 3 — Fix Expert Apply Ordering, Issue 4 (2026-05-14)
 Next Recommended Story: Dev Story 2 from core-output-quality-spec or TestFlight build prep
 Estimated Completion: 10%
 Blockers: —
