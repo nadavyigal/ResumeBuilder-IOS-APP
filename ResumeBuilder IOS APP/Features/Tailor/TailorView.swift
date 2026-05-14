@@ -15,6 +15,7 @@ struct TailorView: View {
     @State private var isImporterPresented = false
     @State private var navigateTo: TailorDestination?
     @State private var appeared = false
+    @State private var shouldNavigate = false
 
     var body: some View {
         NavigationStack {
@@ -51,6 +52,38 @@ struct TailorView: View {
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 16)
 
+                            if viewModel.selectedResumeName == nil,
+                               let cached = viewModel.cachedResumeName {
+                                Button {
+                                    viewModel.useCachedResume()
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "arrow.counterclockwise.circle.fill")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundStyle(Theme.accentBlue)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Use saved resume")
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(Theme.textPrimary)
+                                            Text(cached)
+                                                .font(.caption)
+                                                .foregroundStyle(Theme.textTertiary)
+                                                .lineLimit(1)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(Theme.accentBlue.opacity(0.25), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 16)
+                            }
+
                             stepConnector(filled: viewModel.selectedResumeName != nil)
 
                             jobInputCard
@@ -75,22 +108,26 @@ struct TailorView: View {
                             errorBanner(error)
                         }
 
-                        // Hidden nav link → review diff → apply → optimized resume,
-                        // or direct → optimized resume when the server skipped review.
-                        NavigationLink(value: navigateTo) { EmptyView() }
-                            .hidden()
-                            .navigationDestination(for: TailorDestination.self) { dest in
-                                switch dest {
-                                case .review(let reviewId):
+                        // Hidden nav destinations - always present, conditionally activated
+                        NavigationLink(
+                            destination: Group {
+                                if let reviewId = viewModel.reviewId {
                                     OptimizationReviewView(
                                         viewModel: OptimizationReviewViewModel(reviewId: reviewId)
                                     )
-                                case .direct(let optimizationId):
+                                } else if let optimizationId = viewModel.optimizationId {
                                     OptimizedResumeView(
                                         viewModel: OptimizedResumeViewModel(optimizationId: optimizationId)
                                     )
+                                } else {
+                                    EmptyView()
                                 }
-                            }
+                            },
+                            isActive: $shouldNavigate
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -111,8 +148,7 @@ struct TailorView: View {
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else { return }
-                    viewModel.selectedResumeURL = url
-                    viewModel.selectedResumeName = url.lastPathComponent
+                    viewModel.cachePickedFile(url: url)
                 case .failure(let error):
                     viewModel.errorMessage = error.localizedDescription
                 }
@@ -381,11 +417,16 @@ struct TailorView: View {
 
             Button {
                 Task {
+                    print("🔍 Starting optimization...")
                     await viewModel.optimize(appState: appState)
-                    if let reviewId = viewModel.reviewId {
-                        navigateTo = .review(reviewId)
-                    } else if let optId = viewModel.optimizationId {
-                        navigateTo = .direct(optId)
+                    
+                    print("🔍 After optimize - reviewId: \(viewModel.reviewId ?? "nil")")
+                    print("🔍 After optimize - optimizationId: \(viewModel.optimizationId ?? "nil")")
+                    
+                    if viewModel.reviewId != nil || viewModel.optimizationId != nil {
+                        print("🔍 Setting shouldNavigate to true")
+                        shouldNavigate = true
+                        print("🔍 shouldNavigate is now: \(shouldNavigate)")
                     }
                 }
             } label: {

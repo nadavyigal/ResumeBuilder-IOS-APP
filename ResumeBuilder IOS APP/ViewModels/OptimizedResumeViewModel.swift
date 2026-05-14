@@ -214,6 +214,8 @@ final class OptimizedResumeViewModel {
     }
 
     /// Mirrors optimistic updates after `/api/v1/expert-workflows/runs/:id/apply`, which does not return `rewrite_data`.
+    /// When `updatedFields` is populated, uses the server-authoritative list. When empty, infers
+    /// affected sections from the shape of `output` so the UI still updates.
     func mergeExpertApply(
         workflowType: ExpertWorkflowType,
         output: JSONValue,
@@ -221,21 +223,25 @@ final class OptimizedResumeViewModel {
     ) {
         guard applyResult.success != false else { return }
 
+        let hasFields = !applyResult.updatedFields.isEmpty
+
         switch workflowType {
         case .fullResumeRewrite:
-            guard applyResult.updatedFields.contains("entire_resume") else { return }
-            guard case .object(let root) = output, let rewritten = root["rewritten_resume"] else { return }
+            guard !hasFields || applyResult.updatedFields.contains("entire_resume") else { return }
+            guard case .object(let root) = output else { return }
+            let rewritten = root["rewritten_resume"] ?? root["resume"]
+            guard let rewritten else { return }
             if let rebuilt = ExpertResumeSectionMapping.sections(fromRewrittenResume: rewritten) {
                 sections = rebuilt
             }
         case .achievementQuantifier:
-            guard applyResult.updatedFields.contains(where: { $0.contains("experience") }) else { return }
+            guard !hasFields || applyResult.updatedFields.contains(where: { $0.contains("experience") }) else { return }
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
         case .professionalSummaryLab:
-            guard applyResult.updatedFields.contains("summary") else { return }
+            guard !hasFields || applyResult.updatedFields.contains("summary") else { return }
             ExpertResumeSectionMapping.patchSummaryLab(into: &sections, output: output)
         case .atsOptimizationReport:
-            guard applyResult.updatedFields.contains(where: { $0.lowercased().contains("skills") }) else {
+            guard !hasFields || applyResult.updatedFields.contains(where: { $0.lowercased().contains("skills") }) else {
                 return
             }
             ExpertResumeSectionMapping.patchSkillsFromAtsReport(into: &sections, output: output)

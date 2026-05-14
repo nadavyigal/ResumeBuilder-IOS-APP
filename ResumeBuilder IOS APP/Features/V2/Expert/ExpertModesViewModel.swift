@@ -80,7 +80,13 @@ final class ExpertModesViewModel {
         applyingWorkflow = type
         defer { applyingWorkflow = nil }
         do {
-            let dto = try await service.apply(runId: state.runId, workflowType: type, token: token)
+            let dto = try await service.apply(
+                runId: state.runId,
+                workflowType: type,
+                token: token,
+                selectionIndex: (type == .professionalSummaryLab || type == .coverLetterArchitect) ? 0 : nil,
+                screeningSelectedIndices: (type == .screeningAnswerStudio) ? [0] : nil
+            )
             if let resumeViewModel {
                 await resumeViewModel.forceReloadSections(appState: appState)
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)

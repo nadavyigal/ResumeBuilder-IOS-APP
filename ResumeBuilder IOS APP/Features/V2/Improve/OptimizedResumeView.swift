@@ -75,6 +75,9 @@ struct OptimizedResumeView: View {
         .scrollIndicators(.hidden)
         .task {
             await viewModel.loadSections(appState: appState)
+            if let optId = viewModel.optimizationIdentifier, designVM == nil {
+                designVM = DesignViewModel(optimizationId: optId)
+            }
         }
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Optimized Resume")
@@ -177,7 +180,12 @@ struct OptimizedResumeView: View {
         }
         .navigationDestination(isPresented: $showPreviewSheet) {
             if let optId = viewModel.optimizationIdentifier {
-                ResumePreviewWebView(optimizationId: optId, sections: viewModel.sections)
+                ResumePreviewWebView(
+                    optimizationId: optId,
+                    sections: viewModel.sections,
+                    templateId: designVM?.selectedTemplateId,
+                    customization: designVM?.customization
+                )
             } else {
                 Text("Preview not available.")
                     .foregroundStyle(AppColors.textSecondary)
