@@ -5,6 +5,7 @@ struct ApplicationDetailView: View {
     @Environment(AppState.self) private var appState
     @State private var vm: ApplicationDetailViewModel
     @State private var showAttachPicker = false
+    @State private var expertVM: ExpertModesViewModel? = nil
 
     private var token: String? { appState.session?.accessToken }
 
@@ -43,7 +44,11 @@ struct ApplicationDetailView: View {
 
                     if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         NavigationLink {
-                            ExpertModesView(optimizationId: oid, resumeViewModel: nil)
+                            if let evm = expertVM {
+                                ExpertModesView(vm: evm)
+                            } else {
+                                ProgressView("Loading expert analysis…")
+                            }
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Expert Analysis")
@@ -108,6 +113,9 @@ struct ApplicationDetailView: View {
             }
         }
         .task {
+            if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, expertVM == nil {
+                expertVM = ExpertModesViewModel(optimizationId: oid, resumeViewModel: nil)
+            }
             await vm.refresh(token: token)
         }
         .refreshable {

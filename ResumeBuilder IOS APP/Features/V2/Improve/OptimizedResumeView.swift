@@ -25,6 +25,7 @@ struct OptimizedResumeView: View {
     // Phase 6 — design sheet
     @State private var showDesignSheet = false
     @State private var designVM: DesignViewModel? = nil
+    @State private var expertVM: ExpertModesViewModel? = nil
 
     var body: some View {
         ScrollView {
@@ -77,6 +78,12 @@ struct OptimizedResumeView: View {
             await viewModel.loadSections(appState: appState)
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
+            }
+            if let optId = viewModel.optimizationIdentifier, expertVM == nil {
+                expertVM = ExpertModesViewModel(
+                    optimizationId: optId,
+                    resumeViewModel: viewModel
+                )
             }
         }
         .screenBackground(showRadialGlow: false)
@@ -163,10 +170,16 @@ struct OptimizedResumeView: View {
             ChatView(resumeViewModel: viewModel)
         }
         .navigationDestination(isPresented: $navigateToExpert) {
-            ExpertModesView(
-                optimizationId: viewModel.optimizationIdentifier ?? "",
-                resumeViewModel: viewModel
-            )
+            if let vm = expertVM {
+                ExpertModesView(vm: vm)
+            } else {
+                ContentUnavailableView(
+                    "Expert analysis unavailable",
+                    systemImage: "rectangle.stack.badge.person.crop",
+                    description: Text("Return after running Optimize to unlock expert workflows.")
+                )
+                .foregroundStyle(AppColors.textSecondary)
+            }
         }
         .navigationDestination(isPresented: $navigateToModifications) {
             if let optId = viewModel.optimizationIdentifier {

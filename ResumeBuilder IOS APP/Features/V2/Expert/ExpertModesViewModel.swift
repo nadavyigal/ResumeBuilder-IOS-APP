@@ -28,7 +28,7 @@ final class ExpertModesViewModel {
     private(set) var applyingWorkflow: ExpertWorkflowType?
     private(set) var toastMessage: String?
 
-    private let optimizationId: String
+    private(set) var optimizationId: String
     /// When `nil` (e.g. opened from **Track**), apply still runs on the server but local resume sections are not merged.
     private let resumeViewModel: OptimizedResumeViewModel?
     private let service: ExpertWorkflowService
