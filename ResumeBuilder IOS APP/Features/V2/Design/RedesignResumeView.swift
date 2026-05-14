@@ -154,6 +154,8 @@ struct RedesignResumeView: View {
                 ForEach(viewModel.templates) { template in
                     TemplateThumbnail(
                         name: template.name,
+                        category: template.category,
+                        thumbnailURL: template.thumbnailURL.flatMap(URL.init),
                         isSelected: viewModel.selectedTemplateId == template.id,
                         isPremium: template.isPremium
                     )
