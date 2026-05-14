@@ -213,9 +213,8 @@ final class OptimizedResumeViewModel {
         activeSectionId = nil
     }
 
-    /// Mirrors optimistic updates after `/api/v1/expert-workflows/runs/:id/apply`, which does not return `rewrite_data`.
-    /// When `updatedFields` is populated, uses the server-authoritative list. When empty, infers
-    /// affected sections from the shape of `output` so the UI still updates.
+    /// Mirrors optimistic updates after `/api/v1/expert-workflows/runs/:id/apply`.
+    /// Always merges when the apply call succeeded — the output JSON shape is the signal.
     func mergeExpertApply(
         workflowType: ExpertWorkflowType,
         output: JSONValue,
@@ -223,11 +222,8 @@ final class OptimizedResumeViewModel {
     ) {
         guard applyResult.success != false else { return }
 
-        let hasFields = !applyResult.updatedFields.isEmpty
-
         switch workflowType {
         case .fullResumeRewrite:
-            guard !hasFields || applyResult.updatedFields.contains("entire_resume") else { return }
             guard case .object(let root) = output else { return }
             let rewritten = root["rewritten_resume"] ?? root["resume"]
             guard let rewritten else { return }
@@ -235,15 +231,10 @@ final class OptimizedResumeViewModel {
                 sections = rebuilt
             }
         case .achievementQuantifier:
-            guard !hasFields || applyResult.updatedFields.contains(where: { $0.contains("experience") }) else { return }
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
         case .professionalSummaryLab:
-            guard !hasFields || applyResult.updatedFields.contains("summary") else { return }
             ExpertResumeSectionMapping.patchSummaryLab(into: &sections, output: output)
         case .atsOptimizationReport:
-            guard !hasFields || applyResult.updatedFields.contains(where: { $0.lowercased().contains("skills") }) else {
-                return
-            }
             ExpertResumeSectionMapping.patchSkillsFromAtsReport(into: &sections, output: output)
         case .coverLetterArchitect, .screeningAnswerStudio:
             break
