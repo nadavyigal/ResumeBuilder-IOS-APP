@@ -96,6 +96,6 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         let response: ApplyResponse = try await apiClient.postJSON(
             endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
         )
-        return response.success != false || response.customization != nil
+        return response.success == true || response.customization != nil
     }
 }
