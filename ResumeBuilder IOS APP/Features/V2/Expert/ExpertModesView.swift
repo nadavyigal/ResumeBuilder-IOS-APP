@@ -2,25 +2,12 @@ import SwiftUI
 
 struct ExpertModesView: View {
     @Environment(AppState.self) private var appState
-    @State private var vm: ExpertModesViewModel
-
-    private let optimizationId: String
+    @Bindable var vm: ExpertModesViewModel
 
     private var token: String? { appState.session?.accessToken }
 
-    /// Pass `resumeViewModel` when opened from Optimize so **Apply** can merge sections locally; omit for Track-only flows.
-    init(optimizationId: String, resumeViewModel: OptimizedResumeViewModel? = nil) {
-        self.optimizationId = optimizationId
-        _vm = State(
-            wrappedValue: ExpertModesViewModel(
-                optimizationId: optimizationId,
-                resumeViewModel: resumeViewModel
-            )
-        )
-    }
-
     private var optimizationReady: Bool {
-        !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !vm.optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -169,15 +156,16 @@ private struct ExpertModeTile: View {
 }
 
 #Preview {
-    NavigationStack {
-        ExpertModesView(
+    let vm = ExpertModesViewModel(
+        optimizationId: "opt-prev",
+        resumeViewModel: OptimizedResumeViewModel(
             optimizationId: "opt-prev",
-            resumeViewModel: OptimizedResumeViewModel(
-                optimizationId: "opt-prev",
-                sections: [],
-                optimizationService: MockResumeOptimizationService()
-            )
+            sections: [],
+            optimizationService: MockResumeOptimizationService()
         )
+    )
+    NavigationStack {
+        ExpertModesView(vm: vm)
     }
     .environment(AppState())
 }
