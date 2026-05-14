@@ -191,13 +191,10 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .navigationDestination(isPresented: $showDesignSheet) {
+        .sheet(isPresented: $showDesignSheet) {
             if let vm = designVM {
                 OptimizationDesignSheet(isPresented: $showDesignSheet, designVM: vm)
                     .environment(appState)
-            } else {
-                Text("Design not available.")
-                    .foregroundStyle(AppColors.textSecondary)
             }
         }
     }
