@@ -1,26 +1,23 @@
 # Current Task
 
-**Objective:** Dev Story 1 — Fix Preview Rendering (Issues 1, 2, 3)
+**Objective:** Dev Story 3 — Fix Expert Apply Ordering (Issue 4)
 **Status:** Done
 **Spec:** `docs/specs/drafts/core-output-quality-spec.md`
 
 ## Plan
-Two surgical fixes:
-1. `ResumePreviewWebView`: pass `resumeData: nil` instead of calling `resumeDataForPreview()`, delete the two dead helpers
-2. `ResumeDesignService.applyCustomization`: change `!= false` → `== true` to avoid treating `nil` as success
+Swap `mergeExpertApply` and `forceReloadSections` ordering in `ExpertModesViewModel.apply`.
+- Call `mergeExpertApply` first (immediate optimistic update visible to user)
+- Fire `forceReloadSections` in a background `Task` (non-blocking server sync)
 
 ## Checklist
-- [x] `resumeData: resumeDataForPreview()` → `resumeData: nil` in `renderPreview()`
-- [x] Delete `resumeDataForPreview()` method (lines 136–168)
-- [x] Delete `nonEmptyLines(in:)` helper (lines 170–175)
-- [x] `response.success != false` → `response.success == true` in `applyCustomization`
+- [x] Swap order: `mergeExpertApply` before `forceReloadSections` in `apply(_:token:appState:)`
+- [x] Wrap `forceReloadSections` in `Task { }` so it does not block the apply call
 - [x] Xcode build passes (no errors)
-- [x] All tests pass
 
 ## Validation
 - [x] Xcode build passes (** BUILD SUCCEEDED **)
-- [x] All tests pass (14 tests, 0 failures)
 - [ ] Simulator smoke test — **TODO: manual test**
-  - Preview shows user's real name and title
-  - Experience entries show job titles, companies, dates
-  - PDF download matches preview HTML
+  - Tap Apply on Summary Lab → Professional Summary updates immediately in OptimizedResumeView
+  - Tap Apply on Full Resume Rewrite → all section bodies update immediately
+  - Tap Apply on Achievement Quantifier → Experience bullets update immediately
+  - Cover Letter apply shows saved toast (no section change expected)

@@ -88,8 +88,10 @@ final class ExpertModesViewModel {
                 screeningSelectedIndices: (type == .screeningAnswerStudio) ? [0] : nil
             )
             if let resumeViewModel {
-                await resumeViewModel.forceReloadSections(appState: appState)
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
+                Task {
+                    await resumeViewModel.forceReloadSections(appState: appState)
+                }
             }
 
             let touchedResume = dto.updatedFields.contains(where: {
