@@ -3,29 +3,29 @@ import SwiftUI
 // MARK: - Tab Definition
 
 enum ResumlyTab: Int, CaseIterable {
-    case score = 0
-    case tailor = 1
-    case design = 2
-    case track = 3
-    case profile = 4
+    case tailor    = 0
+    case optimized = 1
+    case design    = 2
+    case expert    = 3
+    case me        = 4
 
     var icon: String {
         switch self {
-        case .score:   return "gauge.medium"
-        case .tailor:  return "wand.and.stars"
-        case .design:  return "paintbrush.fill"
-        case .track:   return "tray.full"
-        case .profile: return "person.crop.circle"
+        case .tailor:    return "wand.and.stars"
+        case .optimized: return "doc.richtext.fill"
+        case .design:    return "paintbrush.fill"
+        case .expert:    return "rectangle.stack.badge.person.crop"
+        case .me:        return "person.crop.circle"
         }
     }
 
     var label: String {
         switch self {
-        case .score:   return "Score"
-        case .tailor:  return "Tailor"
-        case .design:  return "Design"
-        case .track:   return "Track"
-        case .profile: return "Me"
+        case .tailor:    return "Tailor"
+        case .optimized: return "Optimized"
+        case .design:    return "Design"
+        case .expert:    return "Expert"
+        case .me:        return "Me"
         }
     }
 }
