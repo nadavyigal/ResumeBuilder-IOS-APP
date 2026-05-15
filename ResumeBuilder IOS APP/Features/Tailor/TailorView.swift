@@ -12,10 +12,17 @@ enum TailorDestination: Hashable {
 struct TailorView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: TailorViewModel
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
+
     @State private var isImporterPresented = false
     @State private var navigateTo: TailorDestination?
     @State private var appeared = false
     @State private var shouldNavigate = false
+    @State private var showOnboarding = false
+    @State private var showLibraryPicker = false
+    @State private var showSavePrompt = false
+    @State private var saveDisplayName = ""
+    @State private var libraryViewModel = ResumeLibraryViewModel()
 
     var body: some View {
         NavigationStack {
@@ -52,25 +59,24 @@ struct TailorView: View {
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 16)
 
-                            if viewModel.selectedResumeName == nil,
-                               let cached = viewModel.cachedResumeName {
+                            if viewModel.selectedResumeName == nil && appState.isAuthenticated {
                                 Button {
-                                    viewModel.useCachedResume()
+                                    if let token = appState.session?.accessToken {
+                                        Task { await libraryViewModel.load(token: token) }
+                                    }
+                                    showLibraryPicker = true
                                 } label: {
                                     HStack(spacing: 10) {
-                                        Image(systemName: "arrow.counterclockwise.circle.fill")
+                                        Image(systemName: "books.vertical.fill")
                                             .font(.system(size: 15, weight: .semibold))
                                             .foregroundStyle(Theme.accentBlue)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Use saved resume")
-                                                .font(.subheadline.weight(.medium))
-                                                .foregroundStyle(Theme.textPrimary)
-                                            Text(cached)
-                                                .font(.caption)
-                                                .foregroundStyle(Theme.textTertiary)
-                                                .lineLimit(1)
-                                        }
+                                        Text("Use a saved resume")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Theme.textPrimary)
                                         Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(Theme.textTertiary)
                                     }
                                     .padding(12)
                                     .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -108,19 +114,35 @@ struct TailorView: View {
                             errorBanner(error)
                         }
 
-                        // Hidden nav destinations - always present, conditionally activated
+                        // Free ATS result (unauth path)
+                        if let atsResult = viewModel.atsResult {
+                            ScoreResultView(result: atsResult, isAuthenticated: false)
+                                .transition(.scale(scale: 0.95).combined(with: .opacity))
+
+                            Button {
+                                showOnboarding = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "wand.and.stars")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("Sign in to Optimize")
+                                        .fontWeight(.bold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .foregroundStyle(.white)
+                                .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        // Hidden nav — only for review flow (direct optimization now switches tabs)
                         NavigationLink(
                             destination: Group {
                                 if let reviewId = viewModel.reviewId {
                                     OptimizationReviewView(
                                         viewModel: OptimizationReviewViewModel(reviewId: reviewId)
                                     )
-                                } else if let optimizationId = viewModel.optimizationId {
-                                    OptimizedResumeView(
-                                        viewModel: OptimizedResumeViewModel(optimizationId: optimizationId)
-                                    )
-                                } else {
-                                    EmptyView()
                                 }
                             },
                             isActive: $shouldNavigate
@@ -139,6 +161,46 @@ struct TailorView: View {
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
                 withAnimation(.easeOut(duration: 0.55)) { appeared = true }
+            }
+            .sheet(isPresented: $showOnboarding) {
+                NavigationStack {
+                    OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
+            }
+            .sheet(isPresented: $showLibraryPicker) {
+                SavedResumePickerSheet(
+                    libraryViewModel: libraryViewModel,
+                    onSelect: { localURL, displayName in
+                        viewModel.useLibraryResume(localURL: localURL, displayName: displayName)
+                        showLibraryPicker = false
+                    }
+                )
+                .environment(appState)
+            }
+            .confirmationDialog(
+                "Save this resume?",
+                isPresented: $showSavePrompt,
+                titleVisibility: .visible
+            ) {
+                Button("Save") {
+                    if let id = viewModel.pendingSaveResumeId,
+                       let token = appState.session?.accessToken {
+                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? "My Resume") : saveDisplayName
+                        Task { await libraryViewModel.save(id: id, displayName: name, token: token) }
+                    }
+                    viewModel.pendingSaveResumeId = nil
+                }
+                Button("Not now", role: .cancel) {
+                    viewModel.pendingSaveResumeId = nil
+                }
+            } message: {
+                Text("Save to reuse on other jobs without re-uploading.")
+            }
+            .onChange(of: viewModel.pendingSaveResumeId) { newId in
+                if newId != nil {
+                    saveDisplayName = viewModel.selectedResumeName ?? ""
+                    showSavePrompt = true
+                }
             }
             .fileImporter(
                 isPresented: $isImporterPresented,
@@ -417,27 +479,27 @@ struct TailorView: View {
 
             Button {
                 Task {
-                    print("🔍 Starting optimization...")
-                    await viewModel.optimize(appState: appState)
-                    
-                    print("🔍 After optimize - reviewId: \(viewModel.reviewId ?? "nil")")
-                    print("🔍 After optimize - optimizationId: \(viewModel.optimizationId ?? "nil")")
-                    
-                    if viewModel.reviewId != nil || viewModel.optimizationId != nil {
-                        print("🔍 Setting shouldNavigate to true")
-                        shouldNavigate = true
-                        print("🔍 shouldNavigate is now: \(shouldNavigate)")
+                    if appState.isAuthenticated {
+                        await viewModel.optimize(appState: appState)
+                        if let optId = viewModel.optimizationId, !optId.isEmpty {
+                            appState.latestOptimizationId = optId
+                            onSwitchTab(.optimized)
+                        } else if viewModel.reviewId != nil {
+                            shouldNavigate = true
+                        }
+                    } else {
+                        await viewModel.runFreeATS(appState: appState)
                     }
                 }
             } label: {
                 Group {
-                    if viewModel.isOptimizing {
+                    if viewModel.isOptimizing || viewModel.isRunningFreeATS {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: "wand.and.stars")
+                            Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Optimize Resume" : "Sign in to Optimize")
+                            Text(appState.isAuthenticated ? "Optimize Resume" : "Run Free ATS Check")
                                 .fontWeight(.bold)
                         }
                     }
@@ -456,7 +518,7 @@ struct TailorView: View {
                     radius: 10, y: 5
                 )
             }
-            .disabled(!canOptimize || viewModel.isOptimizing)
+            .disabled(!canOptimize || viewModel.isOptimizing || viewModel.isRunningFreeATS)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             .animation(.easeInOut(duration: 0.2), value: canOptimize)

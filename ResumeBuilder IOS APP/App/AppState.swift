@@ -10,6 +10,12 @@ final class AppState {
     var creditsBalance: Int = 0
     var hasBootstrappedSession = false
 
+    private let latestOptimizationKey = "latest_optimization_id"
+
+    var latestOptimizationId: String? {
+        didSet { UserDefaults.standard.set(latestOptimizationId, forKey: latestOptimizationKey) }
+    }
+
     let apiClient = APIClient()
     private let anonymousSessionKey = "anonymous_ats_session_id"
 
@@ -20,6 +26,7 @@ final class AppState {
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
+        latestOptimizationId = UserDefaults.standard.string(forKey: latestOptimizationKey)
     }
 
     func bootstrapAndRefreshSession() async {
@@ -38,6 +45,7 @@ final class AppState {
         AuthService.shared.clearSession()
         session = nil
         creditsBalance = 0
+        latestOptimizationId = nil
     }
 
     func setSession(_ session: AuthSession) async {

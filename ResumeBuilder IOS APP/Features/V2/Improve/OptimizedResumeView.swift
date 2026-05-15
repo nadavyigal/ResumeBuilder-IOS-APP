@@ -4,28 +4,24 @@ import UIKit
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: OptimizedResumeViewModel
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
-    /// ATS headline percent for export “share score” copy (from Improve analysis).
+    /// ATS headline percent for export "share score" copy (from Improve analysis).
     var atsScorePercent: Int? = nil
 
     @State private var showRefineSheet = false
     @State private var refineInstruction = ""
     @State private var editingSectionId: String? = nil
-    @State private var navigateToChat = false
-    @State private var navigateToExpert = false
     @State private var navigateToModifications = false
-    @State private var showPreviewSheet = false
 
-    // Phase 4 — download & copy
+    // Download & copy
     @State private var isDownloadingPDF = false
     @State private var pdfTempURL: URL? = nil
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
 
-    // Phase 6 — design sheet
-    @State private var showDesignSheet = false
+    // Design VM for preview fidelity (passes current template + customization to preview)
     @State private var designVM: DesignViewModel? = nil
-    @State private var expertVM: ExpertModesViewModel? = nil
 
     var body: some View {
         ScrollView {
@@ -37,30 +33,22 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
-                // Header badge
-                headerBadge
-                    .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
-                    .padding(.horizontal, AppSpacing.lg)
-
-                // Section cards (or loading placeholder while fetching)
+                // Inline resume preview — the main content
                 if viewModel.isLoadingSections {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
                         .padding(.top, AppSpacing.xl)
-                } else {
-                    ForEach(viewModel.sections) { section in
-                        ResumeSectionCard(
-                            icon: section.type.icon,
-                            title: section.type.displayName,
-                            content: section.body,
-                            status: section.sectionStatus
-                        ) {
-                            editingSectionId = section.id
-                            refineInstruction = ""
-                            showRefineSheet = true
-                        }
-                        .padding(.horizontal, AppSpacing.lg)
-                    }
+                } else if let optId = viewModel.optimizationIdentifier {
+                    ResumePreviewWebView(
+                        optimizationId: optId,
+                        sections: viewModel.sections,
+                        templateId: designVM?.selectedTemplateId,
+                        customization: designVM?.customization
+                    )
+                    .aspectRatio(8.5 / 11, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
+                    .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
+                    .padding(.horizontal, AppSpacing.lg)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -78,12 +66,6 @@ struct OptimizedResumeView: View {
             await viewModel.loadSections(appState: appState)
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
-            }
-            if let optId = viewModel.optimizationIdentifier, expertVM == nil {
-                expertVM = ExpertModesViewModel(
-                    optimizationId: optId,
-                    resumeViewModel: viewModel
-                )
             }
         }
         .screenBackground(showRadialGlow: false)
@@ -166,21 +148,6 @@ struct OptimizedResumeView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showCopyConfirmation)
-        .navigationDestination(isPresented: $navigateToChat) {
-            ChatView(resumeViewModel: viewModel)
-        }
-        .navigationDestination(isPresented: $navigateToExpert) {
-            if let vm = expertVM {
-                ExpertModesView(vm: vm)
-            } else {
-                ContentUnavailableView(
-                    "Expert analysis unavailable",
-                    systemImage: "rectangle.stack.badge.person.crop",
-                    description: Text("Return after running Optimize to unlock expert workflows.")
-                )
-                .foregroundStyle(AppColors.textSecondary)
-            }
-        }
         .navigationDestination(isPresented: $navigateToModifications) {
             if let optId = viewModel.optimizationIdentifier {
                 ModificationHistoryView(
@@ -191,32 +158,12 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
-        .navigationDestination(isPresented: $showPreviewSheet) {
-            if let optId = viewModel.optimizationIdentifier {
-                ResumePreviewWebView(
-                    optimizationId: optId,
-                    sections: viewModel.sections,
-                    templateId: designVM?.selectedTemplateId,
-                    customization: designVM?.customization
-                )
-            } else {
-                Text("Preview not available.")
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-        }
-        .sheet(isPresented: $showDesignSheet) {
-            if let vm = designVM {
-                OptimizationDesignSheet(isPresented: $showDesignSheet, designVM: vm)
-                    .environment(appState)
-            }
-        }
     }
 
-    // MARK: - Subviews
+    // MARK: - ATS score card (unchanged)
 
     private var atsScoreCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Job context row
             if let title = viewModel.jobTitle {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "briefcase.fill")
@@ -232,8 +179,6 @@ struct OptimizedResumeView: View {
                     }
                 }
             }
-
-            // ATS before → after row
             HStack(spacing: AppSpacing.lg) {
                 if let before = viewModel.atsScoreBefore {
                     VStack(spacing: 2) {
@@ -270,53 +215,26 @@ struct OptimizedResumeView: View {
         .glassCard(cornerRadius: AppRadii.lg)
     }
 
-    private var headerBadge: some View {
-        HStack(spacing: AppSpacing.md) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(AppColors.accentViolet)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("AI Optimized")
-                    .font(.appSubheadline)
-                    .foregroundStyle(AppColors.textPrimary)
-                Text("Tap any section to refine with custom instructions")
-                    .font(.appCaption)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-
-            Spacer()
-        }
-        .padding(AppSpacing.lg)
-        .glassCard(cornerRadius: AppRadii.lg)
-    }
+    // MARK: - New bottom bar
 
     private var bottomBar: some View {
         VStack(spacing: AppSpacing.sm) {
             GradientButton(
-                title: "Chat with AI",
-                icon: "bubble.left.and.bubble.right.fill"
+                title: "Refine Resume",
+                icon: "wand.and.stars",
+                isLoading: viewModel.isRefining
             ) {
-                navigateToChat = true
+                editingSectionId = heuristicSectionId
+                refineInstruction = ""
+                showRefineSheet = true
             }
-            .disabled(viewModel.optimizationIdentifier == nil)
-
-            Button {
-                navigateToExpert = true
-            } label: {
-                Label("Expert Analysis", systemImage: "rectangle.stack.badge.person.crop")
-                    .font(.appSubheadline)
-                    .foregroundStyle(AppColors.textPrimary)
-                    .frame(maxWidth: .infinity, minHeight: 50)
-                    .glassCard(cornerRadius: AppRadii.md)
-            }
-            .buttonStyle(GradientButtonStyle())
-            .disabled(viewModel.optimizationIdentifier == nil)
+            .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
 
             HStack(spacing: AppSpacing.md) {
                 Button {
-                    showPreviewSheet = true
+                    onSwitchTab(.expert)
                 } label: {
-                    Label("Preview", systemImage: "doc.richtext")
+                    Label("Send to Expert", systemImage: "rectangle.stack.badge.person.crop")
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -326,13 +244,9 @@ struct OptimizedResumeView: View {
                 .disabled(viewModel.optimizationIdentifier == nil)
 
                 Button {
-                    if let optId = viewModel.optimizationIdentifier,
-                       designVM?.optimizationId != optId {
-                        designVM = DesignViewModel(optimizationId: optId)
-                    }
-                    showDesignSheet = true
+                    onSwitchTab(.design)
                 } label: {
-                    Label("Design", systemImage: "paintbrush")
+                    Label("Open Design", systemImage: "paintbrush")
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -344,6 +258,15 @@ struct OptimizedResumeView: View {
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.8))
+    }
+
+    // MARK: - Refine sheet
+
+    /// Picks the best target section for a whole-resume refine.
+    private var heuristicSectionId: String? {
+        viewModel.sections.first(where: { $0.type == .summary })?.id
+            ?? viewModel.sections.first(where: { $0.type == .experience })?.id
+            ?? viewModel.sections.first?.id
     }
 
     @ViewBuilder
@@ -400,7 +323,7 @@ struct OptimizedResumeView: View {
 
                 if viewModel.pendingRefine == nil {
                     GradientButton(
-                        title: "Refine Section",
+                        title: "Refine Resume",
                         icon: "wand.and.stars",
                         isLoading: viewModel.isRefining
                     ) {
@@ -416,7 +339,7 @@ struct OptimizedResumeView: View {
             }
             .padding(AppSpacing.lg)
             .screenBackground(showRadialGlow: false)
-            .navigationTitle("Edit Section")
+            .navigationTitle("Refine Resume")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

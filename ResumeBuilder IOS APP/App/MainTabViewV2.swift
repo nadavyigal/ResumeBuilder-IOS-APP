@@ -1,41 +1,38 @@
 import SwiftUI
 
 struct MainTabViewV2: View {
-    @State private var selectedTab: ResumlyTab = .score
+    @State private var selectedTab: ResumlyTab = .tailor
 
-    // Stable VM instances — created once and never recreated on re-render.
-    // This prevents duplicate network fetches and preserves in-flight async state.
-    @State private var scoreViewModel = ScoreViewModel()
+    // Stable VM instances — created once, survive tab switches.
     @State private var tailorViewModel = TailorViewModel()
     @State private var designViewModel = DesignViewModel(optimizationId: nil)
-    @State private var applicationsViewModel = ApplicationsViewModel()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             // Keep tabs alive to preserve form fields and in-flight async state.
             Group {
-                ScoreView(viewModel: scoreViewModel)
-                    .opacity(selectedTab == .score ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .score)
-
-                TailorView(viewModel: tailorViewModel)
+                TailorView(viewModel: tailorViewModel, onSwitchTab: switchTab)
                     .opacity(selectedTab == .tailor ? 1 : 0)
                     .allowsHitTesting(selectedTab == .tailor)
 
+                OptimizedResumeTabView(onSwitchTab: switchTab)
+                    .opacity(selectedTab == .optimized ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .optimized)
+
                 RedesignResumeView(
                     viewModel: designViewModel,
-                    onPreview: { selectedTab = .profile }
+                    onPreview: { selectedTab = .optimized }
                 )
                 .opacity(selectedTab == .design ? 1 : 0)
                 .allowsHitTesting(selectedTab == .design)
 
-                ApplicationsListView(viewModel: applicationsViewModel)
-                    .opacity(selectedTab == .track ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .track)
+                ExpertTabView(onSwitchTab: switchTab)
+                    .opacity(selectedTab == .expert ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .expert)
 
                 ProfileView()
-                    .opacity(selectedTab == .profile ? 1 : 0)
-                    .allowsHitTesting(selectedTab == .profile)
+                    .opacity(selectedTab == .me ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .me)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -43,6 +40,12 @@ struct MainTabViewV2: View {
         }
         .ignoresSafeArea(edges: .bottom)
         .tint(Theme.accent)
+    }
+
+    private func switchTab(_ tab: ResumlyTab) {
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+            selectedTab = tab
+        }
     }
 }
 
