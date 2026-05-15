@@ -18,6 +18,10 @@ final class TailorViewModel {
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
 
+    /// Set when an unauthenticated free ATS check completes.
+    var atsResult: ATSScoreResult?
+    var isRunningFreeATS = false
+
     // Shared with ScanViewModel so a pick from either tab is visible in both.
     private static let filenameKey = "savedResumeFilename"
     private static let pathKey     = "savedResumeLocalPath"
@@ -143,6 +147,35 @@ final class TailorViewModel {
             } else {
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
             }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func runFreeATS(appState: AppState) async {
+        guard let selectedResumeURL else {
+            errorMessage = "Choose a PDF resume first."
+            return
+        }
+        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
+            errorMessage = "Paste a job description or add a job link."
+            return
+        }
+        isRunningFreeATS = true
+        errorMessage = nil
+        atsResult = nil
+        defer { isRunningFreeATS = false }
+        do {
+            let response = try await apiClient.runPublicATSCheck(
+                resumeURL: selectedResumeURL,
+                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                sessionId: appState.anonymousATSSessionId
+            )
+            atsResult = response
+            appState.storeAnonymousATSSessionId(response.sessionId)
         } catch {
             errorMessage = error.localizedDescription
         }

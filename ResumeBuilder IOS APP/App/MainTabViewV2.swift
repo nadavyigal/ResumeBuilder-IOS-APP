@@ -11,7 +11,7 @@ struct MainTabViewV2: View {
         ZStack(alignment: .bottom) {
             // Keep tabs alive to preserve form fields and in-flight async state.
             Group {
-                TailorView(viewModel: tailorViewModel)
+                TailorView(viewModel: tailorViewModel, onSwitchTab: switchTab)
                     .opacity(selectedTab == .tailor ? 1 : 0)
                     .allowsHitTesting(selectedTab == .tailor)
 

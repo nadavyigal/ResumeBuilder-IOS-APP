@@ -12,10 +12,13 @@ enum TailorDestination: Hashable {
 struct TailorView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: TailorViewModel
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
+
     @State private var isImporterPresented = false
     @State private var navigateTo: TailorDestination?
     @State private var appeared = false
     @State private var shouldNavigate = false
+    @State private var showOnboarding = false
 
     var body: some View {
         NavigationStack {
@@ -108,19 +111,35 @@ struct TailorView: View {
                             errorBanner(error)
                         }
 
-                        // Hidden nav destinations - always present, conditionally activated
+                        // Free ATS result (unauth path)
+                        if let atsResult = viewModel.atsResult {
+                            ScoreResultView(result: atsResult, isAuthenticated: false)
+                                .transition(.scale(scale: 0.95).combined(with: .opacity))
+
+                            Button {
+                                showOnboarding = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "wand.and.stars")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("Sign in to Optimize")
+                                        .fontWeight(.bold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .foregroundStyle(.white)
+                                .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        // Hidden nav — only for review flow (direct optimization now switches tabs)
                         NavigationLink(
                             destination: Group {
                                 if let reviewId = viewModel.reviewId {
                                     OptimizationReviewView(
                                         viewModel: OptimizationReviewViewModel(reviewId: reviewId)
                                     )
-                                } else if let optimizationId = viewModel.optimizationId {
-                                    OptimizedResumeView(
-                                        viewModel: OptimizedResumeViewModel(optimizationId: optimizationId)
-                                    )
-                                } else {
-                                    EmptyView()
                                 }
                             },
                             isActive: $shouldNavigate
@@ -139,6 +158,11 @@ struct TailorView: View {
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
                 withAnimation(.easeOut(duration: 0.55)) { appeared = true }
+            }
+            .sheet(isPresented: $showOnboarding) {
+                NavigationStack {
+                    OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
             }
             .fileImporter(
                 isPresented: $isImporterPresented,
@@ -417,27 +441,27 @@ struct TailorView: View {
 
             Button {
                 Task {
-                    print("🔍 Starting optimization...")
-                    await viewModel.optimize(appState: appState)
-                    
-                    print("🔍 After optimize - reviewId: \(viewModel.reviewId ?? "nil")")
-                    print("🔍 After optimize - optimizationId: \(viewModel.optimizationId ?? "nil")")
-                    
-                    if viewModel.reviewId != nil || viewModel.optimizationId != nil {
-                        print("🔍 Setting shouldNavigate to true")
-                        shouldNavigate = true
-                        print("🔍 shouldNavigate is now: \(shouldNavigate)")
+                    if appState.isAuthenticated {
+                        await viewModel.optimize(appState: appState)
+                        if let optId = viewModel.optimizationId, !optId.isEmpty {
+                            appState.latestOptimizationId = optId
+                            onSwitchTab(.optimized)
+                        } else if viewModel.reviewId != nil {
+                            shouldNavigate = true
+                        }
+                    } else {
+                        await viewModel.runFreeATS(appState: appState)
                     }
                 }
             } label: {
                 Group {
-                    if viewModel.isOptimizing {
+                    if viewModel.isOptimizing || viewModel.isRunningFreeATS {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: "wand.and.stars")
+                            Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Optimize Resume" : "Sign in to Optimize")
+                            Text(appState.isAuthenticated ? "Optimize Resume" : "Run Free ATS Check")
                                 .fontWeight(.bold)
                         }
                     }
@@ -456,7 +480,7 @@ struct TailorView: View {
                     radius: 10, y: 5
                 )
             }
-            .disabled(!canOptimize || viewModel.isOptimizing)
+            .disabled(!canOptimize || viewModel.isOptimizing || viewModel.isRunningFreeATS)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             .animation(.easeInOut(duration: 0.2), value: canOptimize)
