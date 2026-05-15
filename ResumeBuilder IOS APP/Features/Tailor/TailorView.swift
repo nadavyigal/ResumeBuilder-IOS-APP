@@ -19,6 +19,10 @@ struct TailorView: View {
     @State private var appeared = false
     @State private var shouldNavigate = false
     @State private var showOnboarding = false
+    @State private var showLibraryPicker = false
+    @State private var showSavePrompt = false
+    @State private var saveDisplayName = ""
+    @State private var libraryViewModel = ResumeLibraryViewModel()
 
     var body: some View {
         NavigationStack {
@@ -55,25 +59,24 @@ struct TailorView: View {
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 16)
 
-                            if viewModel.selectedResumeName == nil,
-                               let cached = viewModel.cachedResumeName {
+                            if viewModel.selectedResumeName == nil && appState.isAuthenticated {
                                 Button {
-                                    viewModel.useCachedResume()
+                                    if let token = appState.session?.accessToken {
+                                        Task { await libraryViewModel.load(token: token) }
+                                    }
+                                    showLibraryPicker = true
                                 } label: {
                                     HStack(spacing: 10) {
-                                        Image(systemName: "arrow.counterclockwise.circle.fill")
+                                        Image(systemName: "books.vertical.fill")
                                             .font(.system(size: 15, weight: .semibold))
                                             .foregroundStyle(Theme.accentBlue)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Use saved resume")
-                                                .font(.subheadline.weight(.medium))
-                                                .foregroundStyle(Theme.textPrimary)
-                                            Text(cached)
-                                                .font(.caption)
-                                                .foregroundStyle(Theme.textTertiary)
-                                                .lineLimit(1)
-                                        }
+                                        Text("Use a saved resume")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Theme.textPrimary)
                                         Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(Theme.textTertiary)
                                     }
                                     .padding(12)
                                     .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -162,6 +165,41 @@ struct TailorView: View {
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
+            }
+            .sheet(isPresented: $showLibraryPicker) {
+                SavedResumePickerSheet(
+                    libraryViewModel: libraryViewModel,
+                    onSelect: { localURL, displayName in
+                        viewModel.useLibraryResume(localURL: localURL, displayName: displayName)
+                        showLibraryPicker = false
+                    }
+                )
+                .environment(appState)
+            }
+            .confirmationDialog(
+                "Save this resume?",
+                isPresented: $showSavePrompt,
+                titleVisibility: .visible
+            ) {
+                Button("Save") {
+                    if let id = viewModel.pendingSaveResumeId,
+                       let token = appState.session?.accessToken {
+                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? "My Resume") : saveDisplayName
+                        Task { await libraryViewModel.save(id: id, displayName: name, token: token) }
+                    }
+                    viewModel.pendingSaveResumeId = nil
+                }
+                Button("Not now", role: .cancel) {
+                    viewModel.pendingSaveResumeId = nil
+                }
+            } message: {
+                Text("Save to reuse on other jobs without re-uploading.")
+            }
+            .onChange(of: viewModel.pendingSaveResumeId) { newId in
+                if newId != nil {
+                    saveDisplayName = viewModel.selectedResumeName ?? ""
+                    showSavePrompt = true
                 }
             }
             .fileImporter(

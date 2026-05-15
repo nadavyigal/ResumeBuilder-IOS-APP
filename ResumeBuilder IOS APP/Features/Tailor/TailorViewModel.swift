@@ -22,9 +22,9 @@ final class TailorViewModel {
     var atsResult: ATSScoreResult?
     var isRunningFreeATS = false
 
-    // Shared with ScanViewModel so a pick from either tab is visible in both.
-    private static let filenameKey = "savedResumeFilename"
-    private static let pathKey     = "savedResumeLocalPath"
+    /// Set after a successful upload — triggers the "Save this resume?" prompt.
+    /// Cleared after the user responds.
+    var pendingSaveResumeId: String?
 
     private let apiClient = APIClient()
     private let optimizationService: any ResumeOptimizationServiceProtocol
@@ -37,34 +37,11 @@ final class TailorViewModel {
         self.optimizationService = optimizationService
     }
 
-    /// Name of the locally cached resume, if one exists on disk.
-    var cachedResumeName: String? {
-        guard let name = UserDefaults.standard.string(forKey: Self.filenameKey),
-              let path = UserDefaults.standard.string(forKey: Self.pathKey),
-              FileManager.default.fileExists(atPath: path) else {
-            return nil
-        }
-        return name
-    }
-
-    /// Pre-fills Step 1 from the cached PDF. Returns `true` on success.
-    @discardableResult
-    func useCachedResume() -> Bool {
-        guard let name = UserDefaults.standard.string(forKey: Self.filenameKey),
-              let path = UserDefaults.standard.string(forKey: Self.pathKey),
-              FileManager.default.fileExists(atPath: path) else {
-            return false
-        }
-        selectedResumeURL = URL(fileURLWithPath: path)
-        selectedResumeName = name
-        return true
-    }
-
-    /// Saves the picked file into the sandbox cache so it can be reused next session.
+    /// Copies the picked PDF into the sandbox temp dir and sets the URL + name.
     func cachePickedFile(url: URL) {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent("cached_resume.pdf")
+        let dest = docs.appendingPathComponent("picked_resume.pdf")
 
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
@@ -72,14 +49,14 @@ final class TailorViewModel {
         try? FileManager.default.removeItem(at: dest)
         try? FileManager.default.copyItem(at: url, to: dest)
 
-        if FileManager.default.fileExists(atPath: dest.path) {
-            UserDefaults.standard.set(filename, forKey: Self.filenameKey)
-            UserDefaults.standard.set(dest.path, forKey: Self.pathKey)
-            selectedResumeURL = dest
-        } else {
-            selectedResumeURL = url
-        }
+        selectedResumeURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
         selectedResumeName = filename
+    }
+
+    /// Pre-fills Step 1 from a file URL already downloaded from the library.
+    func useLibraryResume(localURL: URL, displayName: String) {
+        selectedResumeURL = localURL
+        selectedResumeName = displayName
     }
 
     func optimize(appState: AppState) async {
@@ -118,6 +95,11 @@ final class TailorViewModel {
                 )
             }
             uploadResponse = upload
+
+            // Offer to save the uploaded resume to the library (prompt shown in TailorView).
+            if let resumeId = upload.resumeId, !resumeId.isEmpty {
+                pendingSaveResumeId = resumeId
+            }
 
             // Some backends return reviewId straight from upload — short-circuit.
             if let reviewId = upload.reviewId, !reviewId.isEmpty {

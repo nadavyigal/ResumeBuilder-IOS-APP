@@ -61,6 +61,12 @@ enum Endpoint {
     /// Fetch optimization sections + job context for a given optimization ID.
     case optimizationDetail(id: String)
 
+    /// Resume library — saved resumes (`/api/v1/resumes`).
+    case savedResumes
+    case saveResume(id: String)
+    case deleteResume(id: String)
+    case renameResume(id: String)
+
     var path: String {
         switch self {
         case .publicATSCheck:                  return "/api/public/ats-check"
@@ -124,6 +130,11 @@ enum Endpoint {
 
         case .optimizationDetail(let id):
             return "/api/v1/optimizations/\(id)"
+
+        case .savedResumes:             return "/api/v1/resumes"
+        case .saveResume(let id):       return "/api/v1/resumes/\(id)/save"
+        case .deleteResume(let id):     return "/api/v1/resumes/\(id)"
+        case .renameResume(let id):     return "/api/v1/resumes/\(id)"
         }
     }
 
