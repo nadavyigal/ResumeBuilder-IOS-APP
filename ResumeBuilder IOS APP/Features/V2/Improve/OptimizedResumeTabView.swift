@@ -1,18 +1,35 @@
 import SwiftUI
 
 /// Tab-level wrapper for the Optimized Resume screen.
+/// Builds a fresh OptimizedResumeViewModel whenever latestOptimizationId changes.
 /// Shows an empty state until an optimization exists in AppState.
-/// Story 2 replaces the placeholder body with the real preview content.
 struct OptimizedResumeTabView: View {
     @Environment(AppState.self) private var appState
     var onSwitchTab: (ResumlyTab) -> Void
 
+    @State private var optimizedVM: OptimizedResumeViewModel? = nil
+
     var body: some View {
-        if let optimizationId = appState.latestOptimizationId {
-            OptimizedResumePlaceholder(optimizationId: optimizationId, onSwitchTab: onSwitchTab)
-        } else {
-            noOptimizationView
+        Group {
+            if let vm = optimizedVM {
+                NavigationStack {
+                    OptimizedResumeView(viewModel: vm, onSwitchTab: onSwitchTab)
+                }
+            } else {
+                noOptimizationView
+            }
         }
+        .onAppear { syncVM() }
+        .onChange(of: appState.latestOptimizationId) { syncVM() }
+    }
+
+    private func syncVM() {
+        guard let id = appState.latestOptimizationId else {
+            optimizedVM = nil
+            return
+        }
+        if optimizedVM?.optimizationIdentifier == id { return }
+        optimizedVM = OptimizedResumeViewModel(optimizationId: id)
     }
 
     private var noOptimizationView: some View {
@@ -26,29 +43,6 @@ struct OptimizedResumeTabView: View {
                 .tint(Theme.accent)
         }
         .foregroundStyle(Theme.textPrimary)
-        .screenBackground(showRadialGlow: false)
-    }
-}
-
-/// Placeholder shown in Story 1 when an optimization ID is available.
-/// Replaced in Story 2 by the full resume preview.
-private struct OptimizedResumePlaceholder: View {
-    let optimizationId: String
-    var onSwitchTab: (ResumlyTab) -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "doc.richtext.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(Theme.accent)
-            Text("Optimization ready")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Theme.textPrimary)
-            Text("ID: \(optimizationId)")
-                .font(.caption)
-                .foregroundStyle(Theme.textTertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .screenBackground(showRadialGlow: false)
     }
 }
