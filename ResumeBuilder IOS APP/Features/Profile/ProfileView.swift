@@ -1,11 +1,22 @@
 import SwiftUI
 
+private struct ApplicationComparePair: Identifiable {
+    let left: ApplicationItem
+    let right: ApplicationItem
+    var id: String { "\(left.id)—\(right.id)" }
+}
+
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
     @State private var latestOptimization: OptimizationHistoryItem?
     @State private var profileMessage: String?
     @State private var appeared = false
+
+    @State private var applicationsViewModel = ApplicationsViewModel()
+    @State private var appSelectionMode = false
+    @State private var appSelectedIds = Set<String>()
+    @State private var comparePair: ApplicationComparePair?
 
     private var email: String { appState.session?.email ?? "Signed in" }
     private var initials: String {
@@ -36,6 +47,7 @@ struct ProfileView: View {
                         // ── Sections ─────────────────────────────────────────
                         VStack(spacing: 14) {
                             latestResumeSection
+                            applicationsSection
                             if BackendConfig.isMonetizationEnabled {
                                 creditsSection
                             }
@@ -53,13 +65,19 @@ struct ProfileView: View {
             }
             .navigationBarHidden(true)
             .task {
-                await loadLatestOptimization()
+                async let _ = loadLatestOptimization()
+                async let _ = applicationsViewModel.load(token: appState.session?.accessToken)
                 withAnimation(.easeOut(duration: 0.5)) { appeared = true }
             }
             .sheet(isPresented: $showPaywall) {
                 NavigationStack { PaywallView() }
                     .preferredColorScheme(.dark)
                     .tint(Theme.accent)
+            }
+            .sheet(item: $comparePair) { pair in
+                NavigationStack {
+                    ApplicationCompareView(left: pair.left, right: pair.right)
+                }
             }
         }
     }
@@ -217,6 +235,127 @@ struct ProfileView: View {
                 .padding(14)
             }
         }
+    }
+
+    // MARK: - Section: Applications
+
+    private var applicationsSection: some View {
+        ProfileSection(title: "My Applications", icon: "tray.full.fill", iconColor: Theme.accentBlue) {
+            if applicationsViewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 60)
+            } else if applicationsViewModel.applications.isEmpty {
+                HStack(spacing: 12) {
+                    Image(systemName: "tray")
+                        .font(.title3)
+                        .foregroundStyle(Theme.textTertiary)
+                    Text("Tailor a resume to start tracking applications.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .padding(14)
+            } else {
+                VStack(spacing: 0) {
+                    if appSelectionMode {
+                        HStack {
+                            Button("Cancel") {
+                                appSelectionMode = false
+                                appSelectedIds.removeAll()
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.textSecondary)
+                            Spacer()
+                            Button("Compare") {
+                                let items = applicationsViewModel.applications.filter { appSelectedIds.contains($0.id) }
+                                if items.count == 2 {
+                                    comparePair = ApplicationComparePair(left: items[0], right: items[1])
+                                }
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(appSelectedIds.count == 2 ? Theme.accent : Theme.textTertiary)
+                            .disabled(appSelectedIds.count != 2)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                    }
+
+                    ForEach(Array(applicationsViewModel.applications.enumerated()), id: \.element.id) { index, app in
+                        Group {
+                            if appSelectionMode {
+                                Button {
+                                    if appSelectedIds.contains(app.id) {
+                                        appSelectedIds.remove(app.id)
+                                    } else if appSelectedIds.count < 2 {
+                                        appSelectedIds.insert(app.id)
+                                    }
+                                } label: {
+                                    applicationRow(app, selected: appSelectedIds.contains(app.id))
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                NavigationLink {
+                                    ApplicationDetailView(application: app)
+                                } label: {
+                                    applicationRow(app, selected: false)
+                                }
+                                .buttonStyle(.plain)
+                                .simultaneousGesture(
+                                    LongPressGesture(minimumDuration: 0.55)
+                                        .onEnded { _ in
+                                            appSelectionMode = true
+                                            appSelectedIds = [app.id]
+                                        }
+                                )
+                            }
+                        }
+
+                        if index < applicationsViewModel.applications.count - 1 {
+                            Divider()
+                                .background(Color.white.opacity(0.06))
+                                .padding(.horizontal, 14)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func applicationRow(_ app: ApplicationItem, selected: Bool) -> some View {
+        HStack(spacing: 12) {
+            if appSelectionMode {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(selected ? Theme.accent : Theme.textTertiary)
+                    .font(.system(size: 18))
+            }
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Theme.accentBlue.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                Image(systemName: "briefcase.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.accentBlue)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(app.jobTitle ?? "Untitled Role")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .lineLimit(1)
+                Text(app.companyName ?? app.appliedDate ?? "—")
+                    .font(.caption)
+                    .foregroundStyle(Theme.textTertiary)
+                    .lineLimit(1)
+            }
+            Spacer()
+            if let score = app.atsScore {
+                ATSScorePill(score: score)
+            }
+            if !appSelectionMode {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.textTertiary)
+            }
+        }
+        .padding(14)
     }
 
     // MARK: - Section: Credits
