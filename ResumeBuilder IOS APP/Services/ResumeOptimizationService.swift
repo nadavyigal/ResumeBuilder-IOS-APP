@@ -32,7 +32,7 @@ struct OptimizeResponse: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success, sections, error
         case optimizationId = "optimization_id"
-        case reviewId = "reviewId"
+        case reviewId = "review_id"
     }
 
     private enum NestedCodingKeys: String, CodingKey {

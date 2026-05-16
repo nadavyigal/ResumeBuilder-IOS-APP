@@ -1352,6 +1352,14 @@ struct OptimizationDetailDTO: Decodable, Sendable {
     let company: String?
     let atsScoreBefore: Int?
     let atsScoreAfter: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case sections
+        case jobTitle       = "job_title"
+        case company
+        case atsScoreBefore = "ats_score_before"
+        case atsScoreAfter  = "ats_score_after"
+    }
 }
 
 // MARK: - Phase 6 — Modification history
