@@ -58,8 +58,6 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
               let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
-        // The backend returns raw HTML (Content-Type: text/html), not a JSON envelope.
-        // Build the request manually so we can read the raw string response.
         var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
         components.path = Endpoint.designRenderPreview.path
         guard let url = components.url else { throw APIClientError.invalidResponse }
@@ -70,10 +68,16 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (responseData, response) = try await URLSession.shared.data(for: urlRequest)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw APIClientError.invalidResponse
+            let body = String(data: responseData, encoding: .utf8) ?? ""
+            throw APIClientError.serverError(status: (response as? HTTPURLResponse)?.statusCode ?? 0, message: body)
+        }
+        // Try JSON envelope first ({ "preview_html": "..." }), fall back to treating body as raw HTML.
+        if let decoded = try? JSONDecoder().decode(RenderPreviewResponse.self, from: responseData),
+           let html = decoded.previewHTML, !html.isEmpty {
+            return decoded
         }
         let html = String(data: responseData, encoding: .utf8) ?? ""
-        return RenderPreviewResponse(success: true, previewHTML: html, error: nil)
+        return RenderPreviewResponse(success: true, previewHTML: html.isEmpty ? nil : html, error: nil)
     }
 
     func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
