@@ -122,11 +122,15 @@ final class TailorViewModel {
                 )
             }
 
+            print("🔍 [TAILOR] optimize response: reviewId=\(optimize.reviewId ?? "nil") optimizationId=\(optimize.optimizationId ?? "nil") sections=\(optimize.sections?.count ?? 0) error=\(optimize.error ?? "none")")
             if let reviewId = optimize.reviewId, !reviewId.isEmpty {
                 self.reviewId = reviewId
+                print("✅ [TAILOR] → reviewId set: \(reviewId)")
             } else if let optId = optimize.optimizationId, !optId.isEmpty {
                 self.optimizationId = optId
+                print("✅ [TAILOR] → optimizationId set: \(optId)")
             } else {
+                print("❌ [TAILOR] → no valid id in response")
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
             }
         } catch {

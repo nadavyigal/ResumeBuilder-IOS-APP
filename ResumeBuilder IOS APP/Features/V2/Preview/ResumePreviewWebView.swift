@@ -82,7 +82,9 @@ struct ResumePreviewWebView: View {
     // MARK: - Private
 
     private func renderPreview() async {
+        print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
         guard let token = appState.session?.accessToken else {
+            print("❌ [PREVIEW] no token — cannot render")
             errorMessage = "Sign in to preview your resume."
             isLoading = false
             return
@@ -98,18 +100,21 @@ struct ResumePreviewWebView: View {
                 resumeData: nil
             )
             let response = try await designService.renderPreview(request, token: token)
+            print("🎨 [PREVIEW] renderPreview response: html=\(response.previewHTML?.count ?? 0) chars error=\(response.error ?? "none")")
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
+                print("✅ [PREVIEW] using backend HTML")
                 html = previewHTML
             } else if !sections.isEmpty {
-                // Backend returned empty preview_html — build a readable preview from the
-                // sections already loaded in memory so the user always sees something.
+                print("✅ [PREVIEW] backend html empty, using ResumeHTMLBuilder fallback (sections=\(sections.count))")
                 html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
             } else {
+                print("❌ [PREVIEW] no html and no sections")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
             }
         } catch {
-            // Network/server error — fall back to client-side rendering when sections exist.
+            print("❌ [PREVIEW] renderPreview error: \(error) — sections=\(sections.count)")
             if !sections.isEmpty {
+                print("✅ [PREVIEW] falling back to ResumeHTMLBuilder")
                 html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
             } else {
                 errorMessage = error.localizedDescription
