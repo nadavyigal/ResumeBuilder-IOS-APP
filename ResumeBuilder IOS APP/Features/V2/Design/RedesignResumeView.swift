@@ -116,31 +116,48 @@ struct RedesignResumeView: View {
     }
 
     private var previewCard: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
-                .fill(Color.white.opacity(0.05))
-                .frame(height: 200)
+        Group {
+            if let optId = viewModel.optimizationId {
+                ResumePreviewWebView(
+                    optimizationId: optId,
+                    sections: [],
+                    templateId: viewModel.selectedTemplateId,
+                    customization: viewModel.customization
+                )
+                // Recreate the web view whenever template or accent changes so the
+                // preview reflects the current customization.
+                .id((viewModel.selectedTemplateId ?? "") + viewModel.customization.accentColor)
+                .frame(height: 240)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
                         .strokeBorder(AppColors.glassStroke, lineWidth: 1)
                 )
-
-            if viewModel.isLoading {
-                ProgressView().tint(AppColors.accentViolet)
             } else {
-                VStack(spacing: AppSpacing.md) {
-                    Image(systemName: "doc.richtext.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    Text(viewModel.selectedTemplate?.name ?? "Select a template")
-                        .font(.appSubheadline)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    if let desc = viewModel.selectedTemplate?.description {
-                        Text(desc)
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.textSecondary)
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
+                        .fill(Color.white.opacity(0.05))
+                        .frame(height: 200)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
+                                .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+                        )
+                    if viewModel.isLoading {
+                        ProgressView().tint(AppColors.accentViolet)
+                    } else {
+                        VStack(spacing: AppSpacing.md) {
+                            Image(systemName: "doc.richtext.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(AppColors.textSecondary)
+                            Text(viewModel.selectedTemplate?.name ?? "Optimize a resume to preview")
+                                .font(.appSubheadline)
+                                .foregroundStyle(AppColors.textPrimary)
+                            if let desc = viewModel.selectedTemplate?.description {
+                                Text(desc)
+                                    .font(.appCaption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
                     }
                 }
             }

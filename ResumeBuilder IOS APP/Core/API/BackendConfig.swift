@@ -7,6 +7,8 @@ enum BackendConfig {
     static let useMockServices = false
     /// Flip to `false` once `/api/v1/resumes` endpoints ship on the web repo.
     static let useMockLibraryService = true
+    /// Flip to `false` once `/api/v1/design/render-preview` ships on the web repo.
+    static let useMockDesignService = true
 
     // Supabase credentials — anon key is intentionally client-visible (same as NEXT_PUBLIC_*).
     // RLS policies enforce data isolation; the anon key alone grants no elevated access.

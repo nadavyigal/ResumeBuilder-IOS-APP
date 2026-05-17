@@ -169,7 +169,8 @@ struct MockResumeDesignService: ResumeDesignServiceProtocol {
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
         try await Task.sleep(for: .milliseconds(800))
-        return RenderPreviewResponse(success: true, previewHTML: "<html><body><p>Resume preview</p></body></html>", error: nil)
+        let html = MockResumeHTMLBuilder.build(accentHex: request.customization.accentColor)
+        return RenderPreviewResponse(success: true, previewHTML: html, error: nil)
     }
 
     func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
@@ -201,5 +202,93 @@ struct MockRecentExportsService: RecentExportsServiceProtocol {
             ResumeExport(id: "e1", filename: "Resume_SWE_Google.pdf", kind: .optimized, createdAt: "2026-04-30T10:00:00Z", fileURL: nil),
             ResumeExport(id: "e2", filename: "Resume_PM_Stripe.pdf", kind: .designed, createdAt: "2026-04-28T14:30:00Z", fileURL: nil),
         ]
+    }
+}
+
+// MARK: - Mock HTML builder
+
+enum MockResumeHTMLBuilder {
+    static func build(accentHex: String = "6366F1") -> String {
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Georgia, 'Times New Roman', serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.45; }
+          .name { font-size: 20pt; font-weight: bold; letter-spacing: 0.5px; color: #\(accentHex); }
+          .contact { font-size: 9pt; color: #555; margin-top: 4px; }
+          .divider { border: none; border-top: 1.5px solid #\(accentHex); margin: 14px 0 10px; }
+          h2 { font-size: 9.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accentHex); margin-bottom: 7px; }
+          p { margin-bottom: 5px; }
+          .entry { margin-bottom: 10px; }
+          .entry-header { display: flex; justify-content: space-between; }
+          .entry-title { font-weight: bold; font-size: 10pt; }
+          .entry-meta { font-size: 9pt; color: #555; margin-bottom: 3px; }
+          .entry-date { font-size: 9pt; color: #777; }
+          ul { margin-left: 17px; margin-top: 3px; }
+          li { margin-bottom: 3px; font-size: 9.5pt; }
+          .skills-grid { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+          .skill { font-size: 9.5pt; }
+        </style>
+        </head>
+        <body>
+          <div class="name">Alex Johnson</div>
+          <div class="contact">alex.johnson@email.com &nbsp;·&nbsp; (555) 123-4567 &nbsp;·&nbsp; linkedin.com/in/alexjohnson &nbsp;·&nbsp; San Francisco, CA</div>
+          <hr class="divider">
+
+          <h2>Summary</h2>
+          <p>Experienced software engineer with 8+ years building scalable distributed systems at high-growth companies. Track record of reducing infrastructure costs by 35%, leading cross-functional teams of 10+, and delivering customer-facing features that drive measurable retention. Expert in TypeScript, Go, and cloud-native architecture.</p>
+          <hr class="divider">
+
+          <h2>Experience</h2>
+          <div class="entry">
+            <div class="entry-header">
+              <span class="entry-title">Senior Software Engineer</span>
+              <span class="entry-date">Jun 2021 – Present</span>
+            </div>
+            <div class="entry-meta">Stripe · San Francisco, CA</div>
+            <ul>
+              <li>Architected real-time fraud detection pipeline processing 2M events/day, reducing chargebacks by 28%</li>
+              <li>Led migration of 40-service monolith to microservices, cutting deployment time from 45 min to 8 min</li>
+              <li>Mentored 5 junior engineers; 3 promoted to mid-level within 18 months</li>
+            </ul>
+          </div>
+          <div class="entry">
+            <div class="entry-header">
+              <span class="entry-title">Software Engineer II</span>
+              <span class="entry-date">Mar 2019 – May 2021</span>
+            </div>
+            <div class="entry-meta">Shopify · Remote</div>
+            <ul>
+              <li>Built checkout optimization feature A/B tested across 6M merchants, increasing conversion by 4.2%</li>
+              <li>Reduced API P99 latency by 60% via Redis caching layer and query optimizations</li>
+              <li>On-call lead for Payments platform serving $50B+ in annual GMV</li>
+            </ul>
+          </div>
+          <hr class="divider">
+
+          <h2>Skills</h2>
+          <div class="skills-grid">
+            <span class="skill">TypeScript</span><span class="skill">Go</span><span class="skill">Python</span>
+            <span class="skill">React</span><span class="skill">Node.js</span><span class="skill">PostgreSQL</span>
+            <span class="skill">Redis</span><span class="skill">Kafka</span><span class="skill">Kubernetes</span>
+            <span class="skill">AWS</span><span class="skill">CI/CD</span><span class="skill">System Design</span>
+          </div>
+          <hr class="divider">
+
+          <h2>Education</h2>
+          <div class="entry">
+            <div class="entry-header">
+              <span class="entry-title">B.S. Computer Science</span>
+              <span class="entry-date">2015 – 2019</span>
+            </div>
+            <div class="entry-meta">University of California, Berkeley</div>
+          </div>
+        </body>
+        </html>
+        """
     }
 }

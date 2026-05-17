@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MainTabViewV2: View {
+    @Environment(AppState.self) private var appState
     @State private var selectedTab: ResumlyTab = .tailor
 
     // Stable VM instances — created once, survive tab switches.
@@ -40,6 +41,16 @@ struct MainTabViewV2: View {
         }
         .ignoresSafeArea(edges: .bottom)
         .tint(Theme.accent)
+        .onChange(of: appState.latestOptimizationId) { _, newId in
+            if let id = newId, designViewModel.optimizationId != id {
+                designViewModel.setOptimizationId(id)
+            }
+        }
+        .onAppear {
+            if let id = appState.latestOptimizationId, designViewModel.optimizationId != id {
+                designViewModel.setOptimizationId(id)
+            }
+        }
     }
 
     private func switchTab(_ tab: ResumlyTab) {
