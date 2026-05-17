@@ -83,6 +83,15 @@ struct ResumePreviewWebView: View {
 
     private func renderPreview() async {
         print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
+        // When real sections are available, render them client-side immediately.
+        // This avoids the mock design service returning placeholder "Alex Johnson" data.
+        if !sections.isEmpty {
+            print("✅ [PREVIEW] using ResumeHTMLBuilder with real sections (count=\(sections.count))")
+            html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
+            isLoading = false
+            return
+        }
+        // No sections yet — try the backend render endpoint (or mock fallback).
         guard let token = appState.session?.accessToken else {
             print("❌ [PREVIEW] no token — cannot render")
             errorMessage = "Sign in to preview your resume."
@@ -102,23 +111,15 @@ struct ResumePreviewWebView: View {
             let response = try await designService.renderPreview(request, token: token)
             print("🎨 [PREVIEW] renderPreview response: html=\(response.previewHTML?.count ?? 0) chars error=\(response.error ?? "none")")
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
-                print("✅ [PREVIEW] using backend HTML")
+                print("✅ [PREVIEW] using backend/mock HTML")
                 html = previewHTML
-            } else if !sections.isEmpty {
-                print("✅ [PREVIEW] backend html empty, using ResumeHTMLBuilder fallback (sections=\(sections.count))")
-                html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
             } else {
-                print("❌ [PREVIEW] no html and no sections")
+                print("❌ [PREVIEW] no html and no sections available")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
             }
         } catch {
-            print("❌ [PREVIEW] renderPreview error: \(error) — sections=\(sections.count)")
-            if !sections.isEmpty {
-                print("✅ [PREVIEW] falling back to ResumeHTMLBuilder")
-                html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
-            } else {
-                errorMessage = error.localizedDescription
-            }
+            print("❌ [PREVIEW] renderPreview error: \(error)")
+            errorMessage = error.localizedDescription
         }
     }
 
