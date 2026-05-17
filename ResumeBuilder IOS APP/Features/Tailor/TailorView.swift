@@ -136,20 +136,7 @@ struct TailorView: View {
                             .buttonStyle(.plain)
                         }
 
-                        // Hidden nav — only for review flow (direct optimization now switches tabs)
-                        NavigationLink(
-                            destination: Group {
-                                if let reviewId = viewModel.reviewId {
-                                    OptimizationReviewView(
-                                        viewModel: OptimizationReviewViewModel(reviewId: reviewId)
-                                    )
-                                }
-                            },
-                            isActive: $shouldNavigate
-                        ) {
-                            EmptyView()
-                        }
-                        .hidden()
+                        // navigationDestination for review flow is attached to the ZStack below
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -213,6 +200,18 @@ struct TailorView: View {
                     viewModel.cachePickedFile(url: url)
                 case .failure(let error):
                     viewModel.errorMessage = error.localizedDescription
+                }
+            }
+            .navigationDestination(isPresented: $shouldNavigate) {
+                if let reviewId = viewModel.reviewId {
+                    OptimizationReviewView(
+                        viewModel: OptimizationReviewViewModel(reviewId: reviewId),
+                        onAppliedOptimization: { optId in
+                            appState.latestOptimizationId = optId
+                            shouldNavigate = false
+                            onSwitchTab(.optimized)
+                        }
+                    )
                 }
             }
         }

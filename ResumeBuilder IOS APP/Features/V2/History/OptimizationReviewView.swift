@@ -238,8 +238,11 @@ struct OptimizationReviewView: View {
         }
         .onChange(of: viewModel.applySuccessOptimizationId) { _, newId in
             if let newId {
+                appState.latestOptimizationId = newId
                 onAppliedOptimization?(newId)
-                navigateToDetail = true
+                if onAppliedOptimization == nil {
+                    navigateToDetail = true
+                }
             }
         }
         .task {
