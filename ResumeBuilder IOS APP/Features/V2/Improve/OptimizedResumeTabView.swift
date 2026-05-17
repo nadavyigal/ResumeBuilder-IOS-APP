@@ -20,15 +20,23 @@ struct OptimizedResumeTabView: View {
             }
         }
         .onAppear { syncVM() }
-        .onChange(of: appState.latestOptimizationId) { syncVM() }
+        .onChange(of: appState.latestOptimizationId) {
+            print("🔍 [OPTIMIZED TAB] latestOptimizationId changed → \(appState.latestOptimizationId ?? "nil")")
+            syncVM()
+        }
     }
 
     private func syncVM() {
+        print("🔍 [OPTIMIZED TAB] syncVM called, id=\(appState.latestOptimizationId ?? "nil")")
         guard let id = appState.latestOptimizationId else {
             optimizedVM = nil
             return
         }
-        if optimizedVM?.optimizationIdentifier == id { return }
+        if optimizedVM?.optimizationIdentifier == id {
+            print("✅ [OPTIMIZED TAB] VM already synced")
+            return
+        }
+        print("✅ [OPTIMIZED TAB] creating OptimizedResumeViewModel for id=\(id)")
         optimizedVM = OptimizedResumeViewModel(optimizationId: id)
     }
 
