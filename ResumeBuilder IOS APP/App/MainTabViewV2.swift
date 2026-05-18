@@ -31,7 +31,7 @@ struct MainTabViewV2: View {
                     .opacity(selectedTab == .expert ? 1 : 0)
                     .allowsHitTesting(selectedTab == .expert)
 
-                ProfileView()
+                ProfileView(isActive: selectedTab == .me)
                     .opacity(selectedTab == .me ? 1 : 0)
                     .allowsHitTesting(selectedTab == .me)
             }

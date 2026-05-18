@@ -231,7 +231,11 @@ struct APIClient {
         }
 
         if !(200...299).contains(httpResponse.statusCode) {
-            let message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            var message = String(data: data, encoding: .utf8) ?? "Unknown error"
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorField = json["error"] as? String {
+                message = errorField
+            }
             logger.error("HTTP failure status=\(httpResponse.statusCode) message=\(message)")
             throw APIClientError.serverError(status: httpResponse.statusCode, message: message)
         }

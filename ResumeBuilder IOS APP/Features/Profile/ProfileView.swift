@@ -7,6 +7,8 @@ private struct ApplicationComparePair: Identifiable {
 }
 
 struct ProfileView: View {
+    var isActive: Bool = false
+
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
     @State private var latestOptimization: OptimizationHistoryItem?
@@ -64,10 +66,14 @@ struct ProfileView: View {
                 .scrollBounceBehavior(.basedOnSize)
             }
             .navigationBarHidden(true)
-            .task {
-                async let _ = loadLatestOptimization()
-                async let _ = applicationsViewModel.load(token: appState.session?.accessToken)
-                withAnimation(.easeOut(duration: 0.5)) { appeared = true }
+            .task(id: isActive) {
+                guard isActive else { return }
+                async let optimization: Void = loadLatestOptimization()
+                async let apps: Void = applicationsViewModel.load(token: appState.session?.accessToken)
+                _ = await (optimization, apps)
+                if !appeared {
+                    withAnimation(.easeOut(duration: 0.5)) { appeared = true }
+                }
             }
             .sheet(isPresented: $showPaywall) {
                 NavigationStack { PaywallView() }
