@@ -75,6 +75,10 @@ final class MockResumeLibraryService: ResumeLibraryServiceProtocol, Sendable {
     }
 
     func downloadResumePDF(id: String, token: String) async throws -> URL {
-        throw URLError(.unsupportedURL)
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("mock_\(id).pdf")
+        // Minimal valid single-page PDF so the upload multipart can read real bytes
+        let minimalPDF = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000058 00000 n\n0000000115 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n190\n%%EOF"
+        try minimalPDF.data(using: .ascii)!.write(to: tmp)
+        return tmp
     }
 }

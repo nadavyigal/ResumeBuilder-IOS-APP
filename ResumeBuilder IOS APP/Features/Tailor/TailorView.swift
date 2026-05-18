@@ -51,15 +51,15 @@ struct TailorView: View {
                             stepCard(
                                 step: 1,
                                 title: "Upload Resume",
-                                subtitle: viewModel.selectedResumeName ?? "PDF, up to 5 MB",
+                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? viewModel.selectedResumeName! : "PDF, up to 5 MB",
                                 icon: "doc.fill",
-                                isFilled: viewModel.selectedResumeName != nil,
+                                isFilled: viewModel.selectedResumeName?.isEmpty == false,
                                 action: { isImporterPresented = true }
                             )
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 16)
 
-                            if viewModel.selectedResumeName == nil && appState.isAuthenticated {
+                            if viewModel.selectedResumeName?.isEmpty != false && appState.isAuthenticated {
                                 Button {
                                     if let token = appState.session?.accessToken {
                                         Task { await libraryViewModel.load(token: token) }
@@ -446,7 +446,7 @@ struct TailorView: View {
     }
 
     private var optimizeCard: some View {
-        let canOptimize = viewModel.selectedResumeName != nil
+        let canOptimize = viewModel.selectedResumeName?.isEmpty == false
             && (!viewModel.jobDescriptionURL.isEmpty || !viewModel.jobDescription.isEmpty)
 
         return VStack(spacing: 0) {
