@@ -15,6 +15,16 @@
 
 ## Lessons
 
+### 2026-05-18
+**Category:** SwiftUI
+**Rule:** Never call `onSelect` or any selection callback from a Cancel button in a sheet. Use `@Environment(\.dismiss)` instead.
+**Why:** `SavedResumePickerSheet` Cancel was calling `onSelect(URL(fileURLWithPath: "/dev/null"), "")`, which set `selectedResumeURL` to `/dev/null` and `selectedResumeName` to empty string. The optimize flow then tried to read `/dev/null` and iOS returned "The file 'null' couldn't be opened because you don't have permission to view it."
+
+### 2026-05-18
+**Category:** SwiftUI
+**Rule:** Check `someStringOptional?.isEmpty == false` (not `!= nil`) when a non-empty string is required to guard a UI state.
+**Why:** An empty string `""` passes `!= nil`. When `selectedResumeName = ""`, the step-1 card showed a blue checkmark and `canOptimize` was true, letting the user hit Optimize with no real file selected.
+
 ### 2026-05-13
 **Category:** SwiftUI
 **Rule:** Always use `@Observable` + `@MainActor` for ViewModels, never `ObservableObject`/`@Published` — the project is on Swift Observation (iOS 17+).
