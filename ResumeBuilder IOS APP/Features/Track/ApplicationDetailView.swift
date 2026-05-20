@@ -112,24 +112,24 @@ struct ApplicationDetailView: View {
                 }
             }
             .navigationTitle("Application")
-            .navigationDestination(isPresented: $navigateToOptimizedResume) {
-                if let oid = vm.item.optimizationId {
-                    OptimizedResumeView(
-                        viewModel: OptimizedResumeViewModel(
-                            optimizationId: oid,
-                            atsScoreAfter: vm.item.atsScore,
-                            jobTitle: vm.item.jobTitle,
-                            company: vm.item.companyName
-                        ),
-                        onSwitchTab: onSwitchTab
-                    )
-                }
-            }
 
             if vm.isLoading {
                 ProgressView()
                     .padding(AppSpacing.lg)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppRadii.md))
+            }
+        }
+        .navigationDestination(isPresented: $navigateToOptimizedResume) {
+            if let oid = vm.item.optimizationId {
+                OptimizedResumeView(
+                    viewModel: OptimizedResumeViewModel(
+                        optimizationId: oid,
+                        atsScoreAfter: vm.item.atsScore,
+                        jobTitle: vm.item.jobTitle,
+                        company: vm.item.companyName
+                    ),
+                    onSwitchTab: onSwitchTab
+                )
             }
         }
         .sheet(isPresented: $showAttachPicker) {
