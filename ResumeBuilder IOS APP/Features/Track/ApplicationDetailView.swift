@@ -2,15 +2,18 @@ import SwiftUI
 import UIKit
 
 struct ApplicationDetailView: View {
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
     @Environment(AppState.self) private var appState
     @State private var vm: ApplicationDetailViewModel
     @State private var showAttachPicker = false
     @State private var expertVM: ExpertModesViewModel? = nil
+    @State private var navigateToOptimizedResume = false
 
     private var token: String? { appState.session?.accessToken }
 
-    init(application: ApplicationItem) {
+    init(application: ApplicationItem, onSwitchTab: @escaping (ResumlyTab) -> Void = { _ in }) {
         _vm = State(wrappedValue: ApplicationDetailViewModel(application: application))
+        self.onSwitchTab = onSwitchTab
     }
 
     var body: some View {
@@ -41,6 +44,15 @@ struct ApplicationDetailView: View {
                         )
                     }
                     .disabled(vm.isAttaching)
+
+                    if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            appState.latestOptimizationId = oid
+                            navigateToOptimizedResume = true
+                        } label: {
+                            Label("View Optimized Resume", systemImage: "doc.richtext")
+                        }
+                    }
 
                     if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         NavigationLink {
@@ -100,6 +112,19 @@ struct ApplicationDetailView: View {
                 }
             }
             .navigationTitle("Application")
+            .navigationDestination(isPresented: $navigateToOptimizedResume) {
+                if let oid = vm.item.optimizationId {
+                    OptimizedResumeView(
+                        viewModel: OptimizedResumeViewModel(
+                            optimizationId: oid,
+                            atsScoreAfter: vm.item.atsScore,
+                            jobTitle: vm.item.jobTitle,
+                            company: vm.item.companyName
+                        ),
+                        onSwitchTab: onSwitchTab
+                    )
+                }
+            }
 
             if vm.isLoading {
                 ProgressView()
@@ -114,7 +139,13 @@ struct ApplicationDetailView: View {
         }
         .task {
             if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, expertVM == nil {
-                expertVM = ExpertModesViewModel(optimizationId: oid, resumeViewModel: nil)
+                let resumeVM = OptimizedResumeViewModel(
+                    optimizationId: oid,
+                    atsScoreAfter: vm.item.atsScore,
+                    jobTitle: vm.item.jobTitle,
+                    company: vm.item.companyName
+                )
+                expertVM = ExpertModesViewModel(optimizationId: oid, resumeViewModel: resumeVM)
             }
             await vm.refresh(token: token)
         }

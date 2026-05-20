@@ -308,9 +308,8 @@ struct ProfileView: View {
                                 }
                                 .buttonStyle(.plain)
                             } else {
-                                // TODO Story3: ApplicationDetailView(application: app, onSwitchTab: onSwitchTab)
                                 NavigationLink {
-                                    ApplicationDetailView(application: app)
+                                    ApplicationDetailView(application: app, onSwitchTab: onSwitchTab)
                                 } label: {
                                     applicationRow(app, selected: false)
                                 }
