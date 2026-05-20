@@ -15,6 +15,21 @@
 
 ## Lessons
 
+### 2026-05-20
+**Category:** SwiftUI
+**Rule:** Place `.navigationDestination(isPresented:)` on the `ZStack` or `ScrollView` inside the enclosing `NavigationStack` — NOT on a `List` or a nested subview inside a `List`.
+**Why:** When attached to a `List`, SwiftUI may silently fail to navigate or emit "outside NavigationStack" runtime warnings. Moving the modifier to the outermost container inside the `NavigationStack` (e.g., the `ZStack` wrapping the `List`) resolves this.
+
+### 2026-05-20
+**Category:** API
+**Rule:** When surfacing API errors in UI banners, pattern-match `APIClientError.serverError(_, let message)` and display `message` directly — not `error.localizedDescription` (which wraps it in "Server error (500): …" prefix).
+**Why:** The `localizedDescription` for `serverError` includes the status code prefix, which is noise for end users. The raw `message` from the server is more actionable and was already extracted from the JSON `error` field.
+
+### 2026-05-20
+**Category:** SwiftUI
+**Rule:** When a `View` has a custom `init`, all callback properties (`var onSwitchTab: (Tab) -> Void`) must be assigned in the `init` body — they are NOT auto-synthesized. Forgetting this causes the default `{ _ in }` to be used even when a non-default is passed.
+**Why:** Swift's memberwise init is suppressed when a custom `init` exists. All stored properties including closure callbacks must be explicitly set.
+
 ### 2026-05-18
 **Category:** SwiftUI
 **Rule:** Never call `onSelect` or any selection callback from a Cancel button in a sheet. Use `@Environment(\.dismiss)` instead.
