@@ -95,6 +95,7 @@ final class TailorViewModel {
                 )
             }
             uploadResponse = upload
+            print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
 
             // Offer to save the uploaded resume to the library (prompt shown in TailorView).
             if let resumeId = upload.resumeId, !resumeId.isEmpty {
@@ -132,6 +133,12 @@ final class TailorViewModel {
             } else {
                 print("❌ [TAILOR] → no valid id in response")
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
+            }
+        } catch let apiError as APIClientError {
+            if case .serverError(_, let message) = apiError {
+                errorMessage = message
+            } else {
+                errorMessage = apiError.localizedDescription
             }
         } catch {
             errorMessage = error.localizedDescription

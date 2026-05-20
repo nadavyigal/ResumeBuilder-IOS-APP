@@ -6,6 +6,7 @@ enum APIClientError: Error, LocalizedError {
     case paymentRequired
     case serverError(status: Int, message: String)
     case invalidResponse
+    case invalidURL(String)
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum APIClientError: Error, LocalizedError {
             return "Server error (\(status)): \(message)"
         case .invalidResponse:
             return "Invalid server response"
+        case .invalidURL(let path):
+            return "Invalid URL for endpoint: \(path)"
         }
     }
 }
@@ -47,7 +50,7 @@ struct APIClient {
         body: [String: Any],
         token: String?
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -65,7 +68,7 @@ struct APIClient {
         token: String?,
         timeout: TimeInterval? = nil
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -76,7 +79,7 @@ struct APIClient {
     }
 
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -85,13 +88,14 @@ struct APIClient {
     }
 
     func getWithQuery<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
+        let endpointURL = try url(for: endpoint)
         var components = URLComponents(
-            url: url(for: endpoint),
+            url: endpointURL,
             resolvingAgainstBaseURL: false
         )
         let items = endpoint.queryItems
         if !items.isEmpty { components?.queryItems = items }
-        let url = components?.url ?? url(for: endpoint)
+        let url = components?.url ?? endpointURL
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
@@ -101,7 +105,7 @@ struct APIClient {
     }
 
     func getData(endpoint: Endpoint, token: String?) async throws -> Data {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -122,7 +126,7 @@ struct APIClient {
         body: [String: Any],
         token: String?
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: try url(for: endpoint))
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -177,7 +181,7 @@ struct APIClient {
         fields: [String: String?]
     ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: 120)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -250,7 +254,10 @@ struct APIClient {
         }
     }
 
-    private func url(for endpoint: Endpoint) -> URL {
-        URL(string: endpoint.path, relativeTo: baseURL)!.absoluteURL
+    private func url(for endpoint: Endpoint) throws -> URL {
+        guard let url = URL(string: endpoint.path, relativeTo: baseURL)?.absoluteURL else {
+            throw APIClientError.invalidURL(endpoint.path)
+        }
+        return url
     }
 }
