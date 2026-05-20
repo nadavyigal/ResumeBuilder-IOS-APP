@@ -10,6 +10,8 @@ final class AppState {
     var creditsBalance: Int = 0
     var resumeSectionsNeedRefresh: Bool = false
     var hasBootstrappedSession = false
+    /// Sections pre-loaded from a mock optimize flow. Consumed by OptimizedResumeTabView on next syncVM.
+    var pendingMockSections: [OptimizedResumeSection]? = nil
 
     private let latestOptimizationKey = "latest_optimization_id"
 

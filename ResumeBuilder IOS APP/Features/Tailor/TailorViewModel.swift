@@ -26,6 +26,11 @@ final class TailorViewModel {
     /// Cleared after the user responds.
     var pendingSaveResumeId: String?
 
+    /// True when the active resume was loaded from the mock library service.
+    /// Drives a fully mocked optimize path so the real server is never called
+    /// with a UIKit-rendered PDF it cannot parse.
+    private var isUsingMockLibraryResume = false
+
     private let apiClient = APIClient()
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
@@ -51,12 +56,14 @@ final class TailorViewModel {
 
         selectedResumeURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
         selectedResumeName = filename
+        isUsingMockLibraryResume = false
     }
 
     /// Pre-fills Step 1 from a file URL already downloaded from the library.
     func useLibraryResume(localURL: URL, displayName: String) {
         selectedResumeURL = localURL
         selectedResumeName = displayName
+        isUsingMockLibraryResume = BackendConfig.useMockLibraryService
     }
 
     func optimize(appState: AppState) async {
@@ -74,6 +81,11 @@ final class TailorViewModel {
 
         guard appState.session?.accessToken != nil else {
             errorMessage = "Please sign in first."
+            return
+        }
+
+        if isUsingMockLibraryResume {
+            await optimizeMock(appState: appState)
             return
         }
 
@@ -140,6 +152,29 @@ final class TailorViewModel {
             } else {
                 errorMessage = apiError.localizedDescription
             }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func optimizeMock(appState: AppState) async {
+        isOptimizing = true
+        errorMessage = nil
+        reviewId = nil
+        optimizationId = nil
+        defer { isOptimizing = false }
+        do {
+            let result = try await MockResumeOptimizationService().optimize(
+                resumeId: "mock-lib-resume",
+                jobDescriptionId: "mock-jd",
+                token: ""
+            )
+            guard let optId = result.optimizationId, !optId.isEmpty else {
+                errorMessage = "Mock optimize did not return an id."
+                return
+            }
+            appState.pendingMockSections = result.sections ?? []
+            optimizationId = optId
         } catch {
             errorMessage = error.localizedDescription
         }
