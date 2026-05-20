@@ -157,14 +157,25 @@ struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
 // MARK: - Mock Design
 
 struct MockResumeDesignService: ResumeDesignServiceProtocol {
+    private static let allTemplates: [DesignTemplate] = [
+        // traditional
+        DesignTemplate(id: "trad-1", slug: "classic-ats",     name: "Classic ATS",      description: "Clean, ATS-friendly layout",           category: "traditional", isPremium: false, thumbnailURL: nil, atsScore: 98),
+        DesignTemplate(id: "trad-2", slug: "timeless",        name: "Timeless",          description: "Conservative serif layout",             category: "traditional", isPremium: false, thumbnailURL: nil, atsScore: 95),
+        // modern
+        DesignTemplate(id: "mod-1",  slug: "modern-pro",      name: "Modern Pro",        description: "Contemporary single-column design",     category: "modern",      isPremium: false, thumbnailURL: nil, atsScore: 90),
+        DesignTemplate(id: "mod-2",  slug: "sleek",           name: "Sleek",             description: "Minimalist accent-line style",          category: "modern",      isPremium: false, thumbnailURL: nil, atsScore: 88),
+        // creative
+        DesignTemplate(id: "cre-1",  slug: "creative-edge",   name: "Creative Edge",     description: "Stand-out visual design",               category: "creative",    isPremium: true,  thumbnailURL: nil, atsScore: 72),
+        DesignTemplate(id: "cre-2",  slug: "portfolio",       name: "Portfolio",         description: "Sidebar layout for visual roles",       category: "creative",    isPremium: true,  thumbnailURL: nil, atsScore: 68),
+        // corporate
+        DesignTemplate(id: "corp-1", slug: "executive",       name: "Executive",         description: "Premium executive template",            category: "corporate",   isPremium: true,  thumbnailURL: nil, atsScore: 92),
+        DesignTemplate(id: "corp-2", slug: "boardroom",       name: "Boardroom",         description: "Formal two-column corporate layout",    category: "corporate",   isPremium: true,  thumbnailURL: nil, atsScore: 89),
+    ]
+
     func templates(category: String, token: String) async throws -> [DesignTemplate] {
         try await Task.sleep(for: .milliseconds(600))
-        return [
-            DesignTemplate(id: "t1", slug: "classic-ats", name: "Classic ATS", description: "Clean, ATS-friendly layout", category: "ats_safe", isPremium: false, thumbnailURL: nil, atsScore: 98),
-            DesignTemplate(id: "t2", slug: "modern-pro", name: "Modern Pro", description: "Contemporary single-column design", category: "modern", isPremium: false, thumbnailURL: nil, atsScore: 90),
-            DesignTemplate(id: "t3", slug: "creative-edge", name: "Creative Edge", description: "Stand-out visual design", category: "creative", isPremium: true, thumbnailURL: nil, atsScore: 72),
-            DesignTemplate(id: "t4", slug: "executive", name: "Executive", description: "Premium executive template", category: category, isPremium: true, thumbnailURL: nil, atsScore: 88),
-        ]
+        let filtered = Self.allTemplates.filter { $0.category == category }
+        return filtered.isEmpty ? Self.allTemplates.filter { $0.category == "traditional" } : filtered
     }
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {

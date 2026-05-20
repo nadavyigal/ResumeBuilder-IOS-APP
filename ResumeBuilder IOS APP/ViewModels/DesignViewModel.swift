@@ -21,10 +21,11 @@ final class DesignViewModel {
     private(set) var optimizationId: String?
     private let designService: any ResumeDesignServiceProtocol
     private let apiClient = APIClient()
+    private var lastLoadedCategory: String? = nil
 
     init(
         optimizationId: String?,
-        designService: any ResumeDesignServiceProtocol = BackendConfig.useMockServices
+        designService: any ResumeDesignServiceProtocol = (BackendConfig.useMockServices || BackendConfig.useMockDesignService)
             ? MockResumeDesignService() : ResumeDesignService()
     ) {
         self.optimizationId = optimizationId
@@ -48,15 +49,20 @@ final class DesignViewModel {
         selectedTemplateId = nil
         didApplyCustomization = false
         styleHistory = []
+        lastLoadedCategory = nil
     }
 
     func loadTemplates(token: String?) async {
         guard let token else { return }
+        let categoryChanged = lastLoadedCategory != activeCategory
+        lastLoadedCategory = activeCategory
         isLoading = true
         defer { isLoading = false }
         do {
             templates = try await designService.templates(category: activeCategory, token: token)
-            if selectedTemplateId == nil { selectedTemplateId = templates.first?.id }
+            if selectedTemplateId == nil || categoryChanged {
+                selectedTemplateId = templates.first?.id
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
