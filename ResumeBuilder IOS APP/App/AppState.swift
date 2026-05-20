@@ -8,6 +8,7 @@ final class AppState {
     var pendingSharedJobURL: URL?
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    var resumeSectionsNeedRefresh: Bool = false
     var hasBootstrappedSession = false
 
     private let latestOptimizationKey = "latest_optimization_id"

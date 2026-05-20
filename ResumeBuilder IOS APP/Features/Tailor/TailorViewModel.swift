@@ -136,7 +136,7 @@ final class TailorViewModel {
             }
         } catch let apiError as APIClientError {
             if case .serverError(_, let message) = apiError {
-                errorMessage = message
+                errorMessage = enhancedError(message)
             } else {
                 errorMessage = apiError.localizedDescription
             }
@@ -178,5 +178,11 @@ final class TailorViewModel {
         guard jobDescriptionURL.isEmpty, let sharedURL = appState.pendingSharedJobURL else { return }
         jobDescriptionURL = sharedURL.absoluteString
         appState.clearPendingSharedJobURL()
+    }
+
+    private func enhancedError(_ message: String) -> String {
+        let lower = message.lowercased()
+        guard lower.contains("read") && lower.contains("pdf") else { return message }
+        return message + "\n\nTip: Resume Library previews may not be readable. For best results, upload your own PDF from Files."
     }
 }

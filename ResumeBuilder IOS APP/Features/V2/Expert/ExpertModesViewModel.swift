@@ -121,6 +121,10 @@ final class ExpertModesViewModel {
                     await resumeViewModel.forceReloadSections(appState: appState)
                 }
             }
+            Task {
+                try? await Task.sleep(for: .seconds(1.5))
+                appState.resumeSectionsNeedRefresh = true
+            }
 
             let touchedResume = dto.updatedFields.contains(where: {
                 $0.contains("summary")

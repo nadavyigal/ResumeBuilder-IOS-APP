@@ -24,6 +24,11 @@ struct OptimizedResumeTabView: View {
             print("🔍 [OPTIMIZED TAB] latestOptimizationId changed → \(appState.latestOptimizationId ?? "nil")")
             syncVM()
         }
+        .onChange(of: appState.resumeSectionsNeedRefresh) { _, needsRefresh in
+            guard needsRefresh else { return }
+            appState.resumeSectionsNeedRefresh = false
+            Task { await optimizedVM?.forceReloadSections(appState: appState) }
+        }
     }
 
     private func syncVM() {

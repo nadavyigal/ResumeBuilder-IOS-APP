@@ -90,9 +90,10 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
 
         let encoder = JSONEncoder()
         guard let custData = try? encoder.encode(customization),
-              let body = try? JSONSerialization.jsonObject(with: custData) as? [String: Any] else {
+              var body = try? JSONSerialization.jsonObject(with: custData) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
+        body["template_id"] = templateId
         struct ApplyResponse: Decodable {
             let success: Bool?
             let customization: JSONValue?
