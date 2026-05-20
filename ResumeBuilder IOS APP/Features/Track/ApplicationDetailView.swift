@@ -145,7 +145,11 @@ struct ApplicationDetailView: View {
                     jobTitle: vm.item.jobTitle,
                     company: vm.item.companyName
                 )
-                expertVM = ExpertModesViewModel(optimizationId: oid, resumeViewModel: resumeVM)
+                expertVM = ExpertModesViewModel(
+                    optimizationId: oid,
+                    resumeViewModel: resumeVM,
+                    applicationId: vm.item.id
+                )
             }
             await vm.refresh(token: token)
         }

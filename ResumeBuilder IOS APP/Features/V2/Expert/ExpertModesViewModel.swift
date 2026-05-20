@@ -33,13 +33,21 @@ final class ExpertModesViewModel {
     private let resumeViewModel: OptimizedResumeViewModel?
     private let service: ExpertWorkflowService
 
+    // Saved reports from GET /applications/:id/expert-reports
+    private(set) var savedReports: [ApplicationExpertReportItem] = []
+    var applicationId: String? = nil
+
+    private let trackingService = ApplicationTrackingService()
+
     init(
         optimizationId: String,
         resumeViewModel: OptimizedResumeViewModel?,
+        applicationId: String? = nil,
         service: ExpertWorkflowService = ExpertWorkflowService()
     ) {
         self.optimizationId = optimizationId
         self.resumeViewModel = resumeViewModel
+        self.applicationId = applicationId
         self.service = service
         for t in ExpertWorkflowType.allCases {
             phaseByType[t] = .idle
@@ -48,6 +56,26 @@ final class ExpertModesViewModel {
 
     func dismissToast() {
         toastMessage = nil
+    }
+
+    func loadSavedReports(token: String?) async {
+        guard let appId = applicationId else { return }
+        do {
+            savedReports = try await trackingService.fetchExpertReports(applicationId: appId, token: token)
+        } catch {
+            // silently ignore — count already shown by ApplicationDetailViewModel
+        }
+    }
+
+    func seedReadyPhase(workflowType: ExpertWorkflowType, snapshot: ExpertWorkflowRunSnapshot) {
+        phaseByType[workflowType] = .ready(ExpertRunUIState(
+            workflowType: workflowType,
+            runId: snapshot.runId,
+            status: snapshot.status,
+            output: snapshot.output,
+            missingEvidence: snapshot.missingEvidence,
+            needsUserInput: snapshot.status == "needs_user_input"
+        ))
     }
 
     func phase(for type: ExpertWorkflowType) -> ExpertCardPhase {

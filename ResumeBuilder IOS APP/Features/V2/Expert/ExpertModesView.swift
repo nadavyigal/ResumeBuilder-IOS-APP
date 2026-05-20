@@ -26,6 +26,9 @@ struct ExpertModesView: View {
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Expert Analysis")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: vm.applicationId) {
+            await vm.loadSavedReports(token: token)
+        }
         .alert(
             "Expert modes",
             isPresented: Binding(
@@ -41,6 +44,9 @@ struct ExpertModesView: View {
 
     private var content: some View {
         ScrollView {
+            if !vm.savedReports.isEmpty {
+                savedReportsSection
+            }
             LazyVStack(spacing: AppSpacing.md) {
                 ForEach(ExpertWorkflowType.allCases) { mode in
                     ExpertModeTile(
@@ -61,6 +67,65 @@ struct ExpertModesView: View {
             }
             .padding(AppSpacing.lg)
         }
+    }
+
+    private var savedReportsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Saved Reports")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
+
+            ForEach(vm.savedReports) { report in
+                NavigationLink {
+                    ExpertSavedReportDetailView(
+                        vm: vm,
+                        reportId: report.id,
+                        workflowTypeRaw: report.workflowType
+                    )
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(report.reportTitle ?? report.workflowType ?? "Saved Report")
+                                .font(.appSubheadline)
+                                .foregroundStyle(AppColors.textPrimary)
+                            if let savedAt = report.savedAt {
+                                Text(relativeDate(from: savedAt))
+                                    .font(.appCaption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                            }
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
+                    .padding(AppSpacing.md)
+                    .glassCard(cornerRadius: AppRadii.md)
+                    .padding(.horizontal, AppSpacing.lg)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func relativeDate(from iso: String) -> String {
+        let parsers: [ISO8601DateFormatter] = {
+            let f1 = ISO8601DateFormatter()
+            f1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let f2 = ISO8601DateFormatter()
+            f2.formatOptions = [.withInternetDateTime]
+            return [f1, f2]
+        }()
+        for p in parsers {
+            if let d = p.date(from: iso) {
+                let rf = RelativeDateTimeFormatter()
+                rf.unitsStyle = .abbreviated
+                return rf.localizedString(for: d, relativeTo: Date())
+            }
+        }
+        return iso
     }
 }
 
