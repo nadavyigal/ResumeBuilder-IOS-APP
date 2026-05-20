@@ -8,12 +8,14 @@ private struct ApplicationComparePair: Identifiable {
 
 struct ProfileView: View {
     var isActive: Bool = false
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
     @State private var latestOptimization: OptimizationHistoryItem?
     @State private var profileMessage: String?
     @State private var appeared = false
+    @State private var navigateToLatestResume = false
 
     @State private var applicationsViewModel = ApplicationsViewModel()
     @State private var appSelectionMode = false
@@ -64,6 +66,19 @@ struct ProfileView: View {
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                .navigationDestination(isPresented: $navigateToLatestResume) {
+                    if let opt = latestOptimization {
+                        OptimizedResumeView(
+                            viewModel: OptimizedResumeViewModel(
+                                optimizationId: opt.id,
+                                atsScoreAfter: opt.matchScorePercent,
+                                jobTitle: opt.jobTitle,
+                                company: opt.company
+                            ),
+                            onSwitchTab: onSwitchTab
+                        )
+                    }
+                }
             }
             .navigationBarHidden(true)
             .task(id: isActive) {
@@ -191,15 +206,9 @@ struct ProfileView: View {
     private var latestResumeSection: some View {
         ProfileSection(title: "Latest Resume", icon: "doc.text.fill", iconColor: Theme.accent) {
             if let opt = latestOptimization {
-                NavigationLink {
-                    OptimizedResumeView(
-                        viewModel: OptimizedResumeViewModel(
-                            optimizationId: opt.id,
-                            atsScoreAfter: opt.matchScorePercent,
-                            jobTitle: opt.jobTitle,
-                            company: opt.company
-                        )
-                    )
+                Button {
+                    appState.latestOptimizationId = opt.id
+                    navigateToLatestResume = true
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -299,6 +308,7 @@ struct ProfileView: View {
                                 }
                                 .buttonStyle(.plain)
                             } else {
+                                // TODO Story3: ApplicationDetailView(application: app, onSwitchTab: onSwitchTab)
                                 NavigationLink {
                                     ApplicationDetailView(application: app)
                                 } label: {
