@@ -132,6 +132,7 @@ struct OptimizationDesignSheet: View {
                     TemplateThumbnail(
                         name: template.name,
                         category: template.category,
+                        templateId: template.id,
                         thumbnailURL: template.thumbnailURL.flatMap(URL.init),
                         isSelected: designVM.selectedTemplateId == template.id,
                         isPremium: template.isPremium

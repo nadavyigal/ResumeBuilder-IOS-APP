@@ -172,6 +172,7 @@ struct RedesignResumeView: View {
                     TemplateThumbnail(
                         name: template.name,
                         category: template.category,
+                        templateId: template.id,
                         thumbnailURL: template.thumbnailURL.flatMap(URL.init),
                         isSelected: viewModel.selectedTemplateId == template.id,
                         isPremium: template.isPremium
