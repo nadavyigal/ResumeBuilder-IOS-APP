@@ -211,6 +211,9 @@ enum ResumeHTMLBuilder {
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { font-family: Georgia, serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.5; }
+          .resume-header { text-align: center; padding-bottom: 10px; }
+          .resume-name { font-size: 18pt; font-weight: bold; color: #1a1a1a; letter-spacing: 0.5px; }
+          .resume-contact { font-size: 9pt; color: #555; margin-top: 4px; }
           .divider { border: none; border-top: 1.5px solid #\(accent); margin: 12px 0 8px; }
           h2 { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accent); margin-bottom: 6px; }
           .section p { margin-bottom: 4px; font-size: 9.5pt; }
@@ -220,6 +223,10 @@ enum ResumeHTMLBuilder {
         </style>
         </head>
         <body>
+        <div class="resume-header">
+          <div class="resume-name">Your Name</div>
+          <div class="resume-contact">email@example.com &nbsp;·&nbsp; (555) 000-0000 &nbsp;·&nbsp; linkedin.com/in/yourprofile</div>
+        </div>
         <hr class="divider">
         \(body)
         </body>
