@@ -24,7 +24,7 @@ struct ExpertTabView: View {
     }
 
     private func syncVM() {
-        guard let id = appState.latestOptimizationId else {
+        guard let id = appState.latestOptimizationId, !id.hasPrefix("mock-") else {
             expertVM = nil
             return
         }

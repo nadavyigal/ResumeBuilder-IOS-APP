@@ -122,11 +122,19 @@ struct ExpertWorkflowService: Sendable {
             }
             return dto
         } catch let api as APIClientError {
-            if case .serverError(let status, let message) = api, status == 402 {
-                throw ExpertWorkflowServiceError.premiumRequired(
-                    Self.extractLockedPreview(fromJSONString: message)
-                        ?? Self.fallbackPremiumHint
-                )
+            if case .serverError(let status, let message) = api {
+                if status == 402 {
+                    throw ExpertWorkflowServiceError.premiumRequired(
+                        Self.extractLockedPreview(fromJSONString: message)
+                            ?? Self.fallbackPremiumHint
+                    )
+                }
+                if status >= 500 {
+                    let lower = message.lowercased()
+                    if lower.contains("not found") || lower.contains("access denied") {
+                        throw ExpertWorkflowServiceError.missingOptimizationId
+                    }
+                }
             }
             throw api
         }
