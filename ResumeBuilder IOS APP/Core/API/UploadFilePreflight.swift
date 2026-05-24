@@ -1,4 +1,5 @@
 import Foundation
+import PDFKit
 
 struct UploadFileDescriptor: Sendable {
     let filename: String
@@ -10,6 +11,7 @@ enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
     case missingFile
     case emptyFile
     case unsupportedFileType
+    case unreadablePDF
 
     var errorDescription: String? {
         switch self {
@@ -19,6 +21,8 @@ enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
             return "Selected resume file is empty. Please choose a freshly exported PDF."
         case .unsupportedFileType:
             return "Choose a PDF resume exported from your word processor, not a scanned image or shortcut file."
+        case .unreadablePDF:
+            return "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot."
         }
     }
 }
@@ -34,6 +38,9 @@ enum UploadFilePreflight {
         let data = try Data(contentsOf: fileURL)
         guard !data.isEmpty else {
             throw UploadFilePreflightError.emptyFile
+        }
+        if mimeType(for: fileURL) == "application/pdf" {
+            try validateReadablePDF(data)
         }
         return UploadFileDescriptor(
             filename: fileURL.lastPathComponent,
@@ -51,5 +58,21 @@ enum UploadFilePreflight {
         default:
             return nil
         }
+    }
+
+    private nonisolated static func validateReadablePDF(_ data: Data) throws {
+        guard let document = PDFDocument(data: data), document.pageCount > 0 else {
+            throw UploadFilePreflightError.unreadablePDF
+        }
+
+        for pageIndex in 0..<document.pageCount {
+            let text = document.page(at: pageIndex)?.string?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !text.isEmpty {
+                return
+            }
+        }
+
+        throw UploadFilePreflightError.unreadablePDF
     }
 }

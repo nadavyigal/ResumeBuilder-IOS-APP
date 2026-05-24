@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-05-24
+**Category:** API
+**Rule:** Do not auto-load nonessential audit/history endpoints on screen open when the primary user flow can work without them; load them lazily or use the stable fallback action.
+**Why:** `/api/v1/styles/history` returned 500 on device and made the app look broken even though templates, preview rendering, and design apply were working.
+
+### 2026-05-24
+**Category:** PDF
+**Rule:** Validate that selected PDFs contain extractable text before upload so scanned/image-only files fail locally with clear guidance.
+**Why:** The live upload endpoint rejected the user's selected PDF with 422 after upload; local PDFKit preflight gives faster, clearer feedback and avoids a failed optimize attempt.
+
+### 2026-05-24
 **Category:** Build
 **Rule:** Pure helper APIs used from URLSession/background tasks should be explicitly `nonisolated` under Swift 6 when the surrounding app uses `@MainActor` heavily.
 **Why:** The first build after adding upload preflight helpers failed because Swift treated helper calls as main actor-isolated from a detached task and synchronous error formatter.

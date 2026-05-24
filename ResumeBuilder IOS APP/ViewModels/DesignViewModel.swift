@@ -99,7 +99,7 @@ final class DesignViewModel {
             )
             if ok {
                 didApplyCustomization = true
-                await loadStyleHistory(token: token)
+                styleHistory = []
             }
             return ok
         } catch {
@@ -114,9 +114,6 @@ final class DesignViewModel {
         errorMessage = nil
         defer { isUndoing = false }
         do {
-            if styleHistory.isEmpty {
-                await loadStyleHistory(token: token)
-            }
             if styleHistory.count >= 2, let prevId = styleHistory[1].customizationId {
                 let body: [String: Any] = [
                     "optimization_id": optId,
@@ -140,7 +137,7 @@ final class DesignViewModel {
                     throw APIClientError.serverError(status: 400, message: err)
                 }
             }
-            await loadStyleHistory(token: token)
+            styleHistory = []
         } catch {
             errorMessage = error.localizedDescription
         }

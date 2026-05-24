@@ -4,15 +4,15 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Live endpoint stabilization — disabled missing Resume Library gracefully, added PDF preflight, cleaned preview cancellation noise (2026-05-24)
-Next Recommended Story: Backend `/api/v1/resumes` route implementation + real-device smoke test with a known-good text PDF
+Last Completed Story: Live endpoint follow-up — confirmed main is current, removed automatic style-history calls, added readable-text PDF preflight (2026-05-24)
+Next Recommended Story: Backend `/api/v1/resumes` route implementation + real-device smoke test with a known-good text-based PDF
 Estimated Completion: 45%
-Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
+Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled; `/api/v1/styles/history` returns 500 and is now avoided in normal design flows; selected PDFs must contain extractable text for live optimize
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 24/24 on iPhone 17 Pro simulator (2026-05-24)
+Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 25/25 on iPhone 17 Pro simulator (2026-05-24)
 Last Updated: 2026-05-24
-Current Branch: main
-Latest Commit: Merge pull request #24 from nadavyigal/codex/live-only-runtime-services
+Current Branch: codex/live-upload-style-followup
+Latest Base Commit: cfb3afc — Merge pull request #25 from nadavyigal/codex/live-endpoint-stabilization
 Active Spec: —
 Latest QA Report: —
 
@@ -30,6 +30,8 @@ Latest QA Report: —
 - `AppState.bootstrap()` clears stale persisted `mock-` optimization IDs so old local state cannot call live endpoints with mock identifiers
 - Runtime service defaults are live-only via `RuntimeServices`; mocks remain available only through explicit tests/previews
 - `RuntimeFeatures.isResumeLibraryEnabled = false` until the backend ships `/api/v1/resumes`; app shows saved resumes as unavailable instead of surfacing HTML 404s
+- Design history is not loaded automatically because `/api/v1/styles/history` currently returns 500; Apply/Undo use the stable design endpoints without blocking normal preview/design navigation
+- Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab
