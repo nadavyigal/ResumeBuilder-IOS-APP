@@ -914,10 +914,13 @@ struct ChatAffectedField: Codable, Sendable {
             try c.decodeIfPresent(String.self, forKey: .sectionId)
             ?? c.decodeIfPresent(String.self, forKey: .section_id) ?? ""
 
-        field =
-            try c.decodeIfPresent(String.self, forKey: .field)
-                ?? c.decodeIfPresent(String.self, forKey: .fieldPath)
-                ?? c.decodeIfPresent(String.self, forKey: .field_path)
+        if let v = try c.decodeIfPresent(String.self, forKey: .field) {
+            field = v
+        } else if let v = try c.decodeIfPresent(String.self, forKey: .fieldPath) {
+            field = v
+        } else {
+            field = try c.decodeIfPresent(String.self, forKey: .field_path)
+        }
 
         originalValue =
             try c.decodeIfPresent(JSONValue.self, forKey: .originalValue)
