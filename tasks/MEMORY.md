@@ -1,3 +1,17 @@
+## 2026-05-24 — Live upload parser follow-up after stale main rebuild
+
+**Worked on:** Investigating phone logs that still showed `/api/v1/styles/history` and PDF upload 422 after PR #26 was merged.
+
+**Completed:** Confirmed local `main` was two commits behind `origin/main`; pulled merged PR #26 into local `main` so Xcode can build the correct branch. Added upload normalization: iOS now extracts readable text with PDFKit, rejects unreadable/scanned PDFs, and sends a simple generated text-layer PDF to `/api/upload-resume` so the backend parser receives a predictable PDF. XcodeBuildMCP build passed and tests passed 25/25.
+
+**In progress:** Needs physical-device smoke after merging this follow-up branch. Backend `/api/v1/resumes` remains disabled in iOS until the backend route exists.
+
+**Decisions:** Fix app-side parser mismatch by normalizing upload PDFs in iOS. Do not reintroduce mocks. Treat the WebKit/keyboard/RunningBoard logs as non-blocking unless UI visibly fails.
+
+**Next session:** Merge/rebuild this branch on device, confirm no style-history request appears, upload a text-based PDF, and verify the optimize call returns `reviewId` or `optimizationId`.
+
+---
+
 ## 2026-05-24 — Live upload/style follow-up after main merge
 
 **Worked on:** Investigating phone logs after the live endpoint stabilization PR was merged and rebuilt.

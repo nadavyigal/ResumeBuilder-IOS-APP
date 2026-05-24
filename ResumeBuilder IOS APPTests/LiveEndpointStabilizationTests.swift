@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import PDFKit
 @testable import ResumeBuilder_IOS_APP
 
 @MainActor
@@ -22,10 +23,12 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: url) }
 
         let descriptor = try UploadFilePreflight.loadResumeFile(url)
+        let uploadedPDFText = PDFDocument(data: descriptor.data)?.string ?? ""
 
         XCTAssertEqual(descriptor.filename, url.lastPathComponent)
         XCTAssertEqual(descriptor.mimeType, "application/pdf")
         XCTAssertFalse(descriptor.data.isEmpty)
+        XCTAssertTrue(uploadedPDFText.contains("Resume text for extraction"))
     }
 
     func testEmptyPDFPreflightFailsBeforeUpload() throws {

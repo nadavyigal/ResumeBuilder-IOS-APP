@@ -1,5 +1,7 @@
 import Foundation
 import PDFKit
+import CoreText
+import UIKit
 
 struct UploadFileDescriptor: Sendable {
     let filename: String
@@ -39,12 +41,14 @@ enum UploadFilePreflight {
         guard !data.isEmpty else {
             throw UploadFilePreflightError.emptyFile
         }
+        var uploadData = data
         if mimeType(for: fileURL) == "application/pdf" {
-            try validateReadablePDF(data)
+            let text = try readablePDFText(data)
+            uploadData = try makeBackendReadablePDF(from: text)
         }
         return UploadFileDescriptor(
             filename: fileURL.lastPathComponent,
-            data: data,
+            data: uploadData,
             mimeType: mimeType(for: fileURL) ?? "application/octet-stream"
         )
     }
@@ -60,19 +64,77 @@ enum UploadFilePreflight {
         }
     }
 
-    private nonisolated static func validateReadablePDF(_ data: Data) throws {
+    private nonisolated static func readablePDFText(_ data: Data) throws -> String {
         guard let document = PDFDocument(data: data), document.pageCount > 0 else {
             throw UploadFilePreflightError.unreadablePDF
         }
 
+        var readableText = ""
         for pageIndex in 0..<document.pageCount {
             let text = document.page(at: pageIndex)?.string?
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             if !text.isEmpty {
-                return
+                readableText += text + "\n\n"
             }
         }
 
-        throw UploadFilePreflightError.unreadablePDF
+        let trimmed = readableText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw UploadFilePreflightError.unreadablePDF
+        }
+        return trimmed
+    }
+
+    private nonisolated static func makeBackendReadablePDF(from text: String) throws -> Data {
+        let pageBounds = CGRect(x: 0, y: 0, width: 612, height: 792)
+        let textBounds = pageBounds.insetBy(dx: 54, dy: 54)
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakMode = .byWordWrapping
+        paragraph.paragraphSpacing = 8
+
+        let attributed = NSAttributedString(
+            string: text,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 11),
+                .paragraphStyle: paragraph,
+                .foregroundColor: UIColor.black,
+            ]
+        )
+
+        let renderer = UIGraphicsPDFRenderer(bounds: pageBounds)
+        return renderer.pdfData { context in
+            let framesetter = CTFramesetterCreateWithAttributedString(attributed)
+            var currentIndex = 0
+            let fullLength = attributed.length
+
+            repeat {
+                context.beginPage()
+                guard let cgContext = UIGraphicsGetCurrentContext() else {
+                    break
+                }
+
+                cgContext.saveGState()
+                cgContext.textMatrix = .identity
+                cgContext.translateBy(x: 0, y: pageBounds.height)
+                cgContext.scaleBy(x: 1, y: -1)
+
+                let path = CGMutablePath()
+                path.addRect(textBounds)
+                let frame = CTFramesetterCreateFrame(
+                    framesetter,
+                    CFRange(location: currentIndex, length: fullLength - currentIndex),
+                    path,
+                    nil
+                )
+                CTFrameDraw(frame, cgContext)
+                cgContext.restoreGState()
+
+                let visibleRange = CTFrameGetVisibleStringRange(frame)
+                guard visibleRange.length > 0 else {
+                    break
+                }
+                currentIndex += visibleRange.length
+            } while currentIndex < fullLength
+        }
     }
 }
