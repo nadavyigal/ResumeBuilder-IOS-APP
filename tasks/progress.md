@@ -4,15 +4,15 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Bug-fix pass — Tailor errors, Me→Expert/Design wiring, Application optimized resume, Saved expert reports (2026-05-20)
-Next Recommended Story: Simulator smoke test; flip BackendConfig.useMockLibraryService once web API ships; then TestFlight build prep
-Estimated Completion: 35%
+Last Completed Story: Runtime live-only service wiring — removed user-facing mock services and stale mock optimization persistence (2026-05-24)
+Next Recommended Story: Real-device smoke test with a real account/PDF/job description; verify live resume library, optimize, optimized preview, and design endpoints
+Estimated Completion: 40%
 Blockers: —
-Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; Resume Library backend endpoints not yet live (mocks active); ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Xcode build succeeded after each story commit (2026-05-20)
-Last Updated: 2026-05-20
-Current Branch: claude/wizardly-agnesi-1b1b6c
-Latest Commit: feat(expert): surface saved reports list + detail view
+Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
+Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 20/20 on iPhone 17 Pro simulator (2026-05-24)
+Last Updated: 2026-05-24
+Current Branch: main
+Latest Commit: Merge pull request #22 from nadavyigal/claude/naughty-williams-5ca631
 Active Spec: —
 Latest QA Report: —
 
@@ -27,7 +27,8 @@ Latest QA Report: —
 
 ## Key Shared State
 - `AppState.latestOptimizationId: String?` — persisted via UserDefaults; set on optimize success AND when opening Latest Resume from Me tab or View Optimized Resume from Application Detail; drives Optimized+Expert+Design tabs
-- `BackendConfig.useMockLibraryService = true` — flip to `false` once `/api/v1/resumes` ships on backend
+- `AppState.bootstrap()` clears stale persisted `mock-` optimization IDs so old local state cannot call live endpoints with mock identifiers
+- Runtime service defaults are live-only via `RuntimeServices`; mocks remain available only through explicit tests/previews
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

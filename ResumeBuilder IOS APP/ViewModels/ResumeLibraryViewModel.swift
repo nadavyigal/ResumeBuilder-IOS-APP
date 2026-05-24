@@ -10,10 +10,7 @@ final class ResumeLibraryViewModel {
 
     private let service: any ResumeLibraryServiceProtocol
 
-    init(service: any ResumeLibraryServiceProtocol = BackendConfig.useMockLibraryService
-        ? MockResumeLibraryService()
-        : ResumeLibraryService()
-    ) {
+    init(service: any ResumeLibraryServiceProtocol = RuntimeServices.resumeLibraryService()) {
         self.service = service
     }
 

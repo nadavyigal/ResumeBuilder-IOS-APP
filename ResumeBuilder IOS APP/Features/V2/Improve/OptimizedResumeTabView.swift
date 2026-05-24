@@ -33,9 +33,6 @@ struct OptimizedResumeTabView: View {
 
     private func syncVM() {
         print("🔍 [OPTIMIZED TAB] syncVM called, id=\(appState.latestOptimizationId ?? "nil")")
-        // Always consume pending mock sections so they don't leak across repeated calls.
-        let mockSections = appState.pendingMockSections ?? []
-        appState.pendingMockSections = nil
         guard let id = appState.latestOptimizationId else {
             optimizedVM = nil
             return
@@ -45,7 +42,7 @@ struct OptimizedResumeTabView: View {
             return
         }
         print("✅ [OPTIMIZED TAB] creating OptimizedResumeViewModel for id=\(id)")
-        optimizedVM = OptimizedResumeViewModel(optimizationId: id, sections: mockSections)
+        optimizedVM = OptimizedResumeViewModel(optimizationId: id)
     }
 
     private var noOptimizationView: some View {

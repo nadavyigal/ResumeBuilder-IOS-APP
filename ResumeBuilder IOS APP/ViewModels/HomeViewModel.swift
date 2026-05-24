@@ -16,10 +16,10 @@ final class HomeViewModel {
     private let exportsService: any RecentExportsServiceProtocol
     private let historyService: any OptimizationHistoryServiceProtocol
 
-    init(exportsService: any RecentExportsServiceProtocol = BackendConfig.useMockServices
-         ? MockRecentExportsService() : RecentExportsService(),
-         historyService: any OptimizationHistoryServiceProtocol = BackendConfig.useMockServices
-         ? MockOptimizationHistoryService() : OptimizationHistoryService()) {
+    init(
+        exportsService: any RecentExportsServiceProtocol = RuntimeServices.recentExportsService(),
+        historyService: any OptimizationHistoryServiceProtocol = RuntimeServices.optimizationHistoryService()
+    ) {
         self.exportsService = exportsService
         self.historyService = historyService
     }

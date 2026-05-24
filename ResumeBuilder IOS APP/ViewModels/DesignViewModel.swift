@@ -25,8 +25,7 @@ final class DesignViewModel {
 
     init(
         optimizationId: String?,
-        designService: any ResumeDesignServiceProtocol = (BackendConfig.useMockServices || BackendConfig.useMockDesignService)
-            ? MockResumeDesignService() : ResumeDesignService()
+        designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
     ) {
         self.optimizationId = optimizationId
         self.designService = designService

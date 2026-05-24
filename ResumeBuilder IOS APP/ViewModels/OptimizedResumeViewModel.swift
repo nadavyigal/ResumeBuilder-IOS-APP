@@ -32,8 +32,7 @@ final class OptimizedResumeViewModel {
         atsScoreAfter: Int? = nil,
         jobTitle: String? = nil,
         company: String? = nil,
-        optimizationService: any ResumeOptimizationServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeOptimizationService() : ResumeOptimizationService()
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId

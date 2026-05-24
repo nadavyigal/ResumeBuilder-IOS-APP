@@ -15,9 +15,7 @@ struct ResumePreviewWebView: View {
     @State private var showSharePDF = false
     @State private var isDownloadingPDF = false
 
-    private let designService: any ResumeDesignServiceProtocol =
-        (BackendConfig.useMockServices || BackendConfig.useMockDesignService)
-            ? MockResumeDesignService() : ResumeDesignService()
+    private let designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
 
     var body: some View {
         Group {
@@ -117,6 +115,8 @@ struct ResumePreviewWebView: View {
                 print("❌ [PREVIEW] no html and no sections available")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
             }
+        } catch is CancellationError {
+            // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.
         } catch {
             print("❌ [PREVIEW] renderPreview error: \(error)")
             errorMessage = error.localizedDescription

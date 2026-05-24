@@ -38,10 +38,8 @@ final class ImproveViewModel {
         optimizationId: String? = nil,
         initialAnalysis: ResumeAnalysis? = nil,
         initialImprovements: [ResumeImprovement] = [],
-        analysisService: any ResumeAnalysisServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeAnalysisService() : ResumeAnalysisService(),
-        optimizationService: any ResumeOptimizationServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeOptimizationService() : ResumeOptimizationService()
+        analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
     ) {
         self.resumeId = resumeId
         self.jobDescriptionId = jobDescriptionId
