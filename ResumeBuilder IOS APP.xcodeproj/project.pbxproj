@@ -11,8 +11,9 @@
 		749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */; };
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
 		AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */; };
-		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
+		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
+		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,10 +30,11 @@
 		335AA7632FA77AB800FD6628 /* ResumeBuilder IOS APP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ResumeBuilder IOS APP.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuntimeServicesTests.swift; sourceTree = "<group>"; };
 		49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImproveViewModelTests.swift; sourceTree = "<group>"; };
-		4A5A8068E4FED9A03DB1E4D3 /* ResumeBuilder IOS APPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ResumeBuilder IOS APPTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OptimizedResumeViewModelTests.swift; sourceTree = "<group>"; };
+		4A5A8068E4FED9A03DB1E4D3 /* ResumeBuilder IOS APPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ResumeBuilder IOS APPTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationParsingTests.swift; sourceTree = "<group>"; };
 		76421689162B5723CAA363D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveEndpointStabilizationTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */,
+				9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */,
 				497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */,
 				54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */,
 				F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */,
@@ -216,6 +219,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */,
+				DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */,
 				749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */,
 				D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */,
 				1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */,
@@ -268,9 +272,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
+				EAGER_LINKING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -294,8 +300,6 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				COMPILATION_CACHE_ENABLE_CACHING = YES;
-				EAGER_LINKING = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -334,6 +338,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 8VC4R5M425;
@@ -353,7 +358,6 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;

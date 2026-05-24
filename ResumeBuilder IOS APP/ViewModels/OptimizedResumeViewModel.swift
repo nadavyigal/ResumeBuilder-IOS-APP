@@ -23,6 +23,7 @@ final class OptimizedResumeViewModel {
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
+    private var didAttemptInitialSectionLoad: Bool
 
     init(
         optimizationId: String?,
@@ -42,10 +43,15 @@ final class OptimizedResumeViewModel {
         self.jobTitle = jobTitle
         self.company = company
         self.optimizationService = optimizationService
+        self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
     /// Exposed for downstream tools (e.g. chat) that share the same optimization id.
     var optimizationIdentifier: String? { optimizationId }
+
+    var isAwaitingInitialSections: Bool {
+        optimizationId != nil && sections.isEmpty && !didAttemptInitialSectionLoad
+    }
 
     /// Plain text of all sections joined for clipboard copy.
     var plainTextResume: String {
@@ -95,7 +101,8 @@ final class OptimizedResumeViewModel {
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
     /// from OptimizationReviewView where the apply response contains only the optimizationId).
     func loadSections(appState: AppState) async {
-        guard sections.isEmpty, !isLoadingSections else { return }
+        guard sections.isEmpty, !isLoadingSections, !didAttemptInitialSectionLoad else { return }
+        didAttemptInitialSectionLoad = true
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {
@@ -122,7 +129,8 @@ final class OptimizedResumeViewModel {
     }
 
     func loadSections(token: String?) async {
-        guard sections.isEmpty, !isLoadingSections, let optId = optimizationId, let token else { return }
+        guard sections.isEmpty, !isLoadingSections, !didAttemptInitialSectionLoad, let optId = optimizationId, let token else { return }
+        didAttemptInitialSectionLoad = true
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {

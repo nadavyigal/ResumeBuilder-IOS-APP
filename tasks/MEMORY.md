@@ -1,3 +1,17 @@
+## 2026-05-24 — Live endpoint stabilization after physical-device smoke logs
+
+**Worked on:** Stabilizing the live-only app after phone logs exposed a missing Resume Library endpoint, PDF upload read failures, preview cancellation noise, and duplicate initial optimization preview work.
+
+**Completed:** Added a runtime Resume Library availability gate with graceful disabled UI; added PDF upload preflight and PDF MIME handling; treated preview cancellation (`CancellationError` and `NSURLErrorCancelled`) as benign; delayed optimized preview rendering until initial section load is attempted; added regression tests. XcodeBuildMCP build passed and tests passed 24/24.
+
+**In progress:** Backend `/api/v1/resumes` still returns a production Next.js 404 HTML page. Resume Library remains disabled in runtime until that backend route exists and returns JSON.
+
+**Decisions:** Keep runtime live-only and disable unavailable backend-dependent UI instead of reintroducing mocks. Treat WebKit/RunningBoard/keyboard logs as noise unless visible UI breaks.
+
+**Next session:** Implement/verify backend Resume Library routes, then re-enable `RuntimeFeatures.isResumeLibraryEnabled` and run a real-device smoke test with a known-good text PDF.
+
+---
+
 ## 2026-05-24 — Runtime app switched to live-only endpoints
 
 **Worked on:** Removing runtime mock service routing after Xcode logs showed `mock-opt-001` reaching live optimization endpoints and causing UUID parse errors.

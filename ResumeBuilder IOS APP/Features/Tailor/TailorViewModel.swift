@@ -47,8 +47,18 @@ final class TailorViewModel {
         try? FileManager.default.removeItem(at: dest)
         try? FileManager.default.copyItem(at: url, to: dest)
 
-        selectedResumeURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
+        let candidateURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
+        do {
+            _ = try UploadFilePreflight.loadResumeFile(candidateURL)
+        } catch {
+            selectedResumeURL = nil
+            selectedResumeName = nil
+            errorMessage = error.localizedDescription
+            return
+        }
+        selectedResumeURL = candidateURL
         selectedResumeName = filename
+        errorMessage = nil
     }
 
     /// Pre-fills Step 1 from a file URL already downloaded from the library.
@@ -181,6 +191,6 @@ final class TailorViewModel {
     private func enhancedError(_ message: String) -> String {
         let lower = message.lowercased()
         guard lower.contains("read") && lower.contains("pdf") else { return message }
-        return message + "\n\nTip: Resume Library previews may not be readable. For best results, upload your own PDF from Files."
+        return message + "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer."
     }
 }
