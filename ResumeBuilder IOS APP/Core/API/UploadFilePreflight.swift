@@ -7,6 +7,7 @@ struct UploadFileDescriptor: Sendable {
     let filename: String
     let data: Data
     let mimeType: String
+    let resumeText: String?
 }
 
 enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
@@ -42,14 +43,17 @@ enum UploadFilePreflight {
             throw UploadFilePreflightError.emptyFile
         }
         var uploadData = data
+        var resumeText: String?
         if mimeType(for: fileURL) == "application/pdf" {
             let text = try readablePDFText(data)
+            resumeText = text
             uploadData = try makeBackendReadablePDF(from: text)
         }
         return UploadFileDescriptor(
             filename: fileURL.lastPathComponent,
             data: uploadData,
-            mimeType: mimeType(for: fileURL) ?? "application/octet-stream"
+            mimeType: mimeType(for: fileURL) ?? "application/octet-stream",
+            resumeText: resumeText
         )
     }
 

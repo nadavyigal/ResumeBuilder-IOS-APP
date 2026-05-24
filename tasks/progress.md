@@ -4,15 +4,15 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Live upload end-to-end follow-up — pulled merged main locally, generated backend-readable upload PDFs from extracted text (2026-05-24)
-Next Recommended Story: Backend `/api/v1/resumes` route implementation + real-device smoke test with a known-good text-based PDF
-Estimated Completion: 45%
-Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled; `/api/v1/styles/history` returns 500 and is now avoided in normal design flows
+Last Completed Story: End-to-end live stabilization — fixed design apply payload, sent iOS-extracted resume text, and added backend parser fallback (2026-05-24)
+Next Recommended Story: Merge/deploy backend upload fallback + iOS branch, then real-device smoke test with a known-good text-based PDF
+Estimated Completion: 55%
+Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 25/25 on iPhone 17 Pro simulator (2026-05-24)
+Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed via log (24 XCTest + 5 Swift Testing tests) on iPhone 17 Pro simulator; backend upload fallback Jest contract passed 4/4 (2026-05-24)
 Last Updated: 2026-05-24
-Current Branch: codex/live-upload-end-to-end
-Latest Base Commit: 88bc805 — Merge pull request #26 from nadavyigal/codex/live-upload-style-followup
+Current Branch: codex/end-to-end-live-stabilization
+Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: —
 Latest QA Report: —
 
@@ -31,7 +31,7 @@ Latest QA Report: —
 - Runtime service defaults are live-only via `RuntimeServices`; mocks remain available only through explicit tests/previews
 - `RuntimeFeatures.isResumeLibraryEnabled = false` until the backend ships `/api/v1/resumes`; app shows saved resumes as unavailable instead of surfacing HTML 404s
 - Design history is not loaded automatically because `/api/v1/styles/history` currently returns 500; Apply/Undo use the stable design endpoints without blocking normal preview/design navigation
-- Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs to avoid backend parser failures
+- Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

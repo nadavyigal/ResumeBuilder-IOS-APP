@@ -14,8 +14,16 @@ struct ResumePreviewWebView: View {
     @State private var pdfURL: URL?
     @State private var showSharePDF = false
     @State private var isDownloadingPDF = false
+    @State private var previewPolicy = PreviewRequestPolicy()
 
     private let designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
+    private var previewRequestKey: String {
+        let sectionKey = sections
+            .map { "\($0.id):\($0.type.rawValue):\($0.status):\($0.body)" }
+            .joined(separator: "|")
+        let customizationKey = customization.map { "\($0.spacing):\($0.accentColor):\($0.fontStyle)" } ?? "default"
+        return "\(optimizationId)|\(templateId ?? "ats-clean")|\(customizationKey)|\(sectionKey.hashValue)"
+    }
 
     var body: some View {
         Group {
@@ -42,7 +50,8 @@ struct ResumePreviewWebView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, AppSpacing.lg)
                     Button("Try Again") {
-                        Task { await renderPreview() }
+                        previewPolicy.reset()
+                        Task { await renderPreview(key: previewRequestKey) }
                     }
                     .font(.appSubheadline)
                     .foregroundStyle(AppColors.accentTeal)
@@ -67,8 +76,8 @@ struct ResumePreviewWebView: View {
                 .disabled(isLoading || isDownloadingPDF)
             }
         }
-        .task {
-            await renderPreview()
+        .task(id: previewRequestKey) {
+            await renderPreview(key: previewRequestKey)
         }
         .sheet(isPresented: $showSharePDF, onDismiss: { pdfURL = nil }) {
             if let url = pdfURL {
@@ -79,14 +88,20 @@ struct ResumePreviewWebView: View {
 
     // MARK: - Private
 
-    private func renderPreview() async {
+    private func renderPreview(key: String) async {
+        guard previewPolicy.shouldRender(key: key) else { return }
+        previewPolicy.markStarted(key: key)
+        var didRender = false
+        defer { previewPolicy.markFinished(key: key, didRender: didRender) }
+
         print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
         // When real sections are available, render them client-side immediately.
-        // This avoids the mock design service returning placeholder "Alex Johnson" data.
+        // This avoids unnecessary backend renders while live optimization sections are ready.
         if !sections.isEmpty {
             print("✅ [PREVIEW] using ResumeHTMLBuilder with real sections (count=\(sections.count))")
             html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
             isLoading = false
+            didRender = true
             return
         }
         // No sections yet — try the backend render endpoint.
@@ -111,6 +126,7 @@ struct ResumePreviewWebView: View {
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
                 print("✅ [PREVIEW] using rendered HTML")
                 html = previewHTML
+                didRender = true
             } else {
                 print("❌ [PREVIEW] no html and no sections available")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
@@ -156,6 +172,33 @@ enum PreviewRenderErrorPolicy {
         if error is CancellationError { return true }
         let nsError = error as NSError
         return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
+    }
+}
+
+struct PreviewRequestPolicy {
+    private var lastRenderedKey: String?
+    private var inFlightKey: String?
+
+    mutating func shouldRender(key: String) -> Bool {
+        lastRenderedKey != key && inFlightKey != key
+    }
+
+    mutating func markStarted(key: String) {
+        inFlightKey = key
+    }
+
+    mutating func markFinished(key: String, didRender: Bool) {
+        if inFlightKey == key {
+            inFlightKey = nil
+        }
+        if didRender {
+            lastRenderedKey = key
+        }
+    }
+
+    mutating func reset() {
+        lastRenderedKey = nil
+        inFlightKey = nil
     }
 }
 

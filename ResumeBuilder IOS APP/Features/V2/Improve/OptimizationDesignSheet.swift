@@ -301,6 +301,7 @@ struct OptimizationDesignSheet: View {
                     if ok { isPresented = false }
                 }
             }
+            .disabled(designVM.isLoading || designVM.selectedTemplateId == nil)
 
             if designVM.canUndoDesign {
                 Button {

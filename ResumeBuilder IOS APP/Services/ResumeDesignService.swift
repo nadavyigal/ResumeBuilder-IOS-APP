@@ -84,7 +84,7 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         struct AssignmentResponse: Decodable { let assignment: JSONValue? }
         let _: AssignmentResponse = try await apiClient.postJSON(
             endpoint: .designAssignment(optimizationId: optimizationId),
-            body: ["template_id": templateId],
+            body: DesignApplyRequestBody.assignment(templateId: templateId),
             token: token
         )
 
@@ -94,6 +94,7 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
             throw APIClientError.invalidResponse
         }
         body["template_id"] = templateId
+        body["templateId"] = templateId
         struct ApplyResponse: Decodable {
             let success: Bool?
             let customization: JSONValue?
@@ -102,5 +103,11 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
             endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
         )
         return response.success == true || response.customization != nil
+    }
+}
+
+enum DesignApplyRequestBody {
+    nonisolated static func assignment(templateId: String) -> [String: Any] {
+        ["templateId": templateId]
     }
 }

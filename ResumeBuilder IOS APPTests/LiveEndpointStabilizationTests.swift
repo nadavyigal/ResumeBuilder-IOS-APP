@@ -28,7 +28,65 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         XCTAssertEqual(descriptor.filename, url.lastPathComponent)
         XCTAssertEqual(descriptor.mimeType, "application/pdf")
         XCTAssertFalse(descriptor.data.isEmpty)
+        XCTAssertTrue(descriptor.resumeText?.contains("Resume text for extraction") == true)
         XCTAssertTrue(uploadedPDFText.contains("Resume text for extraction"))
+    }
+
+    func testMultipartUploadIncludesResumeTextFallback() {
+        let descriptor = UploadFileDescriptor(
+            filename: "resume.pdf",
+            data: Data("%PDF text-layer".utf8),
+            mimeType: "application/pdf",
+            resumeText: "Readable resume text from PDFKit"
+        )
+
+        let body = MultipartUploadBodyBuilder.build(
+            boundary: "Boundary-Test",
+            uploadFile: descriptor,
+            fields: [
+                "jobDescription": "Build iOS apps",
+                "jobDescriptionUrl": nil,
+                "resumeText": descriptor.resumeText,
+            ]
+        )
+        let bodyText = String(data: body, encoding: .utf8) ?? ""
+
+        XCTAssertTrue(bodyText.contains("name=\"resume\"; filename=\"resume.pdf\""))
+        XCTAssertTrue(bodyText.contains("Content-Type: application/pdf"))
+        XCTAssertTrue(bodyText.contains("name=\"resumeText\""))
+        XCTAssertTrue(bodyText.contains("Readable resume text from PDFKit"))
+        XCTAssertFalse(bodyText.contains("name=\"jobDescriptionUrl\""))
+    }
+
+    func testDesignAssignmentBodyUsesBackendCamelCaseTemplateId() {
+        let body = DesignApplyRequestBody.assignment(templateId: "ats-clean")
+
+        XCTAssertEqual(body["templateId"] as? String, "ats-clean")
+        XCTAssertNil(body["template_id"])
+    }
+
+    func testApplyDesignWaitsForTemplateLoad() async {
+        let service = SpyResumeDesignService()
+        let vm = DesignViewModel(optimizationId: "opt-123", designService: service)
+        vm.selectedTemplateId = "ats-clean"
+        vm.isLoading = true
+
+        let didApply = await vm.applyDesign(token: "token")
+
+        XCTAssertFalse(didApply)
+        XCTAssertEqual(service.applyCalls, 0)
+        XCTAssertEqual(vm.errorMessage, "Design templates are still loading. Try again in a moment.")
+    }
+
+    func testPreviewRequestPolicySkipsDuplicateSuccessfulKeys() {
+        var policy = PreviewRequestPolicy()
+
+        XCTAssertTrue(policy.shouldRender(key: "a"))
+        policy.markStarted(key: "a")
+        XCTAssertFalse(policy.shouldRender(key: "a"))
+        policy.markFinished(key: "a", didRender: true)
+        XCTAssertFalse(policy.shouldRender(key: "a"))
+        XCTAssertTrue(policy.shouldRender(key: "b"))
     }
 
     func testEmptyPDFPreflightFailsBeforeUpload() throws {
@@ -98,5 +156,22 @@ private final class SpyResumeLibraryService: ResumeLibraryServiceProtocol, @unch
 
     func downloadResumePDF(id: String, token: String) async throws -> URL {
         FileManager.default.temporaryDirectory.appendingPathComponent("\(id).pdf")
+    }
+}
+
+private final class SpyResumeDesignService: ResumeDesignServiceProtocol, @unchecked Sendable {
+    var applyCalls = 0
+
+    func templates(category: String, token: String) async throws -> [DesignTemplate] {
+        []
+    }
+
+    func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
+        RenderPreviewResponse(success: true, previewHTML: "<html></html>", error: nil)
+    }
+
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+        applyCalls += 1
+        return true
     }
 }
