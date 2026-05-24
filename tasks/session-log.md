@@ -16,6 +16,25 @@
 ## Sessions
 
 ### 2026-05-24
+**Task:** Follow-up stabilization after merged live endpoint PR and phone logs
+**Files Changed:**
+- `ViewModels/DesignViewModel.swift` — no longer auto-refreshes style history after apply/undo; uses stable design undo fallback when no history exists
+- `Features/V2/Design/RedesignResumeView.swift` — removed automatic style-history load on screen open
+- `Features/V2/Improve/OptimizationDesignSheet.swift` — removed automatic style-history load on sheet open
+- `Core/API/UploadFilePreflight.swift` — added PDFKit readability validation for malformed/scanned/no-text PDFs
+- `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` — added real text PDF fixture generation and unreadable PDF regression coverage
+- `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated live endpoint status
+**Validation:**
+- XcodeBuildMCP `build_sim` succeeded on iPhone 17 Pro simulator
+- XcodeBuildMCP `test_sim` passed 25/25
+**Decisions Made:**
+- `/api/v1/styles/history` is optional audit data and should not run on normal design navigation while it returns 500.
+- Local upload preflight should reject PDFs without extractable text before `/api/upload-resume`.
+**Next Recommended Action:** Rebuild on physical iPhone from `codex/live-upload-style-followup`, test with a known-good text-based PDF, then fix backend `/api/v1/resumes` and style-history route gaps.
+
+---
+
+### 2026-05-24
 **Task:** Live endpoint stabilization after phone smoke logs
 **Files Changed:**
 - `Core/API/RuntimeServices.swift` — added runtime Resume Library availability gate

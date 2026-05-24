@@ -46,7 +46,6 @@ struct OptimizationDesignSheet: View {
             }
             .task {
                 await designVM.loadTemplates(token: appState.session?.accessToken)
-                await designVM.loadStyleHistory(token: appState.session?.accessToken)
             }
             .onChange(of: designVM.activeCategory) { _, _ in
                 Task { await designVM.loadTemplates(token: appState.session?.accessToken) }

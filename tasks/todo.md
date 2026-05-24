@@ -52,6 +52,11 @@
 - [x] Add PDF upload preflight and PDF multipart content type
 - [x] Quiet benign preview cancellation and avoid initial empty preview render before section load
 - [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator (24/24)
+- [x] Confirm local checkout is on merged `main` base, not the stale Codex branch
+- [x] Stop automatic `/api/v1/styles/history` calls while the backend route returns 500
+- [x] Reject malformed/scanned/no-readable-text PDFs locally before optimize upload
+- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator (25/25)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
-- [ ] Real-device smoke test with live account and known-good text PDF
-- [ ] Create a branch/PR for the live endpoint stabilization changes if these changes should be reviewed before merging
+- [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
+- [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
+- [ ] Create a branch/PR for the live endpoint follow-up changes

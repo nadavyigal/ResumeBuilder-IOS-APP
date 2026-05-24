@@ -1,3 +1,17 @@
+## 2026-05-24 — Live upload/style follow-up after main merge
+
+**Worked on:** Investigating phone logs after the live endpoint stabilization PR was merged and rebuilt.
+
+**Completed:** Confirmed the local checkout was back on `main` at merged PR #25 (`cfb3afc`) before creating `codex/live-upload-style-followup`; removed automatic `/api/v1/styles/history` loading from Design screens and Apply/Undo refreshes because the backend route returns 500 while normal design endpoints work; added PDFKit-based upload preflight that rejects malformed or no-readable-text PDFs locally with clearer guidance. XcodeBuildMCP build passed and tests passed 25/25.
+
+**In progress:** Physical iPhone smoke needs a known-good text PDF exported from a word processor. Backend `/api/v1/resumes` remains unavailable and `/api/v1/styles/history` remains a backend gap.
+
+**Decisions:** Treat style history as optional audit data, not a blocker for design navigation. Fail scanned/image-only PDFs before upload instead of letting `/api/upload-resume` return 422 after a long optimize attempt.
+
+**Next session:** Rebuild this follow-up branch on device, upload a text-based PDF, and verify optimize navigates to Optimized with a real UUID and no style-history 500 log.
+
+---
+
 ## 2026-05-24 — Live endpoint stabilization after physical-device smoke logs
 
 **Worked on:** Stabilizing the live-only app after phone logs exposed a missing Resume Library endpoint, PDF upload read failures, preview cancellation noise, and duplicate initial optimization preview work.

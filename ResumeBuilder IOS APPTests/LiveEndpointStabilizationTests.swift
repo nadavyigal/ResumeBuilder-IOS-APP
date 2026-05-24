@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import ResumeBuilder_IOS_APP
 
 @MainActor
@@ -17,7 +18,7 @@ final class LiveEndpointStabilizationTests: XCTestCase {
     func testPDFPreflightUsesPDFMimeType() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("resume-\(UUID().uuidString).pdf")
-        try Data("%PDF-1.7 test".utf8).write(to: url)
+        try Self.writeTextPDF("Resume text for extraction", to: url)
         defer { try? FileManager.default.removeItem(at: url) }
 
         let descriptor = try UploadFilePreflight.loadResumeFile(url)
@@ -38,10 +39,39 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         }
     }
 
+    func testUnreadablePDFPreflightFailsBeforeUpload() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("blank-\(UUID().uuidString).pdf")
+        try Self.writeBlankPDF(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertThrowsError(try UploadFilePreflight.loadResumeFile(url)) { error in
+            XCTAssertEqual(error as? UploadFilePreflightError, .unreadablePDF)
+        }
+    }
+
     func testPreviewCancellationErrorsAreBenign() {
         XCTAssertTrue(PreviewRenderErrorPolicy.isBenignCancellation(CancellationError()))
         XCTAssertTrue(PreviewRenderErrorPolicy.isBenignCancellation(URLError(.cancelled)))
         XCTAssertFalse(PreviewRenderErrorPolicy.isBenignCancellation(URLError(.timedOut)))
+    }
+
+    private static func writeTextPDF(_ text: String, to url: URL) throws {
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 612, height: 792))
+        try renderer.writePDF(to: url) { context in
+            context.beginPage()
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 18),
+            ]
+            text.draw(at: CGPoint(x: 72, y: 72), withAttributes: attributes)
+        }
+    }
+
+    private static func writeBlankPDF(to url: URL) throws {
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 612, height: 792))
+        try renderer.writePDF(to: url) { context in
+            context.beginPage()
+        }
     }
 }
 

@@ -77,7 +77,6 @@ struct RedesignResumeView: View {
             }
             .task {
                 await viewModel.loadTemplates(token: appState.session?.accessToken)
-                await viewModel.loadStyleHistory(token: appState.session?.accessToken)
             }
             .onChange(of: viewModel.activeCategory) { _, _ in
                 Task { await viewModel.loadTemplates(token: appState.session?.accessToken) }
