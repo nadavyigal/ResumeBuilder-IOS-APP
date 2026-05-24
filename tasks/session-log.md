@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-05-24
+**Task:** Make runtime app live-only; remove user-facing mock services, mock optimize path, and stale `mock-opt-001` persistence
+**Files Changed:**
+- `Core/API/RuntimeServices.swift` — new live-only runtime service factory
+- `Core/API/BackendConfig.swift` — removed runtime mock flags
+- `App/AppState.swift` — clears persisted `mock-` optimization ids during bootstrap
+- `Features/Tailor/TailorViewModel.swift` — removed mock library optimize branch and `pendingMockSections` write path
+- `Features/V2/Improve/OptimizedResumeTabView.swift` — builds optimized VM from real optimization id only
+- Runtime VM/service defaults — switched default dependencies to `RuntimeServices`
+- `Features/V2/Preview/ResumePreviewWebView.swift` — live design render service by default; ignores normal SwiftUI cancellation
+- `ResumeBuilder IOS APPTests/RuntimeServicesTests.swift` and Xcode project — added live-only runtime and stale mock-id regression coverage; included existing optimized VM tests in the test target
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated project memory
+**Decisions Made:**
+- Runtime app never falls back to mock data; backend gaps now surface real errors.
+- Mock services remain in the app target only for explicit test and SwiftUI preview injection.
+- `RuntimeServices` is the single source for live runtime default dependencies.
+**Next Recommended Action:** Real-device smoke test: sign in, upload a real PDF, paste a job description, optimize, confirm a real optimization id reaches Optimized/Design/Expert flows, and capture any backend errors as live endpoint issues.
+
+---
+
 ### 2026-05-17
 **Task:** Fix preview not rendering — add mock design service flag, proper HTML, client-side fallback, Design tab live preview
 **Files Changed:**

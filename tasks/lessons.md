@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-05-24
+**Category:** API
+**Rule:** Runtime service defaults must always resolve to live services; mocks are allowed only through explicit test or preview injection.
+**Why:** Global mock flags let `mock-opt-001` and placeholder HTML enter user-facing flows, which then produced live backend UUID errors and made the app look broken after a rebuild.
+
 ### 2026-05-20
 **Category:** SwiftUI
 **Rule:** Place `.navigationDestination(isPresented:)` on the `ZStack` or `ScrollView` inside the enclosing `NavigationStack` — NOT on a `List` or a nested subview inside a `List`.

@@ -46,6 +46,8 @@
 - [x] Xcode build passes
 
 ## Post-Implementation TODOs
-- [ ] Simulator smoke test all 5 tabs
-- [ ] Flip `BackendConfig.useMockLibraryService = false` once web API ships `/api/v1/resumes`
-- [ ] Create PR: `claude/hungry-chatelet-a86030` → `main`
+- [x] Remove runtime mock service flags and mock optimize path
+- [x] Add regression tests for live-only runtime services and stale mock optimization cleanup
+- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator
+- [ ] Real-device smoke test with live account/PDF/job description
+- [ ] Create a branch/PR for the live-only runtime changes if these changes should be reviewed before merging

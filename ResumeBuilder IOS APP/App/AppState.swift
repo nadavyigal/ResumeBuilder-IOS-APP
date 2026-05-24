@@ -10,13 +10,17 @@ final class AppState {
     var creditsBalance: Int = 0
     var resumeSectionsNeedRefresh: Bool = false
     var hasBootstrappedSession = false
-    /// Sections pre-loaded from a mock optimize flow. Consumed by OptimizedResumeTabView on next syncVM.
-    var pendingMockSections: [OptimizedResumeSection]? = nil
 
-    private let latestOptimizationKey = "latest_optimization_id"
+    nonisolated static let latestOptimizationKey = "latest_optimization_id"
 
     var latestOptimizationId: String? {
-        didSet { UserDefaults.standard.set(latestOptimizationId, forKey: latestOptimizationKey) }
+        didSet {
+            if let latestOptimizationId {
+                UserDefaults.standard.set(latestOptimizationId, forKey: Self.latestOptimizationKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
+            }
+        }
     }
 
     let apiClient = APIClient()
@@ -29,7 +33,13 @@ final class AppState {
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
-        latestOptimizationId = UserDefaults.standard.string(forKey: latestOptimizationKey)
+        let storedOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
+        if storedOptimizationId?.hasPrefix("mock-") == true {
+            UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
+            latestOptimizationId = nil
+        } else {
+            latestOptimizationId = storedOptimizationId
+        }
     }
 
     func bootstrapAndRefreshSession() async {

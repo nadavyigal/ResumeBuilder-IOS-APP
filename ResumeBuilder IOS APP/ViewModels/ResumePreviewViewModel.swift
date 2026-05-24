@@ -23,8 +23,7 @@ final class ResumePreviewViewModel {
     init(
         optimizationId: String? = nil,
         atsScorePercent: Int? = nil,
-        exportService: any ResumeExportServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeExportService() : ResumeExportService()
+        exportService: any ResumeExportServiceProtocol = RuntimeServices.resumeExportService()
     ) {
         self.optimizationId = optimizationId
         self.atsScorePercent = atsScorePercent

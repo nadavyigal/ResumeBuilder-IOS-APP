@@ -34,8 +34,7 @@ final class ScanViewModel {
 
     private let uploadService: any ResumeUploadServiceProtocol
 
-    init(uploadService: any ResumeUploadServiceProtocol = BackendConfig.useMockServices
-         ? MockResumeUploadService() : ResumeUploadService()) {
+    init(uploadService: any ResumeUploadServiceProtocol = RuntimeServices.resumeUploadService()) {
         self.uploadService = uploadService
         loadCachedResume()
     }
