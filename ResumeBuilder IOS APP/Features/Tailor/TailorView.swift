@@ -60,32 +60,7 @@ struct TailorView: View {
                             .offset(y: appeared ? 0 : 16)
 
                             if viewModel.selectedResumeName?.isEmpty != false && appState.isAuthenticated {
-                                Button {
-                                    if let token = appState.session?.accessToken {
-                                        Task { await libraryViewModel.load(token: token) }
-                                    }
-                                    showLibraryPicker = true
-                                } label: {
-                                    HStack(spacing: 10) {
-                                        Image(systemName: "books.vertical.fill")
-                                            .font(.system(size: 15, weight: .semibold))
-                                            .foregroundStyle(Theme.accentBlue)
-                                        Text("Use a saved resume")
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(Theme.textPrimary)
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(Theme.textTertiary)
-                                    }
-                                    .padding(12)
-                                    .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .strokeBorder(Theme.accentBlue.opacity(0.25), lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                                libraryButton
                                 .opacity(appeared ? 1 : 0)
                                 .offset(y: appeared ? 0 : 16)
                             }
@@ -184,9 +159,11 @@ struct TailorView: View {
                 Text("Save to reuse on other jobs without re-uploading.")
             }
             .onChange(of: viewModel.pendingSaveResumeId) { newId in
-                if newId != nil {
+                if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
                     saveDisplayName = viewModel.selectedResumeName ?? ""
                     showSavePrompt = true
+                } else if newId != nil {
+                    viewModel.pendingSaveResumeId = nil
                 }
             }
             .fileImporter(
@@ -218,6 +195,55 @@ struct TailorView: View {
     }
 
     // MARK: - Subviews
+
+    private var libraryButton: some View {
+        Button {
+            guard RuntimeFeatures.isResumeLibraryEnabled else {
+                libraryViewModel.errorMessage = "Resume Library is not available yet."
+                return
+            }
+            if let token = appState.session?.accessToken {
+                Task { await libraryViewModel.load(token: token) }
+            }
+            showLibraryPicker = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "books.vertical.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue : Theme.textTertiary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(RuntimeFeatures.isResumeLibraryEnabled ? "Use a saved resume" : "Saved resumes unavailable")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Theme.textPrimary)
+                    if !RuntimeFeatures.isResumeLibraryEnabled {
+                        Text("Resume Library is not available yet.")
+                            .font(.caption)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                }
+                Spacer()
+                if RuntimeFeatures.isResumeLibraryEnabled {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+            }
+            .padding(12)
+            .background(
+                (RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue.opacity(0.08) : Color.white.opacity(0.04)),
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                        RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue.opacity(0.25) : Color.white.opacity(0.08),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(!RuntimeFeatures.isResumeLibraryEnabled)
+    }
 
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 6) {

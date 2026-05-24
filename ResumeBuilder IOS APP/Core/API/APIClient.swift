@@ -24,6 +24,32 @@ enum APIClientError: Error, LocalizedError {
     }
 }
 
+extension APIClientError {
+    nonisolated var isNotFound: Bool {
+        if case .serverError(let status, _) = self {
+            return status == 404
+        }
+        return false
+    }
+
+    nonisolated var userFacingMessage: String {
+        switch self {
+        case .serverError(_, let message):
+            return message.strippingHTMLTags().isEmpty ? localizedDescription : message.strippingHTMLTags()
+        default:
+            return localizedDescription
+        }
+    }
+}
+
+private extension String {
+    nonisolated func strippingHTMLTags() -> String {
+        replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 struct APIClient {
     var baseURL: URL = BackendConfig.apiBaseURL
     var session: URLSession = .shared
@@ -191,18 +217,17 @@ struct APIClient {
             request.setValue(sessionId, forHTTPHeaderField: "x-session-id")
         }
 
-        let filename = fileURL.lastPathComponent
         let didAccess = fileURL.startAccessingSecurityScopedResource()
-        let fileData = try await Task.detached(priority: .userInitiated) {
-            defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
-            return try Data(contentsOf: fileURL)
+        defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
+        let uploadFile = try await Task.detached(priority: .userInitiated) {
+            try UploadFilePreflight.loadResumeFile(fileURL)
         }.value
 
         var body = Data()
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
-        body.append(fileData)
+        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(uploadFile.filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(uploadFile.mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(uploadFile.data)
 
         for (name, value) in fields {
             guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }

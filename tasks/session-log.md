@@ -16,6 +16,23 @@
 ## Sessions
 
 ### 2026-05-24
+**Task:** Live endpoint stabilization after phone smoke logs
+**Files Changed:**
+- `Core/API/RuntimeServices.swift` — added runtime Resume Library availability gate
+- `Core/API/APIClient.swift`, `Core/API/UploadFilePreflight.swift` — added user-facing API error cleanup, upload file validation, and PDF MIME handling
+- `Features/Tailor/TailorView.swift`, `Features/Tailor/TailorViewModel.swift`, `ViewModels/ResumeLibraryViewModel.swift` — disabled broken Resume Library UI gracefully and improved PDF upload guidance
+- `ViewModels/OptimizedResumeViewModel.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Preview/ResumePreviewWebView.swift` — reduced duplicate initial loads/renders and ignored benign cancellation
+- `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` and Xcode project — added regression tests
+- `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated roadmap/status
+**Decisions Made:**
+- Runtime stays live-only; missing Resume Library backend is disabled, not mocked.
+- `/api/v1/resumes` is a backend blocker and must return JSON before iOS re-enables saved resumes.
+- PDF upload should fail early for missing/empty/unsupported files and send real PDFs as `application/pdf`.
+**Next Recommended Action:** Implement backend Resume Library routes, flip `RuntimeFeatures.isResumeLibraryEnabled`, then run real-device smoke with a known-good text PDF.
+
+---
+
+### 2026-05-24
 **Task:** Make runtime app live-only; remove user-facing mock services, mock optimize path, and stale `mock-opt-001` persistence
 **Files Changed:**
 - `Core/API/RuntimeServices.swift` — new live-only runtime service factory

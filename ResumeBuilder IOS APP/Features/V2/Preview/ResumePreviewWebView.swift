@@ -89,7 +89,7 @@ struct ResumePreviewWebView: View {
             isLoading = false
             return
         }
-        // No sections yet — try the backend render endpoint (or mock fallback).
+        // No sections yet — try the backend render endpoint.
         guard let token = appState.session?.accessToken else {
             print("❌ [PREVIEW] no token — cannot render")
             errorMessage = "Sign in to preview your resume."
@@ -109,13 +109,13 @@ struct ResumePreviewWebView: View {
             let response = try await designService.renderPreview(request, token: token)
             print("🎨 [PREVIEW] renderPreview response: html=\(response.previewHTML?.count ?? 0) chars error=\(response.error ?? "none")")
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
-                print("✅ [PREVIEW] using backend/mock HTML")
+                print("✅ [PREVIEW] using rendered HTML")
                 html = previewHTML
             } else {
                 print("❌ [PREVIEW] no html and no sections available")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
             }
-        } catch is CancellationError {
+        } catch where PreviewRenderErrorPolicy.isBenignCancellation(error) {
             // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.
         } catch {
             print("❌ [PREVIEW] renderPreview error: \(error)")
@@ -149,6 +149,14 @@ struct ResumePreviewWebView: View {
         }
     }
 
+}
+
+enum PreviewRenderErrorPolicy {
+    static func isBenignCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
+    }
 }
 
 // MARK: - WKWebView wrapper

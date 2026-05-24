@@ -48,6 +48,10 @@
 ## Post-Implementation TODOs
 - [x] Remove runtime mock service flags and mock optimize path
 - [x] Add regression tests for live-only runtime services and stale mock optimization cleanup
-- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator
-- [ ] Real-device smoke test with live account/PDF/job description
-- [ ] Create a branch/PR for the live-only runtime changes if these changes should be reviewed before merging
+- [x] Disable missing Resume Library route gracefully in iOS runtime
+- [x] Add PDF upload preflight and PDF multipart content type
+- [x] Quiet benign preview cancellation and avoid initial empty preview render before section load
+- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator (24/24)
+- [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
+- [ ] Real-device smoke test with live account and known-good text PDF
+- [ ] Create a branch/PR for the live endpoint stabilization changes if these changes should be reviewed before merging

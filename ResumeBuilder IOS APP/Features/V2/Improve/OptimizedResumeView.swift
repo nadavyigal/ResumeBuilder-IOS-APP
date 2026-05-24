@@ -34,7 +34,7 @@ struct OptimizedResumeView: View {
                 }
 
                 // Inline resume preview — the main content
-                if viewModel.isLoadingSections {
+                if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
                         .padding(.top, AppSpacing.xl)

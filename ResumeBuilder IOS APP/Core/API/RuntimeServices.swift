@@ -1,5 +1,11 @@
 import Foundation
 
+enum RuntimeFeatures {
+    /// `/api/v1/resumes` is not available on the production backend yet.
+    /// Keep runtime live-only, but do not expose a broken saved-resume flow.
+    static let isResumeLibraryEnabled = false
+}
+
 enum RuntimeServices {
     static func resumeUploadService() -> any ResumeUploadServiceProtocol {
         ResumeUploadService()

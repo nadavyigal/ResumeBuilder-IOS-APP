@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-05-24
+**Category:** Build
+**Rule:** Pure helper APIs used from URLSession/background tasks should be explicitly `nonisolated` under Swift 6 when the surrounding app uses `@MainActor` heavily.
+**Why:** The first build after adding upload preflight helpers failed because Swift treated helper calls as main actor-isolated from a detached task and synchronous error formatter.
+
+### 2026-05-24
 **Category:** API
 **Rule:** Runtime service defaults must always resolve to live services; mocks are allowed only through explicit test or preview injection.
 **Why:** Global mock flags let `mock-opt-001` and placeholder HTML enter user-facing flows, which then produced live backend UUID errors and made the app look broken after a rebuild.
