@@ -56,7 +56,10 @@
 - [x] Stop automatic `/api/v1/styles/history` calls while the backend route returns 500
 - [x] Reject malformed/scanned/no-readable-text PDFs locally before optimize upload
 - [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator (25/25)
+- [x] Pull merged PR #26 into local `main` so Xcode no longer builds stale code
+- [x] Generate a backend-readable text-layer PDF before live upload to avoid backend PDF parser 422s
+- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator after upload normalization (25/25)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
-- [ ] Create a branch/PR for the live endpoint follow-up changes
+- [ ] Create a branch/PR for the live upload end-to-end follow-up changes

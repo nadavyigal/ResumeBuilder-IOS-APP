@@ -16,6 +16,22 @@
 ## Sessions
 
 ### 2026-05-24
+**Task:** Live upload end-to-end follow-up after stale main rebuild
+**Files Changed:**
+- `Core/API/UploadFilePreflight.swift` — generates a simple backend-readable text-layer PDF from extracted PDF text before upload
+- `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` — verifies uploaded PDF data still contains extractable resume text
+- `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated status and lessons
+**Validation:**
+- XcodeBuildMCP `build_sim` succeeded on iPhone 17 Pro simulator
+- XcodeBuildMCP `test_sim` passed 25/25
+**Decisions Made:**
+- Local `main` must be pulled after PR merge before rebuilding in Xcode; the previous phone logs came from a stale local `main`.
+- Normalize readable PDFs in iOS before upload so the backend parser receives predictable PDF internals.
+**Next Recommended Action:** Merge/rebuild this follow-up branch on physical iPhone and verify optimize returns a live `reviewId` or `optimizationId`.
+
+---
+
+### 2026-05-24
 **Task:** Follow-up stabilization after merged live endpoint PR and phone logs
 **Files Changed:**
 - `ViewModels/DesignViewModel.swift` — no longer auto-refreshes style history after apply/undo; uses stable design undo fallback when no history exists

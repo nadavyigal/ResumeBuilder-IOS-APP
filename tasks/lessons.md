@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-05-24
+**Category:** Build
+**Rule:** After merging a PR, fetch and pull `main` in the local Xcode working copy before rebuilding, then confirm Xcode's branch popover shows `main`.
+**Why:** The app was rebuilt from local `main` while it was still two commits behind `origin/main`, so the installed binary still contained code removed by the merged PR.
+
+### 2026-05-24
+**Category:** PDF
+**Rule:** For live optimize uploads, send a backend-readable text-layer PDF generated from iOS-extracted text instead of trusting the original PDF internals.
+**Why:** PDFKit could read selected PDFs locally, but the backend `pdfjs-dist` parser still returned 422 for some device-selected PDFs.
+
+### 2026-05-24
 **Category:** API
 **Rule:** Do not auto-load nonessential audit/history endpoints on screen open when the primary user flow can work without them; load them lazily or use the stable fallback action.
 **Why:** `/api/v1/styles/history` returned 500 on device and made the app look broken even though templates, preview rendering, and design apply were working.
