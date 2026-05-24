@@ -1,0 +1,288 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-05-24T06:22:50.584881+00:00",
+  "type": "compilation-diagnostics",
+  "build": {
+    "entrypoint": "project",
+    "path": "ResumeBuilder IOS APP.xcodeproj",
+    "scheme": "ResumeBuilder IOS APP",
+    "configuration": "Debug",
+    "destination": "platform=iOS Simulator,id=CCAA6869-0D67-4F89-B530-E113D7933C89"
+  },
+  "threshold_ms": 50,
+  "build_duration_seconds": 26.907,
+  "build_success": true,
+  "raw_log_path": ".build-benchmark/20260524T062220Z-resumebuilder-ios-app-diagnostics.log",
+  "warnings": [
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Tailor/TailorView.swift",
+      "line": 254,
+      "column": 18,
+      "duration_ms": 415,
+      "kind": "function-body",
+      "name": "stepCard(step:title:subtitle:icon:isFilled:action:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Models/ResumeAnalysis.swift",
+      "line": 95,
+      "column": 16,
+      "duration_ms": 380,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/DesignSystem/Components/TemplateThumbnail.swift",
+      "line": 276,
+      "column": 18,
+      "duration_ms": 209,
+      "kind": "function-body",
+      "name": "bodyLines"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift",
+      "line": 917,
+      "column": 9,
+      "duration_ms": 175,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Design/RedesignResumeView.swift",
+      "line": 258,
+      "column": 5,
+      "duration_ms": 120,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/History/ModificationHistoryView.swift",
+      "line": 102,
+      "column": 18,
+      "duration_ms": 112,
+      "kind": "function-body",
+      "name": "modificationRow"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/DesignSystem/Components/ResumlyTabBar.swift",
+      "line": 52,
+      "column": 18,
+      "duration_ms": 105,
+      "kind": "function-body",
+      "name": "tabButton"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/ViewModels/ResumeManagementViewModel.swift",
+      "line": 68,
+      "column": 10,
+      "duration_ms": 92,
+      "kind": "function-body",
+      "name": "upload(fileURL:token:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift",
+      "line": 361,
+      "column": 5,
+      "duration_ms": 92,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Tailor/TailorView.swift",
+      "line": 263,
+      "column": 33,
+      "duration_ms": 88,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Services/OptimizationHistoryService.swift",
+      "line": 11,
+      "column": 10,
+      "duration_ms": 83,
+      "kind": "function-body",
+      "name": "list(token:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Profile/ProfileView.swift",
+      "line": 71,
+      "column": 25,
+      "duration_ms": 81,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/App/MainTabViewV2.swift",
+      "line": 64,
+      "column": 5,
+      "duration_ms": 81,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Design/RedesignResumeView.swift",
+      "line": 98,
+      "column": 21,
+      "duration_ms": 81,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/App/MainTabViewV2.swift",
+      "line": 34,
+      "column": 17,
+      "duration_ms": 76,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Tailor/SavedResumePickerSheet.swift",
+      "line": 55,
+      "column": 18,
+      "duration_ms": 72,
+      "kind": "function-body",
+      "name": "resumeRow"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Tailor/TailorView.swift",
+      "line": 401,
+      "column": 21,
+      "duration_ms": 72,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/History/ModificationHistoryView.swift",
+      "line": 169,
+      "column": 5,
+      "duration_ms": 69,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/History/ModificationHistoryView.swift",
+      "line": 39,
+      "column": 10,
+      "duration_ms": 64,
+      "kind": "function-body",
+      "name": "revert(id:token:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/App/AppState.swift",
+      "line": 74,
+      "column": 10,
+      "duration_ms": 63,
+      "kind": "function-body",
+      "name": "convertAnonymousSessionIfNeeded()"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/API/APIClient.swift",
+      "line": 219,
+      "column": 18,
+      "duration_ms": 63,
+      "kind": "function-body",
+      "name": "send(_:using:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Track/ApplicationDetailView.swift",
+      "line": 142,
+      "column": 32,
+      "duration_ms": 62,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Chat/ChatView.swift",
+      "line": 280,
+      "column": 9,
+      "duration_ms": 57,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Improve/ImproveView.swift",
+      "line": 228,
+      "column": 5,
+      "duration_ms": 57,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift",
+      "line": 362,
+      "column": 9,
+      "duration_ms": 57,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Design/RedesignResumeView.swift",
+      "line": 121,
+      "column": 17,
+      "duration_ms": 56,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Expert/ExpertModesViewModel.swift",
+      "line": 106,
+      "column": 10,
+      "duration_ms": 56,
+      "kind": "function-body",
+      "name": "apply(_:token:appState:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/DesignSystem/Components/ResumlyTabBar.swift",
+      "line": 98,
+      "column": 9,
+      "duration_ms": 54,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/ViewModels/DesignViewModel.swift",
+      "line": 36,
+      "column": 9,
+      "duration_ms": 53,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Scan/ScanResumeView.swift",
+      "line": 270,
+      "column": 5,
+      "duration_ms": 52,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/Tailor/TailorView.swift",
+      "line": 374,
+      "column": 37,
+      "duration_ms": 52,
+      "kind": "expression",
+      "name": ""
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Core/API/ChatService.swift",
+      "line": 31,
+      "column": 10,
+      "duration_ms": 51,
+      "kind": "function-body",
+      "name": "fetchActiveSession(optimizationId:token:)"
+    },
+    {
+      "file": "/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/flamboyant-wiles-4f0bde/ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift",
+      "line": 42,
+      "column": 21,
+      "duration_ms": 50,
+      "kind": "expression",
+      "name": ""
+    }
+  ],
+  "summary": {
+    "total_warnings": 33,
+    "function_body_warnings": 12,
+    "expression_warnings": 21,
+    "slowest_ms": 415
+  }
+}

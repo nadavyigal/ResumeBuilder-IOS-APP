@@ -260,11 +260,12 @@ struct TailorView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
+            let circleFill: AnyShapeStyle = isFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary)
             HStack(spacing: 14) {
                 // Step number badge
                 ZStack {
                     Circle()
-                        .fill(isFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
+                        .fill(circleFill)
                         .frame(width: 36, height: 36)
                     if isFilled {
                         Image(systemName: "checkmark")
