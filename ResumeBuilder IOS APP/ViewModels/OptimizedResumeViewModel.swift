@@ -24,6 +24,7 @@ final class OptimizedResumeViewModel {
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
+    private static var detailCache: [String: OptimizationDetailDTO] = [:]
 
     init(
         optimizationId: String?,
@@ -107,7 +108,7 @@ final class OptimizedResumeViewModel {
         defer { isLoadingSections = false }
         do {
             try await appState.callWithFreshToken { token in
-                try await self.loadSections(with: token)
+                try await self.loadSections(with: token, useCache: false)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -140,16 +141,26 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    private func loadSections(with token: String) async throws {
+    private func loadSections(with token: String, useCache: Bool = true) async throws {
         guard let optId = optimizationId else { return }
-        try await loadSections(with: token, optimizationId: optId)
+        try await loadSections(with: token, optimizationId: optId, useCache: useCache)
     }
 
-    private func loadSections(with token: String, optimizationId optId: String) async throws {
+    private func loadSections(with token: String, optimizationId optId: String, useCache: Bool = true) async throws {
+        if useCache, let cached = Self.detailCache[optId] {
+            apply(detail: cached)
+            return
+        }
+
         let detail: OptimizationDetailDTO = try await APIClient().get(
             endpoint: .optimizationDetail(id: optId),
             token: token
         )
+        Self.detailCache[optId] = detail
+        apply(detail: detail)
+    }
+
+    private func apply(detail: OptimizationDetailDTO) {
         sections = detail.sections
         if jobTitle == nil { jobTitle = detail.jobTitle }
         if company == nil  { company  = detail.company  }

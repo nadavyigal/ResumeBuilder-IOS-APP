@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-05-24
+**Category:** API
+**Rule:** When iOS can extract readable resume text, send it with the upload and let the backend use it as a parser fallback instead of treating PDF parser failures as terminal.
+**Why:** Some live PDFs are readable by PDFKit on device but still fail backend parsing; without a `resumeText` fallback the user sees a 422 and optimization cannot continue.
+
+### 2026-05-24
+**Category:** API
+**Rule:** Confirm backend JSON field casing from the live route before wiring an iOS request body.
+**Why:** Design Apply posted `template_id`, but the backend assignment route required `templateId`, causing live 400 responses.
+
+### 2026-05-24
 **Category:** Build
 **Rule:** After merging a PR, fetch and pull `main` in the local Xcode working copy before rebuilding, then confirm Xcode's branch popover shows `main`.
 **Why:** The app was rebuilt from local `main` while it was still two commits behind `origin/main`, so the installed binary still contained code removed by the merged PR.

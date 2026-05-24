@@ -45,6 +45,7 @@ struct RedesignResumeView: View {
                             if success { onPreview?() }
                         }
                     }
+                    .disabled(viewModel.isLoading || viewModel.selectedTemplateId == nil)
                     .padding(.horizontal, AppSpacing.lg)
 
                     if let error = viewModel.errorMessage {

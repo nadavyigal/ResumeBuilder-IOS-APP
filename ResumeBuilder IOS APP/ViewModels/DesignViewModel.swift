@@ -21,7 +21,8 @@ final class DesignViewModel {
     private(set) var optimizationId: String?
     private let designService: any ResumeDesignServiceProtocol
     private let apiClient = APIClient()
-    private var lastLoadedCategory: String? = nil
+    private var templatesByCategory: [String: [DesignTemplate]] = [:]
+    private var loadingCategories: Set<String> = []
 
     init(
         optimizationId: String?,
@@ -48,22 +49,39 @@ final class DesignViewModel {
         selectedTemplateId = nil
         didApplyCustomization = false
         styleHistory = []
-        lastLoadedCategory = nil
     }
 
     func loadTemplates(token: String?) async {
         guard let token else { return }
-        let categoryChanged = lastLoadedCategory != activeCategory
-        lastLoadedCategory = activeCategory
+        let category = activeCategory
+        if let cached = templatesByCategory[category] {
+            templates = cached
+            if selectedTemplateId == nil || selectedTemplate?.category != category {
+                selectedTemplateId = cached.first?.id
+            }
+            return
+        }
+        guard !loadingCategories.contains(category) else { return }
+        loadingCategories.insert(category)
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            loadingCategories.remove(category)
+            if activeCategory == category {
+                isLoading = false
+            }
+        }
         do {
-            templates = try await designService.templates(category: activeCategory, token: token)
-            if selectedTemplateId == nil || categoryChanged {
-                selectedTemplateId = templates.first?.id
+            let loadedTemplates = try await designService.templates(category: category, token: token)
+            templatesByCategory[category] = loadedTemplates
+            guard activeCategory == category else { return }
+            templates = loadedTemplates
+            if selectedTemplateId == nil || selectedTemplate?.category != category {
+                selectedTemplateId = loadedTemplates.first?.id
             }
         } catch {
-            errorMessage = error.localizedDescription
+            if activeCategory == category {
+                errorMessage = userFacingMessage(for: error)
+            }
         }
     }
 
@@ -83,6 +101,10 @@ final class DesignViewModel {
 
     func applyDesign(token: String?) async -> Bool {
         guard let token, let optId = optimizationId else { return false }
+        guard !isLoading else {
+            errorMessage = "Design templates are still loading. Try again in a moment."
+            return false
+        }
         guard let templateId = selectedTemplateId else {
             errorMessage = "Choose a design template first."
             return false
@@ -103,7 +125,7 @@ final class DesignViewModel {
             }
             return ok
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = userFacingMessage(for: error)
             return false
         }
     }
@@ -139,7 +161,14 @@ final class DesignViewModel {
             }
             styleHistory = []
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    private func userFacingMessage(for error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            return apiError.userFacingMessage
+        }
+        return error.localizedDescription
     }
 }

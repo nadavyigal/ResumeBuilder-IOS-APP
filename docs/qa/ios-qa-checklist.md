@@ -6,6 +6,9 @@
 ---
 
 ## Build Check
+- [ ] Xcode branch popover shows `main` before phone rebuilds
+- [ ] Local `main` HEAD matches `origin/main` (`git fetch origin && git rev-parse main` equals `git rev-parse origin/main`)
+- [ ] Clean build folder before rebuilding on a physical iPhone after merging a PR
 - [ ] Xcode build succeeds with no errors (`cmd+B`)
 - [ ] No new warnings that could become errors in future Swift versions
 - [ ] Tests pass (`xcodebuild test`)

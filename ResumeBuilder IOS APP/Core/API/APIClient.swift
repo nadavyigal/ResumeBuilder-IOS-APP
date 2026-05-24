@@ -223,19 +223,13 @@ struct APIClient {
             try UploadFilePreflight.loadResumeFile(fileURL)
         }.value
 
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(uploadFile.filename)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(uploadFile.mimeType)\r\n\r\n".data(using: .utf8)!)
-        body.append(uploadFile.data)
-
-        for (name, value) in fields {
-            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-            body.append(value.data(using: .utf8)!)
-        }
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var uploadFields = fields
+        uploadFields["resumeText"] = uploadFile.resumeText
+        let body = MultipartUploadBodyBuilder.build(
+            boundary: boundary,
+            uploadFile: uploadFile,
+            fields: uploadFields
+        )
 
         request.httpBody = body
         return try await send(request, using: Self.uploadSession)
@@ -284,5 +278,29 @@ struct APIClient {
             throw APIClientError.invalidURL(endpoint.path)
         }
         return url
+    }
+}
+
+enum MultipartUploadBodyBuilder {
+    nonisolated static func build(
+        boundary: String,
+        uploadFile: UploadFileDescriptor,
+        fields: [String: String?]
+    ) -> Data {
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(uploadFile.filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(uploadFile.mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(uploadFile.data)
+
+        for (name, value) in fields {
+            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
+            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append(value.data(using: .utf8)!)
+        }
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        return body
     }
 }

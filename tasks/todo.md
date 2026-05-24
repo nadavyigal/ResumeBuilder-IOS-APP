@@ -59,7 +59,14 @@
 - [x] Pull merged PR #26 into local `main` so Xcode no longer builds stale code
 - [x] Generate a backend-readable text-layer PDF before live upload to avoid backend PDF parser 422s
 - [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator after upload normalization (25/25)
+- [x] Fix Design Apply payload to send backend-required `templateId`
+- [x] Include iOS-extracted `resumeText` in optimize multipart uploads
+- [x] Add backend `/api/upload-resume` parser fallback to use valid `resumeText` when PDF parsing fails
+- [x] Cache design templates and skip duplicate preview renders/detail fetches
+- [x] Add Xcode rebuild branch/HEAD checklist to iOS QA checklist
+- [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator after end-to-end stabilization (24 XCTest + 5 Swift Testing)
+- [x] Backend upload fallback Jest contract passes (4/4)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
-- [ ] Create a branch/PR for the live upload end-to-end follow-up changes
+- [ ] Create PR(s) for the end-to-end live stabilization changes
