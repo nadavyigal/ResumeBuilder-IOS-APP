@@ -27,6 +27,8 @@ final class ExpertModesViewModel {
     private(set) var phaseByType: [ExpertWorkflowType: ExpertCardPhase] = [:]
     private(set) var applyingWorkflow: ExpertWorkflowType?
     private(set) var toastMessage: String?
+    var evidenceInputByType: [ExpertWorkflowType: String] = [:]
+    private(set) var submittedEvidenceByType: [ExpertWorkflowType: String] = [:]
 
     private(set) var optimizationId: String
     /// When `nil` (e.g. opened from **Track**), apply still runs on the server but local resume sections are not merged.
@@ -82,10 +84,28 @@ final class ExpertModesViewModel {
         phaseByType[type] ?? .idle
     }
 
+    func evidenceText(for type: ExpertWorkflowType) -> String {
+        evidenceInputByType[type] ?? ""
+    }
+
+    func setEvidenceText(_ text: String, for type: ExpertWorkflowType) {
+        evidenceInputByType[type] = text
+    }
+
     func run(_ type: ExpertWorkflowType, token: String?) async {
         phaseByType[type] = .running
         do {
-            let dto = try await service.run(type: type, optimizationId: optimizationId, token: token)
+            let evidenceText = evidenceText(for: type).trimmingCharacters(in: .whitespacesAndNewlines)
+            let evidenceInputs: [String: JSONValue] = evidenceText.isEmpty
+                ? [:]
+                : ["user_context": .string(evidenceText)]
+            let dto = try await service.run(
+                type: type,
+                optimizationId: optimizationId,
+                token: token,
+                evidenceInputs: evidenceInputs
+            )
+            submittedEvidenceByType[type] = evidenceText
             phaseByType[type] = .ready(
                 ExpertRunUIState(
                     workflowType: type,
@@ -117,6 +137,7 @@ final class ExpertModesViewModel {
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
+                resumeViewModel.applyExpertATSResult(dto)
                 Task {
                     await resumeViewModel.forceReloadSections(appState: appState)
                 }
@@ -124,6 +145,7 @@ final class ExpertModesViewModel {
             Task {
                 try? await Task.sleep(for: .seconds(1.5))
                 appState.resumeSectionsNeedRefresh = true
+                appState.resumePreviewRefreshToken += 1
             }
 
             let touchedResume = dto.updatedFields.contains(where: {

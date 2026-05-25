@@ -5,6 +5,7 @@ struct ResumePreviewWebView: View {
     @Environment(AppState.self) private var appState
     let optimizationId: String
     let sections: [OptimizedResumeSection]
+    var contact: ResumeContact? = nil
     var templateId: String? = nil
     var customization: DesignCustomization? = nil
 
@@ -22,7 +23,8 @@ struct ResumePreviewWebView: View {
             .map { "\($0.id):\($0.type.rawValue):\($0.status):\($0.body)" }
             .joined(separator: "|")
         let customizationKey = customization.map { "\($0.spacing):\($0.accentColor):\($0.fontStyle)" } ?? "default"
-        return "\(optimizationId)|\(templateId ?? "ats-clean")|\(customizationKey)|\(sectionKey.hashValue)"
+        let contactKey = contact.map { "\($0.name ?? ""):\($0.email ?? ""):\($0.phone ?? ""):\($0.location ?? ""):\($0.linkedin ?? "")" } ?? "no-contact"
+        return "\(optimizationId)|\(templateId ?? "ats-clean")|\(customizationKey)|\(contactKey)|\(sectionKey.hashValue)"
     }
 
     var body: some View {
@@ -95,19 +97,15 @@ struct ResumePreviewWebView: View {
         defer { previewPolicy.markFinished(key: key, didRender: didRender) }
 
         print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
-        // When real sections are available, render them client-side immediately.
-        // This avoids unnecessary backend renders while live optimization sections are ready.
-        if !sections.isEmpty {
-            print("✅ [PREVIEW] using ResumeHTMLBuilder with real sections (count=\(sections.count))")
-            html = ResumeHTMLBuilder.build(sections: sections, customization: customization)
-            isLoading = false
-            didRender = true
-            return
-        }
-        // No sections yet — try the backend render endpoint.
         guard let token = appState.session?.accessToken else {
-            print("❌ [PREVIEW] no token — cannot render")
-            errorMessage = "Sign in to preview your resume."
+            if !sections.isEmpty {
+                print("✅ [PREVIEW] no token — using local fallback")
+                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
+                didRender = true
+            } else {
+                print("❌ [PREVIEW] no token — cannot render")
+                errorMessage = "Sign in to preview your resume."
+            }
             isLoading = false
             return
         }
@@ -127,6 +125,10 @@ struct ResumePreviewWebView: View {
                 print("✅ [PREVIEW] using rendered HTML")
                 html = previewHTML
                 didRender = true
+            } else if !sections.isEmpty {
+                print("⚠️ [PREVIEW] backend returned no HTML — using local fallback")
+                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
+                didRender = true
             } else {
                 print("❌ [PREVIEW] no html and no sections available")
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
@@ -135,7 +137,12 @@ struct ResumePreviewWebView: View {
             // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.
         } catch {
             print("❌ [PREVIEW] renderPreview error: \(error)")
-            errorMessage = error.localizedDescription
+            if !sections.isEmpty {
+                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
+                didRender = true
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -228,8 +235,24 @@ private struct WebKitHTMLView: UIViewRepresentable {
 enum ResumeHTMLBuilder {
     /// Builds a printable resume HTML page from locally loaded sections.
     /// Used as fallback when the backend render-preview endpoint is unavailable.
-    static func build(sections: [OptimizedResumeSection], customization: DesignCustomization?) -> String {
+    static func build(sections: [OptimizedResumeSection], contact: ResumeContact?, customization: DesignCustomization?) -> String {
         let accent = customization?.accentColor ?? "6366F1"
+        let displayName = contact?.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let title = contact?.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let contactLine = contact?.contactLine ?? ""
+        let headerHTML: String
+        if displayName.isEmpty && title.isEmpty && contactLine.isEmpty {
+            headerHTML = ""
+        } else {
+            headerHTML = """
+            <div class="resume-header">
+              \(displayName.isEmpty ? "" : "<div class=\"resume-name\">\(displayName)</div>")
+              \(title.isEmpty ? "" : "<div class=\"resume-title\">\(title)</div>")
+              \(contactLine.isEmpty ? "" : "<div class=\"resume-contact\">\(contactLine)</div>")
+            </div>
+            <hr class="divider">
+            """
+        }
         var body = ""
         for section in sections {
             let title = section.type.displayName.uppercased()
@@ -264,6 +287,7 @@ enum ResumeHTMLBuilder {
           body { font-family: Georgia, serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.5; }
           .resume-header { text-align: center; padding-bottom: 10px; }
           .resume-name { font-size: 18pt; font-weight: bold; color: #1a1a1a; letter-spacing: 0.5px; }
+          .resume-title { font-size: 10pt; color: #333; margin-top: 3px; }
           .resume-contact { font-size: 9pt; color: #555; margin-top: 4px; }
           .divider { border: none; border-top: 1.5px solid #\(accent); margin: 12px 0 8px; }
           h2 { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accent); margin-bottom: 6px; }
@@ -274,11 +298,7 @@ enum ResumeHTMLBuilder {
         </style>
         </head>
         <body>
-        <div class="resume-header">
-          <div class="resume-name">Your Name</div>
-          <div class="resume-contact">email@example.com &nbsp;·&nbsp; (555) 000-0000 &nbsp;·&nbsp; linkedin.com/in/yourprofile</div>
-        </div>
-        <hr class="divider">
+        \(headerHTML)
         \(body)
         </body>
         </html>

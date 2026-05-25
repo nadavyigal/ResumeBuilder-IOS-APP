@@ -31,12 +31,14 @@ struct ExpertWorkflowService: Sendable {
     func run(
         type: ExpertWorkflowType,
         optimizationId: String,
-        token: String?
+        token: String?,
+        evidenceInputs: [String: JSONValue] = [:]
     ) async throws -> ExpertWorkflowRunCreateResponseDTO {
         try await runInternal(
             type: type,
             optimizationId: optimizationId,
-            token: token
+            token: token,
+            evidenceInputs: evidenceInputs
         )
     }
 
@@ -99,7 +101,8 @@ struct ExpertWorkflowService: Sendable {
     private func runInternal(
         type: ExpertWorkflowType,
         optimizationId: String,
-        token: String?
+        token: String?,
+        evidenceInputs: [String: JSONValue]
     ) async throws -> ExpertWorkflowRunCreateResponseDTO {
         guard let token else { throw ExpertWorkflowServiceError.missingToken }
         guard !optimizationId.isEmpty else { throw ExpertWorkflowServiceError.missingOptimizationId }
@@ -107,7 +110,7 @@ struct ExpertWorkflowService: Sendable {
             "optimization_id": optimizationId,
             "workflow_type": type.rawValue,
             "options": [String: Any](),
-            "evidence_inputs": [String: Any](),
+            "evidence_inputs": evidenceInputs.mapValues(Self.jsonObject(from:)),
         ]
 
         do {
@@ -162,6 +165,23 @@ struct ExpertWorkflowService: Sendable {
             return "select_screening_answers"
         default:
             return "default"
+        }
+    }
+
+    private static func jsonObject(from value: JSONValue) -> Any {
+        switch value {
+        case .string(let string):
+            return string
+        case .number(let number):
+            return number
+        case .bool(let bool):
+            return bool
+        case .object(let object):
+            return object.mapValues(jsonObject(from:))
+        case .array(let array):
+            return array.map(jsonObject(from:))
+        case .null:
+            return NSNull()
         }
     }
 }

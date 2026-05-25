@@ -47,12 +47,16 @@ final class DesignViewModel {
         optimizationId = id
         templates = []
         selectedTemplateId = nil
+        customization = .default
         didApplyCustomization = false
         styleHistory = []
     }
 
     func loadTemplates(token: String?) async {
         guard let token else { return }
+        if let optId = optimizationId {
+            await loadCurrentAssignment(optimizationId: optId, token: token)
+        }
         let category = activeCategory
         if let cached = templatesByCategory[category] {
             templates = cached
@@ -82,6 +86,36 @@ final class DesignViewModel {
             if activeCategory == category {
                 errorMessage = userFacingMessage(for: error)
             }
+        }
+    }
+
+    func loadCurrentAssignment(token: String?) async {
+        guard let token, let optId = optimizationId else { return }
+        await loadCurrentAssignment(optimizationId: optId, token: token)
+    }
+
+    private func loadCurrentAssignment(optimizationId optId: String, token: String) async {
+        do {
+            guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return }
+            if let template = assignment.template {
+                templatesByCategory[template.category] = mergeTemplate(template, into: templatesByCategory[template.category] ?? [])
+                if activeCategory != template.category {
+                    activeCategory = template.category
+                }
+                templates = mergeTemplate(template, into: templates)
+                selectedTemplateId = template.id
+            }
+            if let customizationValue = assignment.customization,
+               let decoded = Self.designCustomization(from: customizationValue) {
+                customization = decoded
+            }
+            didApplyCustomization = true
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 404 {
+                return
+            }
+        } catch {
+            // Non-fatal: the user can still choose a fresh template.
         }
     }
 
@@ -122,6 +156,7 @@ final class DesignViewModel {
             if ok {
                 didApplyCustomization = true
                 styleHistory = []
+                await loadCurrentAssignment(optimizationId: optId, token: token)
             }
             return ok
         } catch {
@@ -160,9 +195,68 @@ final class DesignViewModel {
                 }
             }
             styleHistory = []
+            await loadCurrentAssignment(optimizationId: optId, token: token)
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    private func mergeTemplate(_ template: DesignTemplate, into existing: [DesignTemplate]) -> [DesignTemplate] {
+        var merged = existing.filter { $0.id != template.id }
+        merged.insert(template, at: 0)
+        return merged
+    }
+
+    private static func designCustomization(from value: JSONValue) -> DesignCustomization? {
+        guard case .object(let root) = value else { return nil }
+        let accent =
+            root["accent_color"]?.stringValue
+            ?? root["accentColor"]?.stringValue
+            ?? root["color_scheme"]?["accent"]?.stringValue
+            ?? root["color_scheme"]?["primary"]?.stringValue
+        let fontStyle =
+            root["font_style"]?.stringValue
+            ?? root["fontStyle"]?.stringValue
+            ?? fontStyle(from: root["font_family"])
+        let spacing =
+            root["spacing"]?.numberValue
+            ?? spacingValue(from: root["spacing"])
+
+        return DesignCustomization(
+            spacing: min(1, max(0, spacing ?? DesignCustomization.default.spacing)),
+            accentColor: (accent ?? DesignCustomization.default.accentColor).replacingOccurrences(of: "#", with: ""),
+            fontStyle: fontStyle ?? DesignCustomization.default.fontStyle
+        )
+    }
+
+    private static func fontStyle(from value: JSONValue?) -> String? {
+        guard case .object(let fonts) = value else { return nil }
+        let merged = [
+            fonts["heading"]?.stringValue,
+            fonts["body"]?.stringValue,
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+        .lowercased()
+        if merged.contains("georgia") { return "classic" }
+        if merged.contains("system") { return "minimal" }
+        if merged.isEmpty { return nil }
+        return "modern"
+    }
+
+    private static func spacingValue(from value: JSONValue?) -> Double? {
+        guard case .object(let spacing) = value else { return nil }
+        let lineHeightString = spacing["line_height"]?.stringValue ?? spacing["lineHeight"]?.stringValue
+        let lineHeight = lineHeightString.flatMap(Double.init)
+        if let lineHeight {
+            if lineHeight <= 1.4 { return 0.2 }
+            if lineHeight >= 1.6 { return 0.8 }
+            return 0.5
+        }
+        let gap = spacing["section_gap"]?.stringValue ?? ""
+        if gap.contains("10") { return 0.2 }
+        if gap.contains("22") { return 0.8 }
+        return nil
     }
 
     private func userFacingMessage(for error: Error) -> String {

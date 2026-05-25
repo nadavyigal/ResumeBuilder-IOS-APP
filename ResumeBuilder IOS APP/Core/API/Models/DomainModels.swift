@@ -42,6 +42,17 @@ enum JSONValue: Codable, Hashable, Sendable {
         guard case .object(let dict) = self else { return nil }
         return dict[key]
     }
+
+    var stringValue: String? {
+        guard case .string(let value) = self else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    var numberValue: Double? {
+        guard case .number(let value) = self else { return nil }
+        return value
+    }
 }
 
 struct APIStatusResponse: Codable, Sendable {
@@ -1349,8 +1360,33 @@ struct OptimizationReviewApplyResponseDTO: Decodable, Sendable {
 
 // MARK: - Optimization detail (Phase 3 section fetch)
 
+struct ResumeContact: Codable, Equatable, Sendable {
+    let name: String?
+    let email: String?
+    let phone: String?
+    let location: String?
+    let title: String?
+    let linkedin: String?
+    let portfolio: String?
+
+    var hasDisplayableValue: Bool {
+        [name, email, phone, location, title, linkedin, portfolio]
+            .contains { $0?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
+    }
+
+    var contactLine: String {
+        [email, phone, location, linkedin, portfolio]
+            .compactMap { value in
+                let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            .joined(separator: " | ")
+    }
+}
+
 struct OptimizationDetailDTO: Decodable, Sendable {
     let sections: [OptimizedResumeSection]
+    let contact: ResumeContact?
     let jobTitle: String?
     let company: String?
     let atsScoreBefore: Int?
@@ -1358,10 +1394,51 @@ struct OptimizationDetailDTO: Decodable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case sections
+        case contact
+        case jobTitleCamel   = "jobTitle"
         case jobTitle       = "job_title"
         case company
+        case atsScoreBeforeCamel = "atsScoreBefore"
         case atsScoreBefore = "ats_score_before"
+        case atsScoreAfterCamel = "atsScoreAfter"
         case atsScoreAfter  = "ats_score_after"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sections = try c.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections) ?? []
+        contact = try c.decodeIfPresent(ResumeContact.self, forKey: .contact)
+        jobTitle =
+            try c.decodeIfPresent(String.self, forKey: .jobTitle)
+            ?? c.decodeIfPresent(String.self, forKey: .jobTitleCamel)
+        company = try c.decodeIfPresent(String.self, forKey: .company)
+        atsScoreBefore =
+            try c.decodeIfPresent(Int.self, forKey: .atsScoreBefore)
+            ?? c.decodeIfPresent(Int.self, forKey: .atsScoreBeforeCamel)
+        atsScoreAfter =
+            try c.decodeIfPresent(Int.self, forKey: .atsScoreAfter)
+            ?? c.decodeIfPresent(Int.self, forKey: .atsScoreAfterCamel)
+    }
+}
+
+// MARK: - Design assignment
+
+struct DesignAssignmentEnvelopeDTO: Decodable, Sendable {
+    let assignment: DesignAssignmentDTO?
+    let error: String?
+}
+
+struct DesignAssignmentDTO: Decodable, Sendable {
+    let id: String?
+    let optimizationId: String?
+    let template: DesignTemplate?
+    let customization: JSONValue?
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case optimizationId = "optimization_id"
+        case template
+        case customization
     }
 }
 

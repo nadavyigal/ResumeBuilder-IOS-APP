@@ -42,6 +42,7 @@ struct OptimizedResumeView: View {
                     ResumePreviewWebView(
                         optimizationId: optId,
                         sections: viewModel.sections,
+                        contact: viewModel.contact,
                         templateId: designVM?.selectedTemplateId,
                         customization: designVM?.customization
                     )
@@ -69,6 +70,13 @@ struct OptimizedResumeView: View {
             print("🔍 [OPTIMIZED VIEW] loadSections done: sections=\(viewModel.sections.count) error=\(viewModel.errorMessage ?? "none")")
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
+            }
+            await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+        }
+        .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
+            Task {
+                await viewModel.forceReloadSections(appState: appState)
+                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
             }
         }
         .screenBackground(showRadialGlow: false)

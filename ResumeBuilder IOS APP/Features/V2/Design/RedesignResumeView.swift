@@ -42,7 +42,10 @@ struct RedesignResumeView: View {
                     ) {
                         Task {
                             let success = await viewModel.applyDesign(token: appState.session?.accessToken)
-                            if success { onPreview?() }
+                            if success {
+                                appState.resumePreviewRefreshToken += 1
+                                onPreview?()
+                            }
                         }
                     }
                     .disabled(viewModel.isLoading || viewModel.selectedTemplateId == nil)
@@ -65,7 +68,10 @@ struct RedesignResumeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task { await viewModel.undoLastDesign(token: appState.session?.accessToken) }
+                        Task {
+                            await viewModel.undoLastDesign(token: appState.session?.accessToken)
+                            appState.resumePreviewRefreshToken += 1
+                        }
                     } label: {
                         if viewModel.isUndoing {
                             ProgressView()
@@ -126,7 +132,7 @@ struct RedesignResumeView: View {
                 )
                 // Recreate the web view whenever template or accent changes so the
                 // preview reflects the current customization.
-                .id((viewModel.selectedTemplateId ?? "") + viewModel.customization.accentColor)
+                .id("\(viewModel.selectedTemplateId ?? "")-\(viewModel.customization.accentColor)-\(viewModel.customization.fontStyle)-\(viewModel.customization.spacing)")
                 .frame(height: 240)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))
                 .overlay(

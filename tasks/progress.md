@@ -4,14 +4,14 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: End-to-end live stabilization — fixed design apply payload, sent iOS-extracted resume text, and added backend parser fallback (2026-05-24)
-Next Recommended Story: Merge/deploy backend upload fallback + iOS branch, then real-device smoke test with a known-good text-based PDF
-Estimated Completion: 55%
+Last Completed Story: Optimize/design/expert repair — preserved contact data, resolved UUID-backed templates, added Expert evidence input, and forced no-cache ATS/section refresh after apply (2026-05-25)
+Next Recommended Story: Deploy backend repair branch + rebuild iOS, then real-device smoke test optimize → design apply → Expert apply with a known-good text-based PDF
+Estimated Completion: 62%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed via log (24 XCTest + 5 Swift Testing tests) on iPhone 17 Pro simulator; backend upload fallback Jest contract passed 4/4 (2026-05-24)
-Last Updated: 2026-05-24
-Current Branch: codex/end-to-end-live-stabilization
+Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 32/32 on iPhone 17 Pro Max simulator; backend focused Jest contracts passed 7/7 for iOS optimization/design + expert workflow apply/run (2026-05-25)
+Last Updated: 2026-05-25
+Current Branch: iOS `main`; backend `fix/pdf-parse-xref-error`
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: —
 Latest QA Report: —
@@ -32,6 +32,9 @@ Latest QA Report: —
 - `RuntimeFeatures.isResumeLibraryEnabled = false` until the backend ships `/api/v1/resumes`; app shows saved resumes as unavailable instead of surfacing HTML 404s
 - Design history is not loaded automatically because `/api/v1/styles/history` currently returns 500; Apply/Undo use the stable design endpoints without blocking normal preview/design navigation
 - Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
+- Optimization detail now carries `contact`; iOS preview/copy uses real candidate identity and local fallback no longer fabricates placeholder contact values
+- Design render/preview/export resolves backend template UUIDs to category+slug and iOS reloads current design assignment after Apply/Undo so Optimized reflects the applied template
+- Expert workflows accept user evidence input from iOS and Expert Apply forces no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

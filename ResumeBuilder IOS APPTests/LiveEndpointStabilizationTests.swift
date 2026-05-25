@@ -117,6 +117,41 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         XCTAssertFalse(PreviewRenderErrorPolicy.isBenignCancellation(URLError(.timedOut)))
     }
 
+    func testLocalPreviewUsesRealContactAndDoesNotFabricatePlaceholderIdentity() {
+        let html = ResumeHTMLBuilder.build(
+            sections: [
+                OptimizedResumeSection(id: "summary", type: .summary, body: "Builds reliable iOS apps.", status: "optimized"),
+            ],
+            contact: ResumeContact(
+                name: "Ada Lovelace",
+                email: "ada@example.com",
+                phone: nil,
+                location: "London",
+                title: "iOS Engineer",
+                linkedin: nil,
+                portfolio: nil
+            ),
+            customization: .default
+        )
+
+        XCTAssertTrue(html.contains("Ada Lovelace"))
+        XCTAssertTrue(html.contains("ada@example.com | London"))
+        XCTAssertFalse(html.contains("Your Name"))
+        XCTAssertFalse(html.contains("email@example.com"))
+    }
+
+    func testDesignViewModelLoadsCurrentAssignmentCustomization() async {
+        let service = SpyResumeDesignService()
+        let vm = DesignViewModel(optimizationId: "opt-123", designService: service)
+
+        await vm.loadCurrentAssignment(token: "token")
+
+        XCTAssertEqual(vm.selectedTemplateId, "modern-template")
+        XCTAssertEqual(vm.customization.accentColor, "22D3EE")
+        XCTAssertEqual(vm.customization.fontStyle, "minimal")
+        XCTAssertGreaterThan(vm.customization.spacing, 0.6)
+    }
+
     private static func writeTextPDF(_ text: String, to url: URL) throws {
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 612, height: 792))
         try renderer.writePDF(to: url) { context in
@@ -164,6 +199,28 @@ private final class SpyResumeDesignService: ResumeDesignServiceProtocol, @unchec
 
     func templates(category: String, token: String) async throws -> [DesignTemplate] {
         []
+    }
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        DesignAssignmentDTO(
+            id: "assignment-1",
+            optimizationId: optimizationId,
+            template: DesignTemplate(
+                id: "modern-template",
+                slug: "modern-pro",
+                name: "Modern Pro",
+                description: "Modern",
+                category: "modern",
+                isPremium: false,
+                thumbnailURL: nil,
+                atsScore: 90
+            ),
+            customization: .object([
+                "color_scheme": .object(["accent": .string("#22D3EE")]),
+                "font_family": .object(["heading": .string("System UI"), "body": .string("System UI")]),
+                "spacing": .object(["line_height": .string("1.65")]),
+            ])
+        )
     }
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {

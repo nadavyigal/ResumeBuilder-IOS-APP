@@ -15,6 +15,22 @@
 
 ## Sessions
 
+### 2026-05-25
+**Task:** Repair optimize/design/expert live data flow after rebuild issues
+**Files Changed:**
+- iOS: optimization detail/contact decoding, real-contact preview fallback, design assignment reload, Expert evidence input, no-cache Expert/ATS refresh, and focused regression tests
+- Backend: optimization detail contact response, UUID-backed design preview/export template resolution, iOS customization normalization, Jest setup resilience, and focused contract tests
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated status and lessons
+**Validation:**
+- XcodeBuildMCP `build_sim` succeeded on iPhone 17 Pro Max simulator
+- XcodeBuildMCP `test_sim` passed 32/32
+- Backend focused Jest contracts passed 7/7 for iOS optimization/design and Expert run/apply
+**Decisions Made:**
+- Backend preview/export resolves template UUIDs to `category-slug` so the renderer can choose distinct traditional/modern/creative/corporate layouts.
+- iOS now treats backend preview as the primary optimized resume renderer when an optimization id exists; local HTML is only a real-data fallback.
+- Expert user input is sent as `evidence_inputs.user_context` and successful applies trigger no-cache section/design/ATS refresh.
+**Next Recommended Action:** Deploy the backend repair branch and rebuild iOS, then run a physical-device smoke test: optimize a resume with known contact info, apply each design category, run Expert with evidence, apply changes, and confirm preview/PDF/contact/ATS refresh.
+
 ### 2026-05-24
 **Task:** Live upload end-to-end follow-up after stale main rebuild
 **Files Changed:**

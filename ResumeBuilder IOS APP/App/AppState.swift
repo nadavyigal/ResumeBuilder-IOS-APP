@@ -9,6 +9,7 @@ final class AppState {
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
     var resumeSectionsNeedRefresh: Bool = false
+    var resumePreviewRefreshToken: Int = 0
     var hasBootstrappedSession = false
 
     nonisolated static let latestOptimizationKey = "latest_optimization_id"

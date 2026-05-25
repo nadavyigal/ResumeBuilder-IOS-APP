@@ -38,6 +38,7 @@ struct RenderPreviewResponse: Codable, Sendable {
 
 protocol ResumeDesignServiceProtocol: Sendable {
     func templates(category: String, token: String) async throws -> [DesignTemplate]
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO?
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse
     func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool
 }
@@ -50,6 +51,21 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
             endpoint: .designTemplates(category: category), token: token
         )
         return response.templates
+    }
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        do {
+            let response: DesignAssignmentEnvelopeDTO = try await apiClient.get(
+                endpoint: .designAssignment(optimizationId: optimizationId),
+                token: token
+            )
+            return response.assignment
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 404 {
+                return nil
+            }
+            throw apiError
+        }
     }
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {

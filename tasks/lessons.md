@@ -15,6 +15,21 @@
 
 ## Lessons
 
+### 2026-05-25
+**Category:** Resume Output
+**Rule:** Optimized resume preview fallbacks must render real contact data from the optimization detail and must never fabricate placeholder name, email, phone, or profile values.
+**Why:** The iOS local HTML fallback hardcoded `Your Name` and `email@example.com`, making optimized resumes look like they lost the candidate's identity even when sections existed.
+
+### 2026-05-25
+**Category:** Template
+**Rule:** Design preview/export rendering must resolve backend template UUIDs to template category/slug/default config before selecting a visual layout.
+**Why:** iOS sends `template.id`, but the backend renderer branched on slug-like strings, so traditional, modern, creative, and corporate templates collapsed into the same preview style.
+
+### 2026-05-25
+**Category:** API
+**Rule:** Force refreshes after server-side Expert or design apply must bypass optimization detail caches and reload current assignment/style state.
+**Why:** Expert apply and design apply could succeed on the server while iOS continued showing stale sections, stale ATS score, or the previous template assignment.
+
 ### 2026-05-24
 **Category:** API
 **Rule:** When iOS can extract readable resume text, send it with the upload and let the backend use it as a parser fallback instead of treating PDF parser failures as terminal.
