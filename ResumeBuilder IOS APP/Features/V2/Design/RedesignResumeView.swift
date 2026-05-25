@@ -98,7 +98,7 @@ struct RedesignResumeView: View {
             ForEach(categories, id: \.0) { cat in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.activeCategory = cat.0
+                        viewModel.selectCategory(cat.0)
                     }
                 } label: {
                     Text(cat.1)
@@ -130,9 +130,6 @@ struct RedesignResumeView: View {
                     templateId: viewModel.selectedTemplateId,
                     customization: viewModel.customization
                 )
-                // Recreate the web view whenever template or accent changes so the
-                // preview reflects the current customization.
-                .id("\(viewModel.selectedTemplateId ?? "")-\(viewModel.customization.accentColor)-\(viewModel.customization.fontStyle)-\(viewModel.customization.spacing)")
                 .frame(height: 240)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))
                 .overlay(
@@ -184,7 +181,7 @@ struct RedesignResumeView: View {
                         isPremium: template.isPremium
                     )
                     .onTapGesture {
-                        withAnimation { viewModel.selectedTemplateId = template.id }
+                        withAnimation { viewModel.selectTemplate(template.id) }
                     }
                 }
             }

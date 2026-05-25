@@ -46,7 +46,6 @@ struct OptimizedResumeView: View {
                         templateId: designVM?.selectedTemplateId,
                         customization: designVM?.customization
                     )
-                    .id(viewModel.sections.map { "\($0.id):\(String($0.body.prefix(32)))" }.joined(separator: "|"))
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
                     .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)

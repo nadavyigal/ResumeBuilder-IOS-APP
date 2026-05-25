@@ -23,6 +23,7 @@ final class DesignViewModel {
     private let apiClient = APIClient()
     private var templatesByCategory: [String: [DesignTemplate]] = [:]
     private var loadingCategories: Set<String> = []
+    private var didLoadInitialAssignment = false
 
     init(
         optimizationId: String?,
@@ -50,12 +51,14 @@ final class DesignViewModel {
         customization = .default
         didApplyCustomization = false
         styleHistory = []
+        didLoadInitialAssignment = false
     }
 
     func loadTemplates(token: String?) async {
         guard let token else { return }
-        if let optId = optimizationId {
-            await loadCurrentAssignment(optimizationId: optId, token: token)
+        if !didLoadInitialAssignment, let optId = optimizationId {
+            didLoadInitialAssignment = true
+            await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
         }
         let category = activeCategory
         if let cached = templatesByCategory[category] {
@@ -91,18 +94,37 @@ final class DesignViewModel {
 
     func loadCurrentAssignment(token: String?) async {
         guard let token, let optId = optimizationId else { return }
-        await loadCurrentAssignment(optimizationId: optId, token: token)
+        await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
+        didLoadInitialAssignment = true
     }
 
-    private func loadCurrentAssignment(optimizationId optId: String, token: String) async {
+    func selectCategory(_ category: String) {
+        guard activeCategory != category else { return }
+        activeCategory = category
+        if let cached = templatesByCategory[category] {
+            templates = cached
+            selectedTemplateId = cached.first?.id
+        } else {
+            templates = []
+            selectedTemplateId = nil
+        }
+    }
+
+    func selectTemplate(_ templateId: String) {
+        selectedTemplateId = templateId
+    }
+
+    private func loadCurrentAssignment(optimizationId optId: String, token: String, shouldSyncCategory: Bool) async {
         do {
             guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return }
             if let template = assignment.template {
                 templatesByCategory[template.category] = mergeTemplate(template, into: templatesByCategory[template.category] ?? [])
-                if activeCategory != template.category {
+                if shouldSyncCategory, activeCategory != template.category {
                     activeCategory = template.category
                 }
-                templates = mergeTemplate(template, into: templates)
+                if activeCategory == template.category {
+                    templates = mergeTemplate(template, into: templates)
+                }
                 selectedTemplateId = template.id
             }
             if let customizationValue = assignment.customization,
@@ -156,7 +178,7 @@ final class DesignViewModel {
             if ok {
                 didApplyCustomization = true
                 styleHistory = []
-                await loadCurrentAssignment(optimizationId: optId, token: token)
+                await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
             }
             return ok
         } catch {
@@ -195,7 +217,7 @@ final class DesignViewModel {
                 }
             }
             styleHistory = []
-            await loadCurrentAssignment(optimizationId: optId, token: token)
+            await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
         } catch {
             errorMessage = userFacingMessage(for: error)
         }

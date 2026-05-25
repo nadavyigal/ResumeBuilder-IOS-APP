@@ -97,10 +97,25 @@ struct ResumePreviewWebView: View {
         defer { previewPolicy.markFinished(key: key, didRender: didRender) }
 
         print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
+        if let cachedHTML = PreviewHTMLCache.html(for: key) {
+            html = cachedHTML
+            isLoading = false
+            errorMessage = nil
+            didRender = true
+            print("✅ [PREVIEW] using cached rendered HTML")
+            return
+        }
+
+        if !sections.isEmpty {
+            html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
+            isLoading = false
+            errorMessage = nil
+            print("✅ [PREVIEW] showing local HTML while backend render finishes")
+        }
+
         guard let token = appState.session?.accessToken else {
             if !sections.isEmpty {
                 print("✅ [PREVIEW] no token — using local fallback")
-                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
                 didRender = true
             } else {
                 print("❌ [PREVIEW] no token — cannot render")
@@ -109,7 +124,7 @@ struct ResumePreviewWebView: View {
             isLoading = false
             return
         }
-        isLoading = true
+        isLoading = sections.isEmpty
         errorMessage = nil
         defer { isLoading = false }
         do {
@@ -124,10 +139,10 @@ struct ResumePreviewWebView: View {
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
                 print("✅ [PREVIEW] using rendered HTML")
                 html = previewHTML
+                PreviewHTMLCache.store(previewHTML, for: key)
                 didRender = true
             } else if !sections.isEmpty {
                 print("⚠️ [PREVIEW] backend returned no HTML — using local fallback")
-                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
                 didRender = true
             } else {
                 print("❌ [PREVIEW] no html and no sections available")
@@ -138,7 +153,6 @@ struct ResumePreviewWebView: View {
         } catch {
             print("❌ [PREVIEW] renderPreview error: \(error)")
             if !sections.isEmpty {
-                html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
                 didRender = true
             } else {
                 errorMessage = error.localizedDescription
@@ -172,6 +186,27 @@ struct ResumePreviewWebView: View {
         }
     }
 
+}
+
+@MainActor
+private enum PreviewHTMLCache {
+    private static var storage: [String: String] = [:]
+    private static var order: [String] = []
+    private static let limit = 12
+
+    static func html(for key: String) -> String? {
+        storage[key]
+    }
+
+    static func store(_ html: String, for key: String) {
+        storage[key] = html
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit, let oldest = order.first {
+            order.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
 }
 
 enum PreviewRenderErrorPolicy {

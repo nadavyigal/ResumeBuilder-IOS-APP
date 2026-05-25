@@ -16,6 +16,21 @@
 ## Lessons
 
 ### 2026-05-25
+**Category:** Template
+**Rule:** Load the current design assignment only as an initial/apply/undo synchronization step, never as part of every category change.
+**Why:** Reloading assignment inside `loadTemplates` reset `activeCategory` back to the already-applied Traditional template whenever the user tapped Modern, Creative, or Corporate.
+
+### 2026-05-25
+**Category:** UX
+**Rule:** Resume previews with loaded sections must paint local HTML immediately and let backend design rendering update the web view asynchronously.
+**Why:** Blocking the entire optimized preview on repeated backend render-preview calls made loading feel slow even though optimization and section fetches were already complete.
+
+### 2026-05-25
+**Category:** Test
+**Rule:** After editing Swift test doubles, confirm every async protocol method explicitly returns the constructed DTO before running the full simulator suite.
+**Why:** A spy `currentAssignment` method built a `DesignAssignmentDTO` without `return`, causing the test target to fail compilation.
+
+### 2026-05-25
 **Category:** Resume Output
 **Rule:** Optimized resume preview fallbacks must render real contact data from the optimization detail and must never fabricate placeholder name, email, phone, or profile values.
 **Why:** The iOS local HTML fallback hardcoded `Your Name` and `email@example.com`, making optimized resumes look like they lost the candidate's identity even when sections existed.

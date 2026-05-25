@@ -152,6 +152,21 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         XCTAssertGreaterThan(vm.customization.spacing, 0.6)
     }
 
+    func testDesignCategorySelectionIsNotOverwrittenByCurrentAssignmentReload() async {
+        let service = SpyResumeDesignService()
+        let vm = DesignViewModel(optimizationId: "opt-123", designService: service)
+
+        await vm.loadTemplates(token: "token")
+        XCTAssertEqual(vm.activeCategory, "modern")
+
+        vm.selectCategory("creative")
+        await vm.loadTemplates(token: "token")
+
+        XCTAssertEqual(vm.activeCategory, "creative")
+        XCTAssertEqual(vm.selectedTemplateId, "creative-template")
+        XCTAssertEqual(service.currentAssignmentCalls, 1)
+    }
+
     private static func writeTextPDF(_ text: String, to url: URL) throws {
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 612, height: 792))
         try renderer.writePDF(to: url) { context in
@@ -196,13 +211,26 @@ private final class SpyResumeLibraryService: ResumeLibraryServiceProtocol, @unch
 
 private final class SpyResumeDesignService: ResumeDesignServiceProtocol, @unchecked Sendable {
     var applyCalls = 0
+    var currentAssignmentCalls = 0
 
     func templates(category: String, token: String) async throws -> [DesignTemplate] {
-        []
+        [
+            DesignTemplate(
+                id: "\(category)-template",
+                slug: "\(category)-template",
+                name: "\(category.capitalized) Template",
+                description: category,
+                category: category,
+                isPremium: false,
+                thumbnailURL: nil,
+                atsScore: 90
+            ),
+        ]
     }
 
     func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
-        DesignAssignmentDTO(
+        currentAssignmentCalls += 1
+        return DesignAssignmentDTO(
             id: "assignment-1",
             optimizationId: optimizationId,
             template: DesignTemplate(

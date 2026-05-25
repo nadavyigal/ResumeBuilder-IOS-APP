@@ -16,6 +16,23 @@
 ## Sessions
 
 ### 2026-05-25
+**Task:** Follow up on live preview slowness and Design category switching
+**Files Changed:**
+- `Features/V2/Preview/ResumePreviewWebView.swift` — paints local HTML immediately when sections exist, caches backend render HTML, and keeps backend rendering as a background upgrade
+- `ViewModels/DesignViewModel.swift` — loads current assignment once initially and after Apply/Undo, but category changes no longer reload assignment or reset user selection
+- `Features/V2/Design/RedesignResumeView.swift`, `Features/V2/Improve/OptimizationDesignSheet.swift` — route category/template taps through explicit selection methods
+- `Features/V2/Improve/OptimizedResumeView.swift` — removed forced preview view recreation on section changes
+- `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` — added regression coverage for category selection not being overwritten
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated notes and validation
+**Validation:**
+- XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 Pro Max simulator
+- XcodeBuildMCP `test_sim` passed 33/33 after fixing the test spy return bug
+**Decisions Made:**
+- The optimized preview should never wait on the backend render-preview route once local sections/contact are available; backend design HTML can replace the local rendering when it returns.
+- Current design assignment is a synchronization event, not something to run on every category change.
+**Next Recommended Action:** Rebuild on the physical device and repeat the live smoke: optimize a resume, confirm preview appears quickly, switch Traditional/Modern/Creative/Corporate, apply one design, return to Optimized, then run/apply Expert and confirm ATS refresh.
+
+### 2026-05-25
 **Task:** Repair optimize/design/expert live data flow after rebuild issues
 **Files Changed:**
 - iOS: optimization detail/contact decoding, real-contact preview fallback, design assignment reload, Expert evidence input, no-cache Expert/ATS refresh, and focused regression tests
