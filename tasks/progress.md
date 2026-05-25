@@ -4,12 +4,12 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Optimize/design/expert repair — preserved contact data, resolved UUID-backed templates, added Expert evidence input, and forced no-cache ATS/section refresh after apply (2026-05-25)
-Next Recommended Story: Deploy backend repair branch + rebuild iOS, then real-device smoke test optimize → design apply → Expert apply with a known-good text-based PDF
+Last Completed Story: Preview/design follow-up — optimized preview now paints local HTML immediately while backend design HTML loads, and Design category changes no longer snap back to Traditional (2026-05-25)
+Next Recommended Story: Real-device smoke test optimize → optimized preview load → design category switching/apply → Expert apply with a known-good text-based PDF
 Estimated Completion: 62%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 32/32 on iPhone 17 Pro Max simulator; backend focused Jest contracts passed 7/7 for iOS optimization/design + expert workflow apply/run (2026-05-25)
+Last Validation: XcodeBuildMCP `build_run_sim` succeeded and `test_sim` passed 33/33 on iPhone 17 Pro Max simulator after preview/category follow-up (2026-05-25)
 Last Updated: 2026-05-25
 Current Branch: iOS `main`; backend `fix/pdf-parse-xref-error`
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
@@ -34,6 +34,8 @@ Latest QA Report: —
 - Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
 - Optimization detail now carries `contact`; iOS preview/copy uses real candidate identity and local fallback no longer fabricates placeholder contact values
 - Design render/preview/export resolves backend template UUIDs to category+slug and iOS reloads current design assignment after Apply/Undo so Optimized reflects the applied template
+- Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
+- Optimized preview paints local resume HTML as soon as sections/contact are loaded, then replaces it with cached backend design HTML when available instead of blocking the whole preview on the render-preview endpoint
 - Expert workflows accept user evidence input from iOS and Expert Apply forces no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
 
 ## Key Wiring (2026-05-20)

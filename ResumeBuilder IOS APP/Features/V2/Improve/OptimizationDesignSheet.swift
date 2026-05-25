@@ -62,7 +62,7 @@ struct OptimizationDesignSheet: View {
             ForEach(categories, id: \.0) { cat in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        designVM.activeCategory = cat.0
+                        designVM.selectCategory(cat.0)
                     }
                 } label: {
                     Text(cat.1)
@@ -138,7 +138,7 @@ struct OptimizationDesignSheet: View {
                     )
                     .onTapGesture {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            designVM.selectedTemplateId = template.id
+                            designVM.selectTemplate(template.id)
                         }
                     }
                 }
