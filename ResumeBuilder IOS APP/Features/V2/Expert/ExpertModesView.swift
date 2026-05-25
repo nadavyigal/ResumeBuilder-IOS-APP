@@ -3,6 +3,7 @@ import SwiftUI
 struct ExpertModesView: View {
     @Environment(AppState.self) private var appState
     @Bindable var vm: ExpertModesViewModel
+    @State private var evidenceEditorMode: ExpertWorkflowType?
 
     private var token: String? { appState.session?.accessToken }
 
@@ -53,6 +54,11 @@ struct ExpertModesView: View {
                         mode: mode,
                         phase: vm.phase(for: mode),
                         applying: vm.applyingWorkflow == mode,
+                        evidenceText: vm.evidenceText(for: mode),
+                        submittedEvidence: vm.submittedEvidenceByType[mode] ?? "",
+                        onEditEvidence: {
+                            evidenceEditorMode = mode
+                        },
                         onRun: {
                             Task {
                                 await vm.run(mode, token: token)
@@ -66,6 +72,9 @@ struct ExpertModesView: View {
                 }
             }
             .padding(AppSpacing.lg)
+        }
+        .sheet(item: $evidenceEditorMode) { mode in
+            evidenceEditor(mode)
         }
     }
 
@@ -127,12 +136,51 @@ struct ExpertModesView: View {
         }
         return iso
     }
+
+    private func evidenceEditor(_ mode: ExpertWorkflowType) -> some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                Text(mode.displayTitle)
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Add concrete achievements, metrics, constraints, or preferences for this expert pass.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                TextEditor(
+                    text: Binding(
+                        get: { vm.evidenceText(for: mode) },
+                        set: { vm.setEvidenceText($0, for: mode) }
+                    )
+                )
+                .font(.appBody)
+                .foregroundStyle(AppColors.textPrimary)
+                .scrollContentBackground(.hidden)
+                .padding(AppSpacing.sm)
+                .frame(minHeight: 180)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppRadii.md))
+                Spacer()
+            }
+            .padding(AppSpacing.lg)
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Expert Input")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { evidenceEditorMode = nil }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
 }
 
 private struct ExpertModeTile: View {
     let mode: ExpertWorkflowType
     let phase: ExpertCardPhase
     let applying: Bool
+    let evidenceText: String
+    let submittedEvidence: String
+    var onEditEvidence: () -> Void
     var onRun: () -> Void
     var onApply: () -> Void
 
@@ -159,6 +207,22 @@ private struct ExpertModeTile: View {
                 Spacer(minLength: 0)
             }
 
+            Button {
+                onEditEvidence()
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: evidenceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "plus.circle" : "checkmark.circle.fill")
+                        .font(.caption.weight(.semibold))
+                    Text(evidenceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Add Expert Input" : "Edit Expert Input")
+                        .font(.appCaption.weight(.semibold))
+                    Spacer()
+                }
+                .foregroundStyle(AppColors.accentSky)
+                .padding(AppSpacing.sm)
+                .background(AppColors.accentSky.opacity(0.10), in: RoundedRectangle(cornerRadius: AppRadii.sm))
+            }
+            .buttonStyle(.plain)
+
             GradientButton(title: primaryButtonTitle, isLoading: phase == .running || applying) {
                 guard phase != .running, !applying else { return }
                 onRun()
@@ -182,6 +246,18 @@ private struct ExpertModeTile: View {
             }
 
             if case .ready(let state) = phase {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Run \(state.runId)")
+                        .font(.caption2)
+                        .foregroundStyle(AppColors.textTertiary)
+                        .lineLimit(1)
+                    if !submittedEvidence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Label("Input saved for this run", systemImage: "checkmark.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(AppColors.accentTeal)
+                    }
+                }
+
                 let report = state.report
                     ?? ExpertReportDisplayModel(
                         headline: mode.displayTitle,

@@ -298,7 +298,10 @@ struct OptimizationDesignSheet: View {
             ) {
                 Task {
                     let ok = await designVM.applyDesign(token: appState.session?.accessToken)
-                    if ok { isPresented = false }
+                    if ok {
+                        appState.resumePreviewRefreshToken += 1
+                        isPresented = false
+                    }
                 }
             }
             .disabled(designVM.isLoading || designVM.selectedTemplateId == nil)

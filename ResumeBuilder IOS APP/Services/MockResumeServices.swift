@@ -178,6 +178,19 @@ struct MockResumeDesignService: ResumeDesignServiceProtocol {
         return filtered.isEmpty ? Self.allTemplates.filter { $0.category == "traditional" } : filtered
     }
 
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        DesignAssignmentDTO(
+            id: "mock-design-assignment",
+            optimizationId: optimizationId,
+            template: Self.allTemplates.first,
+            customization: .object([
+                "accent_color": .string("6366F1"),
+                "font_style": .string("modern"),
+                "spacing": .number(0.5),
+            ])
+        )
+    }
+
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
         try await Task.sleep(for: .milliseconds(800))
         let category = Self.allTemplates.first { $0.id == request.templateId }?.category ?? "traditional"

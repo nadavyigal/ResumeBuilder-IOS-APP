@@ -20,6 +20,7 @@ final class OptimizedResumeViewModel {
     /// Job context for the header card.
     var jobTitle: String?
     var company: String?
+    var contact: ResumeContact?
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
@@ -34,6 +35,7 @@ final class OptimizedResumeViewModel {
         atsScoreAfter: Int? = nil,
         jobTitle: String? = nil,
         company: String? = nil,
+        contact: ResumeContact? = nil,
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
     ) {
         self.optimizationId = optimizationId
@@ -43,6 +45,7 @@ final class OptimizedResumeViewModel {
         self.atsScoreAfter = atsScoreAfter
         self.jobTitle = jobTitle
         self.company = company
+        self.contact = contact
         self.optimizationService = optimizationService
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
@@ -56,8 +59,22 @@ final class OptimizedResumeViewModel {
 
     /// Plain text of all sections joined for clipboard copy.
     var plainTextResume: String {
-        sections.map { "\($0.type.displayName.uppercased())\n\($0.body)" }
-            .joined(separator: "\n\n")
+        var blocks: [String] = []
+        if let contact, contact.hasDisplayableValue {
+            let header = [
+                contact.name,
+                contact.title,
+                contact.contactLine.isEmpty ? nil : contact.contactLine,
+            ]
+            .compactMap { value -> String? in
+                let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            .joined(separator: "\n")
+            if !header.isEmpty { blocks.append(header) }
+        }
+        blocks.append(contentsOf: sections.map { "\($0.type.displayName.uppercased())\n\($0.body)" })
+        return blocks.joined(separator: "\n\n")
     }
 
     /// Downloads the PDF for this optimization and returns a temp file URL for sharing.
@@ -122,7 +139,7 @@ final class OptimizedResumeViewModel {
         defer { isLoadingSections = false }
         do {
             try await appState.callWithFreshToken { token in
-                try await self.loadSections(with: token)
+                try await self.loadSections(with: token, useCache: false)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -162,10 +179,21 @@ final class OptimizedResumeViewModel {
 
     private func apply(detail: OptimizationDetailDTO) {
         sections = detail.sections
+        if let detailContact = detail.contact, detailContact.hasDisplayableValue {
+            contact = detailContact
+        }
         if jobTitle == nil { jobTitle = detail.jobTitle }
         if company == nil  { company  = detail.company  }
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+    }
+
+    func applyExpertATSResult(_ applyResult: ExpertWorkflowApplyResponseDTO) {
+        if let after = applyResult.newAtsScore {
+            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+        } else if let after = applyResult.atsImpact?.after {
+            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+        }
     }
 
     func refineSection(sectionId: String, instruction: String, token: String?) async {

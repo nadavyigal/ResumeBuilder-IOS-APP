@@ -66,6 +66,12 @@
 - [x] Add Xcode rebuild branch/HEAD checklist to iOS QA checklist
 - [x] XcodeBuildMCP build + test pass on iPhone 17 Pro simulator after end-to-end stabilization (24 XCTest + 5 Swift Testing)
 - [x] Backend upload fallback Jest contract passes (4/4)
+- [x] Preserve optimized resume contact data in backend detail + iOS preview/copy fallback
+- [x] Resolve design template UUIDs to category/slug for backend preview/export rendering
+- [x] Reload applied design assignment into Optimized preview after Apply/Undo
+- [x] Send Expert Center user evidence input and force no-cache optimized resume/ATS refresh after Expert Apply
+- [x] XcodeBuildMCP build + test pass after optimize/design/expert repair (32/32)
+- [x] Backend focused Jest contracts pass for iOS optimization/design + expert run/apply (7/7)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
