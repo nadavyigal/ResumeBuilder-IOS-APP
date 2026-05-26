@@ -34,11 +34,7 @@ struct OptimizedResumeView: View {
                 }
 
                 // Inline resume preview — the main content
-                if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
-                    ProgressView("Loading resume…")
-                        .tint(AppColors.accentViolet)
-                        .padding(.top, AppSpacing.xl)
-                } else if let optId = viewModel.optimizationIdentifier {
+                if let optId = viewModel.optimizationIdentifier {
                     ResumePreviewWebView(
                         optimizationId: optId,
                         sections: viewModel.sections,
@@ -50,6 +46,10 @@ struct OptimizedResumeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
                     .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                     .padding(.horizontal, AppSpacing.lg)
+                } else if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
+                    ProgressView("Loading resume…")
+                        .tint(AppColors.accentViolet)
+                        .padding(.top, AppSpacing.xl)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -65,12 +65,15 @@ struct OptimizedResumeView: View {
         .scrollIndicators(.hidden)
         .task {
             print("🔍 [OPTIMIZED VIEW] task started: optId=\(viewModel.optimizationIdentifier ?? "nil") sections=\(viewModel.sections.count) isLoading=\(viewModel.isLoadingSections)")
-            await viewModel.loadSections(appState: appState)
-            print("🔍 [OPTIMIZED VIEW] loadSections done: sections=\(viewModel.sections.count) error=\(viewModel.errorMessage ?? "none")")
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
             }
-            await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+            let currentDesignVM = designVM
+            async let sectionLoad: Void = viewModel.loadSections(appState: appState)
+            async let assignmentLoad: Void = currentDesignVM?.loadCurrentAssignment(token: appState.session?.accessToken) ?? ()
+            await sectionLoad
+            await assignmentLoad
+            print("🔍 [OPTIMIZED VIEW] loadSections done: sections=\(viewModel.sections.count) error=\(viewModel.errorMessage ?? "none")")
         }
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {

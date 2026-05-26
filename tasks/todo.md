@@ -75,6 +75,8 @@
 - [x] Fix Design category switching so current assignment reload no longer snaps the UI back to Traditional
 - [x] Make optimized preview show local rendered HTML immediately while backend design HTML loads/caches in the background
 - [x] XcodeBuildMCP build + test pass after preview/category follow-up (33/33)
+- [x] Stop optimized preview from blocking on section-detail load before starting render-preview
+- [x] XcodeBuildMCP build + test pass after preview loading follow-up (33/33)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
