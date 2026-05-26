@@ -56,17 +56,18 @@ struct ExpertModesView: View {
                         applying: vm.applyingWorkflow == mode,
                         evidenceText: vm.evidenceText(for: mode),
                         submittedEvidence: vm.submittedEvidenceByType[mode] ?? "",
+                        selectedVariantIndex: vm.selectedVariantIndex(for: mode),
                         onEditEvidence: {
                             evidenceEditorMode = mode
                         },
                         onRun: {
-                            Task {
-                                await vm.run(mode, token: token)
-                                if case .failed = vm.phase(for: mode) {} else {}
-                            }
+                            Task { await vm.run(mode, token: token) }
                         },
                         onApply: {
                             Task { await vm.apply(mode, token: token, appState: appState) }
+                        },
+                        onSelectVariantIndex: { index in
+                            vm.setSelectedVariantIndex(index, for: mode)
                         }
                     )
                 }
@@ -143,7 +144,7 @@ struct ExpertModesView: View {
                 Text(mode.displayTitle)
                     .font(.appHeadline)
                     .foregroundStyle(AppColors.textPrimary)
-                Text("Add concrete achievements, metrics, constraints, or preferences for this expert pass.")
+                Text(mode.requiredInputHint ?? "Add concrete achievements, metrics, constraints, or preferences for this expert pass.")
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
                 TextEditor(
@@ -180,9 +181,11 @@ private struct ExpertModeTile: View {
     let applying: Bool
     let evidenceText: String
     let submittedEvidence: String
+    let selectedVariantIndex: Int?
     var onEditEvidence: () -> Void
     var onRun: () -> Void
     var onApply: () -> Void
+    var onSelectVariantIndex: (Int) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -192,19 +195,19 @@ private struct ExpertModeTile: View {
                     .foregroundStyle(AppColors.accentViolet)
                     .frame(width: 36)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(mode.displayTitle)
-                        .font(.appSubheadline.weight(.semibold))
-                        .foregroundStyle(AppColors.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(mode.cardDescription)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(mode.displayTitle)
+                            .font(.appSubheadline.weight(.semibold))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Spacer(minLength: 0)
+                        ExpertResumeBadge(changesResume: mode.changesResume)
+                    }
+                    Text(mode.purposeText)
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer(minLength: 0)
             }
 
             Button {
@@ -258,22 +261,12 @@ private struct ExpertModeTile: View {
                     }
                 }
 
-                let report = state.report
-                    ?? ExpertReportDisplayModel(
-                        headline: mode.displayTitle,
-                        executiveSummary: "Run completed — review output on web for full fidelity if needed.",
-                        priorityActions: [],
-                        evidenceGaps: state.missingEvidence,
-                        atsImpact: nil
-                    )
-
-                ExpertReportView(
-                    report: report,
-                    executiveSummaryVisible: true,
-                    missingEvidence: state.missingEvidence,
-                    needsUserInput: state.needsUserInput,
-                    showApplyButton: true,
-                    isApplying: applying,
+                ExpertModeTileOutputView(
+                    mode: mode,
+                    state: state,
+                    applying: applying,
+                    selectedVariantIndex: selectedVariantIndex,
+                    onSelectVariantIndex: onSelectVariantIndex,
                     onApply: onApply
                 )
             }
@@ -293,6 +286,104 @@ private struct ExpertModeTile: View {
         case .failed:
             return "Retry"
         }
+    }
+}
+
+private struct ExpertResumeBadge: View {
+    let changesResume: Bool
+
+    var body: some View {
+        Text(changesResume ? "Changes resume" : "Application asset")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(changesResume ? AppColors.accentViolet : AppColors.accentSky)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                (changesResume ? AppColors.accentViolet : AppColors.accentSky).opacity(0.10),
+                in: Capsule()
+            )
+    }
+}
+
+private struct ExpertModeTileOutputView: View {
+    let mode: ExpertWorkflowType
+    let state: ExpertRunUIState
+    let applying: Bool
+    let selectedVariantIndex: Int?
+    var onSelectVariantIndex: (Int) -> Void
+    var onApply: () -> Void
+
+    var body: some View {
+        let parsed = state.parsedOutput
+        switch mode {
+        case .fullResumeRewrite:
+            fallbackReportView(state: state, buttonTitle: "Apply Changes")
+        case .achievementQuantifier:
+            if !parsed.bulletRewrites.isEmpty {
+                ExpertBulletRewritesView(rewrites: parsed.bulletRewrites, applying: applying, onApply: onApply)
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Apply Changes")
+            }
+        case .atsOptimizationReport:
+            if let atsReport = parsed.atsReport {
+                ExpertATSReportView(atsReport: atsReport, applying: applying, onApply: onApply)
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Add Keywords to Skills")
+            }
+        case .professionalSummaryLab:
+            if !parsed.summaryOptions.isEmpty {
+                ExpertSummaryOptionsView(
+                    options: parsed.summaryOptions,
+                    recommendedIndex: parsed.recommendedIndex,
+                    selectedIndex: selectedVariantIndex,
+                    applying: applying,
+                    onSelect: onSelectVariantIndex,
+                    onApply: onApply
+                )
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Apply Selected Summary")
+            }
+        case .coverLetterArchitect:
+            if !parsed.coverLetterVariants.isEmpty {
+                ExpertCoverLetterView(
+                    variants: parsed.coverLetterVariants,
+                    selectedIndex: selectedVariantIndex,
+                    applying: applying,
+                    onSelect: onSelectVariantIndex,
+                    onApply: onApply
+                )
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Save Cover Letter")
+            }
+        case .screeningAnswerStudio:
+            if !parsed.screeningAnswers.isEmpty {
+                ExpertScreeningAnswersView(answers: parsed.screeningAnswers, applying: applying, onApply: onApply)
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Save Answers")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func fallbackReportView(state: ExpertRunUIState, buttonTitle: String) -> some View {
+        let report = state.report
+            ?? ExpertReportDisplayModel(
+                headline: mode.displayTitle,
+                executiveSummary: "Run completed — review output on web for full fidelity if needed.",
+                priorityActions: [],
+                evidenceGaps: state.missingEvidence,
+                atsImpact: nil
+            )
+        ExpertReportView(
+            report: report,
+            executiveSummaryVisible: true,
+            missingEvidence: state.missingEvidence,
+            needsUserInput: state.needsUserInput,
+            showApplyButton: true,
+            isApplying: applying,
+            applyButtonTitle: buttonTitle,
+            onApply: onApply
+        )
     }
 }
 

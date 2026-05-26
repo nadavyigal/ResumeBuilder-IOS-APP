@@ -4,14 +4,14 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Preview loading follow-up — optimized preview now starts from optimization ID immediately instead of blocking on section-detail loading (2026-05-26)
-Next Recommended Story: Real-device smoke test optimize → optimized preview load → design category switching/apply → Expert apply with a known-good text-based PDF
-Estimated Completion: 62%
+Last Completed Story: Expert analysis clarity + backend contract alignment follow-up — iOS now parses backend-real expert output shapes and backend expert validators/prompts now enforce stronger evidence/quality contracts (2026-05-26)
+Next Recommended Story: Merge iOS PR #32 and backend PR #61, then real-device smoke test optimize → optimized preview load → design category switching/apply → Expert run/apply with a known-good text-based PDF
+Estimated Completion: 66%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_run_sim` succeeded and `test_sim` passed 33/33 on iPhone 17 Pro Max simulator after preview loading follow-up (2026-05-26)
+Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 55/55 on iPhone 17 Pro Max simulator for iOS Expert contract alignment; backend focused expert Jest contracts passed 23/23 on branch `codex/expert-output-quality` (2026-05-26)
 Last Updated: 2026-05-26
-Current Branch: iOS `main`; backend `fix/pdf-parse-xref-error`
+Current Branch: iOS PR #32 `claude/musing-zhukovsky-2fc500`; backend PR #61 `codex/expert-output-quality`
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: —
 Latest QA Report: —
@@ -36,7 +36,7 @@ Latest QA Report: —
 - Design render/preview/export resolves backend template UUIDs to category+slug and iOS reloads current design assignment after Apply/Undo so Optimized reflects the applied template
 - Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
 - Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
-- Expert workflows accept user evidence input from iOS and Expert Apply forces no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
+- Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab
