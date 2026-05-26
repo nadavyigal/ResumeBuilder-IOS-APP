@@ -12,6 +12,10 @@ struct ExpertRunUIState: Equatable {
     var report: ExpertReportDisplayModel? {
         ExpertReportParsing.displayModel(from: output)
     }
+
+    var parsedOutput: ExpertOutputParsed {
+        ExpertReportParsing.parsedOutput(from: output)
+    }
 }
 
 enum ExpertCardPhase: Equatable {
@@ -29,6 +33,8 @@ final class ExpertModesViewModel {
     private(set) var toastMessage: String?
     var evidenceInputByType: [ExpertWorkflowType: String] = [:]
     private(set) var submittedEvidenceByType: [ExpertWorkflowType: String] = [:]
+
+    var selectedVariantIndexByType: [ExpertWorkflowType: Int] = [:]
 
     private(set) var optimizationId: String
     /// When `nil` (e.g. opened from **Track**), apply still runs on the server but local resume sections are not merged.
@@ -92,6 +98,14 @@ final class ExpertModesViewModel {
         evidenceInputByType[type] = text
     }
 
+    func selectedVariantIndex(for type: ExpertWorkflowType) -> Int? {
+        selectedVariantIndexByType[type]
+    }
+
+    func setSelectedVariantIndex(_ index: Int, for type: ExpertWorkflowType) {
+        selectedVariantIndexByType[type] = index
+    }
+
     func run(_ type: ExpertWorkflowType, token: String?) async {
         phaseByType[type] = .running
         do {
@@ -128,12 +142,23 @@ final class ExpertModesViewModel {
         applyingWorkflow = type
         defer { applyingWorkflow = nil }
         do {
+            let selectionIndex: Int? = {
+                guard type == .professionalSummaryLab || type == .coverLetterArchitect else { return nil }
+                return selectedVariantIndexByType[type]
+                    ?? state.parsedOutput.recommendedIndex
+                    ?? 0
+            }()
+            let screeningIndices: [Int]? = {
+                guard type == .screeningAnswerStudio else { return nil }
+                let count = state.parsedOutput.screeningAnswers.count
+                return count > 0 ? Array(0..<count) : [0]
+            }()
             let dto = try await service.apply(
                 runId: state.runId,
                 workflowType: type,
                 token: token,
-                selectionIndex: (type == .professionalSummaryLab || type == .coverLetterArchitect) ? 0 : nil,
-                screeningSelectedIndices: (type == .screeningAnswerStudio) ? [0] : nil
+                selectionIndex: selectionIndex,
+                screeningSelectedIndices: screeningIndices
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
@@ -217,6 +242,43 @@ extension ExpertWorkflowType {
             return "doc.text.fill"
         case .screeningAnswerStudio:
             return "checkmark.square.fill"
+        }
+    }
+
+    var purposeText: String {
+        switch self {
+        case .fullResumeRewrite:
+            return "Rewrites the entire resume to match the job description with ATS-safe structure and role-fit language."
+        case .achievementQuantifier:
+            return "Upgrades experience bullets with measurable outcomes. Add concrete metrics in Expert Input for better rewrites."
+        case .atsOptimizationReport:
+            return "Analyzes keyword coverage against the job description. Applying adds missing keywords to your Skills section."
+        case .professionalSummaryLab:
+            return "Generates five summary options in different tones. Choose one below, then apply to set it as your resume summary."
+        case .coverLetterArchitect:
+            return "Creates tailored cover letter variants. These are saved as application assets and do not change your resume."
+        case .screeningAnswerStudio:
+            return "Generates interview-style answers grounded in your resume. Saved as application assets, not resume text."
+        }
+    }
+
+    var changesResume: Bool {
+        switch self {
+        case .fullResumeRewrite, .achievementQuantifier, .atsOptimizationReport, .professionalSummaryLab:
+            return true
+        case .coverLetterArchitect, .screeningAnswerStudio:
+            return false
+        }
+    }
+
+    var requiredInputHint: String? {
+        switch self {
+        case .achievementQuantifier:
+            return "Add concrete metrics for stronger rewrites: e.g. \"grew revenue 40%, managed 12 engineers, shipped in 6 weeks\""
+        case .coverLetterArchitect:
+            return "Optional: add tone preference, specific points, or unique selling points to include"
+        default:
+            return nil
         }
     }
 }

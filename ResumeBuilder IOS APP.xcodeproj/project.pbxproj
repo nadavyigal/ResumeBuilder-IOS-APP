@@ -14,6 +14,7 @@
 		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
+		0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,7 @@
 		54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationParsingTests.swift; sourceTree = "<group>"; };
 		76421689162B5723CAA363D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveEndpointStabilizationTests.swift; sourceTree = "<group>"; };
+		9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpertReportParsingTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,6 +105,7 @@
 		EBBAC22E32DDC2060C87D2CB /* ResumeBuilder IOS APPTests */ = {
 			isa = PBXGroup;
 			children = (
+				9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */,
 				49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */,
 				9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */,
 				497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */,
@@ -218,6 +221,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */,
 				AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */,
 				DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */,
 				749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */,
