@@ -15,6 +15,20 @@
 
 ## Sessions
 
+### 2026-05-26
+**Task:** Fix optimized preview stuck on resume loading
+**Files Changed:**
+- `Features/V2/Improve/OptimizedResumeView.swift` — shows `ResumePreviewWebView` immediately when an optimization ID exists, so render-preview can load from the ID while section/contact detail loading runs independently
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated preview loading lesson and status
+**Validation:**
+- XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 Pro Max simulator
+- XcodeBuildMCP `test_sim` passed 33/33
+**Decisions Made:**
+- The optimized preview must not use section-detail loading as a hard gate because backend render-preview already supports `optimizationId`.
+**Next Recommended Action:** Real-device smoke test optimize → Optimized tab and confirm the preview renders even if `/api/v1/optimizations/:id` is slow or empty.
+
+---
+
 ### 2026-05-25
 **Task:** Follow up on live preview slowness and Design category switching
 **Files Changed:**
@@ -61,8 +75,6 @@
 - Local `main` must be pulled after PR merge before rebuilding in Xcode; the previous phone logs came from a stale local `main`.
 - Normalize readable PDFs in iOS before upload so the backend parser receives predictable PDF internals.
 **Next Recommended Action:** Merge/rebuild this follow-up branch on physical iPhone and verify optimize returns a live `reviewId` or `optimizationId`.
-
----
 
 ### 2026-05-24
 **Task:** Follow-up stabilization after merged live endpoint PR and phone logs

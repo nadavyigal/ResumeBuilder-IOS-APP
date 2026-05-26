@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-05-26
+**Category:** UX
+**Rule:** Never block the optimized resume preview on the optimization-detail section fetch when the render-preview endpoint can render from the optimization ID.
+**Why:** Gating the whole preview behind `loadSections` left users stuck on “Loading resume…” whenever the detail route was slow, empty, or failing, even though backend preview rendering could still produce the resume.
+
 ### 2026-05-25
 **Category:** Template
 **Rule:** Load the current design assignment only as an initial/apply/undo synchronization step, never as part of every category change.
