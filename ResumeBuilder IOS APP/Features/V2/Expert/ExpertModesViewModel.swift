@@ -137,7 +137,12 @@ final class ExpertModesViewModel {
         }
     }
 
-    func apply(_ type: ExpertWorkflowType, token: String?, appState: AppState) async {
+    func apply(
+        _ type: ExpertWorkflowType,
+        token: String?,
+        appState: AppState,
+        selectedFields: [String]? = nil
+    ) async {
         guard case .ready(let state) = phaseByType[type] else { return }
         applyingWorkflow = type
         defer { applyingWorkflow = nil }
@@ -162,7 +167,8 @@ final class ExpertModesViewModel {
                 workflowType: type,
                 token: token,
                 selectionIndex: selectionIndex,
-                screeningSelectedIndices: screeningIndices
+                screeningSelectedIndices: screeningIndices,
+                selectedFields: selectedFields
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
@@ -183,16 +189,34 @@ final class ExpertModesViewModel {
                     || $0.contains("experience")
                     || $0.contains("entire_resume")
             })
-            if resumeViewModel == nil, dto.success != false {
+            let savedToApplication = await saveAppliedRunToApplicationIfPossible(runId: state.runId, token: token)
+            if resumeViewModel == nil, dto.success != false, savedToApplication {
+                toastMessage = "\(type.displayTitle): applied and saved to this application."
+            } else if resumeViewModel == nil, dto.success != false {
                 toastMessage = "\(type.displayTitle): applied on server. Open Optimize to refresh resume text."
+            } else if !touchedResume, dto.success != false, savedToApplication {
+                toastMessage = "\(type.displayTitle): saved to Me → application assets."
             } else if !touchedResume, dto.success != false {
                 toastMessage =
-                    "\(type.displayTitle): applied — ancillary assets saved (no resume text changes)."
+                    "\(type.displayTitle): saved to this expert run. Open Expert from an application in Me to attach it there."
+            } else if dto.success != false, savedToApplication {
+                toastMessage = "\(type.displayTitle): changes applied and saved to this application."
             } else if dto.success != false {
                 toastMessage = "\(type.displayTitle): changes applied."
             }
         } catch {
             toastMessage = error.localizedDescription
+        }
+    }
+
+    private func saveAppliedRunToApplicationIfPossible(runId: String, token: String?) async -> Bool {
+        guard let appId = applicationId else { return false }
+        do {
+            _ = try await trackingService.saveExpertReport(applicationId: appId, runId: runId, token: token)
+            savedReports = try await trackingService.fetchExpertReports(applicationId: appId, token: token)
+            return true
+        } catch {
+            return false
         }
     }
 

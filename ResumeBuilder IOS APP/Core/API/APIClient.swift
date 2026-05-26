@@ -167,7 +167,8 @@ struct APIClient {
         fileURL: URL,
         jobDescription: String? = nil,
         jobDescriptionURL: String? = nil,
-        token: String?
+        token: String?,
+        deferOptimization: Bool = false
     ) async throws -> ResumeUploadResponse {
         try await uploadMultipart(
             endpoint: .uploadResume,
@@ -177,6 +178,7 @@ struct APIClient {
             fields: [
                 "jobDescription": jobDescription,
                 "jobDescriptionUrl": jobDescriptionURL,
+                "deferOptimization": deferOptimization ? "true" : nil,
             ]
         )
     }

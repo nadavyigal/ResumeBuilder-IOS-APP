@@ -66,6 +66,9 @@ struct ExpertModesView: View {
                         onApply: {
                             Task { await vm.apply(mode, token: token, appState: appState) }
                         },
+                        onApplySelectedFields: { fields in
+                            Task { await vm.apply(mode, token: token, appState: appState, selectedFields: fields) }
+                        },
                         onSelectVariantIndex: { index in
                             vm.setSelectedVariantIndex(index, for: mode)
                         }
@@ -185,6 +188,7 @@ private struct ExpertModeTile: View {
     var onEditEvidence: () -> Void
     var onRun: () -> Void
     var onApply: () -> Void
+    var onApplySelectedFields: ([String]) -> Void
     var onSelectVariantIndex: (Int) -> Void
 
     var body: some View {
@@ -267,7 +271,8 @@ private struct ExpertModeTile: View {
                     applying: applying,
                     selectedVariantIndex: selectedVariantIndex,
                     onSelectVariantIndex: onSelectVariantIndex,
-                    onApply: onApply
+                    onApply: onApply,
+                    onApplySelectedFields: onApplySelectedFields
                 )
             }
         }
@@ -312,12 +317,23 @@ private struct ExpertModeTileOutputView: View {
     let selectedVariantIndex: Int?
     var onSelectVariantIndex: (Int) -> Void
     var onApply: () -> Void
+    var onApplySelectedFields: ([String]) -> Void
 
     var body: some View {
         let parsed = state.parsedOutput
         switch mode {
         case .fullResumeRewrite:
-            fallbackReportView(state: state, buttonTitle: "Apply Changes")
+            if let rewrittenResume = rewrittenResumeValue(from: state.output),
+               let sections = ExpertResumeSectionMapping.sections(fromRewrittenResume: rewrittenResume),
+               !sections.isEmpty {
+                ExpertFullResumeRewriteView(
+                    sections: sections,
+                    applying: applying,
+                    onApplySelectedFields: onApplySelectedFields
+                )
+            } else {
+                fallbackReportView(state: state, buttonTitle: "Apply Changes")
+            }
         case .achievementQuantifier:
             if !parsed.bulletRewrites.isEmpty {
                 ExpertBulletRewritesView(rewrites: parsed.bulletRewrites, applying: applying, onApply: onApply)
@@ -384,6 +400,11 @@ private struct ExpertModeTileOutputView: View {
             applyButtonTitle: buttonTitle,
             onApply: onApply
         )
+    }
+
+    private func rewrittenResumeValue(from output: JSONValue) -> JSONValue? {
+        guard case .object(let root) = output else { return nil }
+        return root["rewritten_resume"] ?? root["resume"]
     }
 }
 

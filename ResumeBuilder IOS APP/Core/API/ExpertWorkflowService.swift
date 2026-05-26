@@ -68,7 +68,8 @@ struct ExpertWorkflowService: Sendable {
         workflowType: ExpertWorkflowType,
         token: String?,
         selectionIndex: Int? = nil,
-        screeningSelectedIndices: [Int]? = nil
+        screeningSelectedIndices: [Int]? = nil,
+        selectedFields: [String]? = nil
     ) async throws -> ExpertWorkflowApplyResponseDTO {
         guard let token else { throw ExpertWorkflowServiceError.missingToken }
         guard !runId.isEmpty else { throw ExpertWorkflowServiceError.emptyRunId }
@@ -82,6 +83,9 @@ struct ExpertWorkflowService: Sendable {
         }
         if workflowType == .screeningAnswerStudio, let screeningSelectedIndices {
             body["selected_indices"] = screeningSelectedIndices
+        }
+        if workflowType == .fullResumeRewrite, let selectedFields {
+            body["selected_fields"] = selectedFields
         }
 
         let dto: ExpertWorkflowApplyResponseDTO = try await apiClient.postJSONObject(
