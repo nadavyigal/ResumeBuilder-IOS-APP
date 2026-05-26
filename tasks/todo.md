@@ -77,6 +77,12 @@
 - [x] XcodeBuildMCP build + test pass after preview/category follow-up (33/33)
 - [x] Stop optimized preview from blocking on section-detail load before starting render-preview
 - [x] XcodeBuildMCP build + test pass after preview loading follow-up (33/33)
+- [x] Align iOS Expert structured parsing with backend-real workflow JSON shapes
+- [x] Show extra Expert rationale/evidence/confidence fields in type-specific iOS output views
+- [x] Initialize/clamp Expert summary and cover-letter selection indices before apply
+- [x] XcodeBuildMCP build + test pass after Expert contract alignment (55/55)
+- [x] Backend expert prompts and validators tightened for evidence provenance, keyword stuffing, bloated summaries, and missing section contracts
+- [x] Backend focused expert Jest contracts pass after output-quality follow-up (23/23)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor
