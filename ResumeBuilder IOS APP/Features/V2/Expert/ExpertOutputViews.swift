@@ -67,6 +67,13 @@ private struct SummaryOptionRow: View {
                     .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(4)
                     .multilineTextAlignment(.leading)
+                if let rationale = option.rationale {
+                    Text(rationale)
+                        .font(.caption2)
+                        .foregroundStyle(AppColors.textTertiary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                }
             }
             .padding(AppSpacing.sm)
             .background(
@@ -120,7 +127,7 @@ struct ExpertBulletRewritesView: View {
                 let allMissing = rewrites.flatMap { $0.missingMetrics }.filter { !$0.isEmpty }
                 if !allMissing.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        Label("Add these metrics for stronger rewrites", systemImage: "exclamationmark.circle")
+                        Label("Add these details for stronger rewrites", systemImage: "exclamationmark.circle")
                             .font(.appCaption.weight(.semibold))
                             .foregroundStyle(.orange)
                         ForEach(Array(allMissing.prefix(5).enumerated()), id: \.offset) { _, metric in
@@ -177,6 +184,12 @@ private struct BulletRewriteRow: View {
                 }
                 .buttonStyle(.plain)
             }
+            if !rewrite.evidenceUsed.isEmpty {
+                Text("Evidence: \(rewrite.evidenceUsed.joined(separator: ", "))")
+                    .font(.caption2)
+                    .foregroundStyle(AppColors.textTertiary)
+                    .lineLimit(3)
+            }
         }
         .padding(AppSpacing.sm)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppRadii.sm))
@@ -192,7 +205,17 @@ struct ExpertATSReportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            if let score = atsReport.score {
+            if let estimate = atsReport.scoreEstimate {
+                HStack {
+                    Text("Estimated ATS impact")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Spacer()
+                    Text("\(scoreLabel(estimate.before)) → \(scoreLabel(estimate.after))")
+                        .font(.appSubheadline.weight(.bold))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+            } else if let score = atsReport.score {
                 HStack {
                     Text("ATS Score")
                         .font(.appCaption.weight(.semibold))
@@ -201,6 +224,17 @@ struct ExpertATSReportView: View {
                     Text("\(Int(score.rounded()))%")
                         .font(.appSubheadline.weight(.bold))
                         .foregroundStyle(AppColors.textPrimary)
+                }
+            }
+
+            if !atsReport.keywordMatches.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Keyword coverage")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    ForEach(Array(atsReport.keywordMatches.prefix(8))) { match in
+                        KeywordMatchRow(match: match)
+                    }
                 }
             }
 
@@ -226,6 +260,18 @@ struct ExpertATSReportView: View {
                 }
             }
 
+            if !atsReport.sectionHeadingCompliance.isEmpty {
+                GuidanceListView(title: "Section checks", rows: atsReport.sectionHeadingCompliance)
+            }
+
+            if !atsReport.formatGuidance.isEmpty {
+                GuidanceListView(title: "Format guidance", rows: atsReport.formatGuidance)
+            }
+
+            if !atsReport.acronymCoverage.isEmpty {
+                GuidanceListView(title: "Acronym coverage", rows: atsReport.acronymCoverage)
+            }
+
             if atsReport.recommendedKeywordsToAdd.isEmpty && atsReport.keywordPlacements.isEmpty {
                 Label("Your resume is well-optimized for this role.", systemImage: "checkmark.seal.fill")
                     .font(.appCaption)
@@ -234,6 +280,62 @@ struct ExpertATSReportView: View {
 
             if !atsReport.recommendedKeywordsToAdd.isEmpty {
                 GradientButton(title: "Add Keywords to Skills", isLoading: applying, action: onApply)
+            }
+        }
+    }
+
+    private func scoreLabel(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        return "\(Int(value.rounded()))%"
+    }
+}
+
+private struct KeywordMatchRow: View {
+    let match: ExpertKeywordMatch
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: match.present == true ? "checkmark.circle.fill" : "plus.circle")
+                    .font(.caption)
+                    .foregroundStyle(match.present == true ? AppColors.accentTeal : AppColors.accentSky)
+                Text(match.keyword)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                if let placement = match.suggestedPlacement {
+                    Text(placement)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(AppColors.accentViolet)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(AppColors.accentViolet.opacity(0.10), in: Capsule())
+                }
+            }
+            if let note = match.note {
+                Text(note)
+                    .font(.caption2)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: AppRadii.sm))
+    }
+}
+
+private struct GuidanceListView: View {
+    let title: String
+    let rows: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textSecondary)
+            ForEach(Array(rows.prefix(4).enumerated()), id: \.offset) { _, row in
+                Text("• \(row)")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
             }
         }
     }
@@ -323,7 +425,7 @@ private struct CoverLetterVariantRow: View {
                 HStack {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(isSelected ? AppColors.accentViolet : AppColors.textTertiary)
-                    Text(variant.tone)
+                    Text(variant.title ?? variant.tone)
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textPrimary)
                     Spacer(minLength: 0)
@@ -337,11 +439,25 @@ private struct CoverLetterVariantRow: View {
                     }
                     .buttonStyle(.plain)
                 }
+                if let opening = variant.openingParagraph {
+                    Text(opening)
+                        .font(.caption2)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                }
                 Text(variant.body)
                     .font(.caption2)
                     .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(5)
                     .multilineTextAlignment(.leading)
+                if let rationale = variant.rationale {
+                    Text(rationale)
+                        .font(.caption2)
+                        .foregroundStyle(AppColors.textTertiary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
             }
             .padding(AppSpacing.sm)
             .background(
@@ -437,6 +553,18 @@ private struct ScreeningAnswerRow: View {
                 .font(.caption2)
                 .foregroundStyle(AppColors.accentSky)
                 .buttonStyle(.plain)
+            }
+            if !answer.evidenceUsed.isEmpty {
+                Text("Evidence: \(answer.evidenceUsed.joined(separator: ", "))")
+                    .font(.caption2)
+                    .foregroundStyle(AppColors.textTertiary)
+                    .lineLimit(3)
+            }
+            if let confidence = answer.confidenceNote {
+                Text(confidence)
+                    .font(.caption2)
+                    .foregroundStyle(AppColors.textTertiary)
+                    .lineLimit(2)
             }
         }
         .padding(AppSpacing.sm)

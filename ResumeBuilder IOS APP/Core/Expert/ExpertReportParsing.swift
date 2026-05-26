@@ -9,10 +9,14 @@ enum ExpertReportParsing {
             guard let optVal = root["summary_options"], case .array(let opts) = optVal else { return [] }
             return opts.enumerated().compactMap { idx, val -> ExpertSummaryOption? in
                 guard case .object(let o) = val else { return nil }
-                let style = string(o["style"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Option \(idx + 1)"
+                let angle =
+                    string(o["angle"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? string(o["style"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? "Option \(idx + 1)"
                 let summary = string(o["summary"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 guard !summary.isEmpty else { return nil }
-                return ExpertSummaryOption(id: idx, style: style, summary: summary)
+                let rationale = string(o["rationale"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                return ExpertSummaryOption(id: idx, angle: angle, summary: summary, rationale: rationale)
             }
         }()
 
@@ -25,42 +29,55 @@ enum ExpertReportParsing {
                 let original = string(o["original_bullet"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 let optimized = string(o["optimized_bullet"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 guard !original.isEmpty || !optimized.isEmpty else { return nil }
-                let impact = string(o["impact"])?.trimmingCharacters(in: .whitespacesAndNewlines)
-                let missingMetrics: [String] = {
-                    guard let mm = o["missing_metrics"], case .array(let arr) = mm else { return [] }
-                    return arr.compactMap { string($0) }.filter { !$0.isEmpty }
-                }()
+                let evidenceUsed = stringArray(o["evidence_used"])
+                let missingEvidenceQuestions =
+                    stringArray(o["missing_evidence_questions"]).isEmpty
+                    ? stringArray(o["missing_metrics"])
+                    : stringArray(o["missing_evidence_questions"])
                 return ExpertBulletRewrite(
                     id: idx,
                     originalBullet: original,
                     optimizedBullet: optimized,
-                    impact: impact,
-                    missingMetrics: missingMetrics
+                    evidenceUsed: evidenceUsed,
+                    missingEvidenceQuestions: missingEvidenceQuestions
                 )
             }
         }()
 
         let atsReport: ExpertATSReport? = {
             guard let atVal = root["ats_report"], case .object(let ats) = atVal else { return nil }
-            let score = double(ats["score"])
-            let placements: [String] = {
-                guard let kp = ats["keyword_placements"], case .array(let arr) = kp else { return [] }
-                return arr.compactMap { string($0) }.filter { !$0.isEmpty }
+            let scoreEstimate: ExpertScoreEstimate? = {
+                guard let value = ats["score_estimate"], case .object(let estimate) = value else { return nil }
+                return ExpertScoreEstimate(before: double(estimate["before"]), after: double(estimate["after"]))
             }()
-            let recommended: [String] = {
-                guard let rk = ats["recommended_keywords_to_add"], case .array(let arr) = rk else { return [] }
-                return arr.compactMap { string($0) }.filter { !$0.isEmpty }
-            }()
-            let missing: [String] = {
-                guard let mk = ats["missing_keywords"], case .array(let arr) = mk else { return [] }
-                return arr.compactMap { string($0) }.filter { !$0.isEmpty }
-            }()
-            guard score != nil || !placements.isEmpty || !recommended.isEmpty || !missing.isEmpty else { return nil }
+            let score = double(ats["score"]) ?? scoreEstimate?.after
+            let keywordMatches = keywordMatches(from: ats["keyword_match_analysis"])
+            let placements = stringArray(ats["keyword_placements"])
+            let recommended = stringArray(ats["recommended_keywords_to_add"])
+            let missing = stringArray(ats["missing_keywords"])
+            let sectionHeadingCompliance = stringArray(ats["section_heading_compliance"])
+            let formatGuidance = stringArray(ats["format_guidance"])
+            let acronymCoverage = stringArray(ats["acronym_coverage"])
+            guard score != nil
+                || scoreEstimate != nil
+                || !keywordMatches.isEmpty
+                || !placements.isEmpty
+                || !recommended.isEmpty
+                || !missing.isEmpty
+                || !sectionHeadingCompliance.isEmpty
+                || !formatGuidance.isEmpty
+                || !acronymCoverage.isEmpty
+            else { return nil }
             return ExpertATSReport(
                 score: score,
+                scoreEstimate: scoreEstimate,
+                keywordMatches: keywordMatches,
                 keywordPlacements: placements,
                 recommendedKeywordsToAdd: recommended,
-                missingKeywords: missing
+                missingKeywords: missing,
+                sectionHeadingCompliance: sectionHeadingCompliance,
+                formatGuidance: formatGuidance,
+                acronymCoverage: acronymCoverage
             )
         }()
 
@@ -68,10 +85,26 @@ enum ExpertReportParsing {
             guard let clVal = root["cover_letter_variants"], case .array(let variants) = clVal else { return [] }
             return variants.enumerated().compactMap { idx, val -> ExpertCoverLetterVariant? in
                 guard case .object(let o) = val else { return nil }
-                let tone = string(o["tone"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Variant \(idx + 1)"
-                let body = string(o["body"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                guard !body.isEmpty else { return nil }
-                return ExpertCoverLetterVariant(id: idx, tone: tone, body: body)
+                let angle =
+                    string(o["angle"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? string(o["tone"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? "Variant \(idx + 1)"
+                let title = string(o["title"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                let opening = string(o["opening_paragraph"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                let letter =
+                    string(o["letter"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? string(o["body"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                    ?? ""
+                guard !letter.isEmpty else { return nil }
+                let rationale = string(o["rationale"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                return ExpertCoverLetterVariant(
+                    id: idx,
+                    angle: angle,
+                    title: title,
+                    openingParagraph: opening,
+                    letter: letter,
+                    rationale: rationale
+                )
             }
         }()
 
@@ -82,7 +115,13 @@ enum ExpertReportParsing {
                 let question = string(o["question"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 let answer = string(o["answer"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 guard !answer.isEmpty else { return nil }
-                return ExpertScreeningAnswer(id: idx, question: question, answer: answer)
+                return ExpertScreeningAnswer(
+                    id: idx,
+                    question: question,
+                    answer: answer,
+                    evidenceUsed: stringArray(o["evidence_used"]),
+                    confidenceNote: string(o["confidence_note"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                )
             }
         }()
 
@@ -155,6 +194,27 @@ enum ExpertReportParsing {
         guard let v, case .array(let rows) = v else { return [] }
         return rows.compactMap { string($0)?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+    }
+
+    private static func keywordMatches(from value: JSONValue?) -> [ExpertKeywordMatch] {
+        guard let value, case .array(let rows) = value else { return [] }
+        return rows.enumerated().compactMap { idx, row -> ExpertKeywordMatch? in
+            guard case .object(let object) = row else { return nil }
+            let keyword = string(object["keyword"])?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !keyword.isEmpty else { return nil }
+            let present: Bool? = {
+                guard let presentValue = object["present"] else { return nil }
+                if case .bool(let present) = presentValue { return present }
+                return nil
+            }()
+            return ExpertKeywordMatch(
+                id: idx,
+                keyword: keyword,
+                present: present,
+                suggestedPlacement: string(object["suggested_placement"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+                note: string(object["note"])?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+            )
+        }
     }
 }
 

@@ -120,16 +120,16 @@ final class ExpertModesViewModel {
                 evidenceInputs: evidenceInputs
             )
             submittedEvidenceByType[type] = evidenceText
-            phaseByType[type] = .ready(
-                ExpertRunUIState(
-                    workflowType: type,
-                    runId: dto.runId,
-                    status: dto.status,
-                    output: dto.output,
-                    missingEvidence: dto.missingEvidence ?? [],
-                    needsUserInput: dto.needsUserInput ?? (dto.status == "needs_user_input")
-                )
+            let state = ExpertRunUIState(
+                workflowType: type,
+                runId: dto.runId,
+                status: dto.status,
+                output: dto.output,
+                missingEvidence: dto.missingEvidence ?? [],
+                needsUserInput: dto.needsUserInput ?? (dto.status == "needs_user_input")
             )
+            phaseByType[type] = .ready(state)
+            initializeSelectionIfNeeded(for: type, parsedOutput: state.parsedOutput)
         } catch ExpertWorkflowServiceError.premiumRequired(let message) {
             phaseByType[type] = .failed(message)
         } catch {
@@ -144,9 +144,13 @@ final class ExpertModesViewModel {
         do {
             let selectionIndex: Int? = {
                 guard type == .professionalSummaryLab || type == .coverLetterArchitect else { return nil }
-                return selectedVariantIndexByType[type]
-                    ?? state.parsedOutput.recommendedIndex
-                    ?? 0
+                let count = type == .professionalSummaryLab
+                    ? state.parsedOutput.summaryOptions.count
+                    : state.parsedOutput.coverLetterVariants.count
+                return clampedSelectionIndex(
+                    selectedVariantIndexByType[type] ?? state.parsedOutput.recommendedIndex,
+                    count: count
+                ) ?? 0
             }()
             let screeningIndices: [Int]? = {
                 guard type == .screeningAnswerStudio else { return nil }
@@ -190,6 +194,20 @@ final class ExpertModesViewModel {
         } catch {
             toastMessage = error.localizedDescription
         }
+    }
+
+    private func initializeSelectionIfNeeded(for type: ExpertWorkflowType, parsedOutput: ExpertOutputParsed) {
+        guard type == .professionalSummaryLab || type == .coverLetterArchitect else { return }
+        let count = type == .professionalSummaryLab
+            ? parsedOutput.summaryOptions.count
+            : parsedOutput.coverLetterVariants.count
+        selectedVariantIndexByType[type] = clampedSelectionIndex(parsedOutput.recommendedIndex, count: count) ?? 0
+    }
+
+    private func clampedSelectionIndex(_ index: Int?, count: Int) -> Int? {
+        guard count > 0 else { return nil }
+        let raw = index ?? 0
+        return min(max(raw, 0), count - 1)
     }
 }
 
