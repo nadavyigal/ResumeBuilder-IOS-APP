@@ -42,4 +42,16 @@ struct ApplicationTrackingService: Sendable {
         )
         return env.reports
     }
+
+    func saveExpertReport(applicationId: String, runId: String, token: String?) async throws -> ApplicationExpertReportItem {
+        guard !runId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw APIClientError.invalidResponse
+        }
+        let envelope: ApplicationExpertReportSaveEnvelope = try await apiClient.postJSON(
+            endpoint: .applicationExpertReports(id: applicationId),
+            body: ["run_id": runId],
+            token: token
+        )
+        return envelope.report
+    }
 }

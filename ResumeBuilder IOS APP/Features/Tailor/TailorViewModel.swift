@@ -99,7 +99,8 @@ final class TailorViewModel {
                     fileURL: selectedResumeURL,
                     jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
                     jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
-                    token: token
+                    token: token,
+                    deferOptimization: true
                 )
             }
             uploadResponse = upload
@@ -190,6 +191,9 @@ final class TailorViewModel {
 
     private func enhancedError(_ message: String) -> String {
         let lower = message.lowercased()
+        if lower.contains("function_invocation_timeout") || lower.contains("timed out") || lower.contains("timeout") {
+            return "The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again."
+        }
         guard lower.contains("read") && lower.contains("pdf") else { return message }
         return message + "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer."
     }

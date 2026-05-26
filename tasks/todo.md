@@ -83,6 +83,13 @@
 - [x] XcodeBuildMCP build + test pass after Expert contract alignment (55/55)
 - [x] Backend expert prompts and validators tightened for evidence provenance, keyword stuffing, bloated summaries, and missing section contracts
 - [x] Backend focused expert Jest contracts pass after output-quality follow-up (23/23)
+- [x] Remove Design template thumbnail strip and enlarge in-page resume preview
+- [x] Add selected-section apply review for Expert Resume Rewrite
+- [x] Save applied Expert reports to linked applications when Expert has application context
+- [x] Defer iOS upload optimization and add clearer timeout guidance for LinkedIn/job URL failures
+- [x] Backend upload/optimize timeout hardening and selected full-rewrite section apply support
+- [x] XcodeBuildMCP build + test pass after Expert UX/design/timeout follow-up (55/55)
+- [x] Backend focused expert Jest contracts pass after selected-section apply + timeout follow-up (24/24)
 - [ ] Backend: implement `/api/v1/resumes` list/save/rename/delete/download with JSON errors
 - [ ] Backend: fix `/api/v1/styles/history` or document it as unavailable for iOS
 - [ ] Real-device smoke test with live account and known-good text-based PDF exported from a word processor

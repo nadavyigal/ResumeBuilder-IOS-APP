@@ -1,6 +1,107 @@
 import SwiftUI
 import UIKit
 
+// MARK: - Full Resume Rewrite
+
+struct ExpertFullResumeRewriteView: View {
+    let sections: [OptimizedResumeSection]
+    let applying: Bool
+    var onApplySelectedFields: ([String]) -> Void
+
+    @State private var acceptedSectionIds: Set<String> = []
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("\(acceptedCount) of \(sections.count) sections selected")
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textSecondary)
+
+            ForEach(sections) { section in
+                Button {
+                    toggle(section)
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            Image(systemName: isAccepted(section) ? "checkmark.circle.fill" : "circle")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(isAccepted(section) ? AppColors.accentTeal : AppColors.textTertiary)
+                            Text(section.type.displayName)
+                                .font(.appCaption.weight(.semibold))
+                                .foregroundStyle(AppColors.textPrimary)
+                            Spacer(minLength: 0)
+                        }
+                        Text(section.body)
+                            .font(.caption2)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .lineLimit(5)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(AppSpacing.sm)
+                    .background(
+                        isAccepted(section) ? AppColors.accentTeal.opacity(0.08) : Color.clear,
+                        in: RoundedRectangle(cornerRadius: AppRadii.sm)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadii.sm)
+                            .stroke(isAccepted(section) ? AppColors.accentTeal.opacity(0.28) : Color.white.opacity(0.06), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            GradientButton(
+                title: acceptedCount == sections.count ? "Apply Full Rewrite" : "Apply Selected Sections",
+                isLoading: applying
+            ) {
+                onApplySelectedFields(acceptedCount == sections.count ? [] : selectedFieldNames)
+            }
+            .disabled(acceptedSectionIds.isEmpty)
+        }
+        .onAppear {
+            if acceptedSectionIds.isEmpty {
+                acceptedSectionIds = Set(sections.map(\.id))
+            }
+        }
+    }
+
+    private var acceptedCount: Int {
+        sections.filter { isAccepted($0) }.count
+    }
+
+    private var selectedFieldNames: [String] {
+        sections
+            .filter { isAccepted($0) }
+            .map { fieldName(for: $0.type) }
+    }
+
+    private func isAccepted(_ section: OptimizedResumeSection) -> Bool {
+        acceptedSectionIds.contains(section.id)
+    }
+
+    private func toggle(_ section: OptimizedResumeSection) {
+        if acceptedSectionIds.contains(section.id) {
+            acceptedSectionIds.remove(section.id)
+        } else {
+            acceptedSectionIds.insert(section.id)
+        }
+    }
+
+    private func fieldName(for type: ResumeSectionType) -> String {
+        switch type {
+        case .summary:
+            return "summary"
+        case .experience:
+            return "experience"
+        case .skills:
+            return "skills"
+        case .education:
+            return "education"
+        case .additional:
+            return "certifications"
+        }
+    }
+}
+
 // MARK: - Summary Lab
 
 struct ExpertSummaryOptionsView: View {

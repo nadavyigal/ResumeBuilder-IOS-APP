@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct RedesignResumeView: View {
     @Environment(AppState.self) private var appState
@@ -25,11 +26,6 @@ struct RedesignResumeView: View {
 
                     // Live preview card
                     previewCard
-
-                    // Template strip
-                    if !viewModel.templates.isEmpty {
-                        templateStrip
-                    }
 
                     // Style controls
                     styleControls
@@ -130,7 +126,7 @@ struct RedesignResumeView: View {
                     templateId: viewModel.selectedTemplateId,
                     customization: viewModel.customization
                 )
-                .frame(height: 240)
+                .frame(height: previewHeight)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
@@ -168,25 +164,8 @@ struct RedesignResumeView: View {
         .padding(.horizontal, AppSpacing.lg)
     }
 
-    private var templateStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AppSpacing.lg) {
-                ForEach(viewModel.templates) { template in
-                    TemplateThumbnail(
-                        name: template.name,
-                        category: template.category,
-                        templateId: template.id,
-                        thumbnailURL: template.thumbnailURL.flatMap(URL.init),
-                        isSelected: viewModel.selectedTemplateId == template.id,
-                        isPremium: template.isPremium
-                    )
-                    .onTapGesture {
-                        withAnimation { viewModel.selectTemplate(template.id) }
-                    }
-                }
-            }
-            .padding(.horizontal, AppSpacing.lg)
-        }
+    private var previewHeight: CGFloat {
+        min(560, max(380, UIScreen.main.bounds.height * 0.56))
     }
 
     private var styleControls: some View {
