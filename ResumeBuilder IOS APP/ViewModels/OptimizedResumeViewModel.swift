@@ -274,7 +274,13 @@ final class OptimizedResumeViewModel {
             let rewritten = root["rewritten_resume"] ?? root["resume"]
             guard let rewritten else { return }
             if let rebuilt = ExpertResumeSectionMapping.sections(fromRewrittenResume: rewritten) {
-                sections = rebuilt
+                if applyResult.updatedFields.contains("entire_resume") || applyResult.updatedFields.isEmpty {
+                    sections = rebuilt
+                } else {
+                    for section in rebuilt where applyResult.updatedFields.contains(fieldName(for: section.type)) {
+                        patchSection(type: section.type, body: section.body)
+                    }
+                }
             }
         case .achievementQuantifier:
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
@@ -311,6 +317,21 @@ final class OptimizedResumeViewModel {
         guard let idx = sections.firstIndex(where: { $0.type == type }) else { return }
         sections[idx].body = newBody
         sections[idx].status = "improved"
+    }
+
+    private func fieldName(for type: ResumeSectionType) -> String {
+        switch type {
+        case .summary:
+            return "summary"
+        case .experience:
+            return "experience"
+        case .skills:
+            return "skills"
+        case .education:
+            return "education"
+        case .additional:
+            return "certifications"
+        }
     }
 }
 

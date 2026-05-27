@@ -715,6 +715,11 @@ struct ApplicationExpertReportsEnvelope: Codable, Sendable {
     }
 }
 
+struct ApplicationExpertReportSaveEnvelope: Codable, Sendable {
+    let success: Bool?
+    let report: ApplicationExpertReportItem
+}
+
 /// Saved expert run metadata linked to an application (from `GET .../expert-reports`).
 struct ApplicationExpertReportItem: Codable, Identifiable, Sendable {
     let id: String

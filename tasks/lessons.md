@@ -17,6 +17,16 @@
 
 ### 2026-05-26
 **Category:** UX
+**Rule:** Expert asset workflows must say where the asset was saved and save to an application report when an application is linked.
+**Why:** Cover Letter could report “saved” while the top-level Expert tab had no application context, leaving users unable to find the asset from Me.
+
+### 2026-05-26
+**Category:** API
+**Rule:** iOS optimize uploads should store resume/job inputs first and run heavy AI optimization in the dedicated optimize route, with URL scraping bounded by server timeouts.
+**Why:** Live LinkedIn job URL scraping plus PDF parsing plus AI optimization could exceed the deployment function window and surface raw `FUNCTION_INVOCATION_TIMEOUT`.
+
+### 2026-05-26
+**Category:** UX
 **Rule:** Never block the optimized resume preview on the optimization-detail section fetch when the render-preview endpoint can render from the optimization ID.
 **Why:** Gating the whole preview behind `loadSections` left users stuck on “Loading resume…” whenever the detail route was slow, empty, or failing, even though backend preview rendering could still produce the resume.
 
