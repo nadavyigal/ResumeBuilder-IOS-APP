@@ -4,14 +4,14 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Expert UX/design/timeout follow-up — Design preview is larger without the Timeline Flow strip, Expert full rewrites can apply selected sections, applied Expert reports save to linked applications, and optimize upload now defers heavy AI work to avoid deployment timeouts (2026-05-26)
-Next Recommended Story: Merge iOS PR #32 and backend PR #61, deploy backend, then real-device smoke test optimize with pasted job description and LinkedIn URL fallback → Expert cover letter save → Me application report visibility
+Last Completed Story: rb-aso-002 — App Store screenshot renderer added and 5-slot English screenshot set exported for 6.7" and 6.5" iPhone sizes (2026-05-28)
+Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once an ASC API key/session is available, then confirm Privacy Policy and Support URLs
 Estimated Completion: 68%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_sim` succeeded and `test_sim` passed 55/55 on iPhone 17 Pro Max simulator after Expert UX/design/timeout follow-up; backend focused expert Jest contracts passed 24/24 on branch `codex/expert-output-quality` (2026-05-26)
-Last Updated: 2026-05-26
-Current Branch: iOS PR #32 `claude/musing-zhukovsky-2fc500`; backend PR #61 `codex/expert-output-quality`
+Last Validation: XcodeBuildMCP `build_run_sim` succeeded while rendering rb-aso-002 screenshots on iPhone 17 Pro Max simulator; screenshot PNGs exported at 1290x2796 and 1242x2688; `test_sim` passed 33/33 (2026-05-28). Previous Expert UX/design/timeout follow-up validation passed `test_sim` 55/55 and backend expert Jest contracts 24/24 (2026-05-26).
+Last Updated: 2026-05-28
+Current Branch: iOS PR #34 `codex/rb-aso-002-app-store-screenshots`; backend PR #61 `codex/expert-output-quality`
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: —
 Latest QA Report: —
@@ -37,6 +37,7 @@ Latest QA Report: —
 - Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
 - Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
 - Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, let full rewrites apply selected sections, save applied reports to linked applications, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
+- rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

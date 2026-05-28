@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-05-28
+**Category:** Build
+**Rule:** For launch-argument screenshot captures, verify the raw simulator PNG after each launch; manual `simctl launch` can leave the app on the generated launch screen even when XcodeBuildMCP `build_run_sim` renders correctly.
+**Why:** rb-aso-002 initially produced blank white raw screenshots from manual `simctl launch`; using the Build iOS Apps plugin launch before each capture produced the correct SwiftUI screenshot views.
+
 ### 2026-05-26
 **Category:** UX
 **Rule:** Expert asset workflows must say where the asset was saved and save to an application report when an application is linked.

@@ -1,5 +1,19 @@
 # Current Task
 
+**Objective:** Implement rb-aso-002 — render App Store screenshots for Resumely and prepare App Store Connect upload
+**Status:** COMPLETE — rendered; App Store Connect upload blocked by missing local ASC credentials/session
+**Spec:** `/Users/nadavyigal/Documents/Projects /Agentic OS/distribution-os/projects/resumebuilder/scaffold/drafts/2026-05-28-rb-aso-002/screenshot-brief-v1.md`
+
+## rb-aso-002 Scope
+- [x] Add a launch-argument-only screenshot renderer in `Features/V2/Marketing/`
+- [x] Wire `ContentView` to show screenshot mode only when `--marketing-screenshot` is present
+- [x] Render 5 English App Store screenshot slots for iPhone 6.7" and 6.5"
+- [x] Save upload-ready PNGs and an upload manifest under `dist/app-store-screenshots/rb-aso-002/`
+- [x] Verify Xcode build succeeds using Build iOS Apps plugin
+- [x] Run relevant tests with Build iOS Apps plugin — `test_sim` passed 33/33
+- [x] Update `tasks/progress.md` and `tasks/session-log.md`
+- [ ] Upload to App Store Connect if credentials/session are available locally — blocked: no Fastlane config, ASC API key, or active ASC session found
+
 **Objective:** Merge Track→Me, Redesign Optimized Resume, Real Resume Library (Stories 1–5)
 **Status:** COMPLETE ✅
 **Spec:** See plan in `/Users/nadavyigal/.claude/plans/implement-story-1-first-partitioned-mist.md`
