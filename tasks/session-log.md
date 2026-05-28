@@ -103,6 +103,22 @@
 - `Features/Tailor/TailorView.swift`, `Features/Tailor/TailorViewModel.swift`, `ViewModels/ResumeLibraryViewModel.swift` — disabled broken Resume Library UI gracefully and improved PDF upload guidance
 - `ViewModels/OptimizedResumeViewModel.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Preview/ResumePreviewWebView.swift` — reduced duplicate initial loads/renders and ignored benign cancellation
 - `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` and Xcode project — added regression tests
+### 2026-05-28
+**Task:** rb-aso-002 — render App Store screenshots for Resumely iOS
+**Files Changed:**
+- `ContentView.swift` — routes to screenshot mode only when `--marketing-screenshot` is passed
+- `Features/V2/Marketing/MarketingScreenshotView.swift` — new launch-argument-only renderer for 5 English App Store screenshot slots
+- `dist/app-store-screenshots/rb-aso-002/` — exported source captures, 6.7" PNGs, 6.5" PNGs, and upload manifest
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — updated task status
+**Decisions Made:**
+- Screenshot mode is not reachable in normal app launches and does not alter production navigation.
+- Captured real SwiftUI renders using the Build iOS Apps plugin, then exported exact App Store dimensions with `sips`.
+- App Store Connect upload remains blocked locally because no Fastlane config, ASC API key, or active ASC session is available in the workspace.
+**Validation:**
+- XcodeBuildMCP `build_run_sim` succeeded for the screenshot renderer.
+- XcodeBuildMCP `test_sim` passed 33/33.
+**Next Recommended Action:** Provide/enable App Store Connect upload credentials or upload the files from `dist/app-store-screenshots/rb-aso-002/iphone-6.7/` and `iphone-6.5/` manually in slot order.
+
 - `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated roadmap/status
 **Decisions Made:**
 - Runtime stays live-only; missing Resume Library backend is disabled, not mocked.
