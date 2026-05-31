@@ -79,7 +79,8 @@ final class OptimizedResumeViewModel {
 
     /// Downloads the PDF for this optimization and returns a temp file URL for sharing.
     func downloadPDF(appState: AppState) async throws -> URL {
-        try await appState.callWithFreshToken { token in
+        AnalyticsService.shared.track(.exportStarted)
+        return try await appState.callWithFreshToken { token in
             try await self.downloadPDF(with: token)
         }
     }
