@@ -15,6 +15,25 @@
 
 ## Sessions
 
+### 2026-05-31
+**Task:** PostHog integration — import credentials from web project and wire 3 analytics events
+**Files Changed:**
+- `Core/API/BackendConfig.swift` — added `posthogAPIKey` and `posthogHost` from web `.env.local` (NEXT_PUBLIC_POSTHOG_KEY, Project ID 270848)
+- `Core/Analytics/AnalyticsService.swift` — NEW: URLSession-based PostHog HTTP capture service; no SDK/SPM required
+- `Features/Tailor/TailorViewModel.swift` — wired `upload_resume_started` at optimize start; `optimization_completed` when optimizationId is set
+- `ViewModels/OptimizedResumeViewModel.swift` — wired `export_triggered` in `downloadPDF(appState:)`
+**Decisions Made:**
+- Used URLSession + PostHog HTTP API directly instead of PostHog iOS SDK to avoid SPM dependency (project rule: system frameworks only)
+- PostHog key is `NEXT_PUBLIC_*` on the web — safe to ship in the iOS binary per PostHog's design
+- distinct_id uses `appState.session?.userId ?? "anonymous"` so authenticated events are linkable across web and iOS
+- `AnalyticsService` is a singleton with fire-and-forget async sends; analytics failures are non-fatal
+**Validation:**
+- Files created/edited; Xcode project uses PBXFileSystemSynchronizedRootGroup so AnalyticsService.swift is auto-included
+- Build check via XcodeBuildMCP required before declaring done
+**Next Recommended Action:** Run `xcode_build` in XcodeBuildMCP to confirm zero build errors, then run simulator and check PostHog Live Events for the 3 required events
+
+---
+
 ### 2026-05-26
 **Task:** Fix optimized preview stuck on resume loading
 **Files Changed:**

@@ -106,3 +106,85 @@
 **Files changed:** `AppState.swift`, `TailorViewModel.swift`, `OptimizedResumeTabView.swift`, `DesignViewModel.swift`, `MockResumeServices.swift`, `OptimizedResumeView.swift`
 
 **Next session:** Confirm all four bugs are fixed on device after clean Xcode build (Product → Clean Build Folder, then Run). If any bug persists, check `BackendConfig.swift` for flag values before investigating further.
+
+## 2026-05-27 — Distribution OS installed for ResumeBuilder iOS
+Worked on: Distribution OS install + GTM v0
+Completed: scaffold installed (17 files in .agent-os/distribution/), positioning mirrored to .agents/product-marketing.md, app-store-program.md audited with current state, metrics.md wired with analytics audit, lifecycle-program.md audited, directories.md updated, assets-needed.md expanded with 5 new gaps, competitors.md audited, gtm-plan.md v0 drafted from ResumeBuilder Web GTM (canonical-90-day-plan.md)
+In progress: open questions below — see gtm-plan.md section 16 for full list
+Decisions captured in gtm-plan.md section 17:
+  - App Store status: pre-submission (TestFlight prep, 62% complete, no submission yet)
+  - iOS pricing: credit packs one-time IAP (credits_basic/saver/super); monetization parked
+  - Hebrew on iOS: not implemented (no .lproj, no RTL, progress.md flags as risk)
+  - ATS parser parity: iOS calls same backend endpoints; defensible claims
+  - Apple attribution at=/ct=: NOT wired; Tier A pre-launch blocker
+  - Free ATS tool App Store CTA: not confirmed wired; founder to verify
+  - Apple Search Ads: out of scope confirmed from distribution-context.md
+Next session: run first weekly distribution cycle
+  Prompt to use: Read and execute: /Users/nadavyigal/Documents/Projects /Agentic OS/distribution-os/prompts/weekly-distribution-run.md
+  Suggested theme for first week: ASO listing setup + rewrite (English) — write app name (confirm Resumely), subtitle, keywords, description v1
+  Pre-work the founder should do before the cycle:
+    - Confirm app name: "Resumely" or alternate?
+    - Confirm web pricing model (subscription or credits?) and price points — needed to resolve cross-platform policy
+    - Set iOS credit pack prices in App Store Connect (credits_basic, credits_saver, credits_super)
+    - Confirm App Store Connect account region (US? Israel?)
+    - Export App Store Connect data to Drive 05 Metrics Exports/App Store Connect/ if listing exists
+    - Check free ATS tool result page on web — does it have an App Store CTA on mobile?
+
+## 2026-05-28 — Distribution OS open questions resolved (7/7)
+Worked on: Founder confirmation of all 7 step-4c open questions from install prompt
+Completed: All 7 questions answered; gtm-plan.md section 16 + 17 updated; app-store-program.md, hebrew-program.md, assets-needed.md updated with confirmed answers
+Confirmed decisions:
+  1. App Store status: PRE-SUBMISSION (confirmed)
+  2. iOS pricing: credit packs / one-time IAP (confirmed); credits_basic, credits_saver, credits_super
+  3. Web pricing: freemium + paid upgrade via Stripe (confirmed)
+  4. Cross-platform: shared — same account unlocks both web and iOS (confirmed); iapVerify must be implemented
+  5. App name: NOT DECIDED — blocks all ASO copy; must be resolved before weekly cycle 1
+  6. Hebrew App Store: single listing + Hebrew locale (confirmed); in-app RTL not yet built
+  7. Free ATS tool result page: web signup CTA only — App Store CTA missing (confirmed blocker)
+  8. Apple Search Ads: out of scope (confirmed)
+Still blocking before weekly cycle 1 can start:
+  - App name decision (hard blocker)
+  - iOS credit pack prices set in App Store Connect
+  - Web paid tier price points (check Stripe dashboard)
+  - iapVerify restore mechanism implemented
+  - Free ATS tool result page: add App Store CTA with ct=ats-tool-result
+Next session: run first weekly distribution cycle
+  Prompt: Read and execute: /Users/nadavyigal/Documents/Projects /Agentic OS/distribution-os/prompts/weekly-distribution-run.md
+  Suggested theme: App name decision workshop + ASO listing v1 (English) — subtitle, keywords, description draft
+  Pre-work: decide app name; set credit pack prices in App Store Connect
+
+## 2026-05-28 — Final two decisions confirmed; proceeding to weekly cycle 1
+Decisions:
+  - App name: RESUMELY (confirmed)
+  - iOS launch pricing: FREE (no IAP, no paywall at launch; pricing deferred to next stage)
+  - These two decisions unblock all ASO copy work
+Next: Weekly distribution cycle 1 — theme: ASO listing v1 (English)
+
+## 2026-05-28 — Weekly distribution cycle 1 complete
+Worked on: First weekly distribution run for Resumely iOS
+Produced:
+  - rb-aso-001: App Store listing copy v1 (subtitle 3 options, keywords 99/100 chars, description 1350 chars, promotional text, what's new)
+  - rb-aso-002: Screenshot brief v1 (5-slot sequence, copy overlays, caption keywords, device specs)
+  - rb-dir-001: Directory submission pack v1 (Futurepedia, TAAFT, Toolify, AI Tool Hunt, Launching Next)
+All three assets are DRAFT — awaiting founder review before any action
+Confirmed this session: app name = Resumely, iOS launch = Free (no IAP)
+Critical path to App Store submission:
+  1. Founder approves listing copy (rb-aso-001)
+  2. Screenshots rendered (rb-aso-002)
+  3. Privacy policy URL confirmed live
+  4. Support URL confirmed live
+  5. Submit to App Store review
+Next session: receive founder feedback on rb-aso-001 → revise → approve → file in App Store Connect
+  Prompt: Read and execute: /Users/nadavyigal/Documents/Projects /Agentic OS/distribution-os/prompts/weekly-distribution-run.md
+
+## 2026-05-31 — PostHog integration (Story 2 partial)
+Worked on: Importing PostHog credentials from web project and wiring 3 analytics events
+Completed:
+  - `BackendConfig.swift` updated with posthogAPIKey + posthogHost from web NEXT_PUBLIC_POSTHOG_KEY
+  - `Core/Analytics/AnalyticsService.swift` created — URLSession-based PostHog HTTP capture, no SDK
+  - 3 events wired: upload_resume_started (TailorViewModel), optimization_completed (TailorViewModel), export_triggered (OptimizedResumeViewModel)
+Decisions:
+  - URLSession + PostHog HTTP API instead of SPM SDK (system frameworks only rule)
+  - distinct_id = session.userId or "anonymous" — enables web+iOS user linking in PostHog
+In progress: Build verification and live event smoke test still needed
+Next session: Run XcodeBuildMCP build, confirm 0 errors; run simulator smoke test and check PostHog Live Events dashboard for the 3 events

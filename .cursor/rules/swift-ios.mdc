@@ -1,0 +1,33 @@
+---
+description: ResumeBuilder iOS Swift/SwiftUI rules
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# Swift iOS Rules (ResumeBuilder)
+
+## Signing and TestFlight
+
+- Verify signing, bundle ID, archive status, privacy strings before any TestFlight claim.
+- Dark mode only: do not change `.preferredColorScheme(.dark)`.
+
+## SwiftUI Navigation
+
+- Create a tracked spec artifact before changing SwiftUI navigation or app structure.
+- `navigationDestination` goes on ZStack/ScrollView inside NavigationStack, never on List or nested subviews.
+
+## Architecture
+
+- Extend `Features/V2/` folder, not the older `Features/` folder.
+- Use `@Observable` + `@MainActor`, not `ObservableObject`/`@Published`.
+- Swift 6 strict concurrency: every new type must be `Sendable` or `@MainActor`.
+- No hardcoded API URLs; use the `Endpoint` enum via `APIClient`.
+- `API_BASE_URL` comes from Info.plist, not from source code.
+
+## Self-Learning
+
+After any mistake, correction, failed build, or bad pattern: add a lesson to `tasks/lessons.md` immediately.
+
+## Progress Updates
+
+After any meaningful task or story completion: update `tasks/progress.md`.

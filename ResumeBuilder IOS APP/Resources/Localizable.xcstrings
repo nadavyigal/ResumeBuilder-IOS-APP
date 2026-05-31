@@ -39,9 +39,6 @@
     "%lld credits" : {
 
     },
-    "%lld credits remaining" : {
-
-    },
     "%lld free checks remaining" : {
 
     },
@@ -110,13 +107,16 @@
     "Accept" : {
 
     },
-    "Account" : {
-
-    },
     "Actions" : {
 
     },
     "Active account" : {
+
+    },
+    "Add concrete achievements, metrics, constraints, or preferences for this expert pass." : {
+
+    },
+    "Add Expert Input" : {
 
     },
     "Add Job" : {
@@ -134,9 +134,6 @@
     "AI Chat" : {
 
     },
-    "AI Optimized" : {
-
-    },
     "AI POWERED" : {
 
     },
@@ -147,9 +144,6 @@
 
     },
     "Already have an account?" : {
-
-    },
-    "Analyzing resume…" : {
 
     },
     "Analyzing…" : {
@@ -220,9 +214,6 @@
     "Before %@" : {
 
     },
-    "Buy More" : {
-
-    },
     "Cancel" : {
 
     },
@@ -236,12 +227,6 @@
 
     },
     "Chat unavailable" : {
-
-    },
-    "Checking keyword match and ATS signals" : {
-
-    },
-    "Choose Resume PDF" : {
 
     },
     "Close" : {
@@ -271,10 +256,10 @@
     "Credits" : {
 
     },
-    "Design" : {
+    "Delete" : {
 
     },
-    "Design not available." : {
+    "Design" : {
 
     },
     "design_apply_cta" : {
@@ -309,7 +294,7 @@
     "e.g. Make it more concise and add leadership examples…" : {
 
     },
-    "Edit Section" : {
+    "Edit Expert Input" : {
 
     },
     "Edits from refine, chat, and expert tools will appear here." : {
@@ -331,6 +316,9 @@
 
     },
     "Expert analysis unavailable" : {
+
+    },
+    "Expert Input" : {
 
     },
     "Expert modes" : {
@@ -356,19 +344,13 @@
     "Font Style" : {
 
     },
-    "Free ATS checks available" : {
-
-    },
     "Free ATS Preview" : {
 
     },
-    "FREE CHECK" : {
-
-    },
-    "Free plan" : {
-
-    },
     "Get Credits" : {
+
+    },
+    "Go to Tailor" : {
 
     },
     "Hi %@ 👋" : {
@@ -460,7 +442,7 @@
     "Include" : {
 
     },
-    "Job post URL or paste description" : {
+    "Input saved for this run" : {
 
     },
     "LinkedIn or Job Link" : {
@@ -469,10 +451,19 @@
     "LinkedIn or job post URL" : {
 
     },
+    "Loading expert analysis…" : {
+
+    },
     "Loading optimization history..." : {
 
     },
+    "Loading report…" : {
+
+    },
     "Loading resume…" : {
+
+    },
+    "Loading saved resumes…" : {
 
     },
     "Main issues" : {
@@ -487,25 +478,22 @@
     "Master Resume" : {
 
     },
+    "Me" : {
+
+    },
     "Missing Keywords" : {
 
     },
     "Modification History" : {
 
     },
-    "My Applications" : {
-
-    },
     "My resume" : {
-
-    },
-    "My Resume" : {
 
     },
     "Needs your input" : {
 
     },
-    "No master resume uploaded yet." : {
+    "No expert analysis yet" : {
 
     },
     "No matching optimizations" : {
@@ -520,10 +508,25 @@
     "No optimizations yet" : {
 
     },
+    "No optimized resume yet" : {
+
+    },
+    "No saved resumes" : {
+
+    },
+    "No templates available" : {
+
+    },
+    "Not now" : {
+
+    },
     "Not yet exported" : {
 
     },
     "OK" : {
+
+    },
+    "Open Design" : {
 
     },
     "Open in Safari" : {
@@ -562,9 +565,6 @@
     "Or paste job description here" : {
 
     },
-    "Or paste the full job description here" : {
-
-    },
     "Or paste the job description" : {
 
     },
@@ -589,22 +589,13 @@
     "PDF Ready" : {
 
     },
-    "PDF up to 5 MB" : {
-
-    },
     "Preview" : {
 
     },
     "Preview & Export" : {
 
     },
-    "Preview not available." : {
-
-    },
     "Priority actions" : {
-
-    },
-    "Profile" : {
 
     },
     "profile_my_applications" : {
@@ -662,6 +653,9 @@
     "Recent Exports" : {
 
     },
+    "Refine Resume" : {
+
+    },
     "Refinement Instruction" : {
 
     },
@@ -671,16 +665,19 @@
     "Rendering preview…" : {
 
     },
-    "Resume attached" : {
+    "Resume Health Score" : {
 
     },
-    "Resume Health Score" : {
+    "Resume Library is not available yet." : {
 
     },
     "Resume PDF" : {
 
     },
     "Resumely" : {
+
+    },
+    "Resumes you save after uploading will appear here." : {
 
     },
     "Return after running Optimize to unlock expert workflows." : {
@@ -701,19 +698,46 @@
     "Role" : {
 
     },
-    "Run a scan and optimization to see it here." : {
+    "Run %@" : {
 
     },
-    "Run ATS Score" : {
+    "Run a scan and optimization to see it here." : {
 
     },
     "Run expert workflows for this optimization" : {
 
     },
+    "Run Free ATS Check" : {
+
+    },
     "Run Optimize first to attach a version here." : {
 
     },
+    "Run Optimize in the Tailor tab to unlock expert workflows." : {
+
+    },
+    "Save" : {
+
+    },
+    "Save this resume?" : {
+
+    },
+    "Save to reuse on other jobs without re-uploading." : {
+
+    },
+    "Saved Report" : {
+
+    },
+    "Saved Reports" : {
+
+    },
     "Saved resume" : {
+
+    },
+    "Saved Resumes" : {
+
+    },
+    "Saved resumes unavailable" : {
 
     },
     "scan_analyze_cta" : {
@@ -750,9 +774,6 @@
         }
       }
     },
-    "Score" : {
-
-    },
     "Scores are still loading." : {
 
     },
@@ -762,10 +783,10 @@
     "Search title or company" : {
 
     },
-    "See how your resume performs against a job before you apply." : {
+    "Send message" : {
 
     },
-    "Send message" : {
+    "Send to Expert" : {
 
     },
     "Share link" : {
@@ -775,9 +796,6 @@
 
     },
     "Sign In" : {
-
-    },
-    "Sign in to manage your master resume." : {
 
     },
     "Sign in to Optimize" : {
@@ -790,9 +808,6 @@
 
     },
     "Sign in to view history" : {
-
-    },
-    "Sign Out" : {
 
     },
     "Sign Up" : {
@@ -907,13 +922,16 @@
     "Tailor" : {
 
     },
+    "Tailor a resume in the Tailor tab to see it here." : {
+
+    },
+    "Tailor a resume to start tracking applications." : {
+
+    },
     "Tailor Resume" : {
 
     },
     "Tailor your resume to any job in 60 seconds." : {
-
-    },
-    "Tap any section to refine with custom instructions" : {
 
     },
     "Tap Download to generate PDF" : {
@@ -934,12 +952,6 @@
     "Top signals" : {
 
     },
-    "Track" : {
-
-    },
-    "Track your job applications" : {
-
-    },
     "Try Again" : {
 
     },
@@ -952,13 +964,25 @@
     "Undo" : {
 
     },
+    "Undo Last Design" : {
+
+    },
+    "Undoing…" : {
+
+    },
     "URL or paste description" : {
+
+    },
+    "Use a saved resume" : {
 
     },
     "Use Tailor to generate the full optimized resume." : {
 
     },
     "View ATS breakdown" : {
+
+    },
+    "View Optimized Resume" : {
 
     },
     "Your optimized resumes and PDF downloads are linked to your account." : {
