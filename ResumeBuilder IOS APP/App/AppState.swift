@@ -85,7 +85,7 @@ final class AppState {
         return exportCompletion.optimizationId == optimizationId
     }
 
-    nonisolated private static func loadExportCompletion() -> ExportCompletionRecord? {
+    private static func loadExportCompletion() -> ExportCompletionRecord? {
         guard let data = UserDefaults.standard.data(forKey: exportCompletionKey) else { return nil }
         return try? JSONDecoder().decode(ExportCompletionRecord.self, from: data)
     }

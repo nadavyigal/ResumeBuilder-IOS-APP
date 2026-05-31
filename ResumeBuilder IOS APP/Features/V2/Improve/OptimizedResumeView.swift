@@ -311,7 +311,7 @@ struct OptimizedResumeView: View {
             showPDFShare = true
             showExportSuccess = true
         } catch {
-            if case APIClientError.serverError(_, let message) = error as? APIClientError {
+            if case .serverError(_, let message)? = error as? APIClientError {
                 viewModel.errorMessage = message
             } else {
                 viewModel.errorMessage = "PDF export failed: \(error.localizedDescription)"

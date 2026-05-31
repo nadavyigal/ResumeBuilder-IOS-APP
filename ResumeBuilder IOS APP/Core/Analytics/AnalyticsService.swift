@@ -53,7 +53,7 @@ enum AnalyticsEvent: Sendable {
     case exportSuccess
     case exportFailed(errorCode: String)
 
-    var name: String {
+    nonisolated var name: String {
         switch self {
         case .appLaunched: return "app_launched"
         case .guestModeStarted: return "guest_mode_started"
@@ -69,7 +69,7 @@ enum AnalyticsEvent: Sendable {
         }
     }
 
-    var properties: [String: String] {
+    nonisolated var properties: [String: String] {
         switch self {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]

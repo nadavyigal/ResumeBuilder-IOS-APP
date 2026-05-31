@@ -15,6 +15,16 @@
 
 ## Lessons
 
+### 2026-05-31
+**Category:** Build
+**Rule:** Under Swift 6 default MainActor isolation, pure enum metadata used by nonisolated helpers must be marked `nonisolated`, and Codable persistence helpers should stay actor-isolated unless they truly need cross-actor access.
+**Why:** PR #36 failed to build because a nonisolated export-completion loader decoded a MainActor-isolated Codable type, and a nonisolated analytics payload helper read MainActor-isolated computed properties.
+
+### 2026-05-31
+**Category:** SwiftUI
+**Rule:** When pattern-matching a conditionally cast error, match the optional enum case (`case .serverError(...)?`) or unwrap before switching.
+**Why:** PR #36's export error handling used a non-optional enum pattern against `error as? APIClientError`, causing a Swift compile failure.
+
 ### 2026-05-28
 **Category:** Build
 **Rule:** For launch-argument screenshot captures, verify the raw simulator PNG after each launch; manual `simctl launch` can leave the app on the generated launch screen even when XcodeBuildMCP `build_run_sim` renders correctly.

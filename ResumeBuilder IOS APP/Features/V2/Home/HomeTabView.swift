@@ -128,6 +128,11 @@ struct HomeTabView: View {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
                 }
             }
+            .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    showOnboarding = false
+                }
+            }
             .sheet(isPresented: $showLibraryPicker) {
                 SavedResumePickerSheet(
                     libraryViewModel: libraryViewModel,
@@ -301,7 +306,7 @@ struct HomeTabView: View {
     }
 
     private var privacyReassurance: some View {
-        Label("Your resume stays private until you sign in.", systemImage: "lock.shield.fill")
+        Label("Your resume is uploaded securely for analysis. Sign in only when you're ready to optimize and export.", systemImage: "lock.shield.fill")
             .font(.caption)
             .foregroundStyle(Theme.textTertiary)
             .frame(maxWidth: .infinity, alignment: .leading)

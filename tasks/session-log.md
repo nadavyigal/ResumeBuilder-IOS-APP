@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-05-31
+**Task:** PR #36 QA fixes for pre-submission UX/UI transformation
+**Files Changed:**
+- `App/AppState.swift` — kept export-completion decode on MainActor to satisfy Swift 6 isolation
+- `Core/Analytics/AnalyticsService.swift` — marked pure analytics event metadata nonisolated for payload construction
+- `Features/V2/Home/HomeTabView.swift` — dismisses auth sheet after sign-in and uses accurate secure-upload privacy copy
+- `Features/Profile/ProfileView.swift` — dismisses auth sheet after sign-in from Me
+- `Features/V2/Improve/OptimizedResumeView.swift` — fixed optional `APIClientError` pattern match in export error handling
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — adds generated `POSTHOG_HOST` Info.plist build setting
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded QA fixes and validation
+**Decisions Made:**
+- Do not commit a PostHog API key; `POSTHOG_API_KEY` remains an external build setting/client key input.
+- Treat existing Improve/Tailor warnings as pre-existing non-blocking cleanup, not PR #36 merge blockers.
+**Validation:**
+- `xcodebuild build` succeeded on iPhone 17 simulator.
+- `xcodebuild test` passed 55/55 on iPhone 17 simulator.
+- XcodeBuildMCP `build_run_sim` succeeded.
+- Simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state.
+**Next Recommended Action:** Push the QA fix commit to PR #36, then verify PostHog Live Events from a build that provides `POSTHOG_API_KEY`; after merge, run a real-device authenticated optimize/export smoke before App Store submission.
+
 ### 2026-05-26
 **Task:** Fix optimized preview stuck on resume loading
 **Files Changed:**

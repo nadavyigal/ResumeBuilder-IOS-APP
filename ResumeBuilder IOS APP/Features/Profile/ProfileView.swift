@@ -101,6 +101,11 @@ struct ProfileView: View {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
                 }
             }
+            .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    showOnboarding = false
+                }
+            }
             .sheet(item: $comparePair) { pair in
                 NavigationStack {
                     ApplicationCompareView(left: pair.left, right: pair.right)
