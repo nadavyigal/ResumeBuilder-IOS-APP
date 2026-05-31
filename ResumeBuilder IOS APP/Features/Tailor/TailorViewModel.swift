@@ -91,6 +91,12 @@ final class TailorViewModel {
         optimizationId = nil
         defer { isOptimizing = false }
 
+        let analyticsId = appState.session?.userId ?? "anonymous"
+        AnalyticsService.shared.captureUploadResumeStarted(
+            distinctId: analyticsId,
+            hasJobURL: !trimmedURL.isEmpty
+        )
+
         do {
             // Step 1 — upload PDF + job context. Server stores resume and JD,
             // returns ids we need for the optimize call.
@@ -139,6 +145,10 @@ final class TailorViewModel {
             } else if let optId = optimize.optimizationId, !optId.isEmpty {
                 self.optimizationId = optId
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
+                AnalyticsService.shared.captureOptimizationCompleted(
+                    distinctId: analyticsId,
+                    optimizationId: optId
+                )
             } else {
                 print("❌ [TAILOR] → no valid id in response")
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
