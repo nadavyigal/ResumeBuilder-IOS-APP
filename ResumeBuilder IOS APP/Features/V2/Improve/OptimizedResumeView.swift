@@ -65,7 +65,6 @@ struct OptimizedResumeView: View {
         }
         .scrollIndicators(.hidden)
         .task {
-            print("🔍 [OPTIMIZED VIEW] task started: optId=\(viewModel.optimizationIdentifier ?? "nil") sections=\(viewModel.sections.count) isLoading=\(viewModel.isLoadingSections)")
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
             }
@@ -74,7 +73,6 @@ struct OptimizedResumeView: View {
             async let assignmentLoad: Void = currentDesignVM?.loadCurrentAssignment(token: appState.session?.accessToken) ?? ()
             await sectionLoad
             await assignmentLoad
-            print("🔍 [OPTIMIZED VIEW] loadSections done: sections=\(viewModel.sections.count) error=\(viewModel.errorMessage ?? "none")")
         }
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {

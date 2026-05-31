@@ -33,6 +33,8 @@
 - `xcodebuild test` passed 55/55 on iPhone 17 simulator.
 - XcodeBuildMCP `build_run_sim` succeeded.
 - Simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state.
+- Removed plain debug `print(...)` traces from Optimized tab/view during final PR review.
+- `xcodebuild build` succeeded again on iPhone 17 simulator after release-log cleanup.
 **Next Recommended Action:** Push the QA fix commit to PR #36, then verify PostHog Live Events from a build that provides `POSTHOG_API_KEY`; after merge, run a real-device authenticated optimize/export smoke before App Store submission.
 
 ### 2026-05-26

@@ -9,7 +9,7 @@ Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once 
 Estimated Completion: 68%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: PR #36 Codex QA follow-up: `xcodebuild build` succeeded on iPhone 17 simulator; `xcodebuild test` passed 55/55; XcodeBuildMCP `build_run_sim` succeeded; simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state (2026-05-31). Previous rb-aso-002 screenshot validation passed `test_sim` 33/33 (2026-05-28).
+Last Validation: PR #36 Codex QA follow-up: `xcodebuild build` succeeded on iPhone 17 simulator after release-log cleanup; `xcodebuild test` passed 55/55 before the cleanup commit; XcodeBuildMCP `build_run_sim` succeeded; simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state (2026-05-31). Previous rb-aso-002 screenshot validation passed `test_sim` 33/33 (2026-05-28).
 Last Updated: 2026-05-31
 Current Branch: cursor/resumely-pre-submission-ux-cb5f
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end

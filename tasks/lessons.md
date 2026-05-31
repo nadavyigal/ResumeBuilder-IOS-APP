@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-05-31
+**Category:** Git
+**Rule:** When using `git diff -G` for literal parentheses, prefer a character class such as `-G'print[(]'` instead of backslash-heavy shell quoting.
+**Why:** A malformed diff regex failed with "parentheses not balanced" during PR QA.
+
+### 2026-05-31
 **Category:** Build
 **Rule:** Under Swift 6 default MainActor isolation, pure enum metadata used by nonisolated helpers must be marked `nonisolated`, and Codable persistence helpers should stay actor-isolated unless they truly need cross-actor access.
 **Why:** PR #36 failed to build because a nonisolated export-completion loader decoded a MainActor-isolated Codable type, and a nonisolated analytics payload helper read MainActor-isolated computed properties.
