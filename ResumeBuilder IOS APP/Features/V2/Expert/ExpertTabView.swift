@@ -62,9 +62,9 @@ struct ExpertTabView: View {
         ContentUnavailableView {
             Label("No expert analysis yet", systemImage: "rectangle.stack.badge.person.crop")
         } description: {
-            Text("Run Optimize in the Tailor tab to unlock expert workflows.")
+            Text("Run Optimize on Home to unlock expert workflows.")
         } actions: {
-            Button("Go to Tailor") { onSwitchTab(.tailor) }
+            Button("Go to Home") { onSwitchTab(.tailor) }
                 .buttonStyle(.borderedProminent)
                 .tint(Theme.accent)
         }

@@ -3,17 +3,17 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
-Active Story: —
-Last Completed Story: rb-aso-002 — App Store screenshot renderer added and 5-slot English screenshot set exported for 6.7" and 6.5" iPhone sizes (2026-05-28)
+Active Story: Resumely Pre-Submission UX/UI Transformation (PR #36 QA fixes complete on branch `cursor/resumely-pre-submission-ux-cb5f`)
+Last Completed Story: rb-aso-002 — App Store screenshot renderer (2026-05-28)
 Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once an ASC API key/session is available, then confirm Privacy Policy and Support URLs
 Estimated Completion: 68%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: XcodeBuildMCP `build_run_sim` succeeded while rendering rb-aso-002 screenshots on iPhone 17 Pro Max simulator; screenshot PNGs exported at 1290x2796 and 1242x2688; `test_sim` passed 33/33 (2026-05-28). Previous Expert UX/design/timeout follow-up validation passed `test_sim` 55/55 and backend expert Jest contracts 24/24 (2026-05-26).
-Last Updated: 2026-05-28
-Current Branch: iOS PR #34 `codex/rb-aso-002-app-store-screenshots`; backend PR #61 `codex/expert-output-quality`
+Last Validation: PR #36 Codex QA follow-up: `xcodebuild build` succeeded on iPhone 17 simulator after release-log cleanup; `xcodebuild test` passed 55/55 before the cleanup commit; XcodeBuildMCP `build_run_sim` succeeded; simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state (2026-05-31). Previous rb-aso-002 screenshot validation passed `test_sim` 33/33 (2026-05-28).
+Last Updated: 2026-05-31
+Current Branch: cursor/resumely-pre-submission-ux-cb5f
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
-Active Spec: —
+Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
 ## Tab Structure (as of 2026-05-20)

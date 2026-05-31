@@ -1,6 +1,11 @@
 import Foundation
 import Observation
 
+struct ExportCompletionRecord: Codable, Sendable, Equatable {
+    let optimizationId: String
+    let exportedAt: Date
+}
+
 @Observable
 @MainActor
 final class AppState {
@@ -11,8 +16,10 @@ final class AppState {
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
     var hasBootstrappedSession = false
+    var exportCompletion: ExportCompletionRecord?
 
     nonisolated static let latestOptimizationKey = "latest_optimization_id"
+    nonisolated static let exportCompletionKey = "last_export_completion"
 
     var latestOptimizationId: String? {
         didSet {
@@ -41,6 +48,7 @@ final class AppState {
         } else {
             latestOptimizationId = storedOptimizationId
         }
+        exportCompletion = Self.loadExportCompletion()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -60,10 +68,32 @@ final class AppState {
         session = nil
         creditsBalance = 0
         latestOptimizationId = nil
+        exportCompletion = nil
+        UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
+    }
+
+    func markExportComplete(for optimizationId: String) {
+        let record = ExportCompletionRecord(optimizationId: optimizationId, exportedAt: Date())
+        exportCompletion = record
+        if let data = try? JSONEncoder().encode(record) {
+            UserDefaults.standard.set(data, forKey: Self.exportCompletionKey)
+        }
+    }
+
+    func isExportComplete(for optimizationId: String?) -> Bool {
+        guard let optimizationId, let exportCompletion else { return false }
+        return exportCompletion.optimizationId == optimizationId
+    }
+
+    private static func loadExportCompletion() -> ExportCompletionRecord? {
+        guard let data = UserDefaults.standard.data(forKey: exportCompletionKey) else { return nil }
+        return try? JSONDecoder().decode(ExportCompletionRecord.self, from: data)
     }
 
     func setSession(_ session: AuthSession) async {
         self.session = session
+        AnalyticsService.shared.setDistinctId(session.userId)
+        AnalyticsService.shared.track(.signInCompleted)
         await convertAnonymousSessionIfNeeded()
         await refreshCredits()
     }

@@ -19,12 +19,13 @@
 - [ ] App launches without crash on iPhone 17 simulator
 - [ ] App launches without crash on iPhone SE (small viewport) simulator
 - [ ] Splash / launch screen displays correctly
-- [ ] Sign in with Apple prompt appears correctly for unauthenticated users
-- [ ] After sign-in, MainTabViewV2 loads correctly (5 tabs visible)
+- [ ] Guest launch shows Home tab without blocking onboarding screen
+- [ ] After sign-in, MainTabViewV2 loads correctly (Home, Optimized, Design, Expert, Me)
 
 ---
 
 ## Navigation Check
+- [ ] Tab bar VoiceOver labels: Home, Optimized, Design, Expert, Me
 - [ ] All 5 tabs are tappable and load their screen
 - [ ] Tab bar is visible and not overlapped by safe area
 - [ ] Back navigation works (no stuck navigation stacks)
@@ -32,23 +33,24 @@
 
 ---
 
-## Score Tab
-- [ ] ATS score displays (or upload prompt if no resume)
-- [ ] ATSDial renders with correct score value
-- [ ] Score breakdown sections are readable
-- [ ] Quick Wins section displays
-- [ ] Issue Summary displays
-- [ ] "Upload Resume" CTA works if no resume uploaded
+## Home Tab
+- [ ] Home tab label displays (not Tailor)
+- [ ] Activation banner reflects current state (no resume, job added, ATS, etc.)
+- [ ] Resume upload step works (PDF preflight)
+- [ ] Job URL / paste input works
+- [ ] Guest: Free ATS check runs and shows score
+- [ ] Guest: Sign in to Optimize CTA opens onboarding
+- [ ] Auth: Optimize triggers API and switches to Optimized tab
+- [ ] Saved resume library UI hidden when feature flag is off
 
 ---
 
-## Tailor Tab
-- [ ] Job description input field is reachable and usable
-- [ ] Resume file is selectable / already selected
-- [ ] "Optimize for This Job" button triggers API call
-- [ ] Loading state displays during optimization
+## Optimized Tab
+- [ ] Primary CTA is Preview & Export PDF
+- [ ] Secondary Improve further group: Refine, Design, Expert
+- [ ] Export success actions appear after PDF export
 - [ ] OptimizedResumeView shows after optimization completes
-- [ ] Resume sections display (not empty) in OptimizedResumeView
+- [ ] Resume preview renders (not blank)
 
 ---
 
@@ -61,18 +63,24 @@
 
 ---
 
-## Track Tab
-- [ ] Applications list loads (empty state or list)
-- [ ] Can add a new application
-- [ ] Application detail view opens
-- [ ] Applied status toggle works
+## Design Tab
+- [ ] Locked state shows Go to Home when no optimization
+- [ ] Template gallery loads after optimization
+- [ ] Preview renders in WKWebView without blank screen
+- [ ] Template can be applied
 
 ---
 
-## Profile Tab
-- [ ] User name / account info displays
-- [ ] Credits balance shows correct value
-- [ ] Sign out works (returns to Onboarding)
+## Expert Tab
+- [ ] Locked state shows Go to Home when no optimization
+- [ ] Expert modes load after optimization
+
+---
+
+## Me Tab
+- [ ] Guest: shows Guest mode + Sign In CTA (no fake Signed in)
+- [ ] Auth: real email + Sign Out
+- [ ] Credits balance shows correct value (if monetization on)
 - [ ] Paywall / upgrade flow opens (does not crash)
 
 ---

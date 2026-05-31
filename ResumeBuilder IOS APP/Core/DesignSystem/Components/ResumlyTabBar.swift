@@ -11,7 +11,7 @@ enum ResumlyTab: Int, CaseIterable {
 
     var icon: String {
         switch self {
-        case .tailor:    return "wand.and.stars"
+        case .tailor:    return "house.fill"
         case .optimized: return "doc.richtext.fill"
         case .design:    return "paintbrush.fill"
         case .expert:    return "rectangle.stack.badge.person.crop"
@@ -21,11 +21,23 @@ enum ResumlyTab: Int, CaseIterable {
 
     var label: String {
         switch self {
-        case .tailor:    return "Tailor"
+        case .tailor:    return "Home"
         case .optimized: return "Optimized"
         case .design:    return "Design"
         case .expert:    return "Expert"
         case .me:        return "Me"
+        }
+    }
+
+    var accessibilityLabel: String { label }
+
+    var accessibilityValue: String {
+        switch self {
+        case .tailor: return "Activation home tab"
+        case .optimized: return "Optimized resume tab"
+        case .design: return "Design templates tab"
+        case .expert: return "Expert tools tab"
+        case .me: return "Account tab"
         }
     }
 }
@@ -92,6 +104,9 @@ struct ResumlyTabBar: View {
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: selection)
+        .accessibilityLabel(tab.accessibilityLabel)
+        .accessibilityValue(tab.accessibilityValue)
+        .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 
     private var barBackground: some View {
