@@ -92,4 +92,19 @@ final class HomeActivationStateTests: XCTestCase {
         ))
         XCTAssertEqual(state, .atsComplete)
     }
+
+    /// Guest sees ATS score, then signs in — should advance to readyToOptimize,
+    /// not stay on atsComplete (atsComplete is a guest-only state).
+    func testAuthenticatedAfterATSResult() {
+        let state = HomeActivationState.derive(from: .init(
+            hasResume: true,
+            hasJob: true,
+            isAuthenticated: true,
+            isOptimizing: false,
+            hasATSResult: true,
+            hasOptimizationId: false,
+            isExportComplete: false
+        ))
+        XCTAssertEqual(state, .readyToOptimize)
+    }
 }

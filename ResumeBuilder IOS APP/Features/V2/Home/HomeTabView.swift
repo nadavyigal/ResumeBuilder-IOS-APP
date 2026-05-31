@@ -499,11 +499,11 @@ struct HomeTabView: View {
             Button {
                 Task {
                     if appState.isAuthenticated {
-                        AnalyticsService.shared.track(.optimizationStarted)
+                        // optimizationStarted / optimizationCompleted are fired inside
+                        // TailorViewModel.optimize() — do not double-fire here.
                         await viewModel.optimize(appState: appState)
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
                             appState.latestOptimizationId = optId
-                            AnalyticsService.shared.track(.optimizationCompleted)
                             onSwitchTab(.optimized)
                         } else if viewModel.reviewId != nil {
                             shouldNavigate = true

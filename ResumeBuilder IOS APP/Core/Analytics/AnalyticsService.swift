@@ -140,6 +140,12 @@ final class AnalyticsService {
         guard let transport else { return }
         let distinctId = distinctIdProvider()
         let payload = event.properties
+        // Guard PII at the call site — fire in debug builds so new event cases
+        // are caught during development before any key ever reaches the network.
+        assert(
+            Set(payload.keys).isDisjoint(with: Self.forbiddenPropertyKeys),
+            "[Analytics] Event '\(event.name)' contains a forbidden property key. Remove PII before shipping."
+        )
         Task {
             do {
                 try await transport.capture(
