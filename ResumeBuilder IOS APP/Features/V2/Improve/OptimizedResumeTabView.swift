@@ -49,9 +49,9 @@ struct OptimizedResumeTabView: View {
         ContentUnavailableView {
             Label("No optimized resume yet", systemImage: "wand.and.stars")
         } description: {
-            Text("Tailor a resume in the Tailor tab to see it here.")
+            Text("Upload and optimize on Home to see your resume here.")
         } actions: {
-            Button("Go to Tailor") { onSwitchTab(.tailor) }
+            Button("Go to Home") { onSwitchTab(.tailor) }
                 .buttonStyle(.borderedProminent)
                 .tint(Theme.accent)
         }

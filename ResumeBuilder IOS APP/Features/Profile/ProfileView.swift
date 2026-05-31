@@ -12,6 +12,7 @@ struct ProfileView: View {
 
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
+    @State private var showOnboarding = false
     @State private var latestOptimization: OptimizationHistoryItem?
     @State private var profileMessage: String?
     @State private var appeared = false
@@ -22,11 +23,11 @@ struct ProfileView: View {
     @State private var appSelectedIds = Set<String>()
     @State private var comparePair: ApplicationComparePair?
 
-    private var email: String { appState.session?.email ?? "Signed in" }
-    private var initials: String {
-        let parts = email.split(separator: "@").first?.split(separator: ".") ?? []
-        let letters = parts.prefix(2).compactMap { $0.first.map(String.init) }
-        return letters.joined().uppercased().prefix(2).description
+    private var accountInfo: AccountDisplayInfo {
+        AccountDisplayInfo.resolve(
+            isAuthenticated: appState.isAuthenticated,
+            email: appState.session?.email
+        )
     }
 
     var body: some View {
@@ -95,6 +96,11 @@ struct ProfileView: View {
                     .preferredColorScheme(.dark)
                     .tint(Theme.accent)
             }
+            .sheet(isPresented: $showOnboarding) {
+                NavigationStack {
+                    OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
+            }
             .sheet(item: $comparePair) { pair in
                 NavigationStack {
                     ApplicationCompareView(left: pair.left, right: pair.right)
@@ -128,7 +134,7 @@ struct ProfileView: View {
                         .frame(width: 76, height: 76)
                         .shadow(color: Theme.accent.opacity(0.4), radius: 16, y: 6)
 
-                    Text(initials.isEmpty ? "R" : initials)
+                    Text(accountInfo.avatarInitials)
                         .font(.system(size: 26, weight: .black, design: .rounded))
                         .foregroundStyle(Theme.brandGradient)
                 }
@@ -142,11 +148,11 @@ struct ProfileView: View {
         .padding(.bottom, 48)
         .overlay(alignment: .bottomLeading) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(email)
+                Text(accountInfo.title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
-                Text("Active account")
+                Text(accountInfo.subtitle)
                     .font(.caption)
                     .foregroundStyle(Theme.textTertiary)
             }
@@ -264,7 +270,7 @@ struct ProfileView: View {
                     Image(systemName: "tray")
                         .font(.title3)
                         .foregroundStyle(Theme.textTertiary)
-                    Text("Tailor a resume to start tracking applications.")
+                    Text(appState.isAuthenticated ? "Tailor a resume to start tracking applications." : "Sign in to track applications.")
                         .font(.subheadline)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -399,17 +405,38 @@ struct ProfileView: View {
 
     private var accountSection: some View {
         ProfileSection(title: "Account", icon: "person.crop.circle.fill", iconColor: Theme.textTertiary) {
-            Button(role: .destructive) {
-                appState.signOut()
-            } label: {
-                profileRow(
-                    icon: "rectangle.portrait.and.arrow.right",
-                    label: "Sign Out",
-                    color: .red,
-                    isDestructive: true
-                )
+            if accountInfo.showsSignIn {
+                VStack(spacing: 0) {
+                    Label("Your data stays private. We never share your resume.", systemImage: "lock.shield.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+
+                    Button {
+                        showOnboarding = true
+                    } label: {
+                        profileRow(icon: "person.crop.circle.badge.plus", label: "Sign In", color: Theme.accent, isAction: true)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .buttonStyle(.plain)
+
+            if accountInfo.showsSignOut {
+                Button(role: .destructive) {
+                    appState.signOut()
+                } label: {
+                    profileRow(
+                        icon: "rectangle.portrait.and.arrow.right",
+                        label: "Sign Out",
+                        color: .red,
+                        isDestructive: true
+                    )
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -448,7 +475,10 @@ struct ProfileView: View {
 
     @MainActor
     private func loadLatestOptimization() async {
-        guard appState.session?.accessToken != nil else { return }
+        guard appState.session?.accessToken != nil else {
+            profileMessage = "Sign in and optimize a resume to see it here."
+            return
+        }
         do {
             let response: OptimizationHistoryResponse = try await appState.callWithFreshToken { token in
                 try await appState.apiClient.get(

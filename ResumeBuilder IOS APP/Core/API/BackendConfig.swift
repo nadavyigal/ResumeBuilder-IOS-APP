@@ -17,4 +17,22 @@ enum BackendConfig {
         }
         return URL(string: "https://www.resumelybuilderai.com")!
     }
+
+    static var postHogAPIKey: String? {
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_API_KEY") as? String,
+              !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        return key
+    }
+
+    static var postHogHost: URL? {
+        if let host = Bundle.main.object(forInfoDictionaryKey: "POSTHOG_HOST") as? String,
+           let url = URL(string: host), !host.isEmpty {
+            return url
+        }
+        return URL(string: "https://us.i.posthog.com")
+    }
+
+    static var isPostHogEnabled: Bool { postHogAPIKey != nil }
 }

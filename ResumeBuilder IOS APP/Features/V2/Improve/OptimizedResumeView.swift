@@ -19,6 +19,7 @@ struct OptimizedResumeView: View {
     @State private var pdfTempURL: URL? = nil
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
+    @State private var showExportSuccess = false
 
     // Design VM for preview fidelity (passes current template + customization to preview)
     @State private var designVM: DesignViewModel? = nil
@@ -97,28 +98,6 @@ struct OptimizedResumeView: View {
                     Divider()
 
                     Button {
-                        Task {
-                            guard !isDownloadingPDF else { return }
-                            isDownloadingPDF = true
-                            viewModel.errorMessage = nil
-                            do {
-                                pdfTempURL = try await viewModel.downloadPDF(appState: appState)
-                                showPDFShare = true
-                            } catch {
-                                viewModel.errorMessage = "PDF download failed: \(error.localizedDescription)"
-                            }
-                            isDownloadingPDF = false
-                        }
-                    } label: {
-                        if isDownloadingPDF {
-                            Label("Downloading…", systemImage: "arrow.down.circle")
-                        } else {
-                            Label("Download PDF", systemImage: "arrow.down.doc.fill")
-                        }
-                    }
-                    .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
-
-                    Button {
                         UIPasteboard.general.string = viewModel.plainTextResume
                         showCopyConfirmation = true
                     } label: {
@@ -130,6 +109,9 @@ struct OptimizedResumeView: View {
                         .foregroundStyle(AppColors.textPrimary)
                 }
             }
+        }
+        .onAppear {
+            showExportSuccess = appState.isExportComplete(for: viewModel.optimizationIdentifier)
         }
         .safeAreaInset(edge: .bottom) {
             bottomBar
@@ -232,45 +214,109 @@ struct OptimizedResumeView: View {
 
     private var bottomBar: some View {
         VStack(spacing: AppSpacing.sm) {
-            GradientButton(
-                title: "Refine Resume",
-                icon: "wand.and.stars",
-                isLoading: viewModel.isRefining
-            ) {
-                editingSectionId = heuristicSectionId
-                refineInstruction = ""
-                showRefineSheet = true
+            if showExportSuccess || appState.isExportComplete(for: viewModel.optimizationIdentifier) {
+                exportSuccessActions
             }
-            .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
 
-            HStack(spacing: AppSpacing.md) {
-                Button {
-                    onSwitchTab(.expert)
-                } label: {
-                    Label("Send to Expert", systemImage: "rectangle.stack.badge.person.crop")
-                        .font(.appSubheadline)
-                        .foregroundStyle(AppColors.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .glassCard(cornerRadius: AppRadii.md)
-                }
-                .buttonStyle(GradientButtonStyle())
-                .disabled(viewModel.optimizationIdentifier == nil)
+            GradientButton(
+                title: "Preview & Export PDF",
+                icon: "arrow.down.doc.fill",
+                isLoading: isDownloadingPDF
+            ) {
+                Task { await performExport() }
+            }
+            .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
 
-                Button {
-                    onSwitchTab(.design)
-                } label: {
-                    Label("Open Design", systemImage: "paintbrush")
-                        .font(.appSubheadline)
-                        .foregroundStyle(AppColors.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .glassCard(cornerRadius: AppRadii.md)
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Improve further")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                    .padding(.leading, AppSpacing.xs)
+
+                HStack(spacing: AppSpacing.md) {
+                    improveButton(title: "Refine", icon: "wand.and.stars") {
+                        editingSectionId = heuristicSectionId
+                        refineInstruction = ""
+                        showRefineSheet = true
+                    }
+                    .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
+
+                    improveButton(title: "Design", icon: "paintbrush") {
+                        onSwitchTab(.design)
+                    }
+                    .disabled(viewModel.optimizationIdentifier == nil)
+
+                    improveButton(title: "Expert", icon: "rectangle.stack.badge.person.crop") {
+                        onSwitchTab(.expert)
+                    }
+                    .disabled(viewModel.optimizationIdentifier == nil)
                 }
-                .buttonStyle(GradientButtonStyle())
-                .disabled(viewModel.optimizationIdentifier == nil)
             }
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.8))
+    }
+
+    private func improveButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .glassCard(cornerRadius: AppRadii.md)
+        }
+        .buttonStyle(GradientButtonStyle())
+    }
+
+    private var exportSuccessActions: some View {
+        VStack(spacing: AppSpacing.sm) {
+            Label("PDF exported successfully", systemImage: "checkmark.circle.fill")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.accentTeal)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: AppSpacing.md) {
+                Button {
+                    Task { await performExport() }
+                } label: {
+                    Label("Share again", systemImage: "square.and.arrow.up")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                Button {
+                    onSwitchTab(.tailor)
+                } label: {
+                    Label("New job", systemImage: "plus.circle")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+            }
+        }
+    }
+
+    @MainActor
+    private func performExport() async {
+        guard !isDownloadingPDF else { return }
+        isDownloadingPDF = true
+        viewModel.errorMessage = nil
+        defer { isDownloadingPDF = false }
+        do {
+            let result = try await ResumeExportAction.exportPDF(viewModel: viewModel, appState: appState)
+            pdfTempURL = result.fileURL
+            showPDFShare = true
+            showExportSuccess = true
+        } catch {
+            if case APIClientError.serverError(_, let message) = error as? APIClientError {
+                viewModel.errorMessage = message
+            } else {
+                viewModel.errorMessage = "PDF export failed: \(error.localizedDescription)"
+            }
+        }
     }
 
     // MARK: - Refine sheet
