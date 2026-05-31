@@ -6,13 +6,16 @@ import Foundation
 final class AnalyticsService: @unchecked Sendable {
     static let shared = AnalyticsService()
 
-    private let captureURL: URL
+    private let captureURL: URL?
     private let apiKey: String
     private let session: URLSession
 
     private init() {
         apiKey = BackendConfig.posthogAPIKey
-        captureURL = URL(string: BackendConfig.posthogHost + "/capture/")!
+        captureURL = URL(string: BackendConfig.posthogHost + "/capture/")
+        if captureURL == nil {
+            assertionFailure("[Analytics] Invalid PostHog host — analytics disabled.")
+        }
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         session = URLSession(configuration: config)
@@ -36,7 +39,8 @@ final class AnalyticsService: @unchecked Sendable {
             "timestamp": ISO8601DateFormatter().string(from: Date())
         ]
 
-        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        guard let captureURL,
+              let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
 
         var request = URLRequest(url: captureURL)
         request.httpMethod = "POST"
@@ -46,6 +50,10 @@ final class AnalyticsService: @unchecked Sendable {
         session.dataTask(with: request) { _, response, error in
             if let error {
                 print("⚠️ [Analytics] capture '\(event)' failed: \(error.localizedDescription)")
+                return
+            }
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                print("⚠️ [Analytics] capture '\(event)' failed: HTTP \(http.statusCode)")
             }
         }.resume()
     }
