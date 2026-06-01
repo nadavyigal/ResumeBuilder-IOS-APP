@@ -89,6 +89,26 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         XCTAssertTrue(policy.shouldRender(key: "b"))
     }
 
+    func testPreviewRequestPolicyAllowsRetryAfterFailedRender() {
+        var policy = PreviewRequestPolicy()
+
+        XCTAssertTrue(policy.shouldRender(key: "a"))
+        policy.markStarted(key: "a")
+        policy.markFinished(key: "a", didRender: false)
+
+        XCTAssertTrue(policy.shouldRender(key: "a"))
+    }
+
+    func testExportFileStoreWritesPDFToStableCachesURL() throws {
+        let data = Data("%PDF stable share".utf8)
+        let url = try ExportFileStore.writePDFData(data, optimizationId: "opt/with unsafe:id")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertTrue(url.path.contains("ResumeBuilderExports"))
+        XCTAssertTrue(url.lastPathComponent.contains("opt_with_unsafe_id"))
+        XCTAssertEqual(try Data(contentsOf: url), data)
+    }
+
     func testEmptyPDFPreflightFailsBeforeUpload() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("empty-\(UUID().uuidString).pdf")

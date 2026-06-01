@@ -4,13 +4,14 @@ import SwiftUI
 struct DesignTabView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: DesignViewModel
+    var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void
     var onPreview: (() -> Void)? = nil
 
     var body: some View {
         Group {
             if appState.latestOptimizationId != nil {
-                RedesignResumeView(viewModel: viewModel, onPreview: onPreview)
+                RedesignResumeView(viewModel: viewModel, isActive: isActive, onPreview: onPreview)
             } else {
                 lockedView
             }

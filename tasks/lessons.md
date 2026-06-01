@@ -17,6 +17,11 @@
 
 ### 2026-06-01
 **Category:** Build
+**Rule:** If simulator codesign fails with "resource fork, Finder information, or similar detritus not allowed" inside `.derivedData`, clear extended attributes from DerivedData before changing source code.
+**Why:** A verification build compiled and linked successfully but failed when codesigning the generated simulator `.app` because local DerivedData carried disallowed filesystem metadata.
+
+### 2026-06-01
+**Category:** Build
 **Rule:** Under Swift 6 default MainActor isolation, do not add nonisolated JSON encoding helpers for app models unless the model conformance is explicitly safe from that isolation context.
 **Why:** A design assignment helper tried to encode `DesignCustomization` from a nonisolated static function, causing the build to fail with a MainActor-isolated `Encodable` conformance error.
 

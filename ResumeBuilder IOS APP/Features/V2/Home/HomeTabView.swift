@@ -196,7 +196,6 @@ struct HomeTabView: View {
                         viewModel: OptimizationReviewViewModel(reviewId: reviewId),
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
-                            AnalyticsService.shared.track(.optimizationCompleted)
                             shouldNavigate = false
                             onSwitchTab(.optimized)
                         }

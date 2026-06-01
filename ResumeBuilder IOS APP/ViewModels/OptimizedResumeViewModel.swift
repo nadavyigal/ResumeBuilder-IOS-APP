@@ -112,10 +112,7 @@ final class OptimizedResumeViewModel {
         if http.statusCode == 401 { throw APIClientError.unauthorized }
         if http.statusCode == 402 { throw APIClientError.paymentRequired }
         guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
-        let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Resume_\(optId).pdf")
-        try data.write(to: dest, options: .atomic)
-        return dest
+        return try ExportFileStore.writePDFData(data, optimizationId: optId)
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated

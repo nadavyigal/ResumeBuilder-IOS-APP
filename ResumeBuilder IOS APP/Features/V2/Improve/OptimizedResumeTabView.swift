@@ -5,6 +5,7 @@ import SwiftUI
 /// Shows an empty state until an optimization exists in AppState.
 struct OptimizedResumeTabView: View {
     @Environment(AppState.self) private var appState
+    var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void
 
     @State private var optimizedVM: OptimizedResumeViewModel? = nil
@@ -13,7 +14,8 @@ struct OptimizedResumeTabView: View {
         Group {
             if let vm = optimizedVM {
                 NavigationStack {
-                    OptimizedResumeView(viewModel: vm, onSwitchTab: onSwitchTab)
+                    OptimizedResumeView(viewModel: vm, isActive: isActive, onSwitchTab: onSwitchTab)
+                        .id(vm.optimizationIdentifier)
                 }
             } else {
                 noOptimizationView

@@ -4,6 +4,7 @@ import UIKit
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: OptimizedResumeViewModel
+    var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     /// ATS headline percent for export "share score" copy (from Improve analysis).
@@ -45,6 +46,7 @@ struct OptimizedResumeView: View {
                         contact: viewModel.contact,
                         templateId: designVM?.selectedTemplateId,
                         customization: designVM?.customization,
+                        isActive: isActive,
                         renderedHTML: $renderedPreviewHTML
                     )
                     .aspectRatio(8.5 / 11, contentMode: .fit)
@@ -82,6 +84,18 @@ struct OptimizedResumeView: View {
             Task {
                 await viewModel.forceReloadSections(appState: appState)
                 await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+            }
+        }
+        .onChange(of: viewModel.optimizationIdentifier) { _, newId in
+            renderedPreviewHTML = nil
+            pdfTempURL = nil
+            showPDFShare = false
+            showExportSuccess = appState.isExportComplete(for: newId)
+            if let newId {
+                designVM = DesignViewModel(optimizationId: newId)
+                Task { await designVM?.loadCurrentAssignment(token: appState.session?.accessToken) }
+            } else {
+                designVM = nil
             }
         }
         .screenBackground(showRadialGlow: false)
