@@ -72,6 +72,14 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(response.sections?.first?.sectionStatus, .optimized)
     }
 
+    func testOptimizeResponseDecodesReviewIdInCamelOrSnakeCase() throws {
+        let camelJSON = #"{"success":false,"reviewId":"review-camel"}"#.data(using: .utf8)!
+        let snakeJSON = #"{"success":false,"review_id":"review-snake"}"#.data(using: .utf8)!
+
+        XCTAssertEqual(try JSONDecoder().decode(OptimizeResponse.self, from: camelJSON).reviewId, "review-camel")
+        XCTAssertEqual(try JSONDecoder().decode(OptimizeResponse.self, from: snakeJSON).reviewId, "review-snake")
+    }
+
     func testOptimizationDetailDecodesContactAndFlexibleScoreKeys() throws {
         let json = """
         {
