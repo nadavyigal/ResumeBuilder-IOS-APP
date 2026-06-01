@@ -14,7 +14,7 @@ final class RuntimeServicesTests: XCTestCase {
         XCTAssertTrue(RuntimeServices.resumeDesignService() is ResumeDesignService)
     }
 
-    func testBootstrapClearsPersistedMockOptimizationId() {
+    func testBootstrapClearsPersistedMockOptimizationId() async {
         UserDefaults.standard.set("mock-opt-001", forKey: AppState.latestOptimizationKey)
 
         let appState = AppState()
@@ -24,7 +24,7 @@ final class RuntimeServicesTests: XCTestCase {
         XCTAssertNil(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey))
     }
 
-    func testBootstrapKeepsPersistedRealOptimizationId() {
+    func testBootstrapKeepsPersistedRealOptimizationId() async {
         let realId = "b8f5608f-0f9b-45af-b893-dc0a18d6b20a"
         UserDefaults.standard.set(realId, forKey: AppState.latestOptimizationKey)
 
