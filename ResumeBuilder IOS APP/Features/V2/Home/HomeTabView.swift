@@ -81,7 +81,7 @@ struct HomeTabView: View {
                         }
 
                         if viewModel.isOptimizing || viewModel.isRunningFreeATS {
-                            OptimizingView()
+                            ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
                                 .transition(.scale.combined(with: .opacity))
                         }
 
@@ -534,7 +534,7 @@ struct HomeTabView: View {
                 .frame(height: 50)
                 .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 .background(
-                    canOptimize && !viewModel.isOptimizing
+                    canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS)
                         ? AnyShapeStyle(Theme.brandGradient)
                         : AnyShapeStyle(Theme.bgPrimary.opacity(0.5)),
                     in: RoundedRectangle(cornerRadius: 12, style: .continuous)

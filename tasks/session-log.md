@@ -15,6 +15,22 @@
 
 ## Sessions
 
+### 2026-06-01
+**Task:** Add resume optimization waiting animation
+**Files Changed:**
+- `Features/V2/Home/ResumeOptimizationLoadingView.swift` — added reusable SwiftUI scan animation with optimization and ATS-check copy modes
+- `Features/V2/Home/HomeTabView.swift` — shows the scan loader during optimize/free ATS waiting states
+- `Features/Tailor/TailorView.swift` and `Features/Tailor/OptimizingView.swift` — replaced the old spinner with the V2 loader while keeping the legacy wrapper compatible
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded completion and validation
+**Decisions Made:**
+- Kept the loader inline so users stay anchored in the Home/Tailor flow.
+- Treated the scan animation as decorative waiting feedback only; it does not claim real backend progress.
+**Validation:**
+- `xcodebuild build` succeeded on iPhone 17 simulator.
+- `xcodebuild test` passed 50 XCTest tests plus 5 Swift Testing tests.
+- XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 and iPhone 17e compact proxy; Home launch screenshot looked clean. iPhone SE was not configured in the simulator list.
+**Next Recommended Action:** Run a real authenticated optimize smoke with a text-based PDF to see the animation during a live backend wait, then confirm navigation to Optimized or review still feels smooth.
+
 ### 2026-05-31
 **Task:** PR #36 QA fixes for pre-submission UX/UI transformation
 **Files Changed:**

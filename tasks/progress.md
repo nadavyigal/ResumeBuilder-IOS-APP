@@ -9,8 +9,8 @@ Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once 
 Estimated Completion: 68%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: PR #36 Codex QA follow-up: `xcodebuild build` succeeded on iPhone 17 simulator after release-log cleanup; `xcodebuild test` passed 55/55 before the cleanup commit; XcodeBuildMCP `build_run_sim` succeeded; simulator screenshots verified Home guest launch, locked Design, locked Expert, and Me guest state (2026-05-31). Previous rb-aso-002 screenshot validation passed `test_sim` 33/33 (2026-05-28).
-Last Updated: 2026-05-31
+Last Validation: Resume optimization waiting animation: `xcodebuild build` succeeded on iPhone 17 simulator; `xcodebuild test` passed 50 XCTest tests plus 5 Swift Testing tests; XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 and iPhone 17e compact proxy, with Home launch screenshot checked (2026-06-01). PR #36 Codex QA follow-up previously passed build/test/smoke on 2026-05-31.
+Last Updated: 2026-06-01
 Current Branch: cursor/resumely-pre-submission-ux-cb5f
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
@@ -38,6 +38,7 @@ Latest QA Report: —
 - Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
 - Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, let full rewrites apply selected sections, save applied reports to linked applications, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
 - rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
+- Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

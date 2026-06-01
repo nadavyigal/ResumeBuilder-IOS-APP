@@ -74,9 +74,10 @@ struct APIClient {
     func postJSON<T: Decodable>(
         endpoint: Endpoint,
         body: [String: Any],
-        token: String?
+        token: String?,
+        timeout: TimeInterval? = nil
     ) async throws -> T {
-        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -84,7 +85,11 @@ struct APIClient {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        return try await send(request)
+        // Use the long-running session when a custom timeout is requested so the
+        // session-level timeoutIntervalForRequest is also extended — not just the
+        // per-request value. This matches the uploadResume pattern.
+        let activeSession = timeout != nil ? Self.uploadSession : session
+        return try await send(request, using: activeSession)
     }
 
     /// Chat & other endpoints that encode arrays of heterogeneous field objects reliably via `Any`.
