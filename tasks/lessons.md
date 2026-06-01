@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-06-01
+**Category:** Build
+**Rule:** Under Swift 6 default MainActor isolation, do not add nonisolated JSON encoding helpers for app models unless the model conformance is explicitly safe from that isolation context.
+**Why:** A design assignment helper tried to encode `DesignCustomization` from a nonisolated static function, causing the build to fail with a MainActor-isolated `Encodable` conformance error.
+
+### 2026-06-01
 **Category:** Test
 **Rule:** In a `@MainActor` XCTest class, every test function that creates or accesses an `@Observable @MainActor` object must be declared `async` — even when the test body contains no `await` expressions.
 **Why:** XCTest dispatches synchronous `@MainActor` test methods via the Objective-C runtime, bypassing Swift's actor isolation. This causes the `@Observable` observation registrar to see a stack-allocated pointer freed from the wrong context, producing `malloc: *** error for object 0x7ffd...: pointer being freed was not allocated` and crashing the test runner. Making the function `async` forces XCTest to use the Swift Concurrency path, which correctly enforces `@MainActor` isolation. This affected `ExpertReportParsingTests` (22 tests), `OptimizedResumeViewModelTests` (2 sync tests), and `RuntimeServicesTests` (2 sync tests) on iOS 26.3.1 / Xcode beta.

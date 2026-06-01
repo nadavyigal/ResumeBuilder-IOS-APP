@@ -22,7 +22,11 @@ enum ResumeExportAction {
             if let html = renderedHTML {
                 // Generate PDF from the already-rendered styled HTML so the exported
                 // PDF matches the design template the user applied in the Design tab.
-                url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+                do {
+                    url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+                } catch {
+                    url = try await viewModel.downloadPDF(appState: appState)
+                }
             } else {
                 url = try await viewModel.downloadPDF(appState: appState)
             }

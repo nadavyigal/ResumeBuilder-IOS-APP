@@ -9,7 +9,7 @@ Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once 
 Estimated Completion: 68%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Resume optimization waiting animation: `xcodebuild build` succeeded on iPhone 17 simulator; `xcodebuild test` passed 50 XCTest tests plus 5 Swift Testing tests; XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 and iPhone 17e compact proxy, with Home launch screenshot checked (2026-06-01). PR #36 Codex QA follow-up previously passed build/test/smoke on 2026-05-31.
+Last Validation: Live flow fixes: `xcodebuild build` succeeded on iPhone 17 simulator; focused `xcodebuild test` passed 17/17 tests across LiveEndpointStabilizationTests, ResumeOptimizationParsingTests, and ExportCompletionTests; simulator install/launch smoke succeeded on iPhone 17 with Home screenshot checked (2026-06-01). Resume optimization waiting animation previously passed build/test/smoke on 2026-06-01.
 Last Updated: 2026-06-01
 Current Branch: cursor/resumely-pre-submission-ux-cb5f
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
@@ -34,9 +34,12 @@ Latest QA Report: —
 - Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
 - Optimization detail now carries `contact`; iOS preview/copy uses real candidate identity and local fallback no longer fabricates placeholder contact values
 - Design render/preview/export resolves backend template UUIDs to category+slug and iOS reloads current design assignment after Apply/Undo so Optimized reflects the applied template
+- Design apply treats assignment as the stable source of truth when the secondary customize endpoint returns the live "Optimization not found" 404 after assignment succeeds
 - Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
 - Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
+- PDF export retains its off-screen WKWebView, times out stalled client-side PDF rendering, and falls back to backend download before surfacing an export failure
 - Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, let full rewrites apply selected sections, save applied reports to linked applications, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
+- Expert tab links saved reports to Me applications by matching either `optimization_id` or `optimized_resume_id` from `/api/v1/applications`
 - rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
 - Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
 

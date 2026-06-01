@@ -21,7 +21,7 @@ enum ResumeOptimizationError: LocalizedError, Sendable {
     }
 }
 
-struct OptimizeResponse: Codable, Sendable {
+struct OptimizeResponse: Decodable, Sendable {
     let success: Bool?
     let sections: [OptimizedResumeSection]?
     let optimizationId: String?
@@ -32,7 +32,8 @@ struct OptimizeResponse: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success, sections, error
         case optimizationId = "optimization_id"
-        case reviewId = "reviewId"
+        case reviewId
+        case review_id
     }
 
     private enum NestedCodingKeys: String, CodingKey {
@@ -56,7 +57,10 @@ struct OptimizeResponse: Codable, Sendable {
 
         success = try container.decodeIfPresent(Bool.self, forKey: .success) ?? nestedData?.success
         optimizationId = try container.decodeIfPresent(String.self, forKey: .optimizationId) ?? nestedData?.optimizationId
-        reviewId = try container.decodeIfPresent(String.self, forKey: .reviewId) ?? nestedData?.reviewId
+        reviewId =
+            try container.decodeIfPresent(String.self, forKey: .reviewId)
+            ?? container.decodeIfPresent(String.self, forKey: .review_id)
+            ?? nestedData?.reviewId
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
 
         let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)

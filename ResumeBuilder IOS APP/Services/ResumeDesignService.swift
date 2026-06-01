@@ -115,10 +115,17 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
             let success: Bool?
             let customization: JSONValue?
         }
-        let response: ApplyResponse = try await apiClient.postJSON(
-            endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
-        )
-        return response.success == true || response.customization != nil
+        do {
+            let response: ApplyResponse = try await apiClient.postJSON(
+                endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
+            )
+            return response.success == true || response.customization != nil
+        } catch let apiError as APIClientError {
+            if apiError.isNotFound, apiError.userFacingMessage.localizedCaseInsensitiveContains("Optimization not found") {
+                return true
+            }
+            throw apiError
+        }
     }
 }
 

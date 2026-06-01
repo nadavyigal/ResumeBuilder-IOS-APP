@@ -16,6 +16,23 @@
 ## Sessions
 
 ### 2026-06-01
+**Task:** Fix live design apply, PDF export hang, and Expert-to-Me application asset linking
+**Files Changed:**
+- `Services/ResumeDesignService.swift` — treats the stable design assignment as success when the secondary customize route returns the live "Optimization not found" 404, so Apply Design no longer fails after assignment succeeds
+- `Core/Export/HTMLPDFExporter.swift` and `Core/Export/ResumeExportAction.swift` — retain the off-screen WKWebView, add a 20-second timeout, and fall back to backend PDF download if client-side styled PDF generation fails
+- `Features/V2/Expert/ExpertTabView.swift` — links Expert runs to applications when the app row exposes either `optimization_id` or `optimized_resume_id`
+- `Services/ResumeOptimizationService.swift` and `ResumeBuilder IOS APPTests/ResumeOptimizationParsingTests.swift` — support both `reviewId` and `review_id` optimize responses
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — recorded the fix and validation
+**Decisions Made:**
+- Optimized resumes appear automatically as the latest resume via `AppState.latestOptimizationId`; application attachment in Me remains explicit unless the backend application row is already linked.
+- Do not block design apply on the customize endpoint when assignment/render-preview are already working for the optimization id.
+**Validation:**
+- `xcodebuild build` succeeded on iPhone 17 simulator.
+- Focused `xcodebuild test` passed 17/17 tests across `LiveEndpointStabilizationTests`, `ResumeOptimizationParsingTests`, and `ExportCompletionTests`.
+- Simulator install/launch smoke succeeded on iPhone 17 and Home screenshot rendered cleanly at `/tmp/resumebuilder-smoke/home.png`.
+**Next Recommended Action:** Run one real authenticated device smoke: apply a design, export PDF from Optimized, then create a Cover Letter from Expert and confirm it appears under the linked application in Me.
+
+### 2026-06-01
 **Task:** Add resume optimization waiting animation
 **Files Changed:**
 - `Features/V2/Home/ResumeOptimizationLoadingView.swift` — added reusable SwiftUI scan animation with optimization and ATS-check copy modes

@@ -49,7 +49,7 @@ struct ExpertTabView: View {
         }
         do {
             let apps = try await trackingService.listApplications(token: token)
-            if let app = apps.first(where: { $0.optimizationId == id }) {
+            if let app = apps.first(where: { $0.optimizationId == id || $0.optimizedResumeId == id }) {
                 vm.applicationId = app.id
                 await vm.loadSavedReports(token: token)
             }
