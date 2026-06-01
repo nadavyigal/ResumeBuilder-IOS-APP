@@ -16,3 +16,4 @@
 - [x] Xcode build verification — `xcodebuild build` succeeded on iPhone 17 simulator (2026-05-31)
 - [x] Full test suite — `xcodebuild test` passed 55/55 on iPhone 17 simulator (2026-05-31)
 - [x] XcodeBuildMCP simulator smoke — Home guest launch, locked Design, locked Expert, Me guest state verified by screenshots (2026-05-31)
+- [x] Resume optimization waiting animation — inline scan loader added for optimize/free ATS states; `xcodebuild build` succeeded, `xcodebuild test` passed 50 XCTest + 5 Swift Testing tests, and XcodeBuildMCP launch smoke passed on iPhone 17 plus iPhone 17e compact proxy (2026-06-01)

@@ -79,8 +79,8 @@ struct TailorView: View {
                         }
 
                         // ── Processing state ─────────────────────────────────
-                        if viewModel.isOptimizing {
-                            OptimizingView()
+                        if viewModel.isOptimizing || viewModel.isRunningFreeATS {
+                            ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
                                 .transition(.scale.combined(with: .opacity))
                         }
 
@@ -539,13 +539,13 @@ struct TailorView: View {
                 .frame(height: 50)
                 .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 .background(
-                    canOptimize && !viewModel.isOptimizing
+                    canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS)
                         ? AnyShapeStyle(Theme.brandGradient)
                         : AnyShapeStyle(Theme.bgPrimary.opacity(0.5)),
                     in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                 )
                 .shadow(
-                    color: canOptimize && !viewModel.isOptimizing ? Theme.accent.opacity(0.35) : .clear,
+                    color: canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS) ? Theme.accent.opacity(0.35) : .clear,
                     radius: 10, y: 5
                 )
             }
