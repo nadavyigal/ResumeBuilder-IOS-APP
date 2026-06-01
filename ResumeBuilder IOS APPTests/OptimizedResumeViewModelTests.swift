@@ -40,7 +40,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
 
     // MARK: - plainTextResume
 
-    func testPlainTextResumeJoinsSections() {
+    func testPlainTextResumeJoinsSections() async {
         let vm = OptimizedResumeViewModel(
             optimizationId: "opt-1",
             sections: [
@@ -58,7 +58,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
 
     // MARK: - rejectRefine
 
-    func testRejectRefineClearsPendingState() {
+    func testRejectRefineClearsPendingState() async {
         let vm = OptimizedResumeViewModel(
             optimizationId: "opt-1",
             optimizationService: MockResumeOptimizationService()

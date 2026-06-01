@@ -10,6 +10,7 @@ enum ResumeExportAction {
     static func exportPDF(
         viewModel: OptimizedResumeViewModel,
         appState: AppState,
+        renderedHTML: String? = nil,
         analytics: AnalyticsService = .shared
     ) async throws -> Result {
         guard let optimizationId = viewModel.optimizationIdentifier else {
@@ -17,7 +18,14 @@ enum ResumeExportAction {
         }
         analytics.track(.exportStarted)
         do {
-            let url = try await viewModel.downloadPDF(appState: appState)
+            let url: URL
+            if let html = renderedHTML {
+                // Generate PDF from the already-rendered styled HTML so the exported
+                // PDF matches the design template the user applied in the Design tab.
+                url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+            } else {
+                url = try await viewModel.downloadPDF(appState: appState)
+            }
             appState.markExportComplete(for: optimizationId)
             analytics.track(.exportSuccess)
             return Result(fileURL: url, optimizationId: optimizationId)

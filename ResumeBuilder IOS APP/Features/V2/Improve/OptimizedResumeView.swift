@@ -23,6 +23,9 @@ struct OptimizedResumeView: View {
 
     // Design VM for preview fidelity (passes current template + customization to preview)
     @State private var designVM: DesignViewModel? = nil
+    // Updated by the preview web view after each render-preview call.
+    // Passed to the export action so the PDF matches the displayed design template.
+    @State private var renderedPreviewHTML: String? = nil
 
     var body: some View {
         ScrollView {
@@ -41,7 +44,8 @@ struct OptimizedResumeView: View {
                         sections: viewModel.sections,
                         contact: viewModel.contact,
                         templateId: designVM?.selectedTemplateId,
-                        customization: designVM?.customization
+                        customization: designVM?.customization,
+                        renderedHTML: $renderedPreviewHTML
                     )
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
@@ -304,7 +308,11 @@ struct OptimizedResumeView: View {
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
         do {
-            let result = try await ResumeExportAction.exportPDF(viewModel: viewModel, appState: appState)
+            let result = try await ResumeExportAction.exportPDF(
+                viewModel: viewModel,
+                appState: appState,
+                renderedHTML: renderedPreviewHTML
+            )
             pdfTempURL = result.fileURL
             showPDFShare = true
             showExportSuccess = true

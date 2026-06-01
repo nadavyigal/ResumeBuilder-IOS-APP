@@ -6,7 +6,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - displayModel: full_resume_rewrite
 
-    func testDisplayModel_acceptsBackendReportEnvelopeForFullResumeRewrite() {
+    func testDisplayModel_acceptsBackendReportEnvelopeForFullResumeRewrite() async {
         let output = JSONValue.object([
             "rewritten_resume": .object([
                 "summary": .string("Rewritten for role fit.")
@@ -35,7 +35,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: summary_options
 
-    func testParseSummaryOptions_extractsStyleAndSummary() {
+    func testParseSummaryOptions_extractsStyleAndSummary() async {
         let output = JSONValue.object([
             "summary_options": .array([
                 .object([
@@ -60,7 +60,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.recommendedIndex, 1)
     }
 
-    func testParseSummaryOptions_skipsMissingBody() {
+    func testParseSummaryOptions_skipsMissingBody() async {
         let output = JSONValue.object([
             "summary_options": .array([
                 .object(["style": .string("Empty"), "summary": .string("")]),
@@ -72,7 +72,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.summaryOptions[0].style, "Good")
     }
 
-    func testParseSummaryOptions_emptyArrayReturnsEmpty() {
+    func testParseSummaryOptions_emptyArrayReturnsEmpty() async {
         let output = JSONValue.object(["summary_options": .array([])])
         let parsed = ExpertReportParsing.parsedOutput(from: output)
         XCTAssertTrue(parsed.summaryOptions.isEmpty)
@@ -81,7 +81,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: bullet_rewrites
 
-    func testParseBulletRewrites_extractsBeforeAndAfter() {
+    func testParseBulletRewrites_extractsBeforeAndAfter() async {
         let output = JSONValue.object([
             "bullet_rewrites": .array([
                 .object([
@@ -101,13 +101,13 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(rewrite.missingEvidenceQuestions, ["What was the shipment timeline?"])
     }
 
-    func testParseBulletRewrites_emptyReturnsEmpty() {
+    func testParseBulletRewrites_emptyReturnsEmpty() async {
         let output = JSONValue.object(["bullet_rewrites": .array([])])
         let parsed = ExpertReportParsing.parsedOutput(from: output)
         XCTAssertTrue(parsed.bulletRewrites.isEmpty)
     }
 
-    func testParseBulletRewrites_keepsMissingMetricsFallback() {
+    func testParseBulletRewrites_keepsMissingMetricsFallback() async {
         let output = JSONValue.object([
             "bullet_rewrites": .array([
                 .object([
@@ -121,7 +121,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.bulletRewrites.first?.missingMetrics, ["baseline onboarding time"])
     }
 
-    func testParseBulletRewrites_skipsBothEmptyBullets() {
+    func testParseBulletRewrites_skipsBothEmptyBullets() async {
         let output = JSONValue.object([
             "bullet_rewrites": .array([
                 .object(["original_bullet": .string(""), "optimized_bullet": .string("")])
@@ -133,7 +133,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: ats_report
 
-    func testParseATSReport_extractsKeywordsAndScore() {
+    func testParseATSReport_extractsKeywordsAndScore() async {
         let output = JSONValue.object([
             "ats_report": .object([
                 "score_estimate": .object(["before": .number(64.0), "after": .number(72.0)]),
@@ -164,7 +164,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.atsReport?.acronymCoverage, ["Spell out CI/CD once"])
     }
 
-    func testParseATSReport_nilWhenMissing() {
+    func testParseATSReport_nilWhenMissing() async {
         let output = JSONValue.object(["summary_options": .array([])])
         let parsed = ExpertReportParsing.parsedOutput(from: output)
         XCTAssertNil(parsed.atsReport)
@@ -172,7 +172,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: cover_letter_variants
 
-    func testParseCoverLetterVariants_extractsToneAndBody() {
+    func testParseCoverLetterVariants_extractsToneAndBody() async {
         let output = JSONValue.object([
             "cover_letter_variants": .array([
                 .object([
@@ -201,7 +201,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.coverLetterVariants[1].tone, "impact")
     }
 
-    func testParseCoverLetterVariants_skipsEmptyBody() {
+    func testParseCoverLetterVariants_skipsEmptyBody() async {
         let output = JSONValue.object([
             "cover_letter_variants": .array([
                 .object(["tone": .string("Empty"), "body": .string("")]),
@@ -213,7 +213,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.coverLetterVariants[0].tone, "Good")
     }
 
-    func testParseCoverLetterVariants_keepsToneBodyFallback() {
+    func testParseCoverLetterVariants_keepsToneBodyFallback() async {
         let output = JSONValue.object([
             "cover_letter_variants": .array([
                 .object(["tone": .string("Formal"), "body": .string("Legacy body.")])
@@ -226,7 +226,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: screening_answers
 
-    func testParseScreeningAnswers_extractsQuestionAndAnswer() {
+    func testParseScreeningAnswers_extractsQuestionAndAnswer() async {
         let output = JSONValue.object([
             "screening_answers": .array([
                 .object([
@@ -245,7 +245,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(parsed.screeningAnswers[0].confidenceNote, "High confidence from resume evidence.")
     }
 
-    func testParseScreeningAnswers_skipsEmptyAnswer() {
+    func testParseScreeningAnswers_skipsEmptyAnswer() async {
         let output = JSONValue.object([
             "screening_answers": .array([
                 .object(["question": .string("Q1"), "answer": .string("")]),
@@ -259,7 +259,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - parsedOutput: empty / malformed
 
-    func testParsedOutput_emptyOutputReturnsEmpty() {
+    func testParsedOutput_emptyOutputReturnsEmpty() async {
         let output = JSONValue.object([:])
         let parsed = ExpertReportParsing.parsedOutput(from: output)
         XCTAssertTrue(parsed.summaryOptions.isEmpty)
@@ -270,7 +270,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertTrue(parsed.screeningAnswers.isEmpty)
     }
 
-    func testParsedOutput_nonObjectRootReturnsEmpty() {
+    func testParsedOutput_nonObjectRootReturnsEmpty() async {
         let output = JSONValue.string("unexpected")
         let parsed = ExpertReportParsing.parsedOutput(from: output)
         XCTAssertEqual(parsed, ExpertOutputParsed.empty)
@@ -278,7 +278,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - Selection index defaults
 
-    func testRecommendedIndexDefaultsToNilWhenAbsent() {
+    func testRecommendedIndexDefaultsToNilWhenAbsent() async {
         let output = JSONValue.object([
             "summary_options": .array([
                 .object(["style": .string("Option A"), "summary": .string("Summary A.")])
@@ -288,7 +288,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertNil(parsed.recommendedIndex)
     }
 
-    func testRecommendedIndexParsedFromNumber() {
+    func testRecommendedIndexParsedFromNumber() async {
         let output = JSONValue.object([
             "summary_options": .array([
                 .object(["style": .string("A"), "summary": .string("S1.")]),
@@ -302,7 +302,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - ExpertRunUIState.parsedOutput
 
-    func testExpertRunUIState_parsedOutputDelegatesToParsing() {
+    func testExpertRunUIState_parsedOutputDelegatesToParsing() async {
         let output = JSONValue.object([
             "bullet_rewrites": .array([
                 .object([
@@ -325,7 +325,7 @@ final class ExpertReportParsingTests: XCTestCase {
 
     // MARK: - ExpertModesViewModel: selection tracking
 
-    func testViewModel_setAndGetSelectedVariantIndex() {
+    func testViewModel_setAndGetSelectedVariantIndex() async {
         let vm = ExpertModesViewModel(
             optimizationId: "opt-1",
             resumeViewModel: nil
@@ -335,7 +335,7 @@ final class ExpertReportParsingTests: XCTestCase {
         XCTAssertEqual(vm.selectedVariantIndex(for: .professionalSummaryLab), 2)
     }
 
-    func testViewModel_selectionIndependentPerType() {
+    func testViewModel_selectionIndependentPerType() async {
         let vm = ExpertModesViewModel(
             optimizationId: "opt-1",
             resumeViewModel: nil

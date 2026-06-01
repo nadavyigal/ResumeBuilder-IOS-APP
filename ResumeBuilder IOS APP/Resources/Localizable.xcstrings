@@ -10,6 +10,16 @@
     "/ 100" : {
 
     },
+    "%@ → %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@"
+          }
+        }
+      }
+    },
     "%@, %lld percent" : {
       "localizations" : {
         "en" : {
@@ -30,16 +40,43 @@
         }
       }
     },
+    "%@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
     "%lld / 5000" : {
 
     },
-    "%lld credits" : {
-
+    "%lld answer%@ generated" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld answer%2$@ generated"
+          }
+        }
+      }
     },
-    "%lld credits remaining" : {
+    "%lld bullet%@ rewritten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld bullet%2$@ rewritten"
+          }
+        }
+      }
+    },
+    "%lld credits" : {
 
     },
     "%lld free checks remaining" : {
@@ -57,6 +94,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld of %2$lld changes selected"
+          }
+        }
+      }
+    },
+    "%lld of %lld sections selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld sections selected"
           }
         }
       }
@@ -95,6 +142,9 @@
     "3" : {
 
     },
+    "58" : {
+
+    },
     "100 credits" : {
 
     },
@@ -110,16 +160,16 @@
     "Accept" : {
 
     },
-    "Account" : {
-
-    },
     "Actions" : {
 
     },
-    "Active account" : {
+    "Add Expert Input" : {
 
     },
     "Add Job" : {
+
+    },
+    "Add these details for stronger rewrites" : {
 
     },
     "After" : {
@@ -131,13 +181,16 @@
     "After %@" : {
 
     },
+    "After:" : {
+
+    },
     "AI Chat" : {
 
     },
-    "AI Optimized" : {
+    "AI POWERED" : {
 
     },
-    "AI POWERED" : {
+    "AI rewrites for this job" : {
 
     },
     "AI rewrites for this specific job" : {
@@ -147,9 +200,6 @@
 
     },
     "Already have an account?" : {
-
-    },
-    "Analyzing resume…" : {
 
     },
     "Analyzing…" : {
@@ -175,7 +225,13 @@
     "Application" : {
 
     },
+    "Application asset" : {
+
+    },
     "Applied" : {
+
+    },
+    "Apply improvement" : {
 
     },
     "Apply is temporarily unavailable — a server update is required. Changes will be available again once the update is complete." : {
@@ -188,6 +244,9 @@
 
     },
     "ATS breakdown" : {
+
+    },
+    "ATS keywords" : {
 
     },
     "ATS score" : {
@@ -220,7 +279,7 @@
     "Before %@" : {
 
     },
-    "Buy More" : {
+    "Before:" : {
 
     },
     "Cancel" : {
@@ -235,13 +294,16 @@
     "Change Resume" : {
 
     },
+    "Changes resume" : {
+
+    },
     "Chat unavailable" : {
 
     },
-    "Checking keyword match and ATS signals" : {
+    "Choose a summary to apply:" : {
 
     },
-    "Choose Resume PDF" : {
+    "Choose a variant to save:" : {
 
     },
     "Close" : {
@@ -256,7 +318,13 @@
     "Continue Editing" : {
 
     },
+    "Copied" : {
+
+    },
     "Copied to clipboard" : {
+
+    },
+    "Copy" : {
 
     },
     "Copy share text" : {
@@ -271,10 +339,13 @@
     "Credits" : {
 
     },
+    "Delete" : {
+
+    },
     "Design" : {
 
     },
-    "Design not available." : {
+    "Design unlocks after optimization" : {
 
     },
     "design_apply_cta" : {
@@ -303,13 +374,10 @@
     "Download PDF" : {
 
     },
-    "Downloading…" : {
-
-    },
     "e.g. Make it more concise and add leadership examples…" : {
 
     },
-    "Edit Section" : {
+    "Edit Expert Input" : {
 
     },
     "Edits from refine, chat, and expert tools will appear here." : {
@@ -321,16 +389,25 @@
     "Email" : {
 
     },
+    "Estimated ATS impact" : {
+
+    },
     "Estimated effort %@" : {
 
     },
     "Evidence gaps (%lld)" : {
 
     },
+    "Evidence: %@" : {
+
+    },
     "Expert Analysis" : {
 
     },
     "Expert analysis unavailable" : {
+
+    },
+    "Expert Input" : {
 
     },
     "Expert modes" : {
@@ -356,19 +433,19 @@
     "Font Style" : {
 
     },
-    "Free ATS checks available" : {
+    "Free ATS Check" : {
 
     },
     "Free ATS Preview" : {
 
     },
-    "FREE CHECK" : {
-
-    },
-    "Free plan" : {
-
-    },
     "Get Credits" : {
+
+    },
+    "GET STARTED" : {
+
+    },
+    "Go to Home" : {
 
     },
     "Hi %@ 👋" : {
@@ -377,7 +454,13 @@
     "High-level gauges from your latest optimization summary. Run Improve with a job description connected for granular ATS wiring." : {
 
     },
+    "Hiring-manager read" : {
+
+    },
     "History" : {
+
+    },
+    "Home" : {
 
     },
     "home_score_excellent" : {
@@ -434,10 +517,16 @@
     "https://www.linkedin.com/jobs/view/..." : {
 
     },
+    "Impact metrics" : {
+
+    },
     "Import PDF or DOCX" : {
 
     },
     "Import Resume" : {
+
+    },
+    "Improve further" : {
 
     },
     "improve_optimize_cta" : {
@@ -460,7 +549,19 @@
     "Include" : {
 
     },
-    "Job post URL or paste description" : {
+    "Increased qualified applications by 23% by rebuilding the resume workflow around role-specific keywords, recruiter language, and measurable outcomes." : {
+
+    },
+    "Input saved for this run" : {
+
+    },
+    "Keyword coverage" : {
+
+    },
+    "Keywords to add to Skills (%lld)" : {
+
+    },
+    "Led mobile dashboard redesign that cut onboarding drop-off by 18%, partnering with engineering to ship ATS-tracked workflow improvements." : {
 
     },
     "LinkedIn or Job Link" : {
@@ -469,10 +570,19 @@
     "LinkedIn or job post URL" : {
 
     },
+    "Loading expert analysis…" : {
+
+    },
     "Loading optimization history..." : {
 
     },
+    "Loading report…" : {
+
+    },
     "Loading resume…" : {
+
+    },
+    "Loading saved resumes…" : {
 
     },
     "Main issues" : {
@@ -487,25 +597,37 @@
     "Master Resume" : {
 
     },
+    "Me" : {
+
+    },
     "Missing Keywords" : {
+
+    },
+    "Mobile UX" : {
 
     },
     "Modification History" : {
 
     },
-    "My Applications" : {
-
-    },
     "My resume" : {
 
     },
-    "My Resume" : {
+    "Needs keyword and skills alignment" : {
 
     },
     "Needs your input" : {
 
     },
-    "No master resume uploaded yet." : {
+    "New job" : {
+
+    },
+    "No bullet rewrites generated. Add concrete metrics in Expert Input and run again." : {
+
+    },
+    "No cover letter variants generated." : {
+
+    },
+    "No expert analysis yet" : {
 
     },
     "No matching optimizations" : {
@@ -518,6 +640,24 @@
 
     },
     "No optimizations yet" : {
+
+    },
+    "No optimized resume yet" : {
+
+    },
+    "No saved resumes" : {
+
+    },
+    "No screening answers generated." : {
+
+    },
+    "No summary options generated." : {
+
+    },
+    "No templates available" : {
+
+    },
+    "Not now" : {
 
     },
     "Not yet exported" : {
@@ -562,9 +702,6 @@
     "Or paste job description here" : {
 
     },
-    "Or paste the full job description here" : {
-
-    },
     "Or paste the job description" : {
 
     },
@@ -580,6 +717,9 @@
     "Paste the job description here if the link is unavailable…" : {
 
     },
+    "PDF exported successfully" : {
+
+    },
     "PDF generated and ready" : {
 
     },
@@ -589,7 +729,7 @@
     "PDF Ready" : {
 
     },
-    "PDF up to 5 MB" : {
+    "Placement suggestions" : {
 
     },
     "Preview" : {
@@ -598,13 +738,10 @@
     "Preview & Export" : {
 
     },
-    "Preview not available." : {
+    "Preview and export your PDF" : {
 
     },
     "Priority actions" : {
-
-    },
-    "Profile" : {
 
     },
     "profile_my_applications" : {
@@ -662,6 +799,12 @@
     "Recent Exports" : {
 
     },
+    "Recommended" : {
+
+    },
+    "Refine Resume" : {
+
+    },
     "Refinement Instruction" : {
 
     },
@@ -671,16 +814,22 @@
     "Rendering preview…" : {
 
     },
-    "Resume attached" : {
+    "Resume Builder" : {
 
     },
     "Resume Health Score" : {
+
+    },
+    "Resume Library is not available yet." : {
 
     },
     "Resume PDF" : {
 
     },
     "Resumely" : {
+
+    },
+    "Resumes you save after uploading will appear here." : {
 
     },
     "Return after running Optimize to unlock expert workflows." : {
@@ -701,19 +850,49 @@
     "Role" : {
 
     },
-    "Run a scan and optimization to see it here." : {
+    "Run %@" : {
 
     },
-    "Run ATS Score" : {
+    "Run a scan and optimization to see it here." : {
 
     },
     "Run expert workflows for this optimization" : {
 
     },
+    "Run Free ATS Check" : {
+
+    },
     "Run Optimize first to attach a version here." : {
 
     },
+    "Run Optimize on Home to unlock expert workflows." : {
+
+    },
+    "Save" : {
+
+    },
+    "Save this resume?" : {
+
+    },
+    "Save to reuse on other jobs without re-uploading." : {
+
+    },
+    "Saved Report" : {
+
+    },
+    "Saved Reports" : {
+
+    },
     "Saved resume" : {
+
+    },
+    "Saved Resumes" : {
+
+    },
+    "Saved resumes unavailable" : {
+
+    },
+    "Saving does not change your resume text." : {
 
     },
     "scan_analyze_cta" : {
@@ -750,9 +929,6 @@
         }
       }
     },
-    "Score" : {
-
-    },
     "Scores are still loading." : {
 
     },
@@ -762,10 +938,16 @@
     "Search title or company" : {
 
     },
-    "See how your resume performs against a job before you apply." : {
+    "See your score before signing in" : {
 
     },
     "Send message" : {
+
+    },
+    "Senior Product Designer needed to lead mobile flows, ATS-friendly resume systems, and measurable hiring outcomes." : {
+
+    },
+    "Share again" : {
 
     },
     "Share link" : {
@@ -774,13 +956,19 @@
     "Share score" : {
 
     },
+    "Show less" : {
+
+    },
+    "Show more" : {
+
+    },
     "Sign In" : {
 
     },
-    "Sign in to manage your master resume." : {
+    "Sign in to Optimize" : {
 
     },
-    "Sign in to Optimize" : {
+    "Sign in to track applications." : {
 
     },
     "Sign in to unlock full optimization." : {
@@ -790,9 +978,6 @@
 
     },
     "Sign in to view history" : {
-
-    },
-    "Sign Out" : {
 
     },
     "Sign Up" : {
@@ -907,13 +1092,13 @@
     "Tailor" : {
 
     },
+    "Tailor a resume to start tracking applications." : {
+
+    },
     "Tailor Resume" : {
 
     },
     "Tailor your resume to any job in 60 seconds." : {
-
-    },
-    "Tap any section to refine with custom instructions" : {
 
     },
     "Tap Download to generate PDF" : {
@@ -934,12 +1119,6 @@
     "Top signals" : {
 
     },
-    "Track" : {
-
-    },
-    "Track your job applications" : {
-
-    },
     "Try Again" : {
 
     },
@@ -952,13 +1131,46 @@
     "Undo" : {
 
     },
+    "Undo Last Design" : {
+
+    },
+    "Undoing…" : {
+
+    },
+    "Upload and optimize on Home to see your resume here." : {
+
+    },
+    "Upload your resume and run Optimize on Home to style your PDF." : {
+
+    },
+    "Upload, match to a job, and optimize your resume." : {
+
+    },
     "URL or paste description" : {
+
+    },
+    "Use a saved resume" : {
 
     },
     "Use Tailor to generate the full optimized resume." : {
 
     },
     "View ATS breakdown" : {
+
+    },
+    "View optimized resume" : {
+
+    },
+    "View Optimized Resume" : {
+
+    },
+    "Worked on dashboard redesigns and collaborated with engineers to improve user flows." : {
+
+    },
+    "Your data stays private. We never share your resume." : {
+
+    },
+    "Your experience section proves ownership, but the first bullet hides the business outcome." : {
 
     },
     "Your optimized resumes and PDF downloads are linked to your account." : {
@@ -968,6 +1180,12 @@
 
     },
     "Your resume is encrypted and never shared." : {
+
+    },
+    "Your resume is uploaded securely for analysis. Sign in only when you're ready to optimize and export." : {
+
+    },
+    "Your resume is well-optimized for this role." : {
 
     }
   },

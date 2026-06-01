@@ -146,6 +146,9 @@ final class AnalyticsService {
             Set(payload.keys).isDisjoint(with: Self.forbiddenPropertyKeys),
             "[Analytics] Event '\(event.name)' contains a forbidden property key. Remove PII before shipping."
         )
+        #if DEBUG
+        print("Analytics captured: \(event.name)")
+        #endif
         Task {
             do {
                 try await transport.capture(

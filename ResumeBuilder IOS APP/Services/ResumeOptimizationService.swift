@@ -126,7 +126,8 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
                 throw ResumeOptimizationError.invalidResponse(msg)
             }
             guard response.optimizationId != nil else {
-                throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")
+                let msg = response.error ?? "Optimization did not complete. Please try again."
+                throw ResumeOptimizationError.invalidResponse(msg)
             }
             logger.info("Optimize decode complete optimizationId=\(response.optimizationId ?? "missing", privacy: .public)")
             return response
