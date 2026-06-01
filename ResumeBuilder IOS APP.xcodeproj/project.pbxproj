@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */; };
 		1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */; };
 		749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */; };
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
@@ -14,7 +15,6 @@
 		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
-		0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -379,10 +379,10 @@
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -414,10 +414,10 @@
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
