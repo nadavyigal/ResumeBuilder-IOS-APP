@@ -32,7 +32,7 @@ struct OptimizeResponse: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success, sections, error
         case optimizationId = "optimization_id"
-        case reviewId = "review_id"
+        case reviewId = "reviewId"
     }
 
     private enum NestedCodingKeys: String, CodingKey {
@@ -111,7 +111,7 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
         logger.info("Optimize start resumeId=\(resumeId, privacy: .public)")
         let body: [String: Any] = ["resumeId": resumeId, "jobDescriptionId": jobDescriptionId]
         do {
-            let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
+            let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token, timeout: 120)
             logger.info("Optimize response success=\(response.success ?? false) sections=\(response.sections?.count ?? 0)")
 
             // Review-based flow: server returns reviewId instead of optimizationId+sections.

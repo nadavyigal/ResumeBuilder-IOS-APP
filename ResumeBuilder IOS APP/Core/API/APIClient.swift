@@ -74,9 +74,10 @@ struct APIClient {
     func postJSON<T: Decodable>(
         endpoint: Endpoint,
         body: [String: Any],
-        token: String?
+        token: String?,
+        timeout: TimeInterval? = nil
     ) async throws -> T {
-        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
