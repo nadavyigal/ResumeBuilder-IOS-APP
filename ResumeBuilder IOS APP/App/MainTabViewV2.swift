@@ -16,12 +16,13 @@ struct MainTabViewV2: View {
                     .opacity(selectedTab == .tailor ? 1 : 0)
                     .allowsHitTesting(selectedTab == .tailor)
 
-                OptimizedResumeTabView(onSwitchTab: switchTab)
+                OptimizedResumeTabView(isActive: selectedTab == .optimized, onSwitchTab: switchTab)
                     .opacity(selectedTab == .optimized ? 1 : 0)
                     .allowsHitTesting(selectedTab == .optimized)
 
                 DesignTabView(
                     viewModel: designViewModel,
+                    isActive: selectedTab == .design,
                     onSwitchTab: switchTab,
                     onPreview: { selectedTab = .optimized }
                 )

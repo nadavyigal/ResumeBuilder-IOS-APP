@@ -8,6 +8,8 @@ struct ResumePreviewWebView: View {
     var contact: ResumeContact? = nil
     var templateId: String? = nil
     var customization: DesignCustomization? = nil
+    var isActive = true
+    var renderDebounce: Duration = .zero
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
     var renderedHTML: Binding<String?> = .constant(nil)
@@ -82,7 +84,19 @@ struct ResumePreviewWebView: View {
             }
         }
         .task(id: previewRequestKey) {
+            guard isActive else { return }
+            if renderDebounce > .zero {
+                do {
+                    try await Task.sleep(for: renderDebounce)
+                } catch {
+                    return
+                }
+            }
             await renderPreview(key: previewRequestKey)
+        }
+        .onChange(of: isActive) { _, active in
+            guard active else { return }
+            Task { await renderPreview(key: previewRequestKey) }
         }
         .sheet(isPresented: $showSharePDF, onDismiss: { pdfURL = nil }) {
             if let url = pdfURL {
@@ -94,18 +108,23 @@ struct ResumePreviewWebView: View {
     // MARK: - Private
 
     private func renderPreview(key: String) async {
+        guard isActive else { return }
         guard previewPolicy.shouldRender(key: key) else { return }
         previewPolicy.markStarted(key: key)
         var didRender = false
         defer { previewPolicy.markFinished(key: key, didRender: didRender) }
 
+        #if DEBUG
         print("🎨 [PREVIEW] renderPreview start: optId=\(optimizationId) sections=\(sections.count)")
+        #endif
         if let cachedHTML = PreviewHTMLCache.html(for: key) {
             html = cachedHTML
             isLoading = false
             errorMessage = nil
             didRender = true
+            #if DEBUG
             print("✅ [PREVIEW] using cached rendered HTML")
+            #endif
             return
         }
 
@@ -113,15 +132,21 @@ struct ResumePreviewWebView: View {
             html = ResumeHTMLBuilder.build(sections: sections, contact: contact, customization: customization)
             isLoading = false
             errorMessage = nil
+            #if DEBUG
             print("✅ [PREVIEW] showing local HTML while backend render finishes")
+            #endif
         }
 
         guard let token = appState.session?.accessToken else {
             if !sections.isEmpty {
+                #if DEBUG
                 print("✅ [PREVIEW] no token — using local fallback")
+                #endif
                 didRender = true
             } else {
+                #if DEBUG
                 print("❌ [PREVIEW] no token — cannot render")
+                #endif
                 errorMessage = "Sign in to preview your resume."
             }
             isLoading = false
@@ -138,24 +163,34 @@ struct ResumePreviewWebView: View {
                 resumeData: nil
             )
             let response = try await designService.renderPreview(request, token: token)
+            #if DEBUG
             print("🎨 [PREVIEW] renderPreview response: html=\(response.previewHTML?.count ?? 0) chars error=\(response.error ?? "none")")
+            #endif
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
+                #if DEBUG
                 print("✅ [PREVIEW] using rendered HTML")
+                #endif
                 html = previewHTML
                 renderedHTML.wrappedValue = previewHTML
                 PreviewHTMLCache.store(previewHTML, for: key)
                 didRender = true
             } else if !sections.isEmpty {
+                #if DEBUG
                 print("⚠️ [PREVIEW] backend returned no HTML — using local fallback")
+                #endif
                 didRender = true
             } else {
+                #if DEBUG
                 print("❌ [PREVIEW] no html and no sections available")
+                #endif
                 errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
             }
         } catch where PreviewRenderErrorPolicy.isBenignCancellation(error) {
             // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.
         } catch {
+            #if DEBUG
             print("❌ [PREVIEW] renderPreview error: \(error)")
+            #endif
             if !sections.isEmpty {
                 didRender = true
             } else {
@@ -192,9 +227,7 @@ struct ResumePreviewWebView: View {
             guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
                 return
             }
-            let dest = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Resume_\(optimizationId).pdf")
-            try data.write(to: dest, options: .atomic)
+            let dest = try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
             pdfURL = dest
             showSharePDF = true
         } catch {
@@ -276,8 +309,18 @@ private struct WebKitHTMLView: UIViewRepresentable {
         return webView
     }
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func updateUIView(_ webView: WKWebView, context: Context) {
+        guard context.coordinator.lastLoadedHTML != html else { return }
+        context.coordinator.lastLoadedHTML = html
         webView.loadHTMLString(html, baseURL: baseURL)
+    }
+
+    final class Coordinator {
+        var lastLoadedHTML: String?
     }
 }
 

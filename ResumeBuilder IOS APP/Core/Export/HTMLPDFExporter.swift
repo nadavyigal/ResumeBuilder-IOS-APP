@@ -49,10 +49,8 @@ enum HTMLPDFExporter {
             webView.createPDF { [self] result in
                 switch result {
                 case .success(let data):
-                    let dest = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("Resume_\(self.optimizationId).pdf")
                     do {
-                        try data.write(to: dest, options: .atomic)
+                        let dest = try ExportFileStore.writePDFData(data, optimizationId: self.optimizationId)
                         self.complete(.success(dest))
                     } catch {
                         self.complete(.failure(error))
@@ -84,6 +82,29 @@ enum HTMLPDFExporter {
             webView = nil
             completion(result)
         }
+    }
+}
+
+enum ExportFileStore {
+    static func writePDFData(_ data: Data, optimizationId: String) throws -> URL {
+        let directory = try exportsDirectory()
+        let destination = directory.appendingPathComponent("Resume_\(safeFilenameComponent(optimizationId)).pdf")
+        try? FileManager.default.removeItem(at: destination)
+        try data.write(to: destination, options: .atomic)
+        return destination
+    }
+
+    private static func exportsDirectory() throws -> URL {
+        let directory = FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ResumeBuilderExports", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    private static func safeFilenameComponent(_ value: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        return String(value.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" })
     }
 }
 

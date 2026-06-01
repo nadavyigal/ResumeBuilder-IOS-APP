@@ -106,7 +106,9 @@ final class TailorViewModel {
                 )
             }
             uploadResponse = upload
+            #if DEBUG
             print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
+            #endif
 
             // Offer to save the uploaded resume to the library (prompt shown in TailorView).
             if let resumeId = upload.resumeId, !resumeId.isEmpty {
@@ -134,16 +136,24 @@ final class TailorViewModel {
                 )
             }
 
+            #if DEBUG
             print("🔍 [TAILOR] optimize response: reviewId=\(optimize.reviewId ?? "nil") optimizationId=\(optimize.optimizationId ?? "nil") sections=\(optimize.sections?.count ?? 0) error=\(optimize.error ?? "none")")
+            #endif
             if let reviewId = optimize.reviewId, !reviewId.isEmpty {
                 self.reviewId = reviewId
+                #if DEBUG
                 print("✅ [TAILOR] → reviewId set: \(reviewId)")
+                #endif
             } else if let optId = optimize.optimizationId, !optId.isEmpty {
                 self.optimizationId = optId
+                #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
+                #endif
                 AnalyticsService.shared.track(.optimizationCompleted)
             } else {
+                #if DEBUG
                 print("❌ [TAILOR] → no valid id in response")
+                #endif
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
             }
         } catch let apiError as APIClientError {

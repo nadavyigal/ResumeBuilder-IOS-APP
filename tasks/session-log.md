@@ -16,6 +16,25 @@
 ## Sessions
 
 ### 2026-06-01
+**Task:** Validate and fix Cursor bug-review report
+**Files Changed:**
+- `App/MainTabViewV2.swift`, `Features/V2/Design/DesignTabView.swift`, `Features/V2/Design/RedesignResumeView.swift` — pass active-tab state into Design preview and debounce live customization renders
+- `Features/V2/Improve/OptimizedResumeTabView.swift`, `Features/V2/Improve/OptimizedResumeView.swift` — recreate Optimized view/design state when the optimization id changes and pause preview work while hidden
+- `Features/V2/Preview/ResumePreviewWebView.swift` — skips inactive renders, coalesces duplicate render keys, debounces Design preview tasks, avoids redundant WKWebView reloads, and gates preview logs behind `#if DEBUG`
+- `Core/Export/HTMLPDFExporter.swift`, `ViewModels/OptimizedResumeViewModel.swift` — write generated/downloaded PDFs to stable Caches export URLs before sharing
+- `Features/V2/History/OptimizationReviewView.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorViewModel.swift` — fire review-apply optimization analytics once and gate Tailor hot-path logs
+- `ResumeBuilder IOS APPTests/LiveEndpointStabilizationTests.swift` — added preview-policy retry and stable export-file regression tests
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — recorded validation and local codesign metadata lesson
+**Decisions Made:**
+- Treated backend customize 404, review-based `success=false`, legacy history payload size, and system WebKit/network chatter as non-iOS bugs or expected noise.
+- Used `/tmp/resumebuilder-derived` for signed simulator verification because project-local `.derivedData` inherits FileProvider/Finder extended attributes that break codesign.
+**Validation:**
+- Signed `xcodebuild build` succeeded on iPhone 17 simulator with DerivedData at `/tmp/resumebuilder-derived`.
+- Full `xcodebuild test` passed 53 XCTest tests plus 5 Swift Testing tests.
+- XcodeBuildMCP `build_run_sim` succeeded on iPhone 17; Home screenshot rendered cleanly.
+**Next Recommended Action:** Run one authenticated device smoke that switches between two optimizations, drags the Design spacing slider, applies a design, and exports/shares the PDF while watching that preview logs stay quiet and use the latest optimization id.
+
+### 2026-06-01
 **Task:** Fix live design apply, PDF export hang, and Expert-to-Me application asset linking
 **Files Changed:**
 - `Services/ResumeDesignService.swift` — treats the stable design assignment as success when the secondary customize route returns the live "Optimization not found" 404, so Apply Design no longer fails after assignment succeeds

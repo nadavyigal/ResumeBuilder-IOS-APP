@@ -4,6 +4,7 @@ import UIKit
 struct RedesignResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: DesignViewModel
+    var isActive = true
     var onPreview: (() -> Void)? = nil
 
     private let categories = [
@@ -124,7 +125,9 @@ struct RedesignResumeView: View {
                     optimizationId: optId,
                     sections: [],
                     templateId: viewModel.selectedTemplateId,
-                    customization: viewModel.customization
+                    customization: viewModel.customization,
+                    isActive: isActive,
+                    renderDebounce: .milliseconds(450)
                 )
                 .frame(height: previewHeight)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))

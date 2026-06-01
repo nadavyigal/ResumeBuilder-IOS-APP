@@ -143,6 +143,9 @@ final class OptimizationReviewViewModel {
             return
         }
         applySuccessOptimizationId = result.optimizationId
+        if result.optimizationId?.isEmpty == false {
+            AnalyticsService.shared.track(.optimizationCompleted)
+        }
     }
 }
 
