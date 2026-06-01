@@ -8,6 +8,9 @@ struct ResumePreviewWebView: View {
     var contact: ResumeContact? = nil
     var templateId: String? = nil
     var customization: DesignCustomization? = nil
+    /// Optional binding — when provided, updated each time the rendered HTML changes.
+    /// The parent can read this to generate a PDF that matches the displayed design.
+    var renderedHTML: Binding<String?> = .constant(nil)
 
     @State private var html: String?
     @State private var isLoading = true
@@ -139,6 +142,7 @@ struct ResumePreviewWebView: View {
             if let previewHTML = response.previewHTML, !previewHTML.isEmpty {
                 print("✅ [PREVIEW] using rendered HTML")
                 html = previewHTML
+                renderedHTML.wrappedValue = previewHTML
                 PreviewHTMLCache.store(previewHTML, for: key)
                 didRender = true
             } else if !sections.isEmpty {
@@ -164,6 +168,18 @@ struct ResumePreviewWebView: View {
         guard let token = appState.session?.accessToken else { return }
         isDownloadingPDF = true
         defer { isDownloadingPDF = false }
+        // Use the already-rendered styled HTML when available so the exported PDF
+        // includes the design template the user selected.
+        if let styledHTML = html {
+            do {
+                let dest = try await HTMLPDFExporter.exportPDF(html: styledHTML, optimizationId: optimizationId)
+                pdfURL = dest
+                showSharePDF = true
+                return
+            } catch {
+                // Fall through to backend download on failure.
+            }
+        }
         do {
             var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
             components.path = "/api/download/\(optimizationId)"
