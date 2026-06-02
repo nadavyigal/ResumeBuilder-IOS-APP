@@ -3,15 +3,15 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
-Active Story: Resumely Pre-Submission UX/UI Transformation (PR #36 QA fixes complete on branch `cursor/resumely-pre-submission-ux-cb5f`)
-Last Completed Story: rb-aso-002 — App Store screenshot renderer (2026-05-28)
-Next Recommended Story: Upload rb-aso-002 screenshots to App Store Connect once an ASC API key/session is available, then confirm Privacy Policy and Support URLs
-Estimated Completion: 68%
+Active Story: Phase 2 submit package complete; next planned story is authenticated real-device package smoke
+Last Completed Story: Phase 2 submit optimized resume + cover letter package (2026-06-02)
+Next Recommended Story: Authenticated device smoke for submit package and Track/Me application asset visibility
+Estimated Completion: 75%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Cursor report follow-up: signed `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`; full `xcodebuild test` passed 53 XCTest + 5 Swift Testing tests; XcodeBuildMCP build/run smoke succeeded on iPhone 17 with Home screenshot checked (2026-06-01). Default project-local `.derivedData` codesign is blocked by FileProvider/Finder extended attributes, but compile/test pass with signing disabled and signed build passes from `/tmp` DerivedData.
-Last Updated: 2026-06-01
-Current Branch: cursor/resumely-pre-submission-ux-cb5f
+Last Validation: Phase 2 submit package: focused `OptimizedResumeViewModelTests` passed 11/11; `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`; full `xcodebuild test` passed 66 XCTest + 5 Swift Testing tests; `simctl` install/launch smoke succeeded on booted iPhone 17 with Home screenshot checked at `/tmp/resumebuilder-smoke/phase2-submit-package-launch-late.png` (2026-06-02). Default project-local `.derivedData` codesign is blocked by FileProvider/Finder extended attributes, but signed build/test passes from `/tmp` DerivedData.
+Last Updated: 2026-06-02
+Current Branch: main
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
@@ -43,6 +43,8 @@ Latest QA Report: —
 - Expert tab links saved reports to Me applications by matching either `optimization_id` or `optimized_resume_id` from `/api/v1/applications`
 - rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
 - Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
+- Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
+- Optimized resume now supports an assisted Submit Package flow. It downloads the optimized resume PDF, creates an application via `/api/v1/applications`, attaches the optimized resume, marks the application applied, runs Cover Letter Architect, saves the expert report to the application, and presents share/copy/open-link actions without attempting third-party auto-submit.
 
 ## Key Wiring (2026-05-20)
 - `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab

@@ -9,6 +9,7 @@ final class OptimizedResumeViewModel {
     var resumeId: String?
     var isRefining = false
     var isSaving = false
+    var isRefreshingATS = false
     var isLoadingSections = false
     var errorMessage: String? = nil
     var pendingRefine: (original: String, suggested: String)? = nil
@@ -24,6 +25,7 @@ final class OptimizedResumeViewModel {
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
+    private let analysisService: any ResumeAnalysisServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
     private static var detailCache: [String: OptimizationDetailDTO] = [:]
 
@@ -36,7 +38,8 @@ final class OptimizedResumeViewModel {
         jobTitle: String? = nil,
         company: String? = nil,
         contact: ResumeContact? = nil,
-        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
+        analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -47,6 +50,7 @@ final class OptimizedResumeViewModel {
         self.company = company
         self.contact = contact
         self.optimizationService = optimizationService
+        self.analysisService = analysisService
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
@@ -250,6 +254,68 @@ final class OptimizedResumeViewModel {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func saveManualEdit(sectionId: String, newText: String, token: String?) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: newText)
+            let success = try await optimizationService.applySectionRefine(request, token: token)
+            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+                sections[idx].body = newText
+                sections[idx].status = "edited"
+                Self.detailCache.removeValue(forKey: optId)
+            } else if !success {
+                errorMessage = "We couldn't save that edit. Please try again."
+            }
+        } catch let apiError as APIClientError {
+            switch apiError {
+            case .serverError(let status, _) where status >= 500:
+                errorMessage = "The server encountered an issue saving this change (\(status)). Please try again later."
+            default:
+                errorMessage = apiError.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func rescanATS(token: String?) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isRefreshingATS = true
+        defer { isRefreshingATS = false }
+
+        do {
+            let response = try await analysisService.rescan(optimizationId: optId, token: token)
+            if let original = response.originalScore {
+                atsScoreBefore = original
+            }
+            if let optimized = response.optimizedScore {
+                atsScoreAfter = optimized
+            }
+        } catch {
+            errorMessage = "Saved your edit, but couldn't refresh the ATS score: \(error.localizedDescription)"
         }
     }
 

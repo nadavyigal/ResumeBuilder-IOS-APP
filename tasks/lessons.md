@@ -15,6 +15,16 @@
 
 ## Lessons
 
+### 2026-06-02
+**Category:** Test
+**Rule:** In Swift XCTest, avoid asserting arrays of tuples directly and keep string fixtures exactly aligned with expected parsed output.
+**Why:** The first Phase 2 focused test run failed first on tuple-array equality, then on a cover-letter fixture missing the comma expected by the assertion; element-wise tuple assertions and matching fixtures made the test intent clear.
+
+### 2026-06-02
+**Category:** Test
+**Rule:** Test spies that construct MainActor-isolated app DTOs under Swift 6 should be `@MainActor` when used from `@MainActor` XCTest classes.
+**Why:** A manual-edit test spy initialized `ATSRescanResponse` from a nonisolated helper context, causing the focused test build to fail with a MainActor-isolated initializer error until the spy classes were actor-bound.
+
 ### 2026-06-01
 **Category:** Build
 **Rule:** If simulator codesign fails with "resource fork, Finder information, or similar detritus not allowed" inside `.derivedData`, clear extended attributes from DerivedData before changing source code.

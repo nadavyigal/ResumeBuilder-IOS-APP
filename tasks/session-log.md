@@ -15,6 +15,47 @@
 
 ## Sessions
 
+### 2026-06-02
+**Task:** Implement Phase 2 assisted submit package from Optimized resume
+**Files Changed:**
+- `Core/API/Models/DomainModels.swift` — added application-create request/body helpers and flexible create-envelope decoding
+- `Core/API/ApplicationTrackingService.swift` — added `ApplicationTrackingServiceProtocol` and `createApplication`
+- `Core/API/ExpertWorkflowService.swift` — added `ExpertWorkflowServiceProtocol` for submit-package orchestration tests
+- `Features/V2/Improve/SubmitApplicationViewModel.swift` — added `@Observable @MainActor` package flow that downloads the PDF, creates/links/marks an application, runs Cover Letter Architect, saves the report, and exposes package artifacts
+- `Features/V2/Improve/OptimizedResumeView.swift` — added Submit Package button and assisted package sheet with resume sharing, cover-letter copy, and job-link open actions
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added application create body/envelope tests and submit-package orchestration coverage
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md` — recorded scope, validation, progress, and test assertion lesson
+**Decisions Made:**
+- Kept the flow assisted-only: iOS prepares the resume PDF, cover letter, application record, and job link, but does not auto-submit to third-party job sites.
+- Reused existing backend contracts for optimized PDF download, Expert Cover Letter Architect run/apply, application attachment, mark-applied, and saved expert reports.
+- Created application status as `saved`, then explicitly called `markApplied` so Track/Me status follows the existing tracking path.
+**Validation:**
+- Focused `OptimizedResumeViewModelTests` passed 11/11 on iPhone 17 simulator.
+- `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`.
+- Full `xcodebuild test` passed 66 XCTest tests plus 5 Swift Testing tests using `/tmp/resumebuilder-derived`.
+- `simctl` install/launch smoke succeeded on booted iPhone 17; Home screenshot rendered cleanly at `/tmp/resumebuilder-smoke/phase2-submit-package-launch-late.png`.
+- Live package sheet submit was not smoked end-to-end because the local simulator was unauthenticated and had no persisted real optimization id.
+**Next Recommended Action:** Run an authenticated real-device smoke: optimize a resume, open Submit Package, create the package, confirm the resume share link and cover-letter copy action, then verify the application appears in Me/Track as applied with linked optimized resume and saved expert report.
+
+### 2026-06-02
+**Task:** Implement Phase 1 manual amend on optimized resume
+**Files Changed:**
+- `Features/V2/Improve/OptimizedResumeView.swift` — added Edit/Done affordance, manual section editors, per-section Save/Cancel, preview refresh trigger, and ATS refresh spinner
+- `ViewModels/OptimizedResumeViewModel.swift` — added injected `ResumeAnalysisServiceProtocol`, `saveManualEdit`, `rescanATS`, edit status update, and optimization-detail cache invalidation after manual saves
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added focused manual edit success/failure and ATS rescan tests with actor-bound spies
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md` — recorded scope, validation, progress, and Swift 6 test-spy lesson
+**Decisions Made:**
+- Reused the existing `/api/v1/refine-section/apply` path for manual edits instead of adding an endpoint.
+- Refreshed headline ATS scores through the existing `ResumeAnalysisService.rescan` / `/api/ats/rescan` path after successful saves.
+- Kept Phase 2 submit + cover letter out of this story, matching the pasted plan's sequence.
+**Validation:**
+- Focused `OptimizedResumeViewModelTests` passed 8/8 on iPhone 17 simulator.
+- `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`.
+- Full `xcodebuild test` passed 63 XCTest tests plus 5 Swift Testing tests using `/tmp/resumebuilder-derived`.
+- `simctl` install/launch smoke succeeded on booted iPhone 17; Home screenshot rendered cleanly at `/tmp/resumebuilder-smoke/manual-edit-launch.png`.
+- Live manual edit UI save was not smoked end-to-end because the local simulator was unauthenticated and had no persisted real optimization id.
+**Next Recommended Action:** Implement Phase 2 — submit optimized resume + cover letter from Track/Me tab, including application create/linking and assisted package presentation.
+
 ### 2026-06-01
 **Task:** Validate and fix Cursor bug-review report
 **Files Changed:**
