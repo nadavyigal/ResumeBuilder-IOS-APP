@@ -24,7 +24,21 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
 }
 
 /// Client for `/api/v1/expert-workflows/*`.
-struct ExpertWorkflowService: Sendable {
+protocol ExpertWorkflowServiceProtocol: Sendable {
+    func run(type: ExpertWorkflowType, optimizationId: String, token: String?, evidenceInputs: [String: JSONValue]) async throws -> ExpertWorkflowRunCreateResponseDTO
+    func getStatus(runId: String, token: String?) async throws -> ExpertWorkflowRunSnapshot
+    func apply(
+        runId: String,
+        workflowType: ExpertWorkflowType,
+        token: String?,
+        selectionIndex: Int?,
+        screeningSelectedIndices: [Int]?,
+        selectedFields: [String]?
+    ) async throws -> ExpertWorkflowApplyResponseDTO
+}
+
+/// Client for `/api/v1/expert-workflows/*`.
+struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
     var apiClient: APIClient = APIClient()
 
     /// Begins a surfaced expert workflow for the given optimization.

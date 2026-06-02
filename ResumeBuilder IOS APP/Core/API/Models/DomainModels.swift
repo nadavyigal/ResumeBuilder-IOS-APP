@@ -694,6 +694,117 @@ struct ApplicationDetailEnvelope: Codable, Sendable {
     }
 }
 
+struct ApplicationCreateRequest: Sendable, Equatable {
+    let jobTitle: String
+    let companyName: String
+    let sourceURL: String?
+    let status: String
+    let optimizationId: String?
+    let jobExtraction: JSONValue?
+    let contact: JSONValue?
+
+    init(
+        jobTitle: String,
+        companyName: String,
+        sourceURL: String? = nil,
+        status: String = "saved",
+        optimizationId: String? = nil,
+        jobExtraction: JSONValue? = nil,
+        contact: JSONValue? = nil
+    ) {
+        self.jobTitle = jobTitle
+        self.companyName = companyName
+        self.sourceURL = sourceURL
+        self.status = status
+        self.optimizationId = optimizationId
+        self.jobExtraction = jobExtraction
+        self.contact = contact
+    }
+}
+
+enum ApplicationCreateRequestBody {
+    nonisolated static func build(
+        jobTitle: String,
+        companyName: String,
+        sourceURL: String?,
+        status: String,
+        optimizationId: String?,
+        jobExtraction: JSONValue? = nil,
+        contact: JSONValue? = nil
+    ) -> [String: Any] {
+        var body: [String: Any] = [
+            "job_title": jobTitle,
+            "company_name": companyName,
+            "status": status,
+        ]
+        if let sourceURL, !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["source_url"] = sourceURL
+        }
+        if let optimizationId, !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["optimization_id"] = optimizationId
+        }
+        if let jobExtraction {
+            body["job_extraction"] = jsonObject(from: jobExtraction)
+        }
+        if let contact {
+            body["contact"] = jsonObject(from: contact)
+        }
+        return body
+    }
+
+    nonisolated static func build(_ request: ApplicationCreateRequest) -> [String: Any] {
+        build(
+            jobTitle: request.jobTitle,
+            companyName: request.companyName,
+            sourceURL: request.sourceURL,
+            status: request.status,
+            optimizationId: request.optimizationId,
+            jobExtraction: request.jobExtraction,
+            contact: request.contact
+        )
+    }
+
+    private nonisolated static func jsonObject(from value: JSONValue) -> Any {
+        switch value {
+        case .string(let string):
+            return string
+        case .number(let number):
+            return number
+        case .bool(let bool):
+            return bool
+        case .object(let object):
+            return object.mapValues(jsonObject(from:))
+        case .array(let array):
+            return array.map(jsonObject(from:))
+        case .null:
+            return NSNull()
+        }
+    }
+}
+
+struct ApplicationCreateEnvelope: Decodable, Sendable {
+    let success: Bool?
+    let application: ApplicationItem
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case application
+        case data
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        success = try c.decodeIfPresent(Bool.self, forKey: .success)
+        if let app = try c.decodeIfPresent(ApplicationItem.self, forKey: .application) {
+            application = app
+        } else if let app = try c.decodeIfPresent(ApplicationItem.self, forKey: .data) {
+            application = app
+        } else {
+            application = try ApplicationItem(from: decoder)
+        }
+    }
+}
+
 struct ApplicationExpertReportsEnvelope: Codable, Sendable {
     let success: Bool?
     let reports: [ApplicationExpertReportItem]

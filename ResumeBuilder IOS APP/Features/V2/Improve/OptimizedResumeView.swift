@@ -13,6 +13,10 @@ struct OptimizedResumeView: View {
     @State private var showRefineSheet = false
     @State private var refineInstruction = ""
     @State private var editingSectionId: String? = nil
+    @State private var isManualEditMode = false
+    @State private var manualEditTextBySection: [String: String] = [:]
+    @State private var submitVM: SubmitApplicationViewModel? = nil
+    @State private var showSubmitPackageSheet = false
     @State private var navigateToModifications = false
 
     // Download & copy
@@ -57,6 +61,11 @@ struct OptimizedResumeView: View {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
                         .padding(.top, AppSpacing.xl)
+                }
+
+                if isManualEditMode {
+                    manualEditPanel
+                        .padding(.horizontal, AppSpacing.lg)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -134,6 +143,14 @@ struct OptimizedResumeView: View {
         }
         .sheet(isPresented: $showRefineSheet) {
             refineSheet
+        }
+        .sheet(isPresented: $showSubmitPackageSheet) {
+            if let submitVM {
+                SubmitApplicationSheet(
+                    vm: submitVM,
+                    accessToken: appState.session?.accessToken
+                )
+            }
         }
         .sheet(isPresented: $showPDFShare, onDismiss: { pdfTempURL = nil }) {
             if let url = pdfTempURL {
@@ -243,6 +260,18 @@ struct OptimizedResumeView: View {
             }
             .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
 
+            Button {
+                openSubmitPackage()
+            } label: {
+                Label("Submit Package", systemImage: "paperplane.fill")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 46)
+                    .glassCard(cornerRadius: AppRadii.md)
+            }
+            .buttonStyle(GradientButtonStyle())
+            .disabled(viewModel.optimizationIdentifier == nil || viewModel.sections.isEmpty)
+
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 Text("Improve further")
                     .font(.appCaption.weight(.semibold))
@@ -256,6 +285,11 @@ struct OptimizedResumeView: View {
                         showRefineSheet = true
                     }
                     .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
+
+                    improveButton(title: isManualEditMode ? "Done" : "Edit", icon: isManualEditMode ? "checkmark.circle" : "square.and.pencil") {
+                        toggleManualEditMode()
+                    }
+                    .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil || viewModel.isSaving)
 
                     improveButton(title: "Design", icon: "paintbrush") {
                         onSwitchTab(.design)
@@ -282,6 +316,116 @@ struct OptimizedResumeView: View {
                 .glassCard(cornerRadius: AppRadii.md)
         }
         .buttonStyle(GradientButtonStyle())
+    }
+
+    private var manualEditPanel: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Text("Manual Edits")
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+                if viewModel.isRefreshingATS {
+                    ProgressView()
+                        .tint(AppColors.accentTeal)
+                }
+            }
+
+            ForEach(viewModel.sections) { section in
+                manualEditSection(section)
+            }
+        }
+    }
+
+    private func manualEditSection(_ section: OptimizedResumeSection) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text(section.type.displayName)
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                    .fill(.black.opacity(0.18))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                            .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+                    )
+
+                TextEditor(text: manualEditBinding(for: section))
+                    .font(.appBody)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .padding(AppSpacing.sm)
+                    .frame(minHeight: editorHeight(for: section.body))
+            }
+
+            HStack(spacing: AppSpacing.sm) {
+                Button {
+                    manualEditTextBySection[section.id] = section.body
+                } label: {
+                    Label("Cancel", systemImage: "xmark")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.isSaving || !hasPendingManualEdit(for: section))
+
+                Button {
+                    Task { await saveManualEdit(section) }
+                } label: {
+                    Label("Save", systemImage: "checkmark")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.isSaving || !hasPendingManualEdit(for: section))
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func manualEditBinding(for section: OptimizedResumeSection) -> Binding<String> {
+        Binding(
+            get: { manualEditTextBySection[section.id] ?? section.body },
+            set: { manualEditTextBySection[section.id] = $0 }
+        )
+    }
+
+    private func editorHeight(for text: String) -> CGFloat {
+        let lineCount = max(4, min(12, text.components(separatedBy: .newlines).count + 2))
+        return CGFloat(lineCount * 24)
+    }
+
+    private func hasPendingManualEdit(for section: OptimizedResumeSection) -> Bool {
+        let current = manualEditTextBySection[section.id] ?? section.body
+        return current != section.body
+    }
+
+    private func toggleManualEditMode() {
+        if isManualEditMode {
+            isManualEditMode = false
+            return
+        }
+        manualEditTextBySection = Dictionary(uniqueKeysWithValues: viewModel.sections.map { ($0.id, $0.body) })
+        isManualEditMode = true
+    }
+
+    @MainActor
+    private func saveManualEdit(_ section: OptimizedResumeSection) async {
+        let text = manualEditTextBySection[section.id] ?? section.body
+        await viewModel.saveManualEdit(sectionId: section.id, newText: text, token: appState.session?.accessToken)
+        guard viewModel.errorMessage == nil else { return }
+        manualEditTextBySection[section.id] = text
+        renderedPreviewHTML = nil
+        await viewModel.rescanATS(token: appState.session?.accessToken)
+    }
+
+    private func openSubmitPackage() {
+        submitVM = SubmitApplicationViewModel(resumeProvider: viewModel)
+        showSubmitPackageSheet = true
     }
 
     private var exportSuccessActions: some View {
@@ -430,6 +574,209 @@ struct OptimizedResumeView: View {
                 }
             }
         }
+    }
+}
+
+private struct SubmitApplicationSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var vm: SubmitApplicationViewModel
+    let accessToken: String?
+
+    @State private var showCopiedCoverLetter = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    if let package = vm.package {
+                        packageView(package)
+                    } else {
+                        formView
+                    }
+
+                    if let error = vm.errorMessage {
+                        Text(error)
+                            .font(.appCaption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(AppSpacing.lg)
+            }
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Submit Package")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .overlay(alignment: .top) {
+                if showCopiedCoverLetter {
+                    Label("Cover letter copied", systemImage: "checkmark.circle.fill")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppColors.accentTeal, in: Capsule())
+                        .padding(.top, AppSpacing.md)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation { showCopiedCoverLetter = false }
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    private var formView: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Role")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("Job title", text: $vm.jobTitle)
+                    .textInputAutocapitalization(.words)
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Company")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("Company name", text: $vm.companyName)
+                    .textInputAutocapitalization(.words)
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Job Link")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("LinkedIn or job post URL", text: $vm.sourceURLString)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Cover Letter Notes")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                        .fill(.black.opacity(0.18))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                                .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+                        )
+                    if vm.coverLetterContext.isEmpty {
+                        Text("Optional details to mention")
+                            .font(.appBody)
+                            .foregroundStyle(AppColors.textTertiary)
+                            .padding(AppSpacing.lg)
+                            .allowsHitTesting(false)
+                    }
+                    TextEditor(text: $vm.coverLetterContext)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .scrollContentBackground(.hidden)
+                        .padding(AppSpacing.md)
+                        .frame(minHeight: 110)
+                }
+            }
+
+            GradientButton(
+                title: "Create Package",
+                icon: "paperplane.fill",
+                isLoading: vm.isSubmitting
+            ) {
+                Task { await vm.submit(token: accessToken) }
+            }
+            .disabled(!vm.canSubmit)
+        }
+    }
+
+    private func packageView(_ package: SubmitApplicationPackage) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            Label("Package ready", systemImage: "checkmark.circle.fill")
+                .font(.appHeadline)
+                .foregroundStyle(AppColors.accentTeal)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text(package.application.jobTitle ?? vm.jobTitle)
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(package.application.companyName ?? vm.companyName)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+            .padding(AppSpacing.lg)
+            .glassCard(cornerRadius: AppRadii.lg)
+
+            VStack(spacing: AppSpacing.sm) {
+                ShareLink(item: package.resumePDFURL) {
+                    Label("Share Resume PDF", systemImage: "square.and.arrow.up")
+                        .font(.appSubheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                Button {
+                    UIPasteboard.general.string = package.coverLetterText
+                    withAnimation { showCopiedCoverLetter = true }
+                } label: {
+                    Label("Copy Cover Letter", systemImage: "doc.on.doc")
+                        .font(.appSubheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                if let url = package.jobURL {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Label("Open Job Link", systemImage: "safari")
+                            .font(.appSubheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .glassCard(cornerRadius: AppRadii.md)
+                    }
+                    .buttonStyle(GradientButtonStyle())
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Cover Letter")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(package.coverLetterText)
+                    .font(.appBody)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .textSelection(.enabled)
+            }
+            .padding(AppSpacing.lg)
+            .glassCard(cornerRadius: AppRadii.lg)
+        }
+    }
+}
+
+private extension View {
+    func submitPackageField() -> some View {
+        self
+            .font(.appBody)
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.horizontal, AppSpacing.lg)
+            .frame(minHeight: 48)
+            .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                    .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+            )
     }
 }
 

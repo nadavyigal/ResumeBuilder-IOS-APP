@@ -1,21 +1,39 @@
 # Current Task
 
-**Objective:** Resumely Pre-Submission UX/UI Transformation (Stories 1–7)
-**Status:** QA FIXES COMPLETE — PR #36 build/test/smoke pass after Codex follow-up
-**Spec:** `docs/specs/resumely-pre-submission-ux-ui-transformation.md`
-**Branch:** `cursor/resumely-pre-submission-ux-cb5f`
+**Objective:** Implement Phase 2 of the Next Move Plan: submit package with optimized resume + cover letter from Optimized/Track
+**Status:** Complete
+**Spec:** Pasted plan from Codex attachment `e491b2b3-9a66-485e-8ef8-cc4706fa1954`
+**Branch:** `main`
+
+## Scope
+- Add application creation to `ResumeBuilder IOS APP/Core/API/ApplicationTrackingService.swift`.
+- Add application create DTOs to `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift`.
+- Add a `@Observable @MainActor` submit/package view model in `ResumeBuilder IOS APP/Features/V2/Improve/`.
+- Add an Optimized resume submit sheet/action in `ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift`.
+- Reuse `OptimizedResumeViewModel.downloadPDF`, `ExpertWorkflowService.run/apply`, `ApplicationTrackingService.attachOptimized/markApplied/saveExpertReport`.
+- Add focused tests for create payload/body and submit/package orchestration.
 
 ## Story Checklist
-1. [x] Spec and safety baseline
-2. [x] Guest/auth truth (Me tab + AccountDisplayInfo + tests)
-3. [x] Home activation flow (HomeTabView, HomeActivationState, tab rename)
-4. [x] Export-first Optimized (ResumeExportAction, success state)
-5. [x] Locked Design/Expert + tab accessibility labels
-6. [x] PostHog AnalyticsService + event tracking + tests
-7. [x] QA checklist + spec index updates
-- [x] Xcode build verification — `xcodebuild build` succeeded on iPhone 17 simulator (2026-05-31)
-- [x] Full test suite — `xcodebuild test` passed 55/55 on iPhone 17 simulator (2026-05-31)
-- [x] XcodeBuildMCP simulator smoke — Home guest launch, locked Design, locked Expert, Me guest state verified by screenshots (2026-05-31)
-- [x] Resume optimization waiting animation — inline scan loader added for optimize/free ATS states; `xcodebuild build` succeeded, `xcodebuild test` passed 50 XCTest + 5 Swift Testing tests, and XcodeBuildMCP launch smoke passed on iPhone 17 plus iPhone 17e compact proxy (2026-06-01)
-- [x] Live flow fixes — design apply no longer fails on secondary customize 404, PDF export has WKWebView retention/timeout/backend fallback, Expert cover-letter assets link to Me applications via either optimization id field; build, focused tests, and launch smoke passed (2026-06-01)
-- [x] Cursor report follow-up — fixed stale design VM state, preview render storms, inactive-tab preview work, redundant WKWebView reloads, review-apply analytics gap, stable PDF share URLs, and gated hot-path debug prints; signed build, full tests, and launch smoke passed (2026-06-01)
+- [x] Add test coverage for application create request body/decoding.
+- [x] Add test coverage for submit-package orchestration success/failure.
+- [x] Implement application create DTOs and `ApplicationTrackingService.createApplication`.
+- [x] Implement `SubmitApplicationViewModel`.
+- [x] Add Optimized submit package sheet with job/company/source inputs and result actions.
+- [x] Run focused tests.
+- [x] Run Xcode build.
+- [x] Run full tests.
+- [x] Simulator smoke test launch/package UI as far as local auth state allows.
+- [x] Update `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md`.
+
+## Validation
+- Focused `OptimizedResumeViewModelTests` passed 11/11 on iPhone 17 simulator.
+- `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`.
+- Full `xcodebuild test` passed 66 XCTest tests plus 5 Swift Testing tests using `/tmp/resumebuilder-derived`.
+- `simctl` install/launch smoke succeeded on booted iPhone 17; Home screenshot rendered cleanly at `/tmp/resumebuilder-smoke/phase2-submit-package-launch-late.png`.
+- Package sheet was not live-smoked end-to-end because the local simulator was unauthenticated and had no persisted real optimization id.
+
+## Out of Scope
+- Automatic submission to third-party job sites.
+- Backend optimization quality / ATS scoring changes.
+- Resume Library backend route.
+- New dependencies.

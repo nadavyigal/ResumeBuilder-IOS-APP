@@ -69,4 +69,306 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertNil(vm.pendingRefine)
         XCTAssertNil(vm.activeSectionId)
     }
+
+    // MARK: - manual edits
+
+    func testSaveManualEditPersistsAndUpdatesSectionBody() async {
+        let optimizationService = ManualEditOptimizationSpy(applyResult: true)
+        let existing = OptimizedResumeSection(id: "s1", type: .summary, body: "Old body", status: "optimized")
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            sections: [existing],
+            optimizationService: optimizationService,
+            analysisService: ManualEditAnalysisSpy()
+        )
+
+        await vm.saveManualEdit(sectionId: "s1", newText: "New body", token: "tok")
+
+        XCTAssertEqual(optimizationService.appliedRequests.count, 1)
+        XCTAssertEqual(optimizationService.appliedRequests.first?.sectionId, "s1")
+        XCTAssertEqual(optimizationService.appliedRequests.first?.optimizationId, "opt-1")
+        XCTAssertEqual(optimizationService.appliedRequests.first?.acceptedText, "New body")
+        XCTAssertEqual(vm.sections.first?.body, "New body")
+        XCTAssertEqual(vm.sections.first?.status, "edited")
+        XCTAssertNil(vm.errorMessage)
+    }
+
+    func testSaveManualEditFailureLeavesBodyUnchangedAndSetsError() async {
+        let optimizationService = ManualEditOptimizationSpy(error: APIClientError.invalidResponse)
+        let existing = OptimizedResumeSection(id: "s1", type: .summary, body: "Old body", status: "optimized")
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            sections: [existing],
+            optimizationService: optimizationService,
+            analysisService: ManualEditAnalysisSpy()
+        )
+
+        await vm.saveManualEdit(sectionId: "s1", newText: "New body", token: "tok")
+
+        XCTAssertEqual(vm.sections.first?.body, "Old body")
+        XCTAssertEqual(vm.sections.first?.status, "optimized")
+        XCTAssertNotNil(vm.errorMessage)
+    }
+
+    func testRescanATSUpdatesHeadlineScores() async {
+        let analysisService = ManualEditAnalysisSpy(
+            rescanResponse: ATSRescanResponse(success: true, optimizedScore: 91, originalScore: 72)
+        )
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            atsScoreBefore: 70,
+            atsScoreAfter: 80,
+            optimizationService: MockResumeOptimizationService(),
+            analysisService: analysisService
+        )
+
+        await vm.rescanATS(token: "tok")
+
+        XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
+        XCTAssertEqual(vm.atsScoreBefore, 72)
+        XCTAssertEqual(vm.atsScoreAfter, 91)
+        XCTAssertNil(vm.errorMessage)
+    }
+
+    // MARK: - submit package
+
+    func testApplicationCreateRequestBodyUsesBackendFieldNames() {
+        let body = ApplicationCreateRequestBody.build(
+            jobTitle: "iOS Engineer",
+            companyName: "Acme",
+            sourceURL: "https://example.com/job",
+            status: "saved",
+            optimizationId: "opt-1"
+        )
+
+        XCTAssertEqual(body["job_title"] as? String, "iOS Engineer")
+        XCTAssertEqual(body["company_name"] as? String, "Acme")
+        XCTAssertEqual(body["source_url"] as? String, "https://example.com/job")
+        XCTAssertEqual(body["status"] as? String, "saved")
+        XCTAssertEqual(body["optimization_id"] as? String, "opt-1")
+    }
+
+    func testApplicationCreateEnvelopeDecodesNestedApplication() throws {
+        let json = """
+        {
+          "success": true,
+          "application": {
+            "id": "app-1",
+            "job_title": "iOS Engineer",
+            "company_name": "Acme",
+            "status": "applied",
+            "optimization_id": "opt-1"
+          }
+        }
+        """
+
+        let envelope = try JSONDecoder().decode(ApplicationCreateEnvelope.self, from: Data(json.utf8))
+
+        XCTAssertEqual(envelope.application.id, "app-1")
+        XCTAssertEqual(envelope.application.jobTitle, "iOS Engineer")
+        XCTAssertEqual(envelope.application.companyName, "Acme")
+        XCTAssertEqual(envelope.application.status, "applied")
+        XCTAssertEqual(envelope.application.optimizationId, "opt-1")
+    }
+
+    func testSubmitApplicationPackageOrchestratesCreateCoverLetterAndTracking() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF phase 2".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+        vm.jobTitle = "iOS Engineer"
+        vm.companyName = "Acme"
+        vm.sourceURLString = "https://example.com/job"
+        vm.coverLetterContext = "Mention SwiftUI."
+
+        await vm.submit(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(resumeProvider.downloadCalls, 1)
+        XCTAssertEqual(applicationService.createdRequests.count, 1)
+        XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "iOS Engineer")
+        XCTAssertEqual(applicationService.attached.count, 1)
+        XCTAssertEqual(applicationService.attached.first?.0, "app-1")
+        XCTAssertEqual(applicationService.attached.first?.1, "opt-1")
+        XCTAssertEqual(applicationService.markedAppliedIds, ["app-1"])
+        XCTAssertEqual(expertService.runTypes, [.coverLetterArchitect])
+        XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
+        XCTAssertEqual(applicationService.savedReports.count, 1)
+        XCTAssertEqual(applicationService.savedReports.first?.0, "app-1")
+        XCTAssertEqual(applicationService.savedReports.first?.1, "run-1")
+        XCTAssertEqual(vm.package?.application.id, "app-1")
+        XCTAssertEqual(vm.package?.resumePDFURL, resumeURL)
+        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+        XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
+    }
+}
+
+@MainActor
+private final class ManualEditOptimizationSpy: ResumeOptimizationServiceProtocol, @unchecked Sendable {
+    var appliedRequests: [RefineSectionApplyRequest] = []
+    private let applyResult: Bool
+    private let error: Error?
+
+    init(applyResult: Bool = true, error: Error? = nil) {
+        self.applyResult = applyResult
+        self.error = error
+    }
+
+    func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {
+        OptimizeResponse(success: true, sections: [], optimizationId: "opt-1", error: nil)
+    }
+
+    func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse {
+        RefineSectionResponse(success: true, original: nil, suggested: nil, error: nil)
+    }
+
+    func applySectionRefine(_ request: RefineSectionApplyRequest, token: String) async throws -> Bool {
+        if let error { throw error }
+        appliedRequests.append(request)
+        return applyResult
+    }
+}
+
+@MainActor
+private final class ManualEditAnalysisSpy: ResumeAnalysisServiceProtocol, @unchecked Sendable {
+    var rescannedOptimizationIds: [String] = []
+    private let rescanResponse: ATSRescanResponse
+
+    init(rescanResponse: ATSRescanResponse? = nil) {
+        let fallback = ATSRescanResponse(success: true, optimizedScore: 86, originalScore: 71)
+        self.rescanResponse = rescanResponse ?? fallback
+    }
+
+    func score(resumeId: String, jobDescription: String, token: String) async throws -> ResumeAnalysis {
+        ResumeAnalysis(overall: 0, ats: 0, content: 0, design: 0, missingKeywords: [])
+    }
+
+    func improvements(resumeId: String, jobDescription: String, token: String) async throws -> [ResumeImprovement] {
+        []
+    }
+
+    func rescan(optimizationId: String, token: String) async throws -> ATSRescanResponse {
+        rescannedOptimizationIds.append(optimizationId)
+        return rescanResponse
+    }
+}
+
+@MainActor
+private final class SubmitResumeProviderSpy: SubmitResumePDFProviding {
+    let optimizationIdentifier: String? = "opt-1"
+    var jobTitle: String? = "Existing Role"
+    var company: String? = "Existing Co"
+    var contact: ResumeContact? = nil
+    var downloadCalls = 0
+    private let pdfURL: URL
+
+    init(pdfURL: URL) {
+        self.pdfURL = pdfURL
+    }
+
+    func downloadPDF(token: String?) async throws -> URL {
+        downloadCalls += 1
+        return pdfURL
+    }
+}
+
+@MainActor
+private final class SubmitApplicationTrackingSpy: ApplicationTrackingServiceProtocol, @unchecked Sendable {
+    var createdRequests: [ApplicationCreateRequest] = []
+    var attached: [(String, String)] = []
+    var markedAppliedIds: [String] = []
+    var savedReports: [(String, String)] = []
+
+    func listApplications(token: String?) async throws -> [ApplicationItem] { [] }
+
+    func fetchDetail(id: String, token: String?) async throws -> ApplicationDetailEnvelope {
+        ApplicationDetailEnvelope(success: true, application: createdApplication, htmlUrl: nil, jsonUrl: nil)
+    }
+
+    func createApplication(_ request: ApplicationCreateRequest, token: String?) async throws -> ApplicationItem {
+        createdRequests.append(request)
+        return createdApplication
+    }
+
+    func markApplied(id: String, token: String?) async throws {
+        markedAppliedIds.append(id)
+    }
+
+    func attachOptimized(applicationId: String, optimizedResumeId: String, token: String?) async throws {
+        attached.append((applicationId, optimizedResumeId))
+    }
+
+    func fetchExpertReports(applicationId: String, token: String?) async throws -> [ApplicationExpertReportItem] { [] }
+
+    func saveExpertReport(applicationId: String, runId: String, token: String?) async throws -> ApplicationExpertReportItem {
+        savedReports.append((applicationId, runId))
+        return ApplicationExpertReportItem(
+            id: "report-1",
+            reportTitle: "Cover Letter",
+            workflowType: ExpertWorkflowType.coverLetterArchitect.rawValue,
+            savedAt: nil
+        )
+    }
+
+    private var createdApplication: ApplicationItem {
+        ApplicationItem(
+            id: "app-1",
+            jobTitle: "iOS Engineer",
+            companyName: "Acme",
+            status: "applied",
+            optimizationId: "opt-1"
+        )
+    }
+}
+
+@MainActor
+private final class SubmitExpertWorkflowSpy: ExpertWorkflowServiceProtocol, @unchecked Sendable {
+    var runTypes: [ExpertWorkflowType] = []
+    var appliedRunIds: [String] = []
+
+    func run(type: ExpertWorkflowType, optimizationId: String, token: String?, evidenceInputs: [String: JSONValue]) async throws -> ExpertWorkflowRunCreateResponseDTO {
+        runTypes.append(type)
+        let json = """
+        {
+          "workflow_type": "cover_letter_architect",
+          "run_id": "run-1",
+          "status": "completed",
+          "output": {
+            "cover_letter_variants": [
+              {
+                "tone": "Concise",
+                "letter": "Dear Hiring Manager,\\nI am excited to apply."
+              }
+            ]
+          }
+        }
+        """
+        return try JSONDecoder().decode(ExpertWorkflowRunCreateResponseDTO.self, from: Data(json.utf8))
+    }
+
+    func getStatus(runId: String, token: String?) async throws -> ExpertWorkflowRunSnapshot {
+        ExpertWorkflowRunSnapshot(runId: runId, status: "completed", workflowTypeRaw: ExpertWorkflowType.coverLetterArchitect.rawValue, output: .object([:]), missingEvidence: [])
+    }
+
+    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?) async throws -> ExpertWorkflowApplyResponseDTO {
+        appliedRunIds.append(runId)
+        let json = """
+        {
+          "success": true,
+          "workflow_type": "cover_letter_architect",
+          "updated_fields": [],
+          "apply_mode": "select_cover_letter_variant",
+          "selection_index": 0
+        }
+        """
+        return try JSONDecoder().decode(ExpertWorkflowApplyResponseDTO.self, from: Data(json.utf8))
+    }
 }
