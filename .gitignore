@@ -30,6 +30,7 @@ Carthage/Build/
 # Secrets
 *.env
 Secrets.swift
+Secrets.xcconfig
 
 # Claude Code
 .claude/
