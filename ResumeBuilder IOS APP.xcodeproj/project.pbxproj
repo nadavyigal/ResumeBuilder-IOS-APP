@@ -11,11 +11,11 @@
 		1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */; };
 		749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */; };
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
+		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
 		AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */; };
 		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
-		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,9 +38,9 @@
 		76421689162B5723CAA363D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveEndpointStabilizationTests.swift; sourceTree = "<group>"; };
 		9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpertReportParsingTests.swift; sourceTree = "<group>"; };
-		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
-		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Secrets.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		AA11223344556677889900BB /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
+		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
