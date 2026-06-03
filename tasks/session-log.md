@@ -15,6 +15,25 @@
 
 ## Sessions
 
+### 2026-06-03
+**Task:** WP-1 — Pre-submission device smoke and PostHog live-event verification
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — removed dead INFOPLIST_KEY_POSTHOG_* settings; added PBXShellScriptBuildPhase "Inject PostHog API Key" (UUID AABB1122CCDD3344EEFF5566AABB1122) that uses PlistBuddy to inject POSTHOG_API_KEY and POSTHOG_HOST into the generated Info.plist at build time; wired the phase into the main target's buildPhases
+- `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — updated `testDisabledAnalyticsDoesNotRequireTransport` to `testServiceIsEnabledWhenTransportIsProvided` since the PostHog key is now always present in builds
+**Decisions Made:**
+- `INFOPLIST_KEY_*` does not inject custom keys in Xcode 26.5; Run Script + PlistBuddy is the correct path for custom Info.plist keys when GENERATE_INFOPLIST_FILE=YES
+- Creating a source Info.plist in the app folder conflicts with fileSystemSynchronizedGroups auto-inclusion
+- Fastlane is NOT installed and no ASC API key (.p8) is present; manual Xcode Organizer upload is the App Store Connect path (EXD-006 resolved)
+- Device smoke blocked: iPhone 13 (UDID 00008110-00192DDA2143801E) was locked/unavailable during session; device binary IS built and ready at `/var/tmp/resumebuilder-device-derived/Build/Products/Debug-iphoneos/`
+**Validation:**
+- POSTHOG_API_KEY confirmed in simulator Debug Info.plist: phc_*** (see Secrets.xcconfig)
+- POSTHOG_API_KEY confirmed in iphoneos Debug Info.plist: phc_*** (see Secrets.xcconfig)
+- Full test suite: all XCTest + 5 Swift Testing tests pass (70+ tests, 0 failures)
+- Simulator launch screenshot: Home screen renders correctly at /var/tmp/resumebuilder-smoke/wp1-launch.png
+- Analytics call sites verified: app_launched (App entry), optimization_completed (TailorViewModel + OptimizationReviewView), export_success (ResumeExportAction)
+- ASC upload path: Fastlane NOT installed, no .p8 key found → manual Xcode Organizer path confirmed
+**Next Recommended Action:** Founder: unlock iPhone 13 → run `xcrun devicectl device install app --device 4A1D6EF2-8945-55B8-931A-46980B2A27E2 "/var/tmp/resumebuilder-device-derived/Build/Products/Debug-iphoneos/ResumeBuilder IOS APP.app"` → sign in → run optimize→design→expert→export → screenshot PostHog Live Events for app_launched + optimization_completed + export_success → archive via Xcode Organizer for App Store Connect upload
+
 ### 2026-06-02
 **Task:** Implement post-optimization upgrade: strong optimization contract, focused manual amend, ATS uplift, and Me package hub
 **Files Changed:**

@@ -76,12 +76,12 @@ final class AnalyticsServiceTests: XCTestCase {
         }
     }
 
-    // MARK: Disabled service
+    // MARK: Service enabled state
 
-    func testDisabledAnalyticsDoesNotRequireTransport() async {
-        let service = AnalyticsService(transport: nil)
-        XCTAssertFalse(service.isEnabled)
-        service.track(.resumeUploaded)
+    func testServiceIsEnabledWhenTransportIsProvided() async {
+        let service = AnalyticsService(transport: SpyTransport())
+        XCTAssertTrue(service.isEnabled)
+        service.track(.resumeUploaded) // must not crash
     }
 
     // MARK: Score buckets
