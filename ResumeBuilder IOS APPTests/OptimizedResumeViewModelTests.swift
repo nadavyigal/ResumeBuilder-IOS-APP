@@ -85,9 +85,9 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         await vm.saveManualEdit(sectionId: "s1", newText: "New body", token: "tok")
 
         XCTAssertEqual(optimizationService.appliedRequests.count, 1)
-        XCTAssertEqual(optimizationService.appliedRequests.first?.sectionId, "s1")
+        XCTAssertEqual(optimizationService.appliedRequests.first?.selection.sectionId, "s1")
         XCTAssertEqual(optimizationService.appliedRequests.first?.optimizationId, "opt-1")
-        XCTAssertEqual(optimizationService.appliedRequests.first?.acceptedText, "New body")
+        XCTAssertEqual(optimizationService.appliedRequests.first?.suggestion, "New body")
         XCTAssertEqual(vm.sections.first?.body, "New body")
         XCTAssertEqual(vm.sections.first?.status, "edited")
         XCTAssertNil(vm.errorMessage)

@@ -269,9 +269,15 @@ final class OptimizedResumeViewModel {
         isSaving = true
         defer { isSaving = false }
         do {
-            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: acceptedText)
-            let success = try await optimizationService.applySectionRefine(request, token: token)
-            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+            let originalBody = sections.first(where: { $0.id == sectionId })?.body ?? ""
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                optimizationId: optId,
+                acceptedText: acceptedText,
+                originalText: originalBody
+            )
+            _ = try await optimizationService.applySectionRefine(request, token: token)
+            if let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
             }
@@ -304,14 +310,18 @@ final class OptimizedResumeViewModel {
         defer { isSaving = false }
 
         do {
-            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: newText)
-            let success = try await optimizationService.applySectionRefine(request, token: token)
-            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+            let originalBody = sections.first(where: { $0.id == sectionId })?.body ?? ""
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                optimizationId: optId,
+                acceptedText: newText,
+                originalText: originalBody
+            )
+            _ = try await optimizationService.applySectionRefine(request, token: token)
+            if let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
                 Self.detailCache.removeValue(forKey: optId)
-            } else if !success {
-                errorMessage = "We couldn't save that edit. Please try again."
             }
         } catch let apiError as APIClientError {
             switch apiError {
