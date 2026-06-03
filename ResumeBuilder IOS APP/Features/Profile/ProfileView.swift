@@ -106,6 +106,10 @@ struct ProfileView: View {
                     showOnboarding = false
                 }
             }
+            .onChange(of: appState.applicationsRefreshToken) { _, _ in
+                guard isActive else { return }
+                Task { await applicationsViewModel.load(token: appState.session?.accessToken) }
+            }
             .sheet(item: $comparePair) { pair in
                 NavigationStack {
                     ApplicationCompareView(left: pair.left, right: pair.right)

@@ -16,6 +16,28 @@
 ## Sessions
 
 ### 2026-06-02
+**Task:** Implement post-optimization upgrade: strong optimization contract, focused manual amend, ATS uplift, and Me package hub
+**Files Changed:**
+- `Services/ResumeOptimizationService.swift` — sends `optimization_mode: strong_faithful` plus a substantial/factual quality profile on optimize.
+- `Core/API/Models/DomainModels.swift` — decodes ATS blockers, job/application context, application source URLs, embedded expert reports, and cover-letter text.
+- `ViewModels/OptimizedResumeViewModel.swift` — tracks ATS status/blockers and adds an Improve ATS action through the existing Expert ATS workflow/apply path.
+- `Features/V2/Improve/OptimizedResumeView.swift` — replaces the inline all-section edit panel with a focused section-editor sheet, adds empty validation/dirty discard protection, and surfaces ATS status/blockers/uplift.
+- `Features/Track/ApplicationDetailView.swift`, `Features/Track/ApplicationDetailViewModel.swift`, `Features/Profile/ProfileView.swift`, `App/AppState.swift` — turn application detail into a submission package hub and refresh Me after package creation.
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — adds strong-mode request, ATS blocker, embedded cover-letter report, and ATS uplift coverage.
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md` — recorded scope, validation, progress, and Swift decoder lesson.
+**Decisions Made:**
+- Kept true third-party auto-apply out of scope; this remains assisted submit with resume share, cover-letter copy, job-link open, and application tracking.
+- Represented backend quality work as iOS request/decoder contracts because this workspace contains only the iOS app.
+- Reused Expert ATS Optimization Report apply for the ATS uplift loop rather than adding an unshipped endpoint.
+**Validation:**
+- Focused `OptimizedResumeViewModelTests` passed 15/15 on iPhone 17 simulator.
+- `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`.
+- Full `xcodebuild test` passed 70 XCTest tests plus 5 Swift Testing tests using `/tmp/resumebuilder-derived`.
+- `simctl` install/launch smoke succeeded on booted iPhone 17; late Home screenshot rendered cleanly at `/tmp/resumebuilder-smoke/post-optimization-upgrade-iphone17-late.png`.
+- iPhone SE simulator and authenticated live optimize/package smoke were not available in this environment.
+**Next Recommended Action:** Run an authenticated real-device smoke: optimize with a real resume/job, apply the review, use focused manual edit, run Improve ATS, create Submit Package, then verify Me shows resume share, cover-letter copy, job-link open, saved report, and refreshed application status.
+
+### 2026-06-02
 **Task:** Implement Phase 2 assisted submit package from Optimized resume
 **Files Changed:**
 - `Core/API/Models/DomainModels.swift` — added application-create request/body helpers and flexible create-envelope decoding

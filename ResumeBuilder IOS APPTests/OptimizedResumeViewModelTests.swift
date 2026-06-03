@@ -130,6 +130,35 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertNil(vm.errorMessage)
     }
 
+    func testImproveATSRunsExpertWorkflowAndRefreshesScore() async {
+        let analysisService = ManualEditAnalysisSpy(
+            rescanResponse: ATSRescanResponse(success: true, optimizedScore: 88, originalScore: 61)
+        )
+        let expertService = SubmitExpertWorkflowSpy()
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            sections: [OptimizedResumeSection(id: "skills", type: .skills, body: "Swift", status: "optimized")],
+            atsScoreBefore: 61,
+            atsScoreAfter: 72,
+            optimizationService: MockResumeOptimizationService(),
+            analysisService: analysisService,
+            expertService: expertService
+        )
+
+        await vm.improveATS(token: "tok", appState: appState)
+
+        XCTAssertEqual(expertService.runTypes, [.atsOptimizationReport])
+        XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
+        XCTAssertEqual(expertService.appliedWorkflowTypes, [.atsOptimizationReport])
+        XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
+        XCTAssertEqual(vm.atsScoreBefore, 61)
+        XCTAssertEqual(vm.atsScoreAfter, 88)
+        XCTAssertEqual(appState.resumePreviewRefreshToken, 1)
+        XCTAssertEqual(vm.atsUpliftMessage, "ATS improvements applied. Review the resume before submitting.")
+    }
+
     // MARK: - submit package
 
     func testApplicationCreateRequestBodyUsesBackendFieldNames() {
@@ -169,6 +198,85 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(envelope.application.companyName, "Acme")
         XCTAssertEqual(envelope.application.status, "applied")
         XCTAssertEqual(envelope.application.optimizationId, "opt-1")
+    }
+
+    func testOptimizeRequestBodyUsesStrongFaithfulMode() {
+        let body = OptimizeRequestBody.build(resumeId: "resume-1", jobDescriptionId: "job-1")
+
+        XCTAssertEqual(body["resumeId"] as? String, "resume-1")
+        XCTAssertEqual(body["jobDescriptionId"] as? String, "job-1")
+        XCTAssertEqual(body["optimization_mode"] as? String, "strong_faithful")
+        let profile = body["quality_profile"] as? [String: Any]
+        XCTAssertEqual(profile?["rewrite_depth"] as? String, "substantial")
+        XCTAssertEqual(profile?["fact_policy"] as? String, "preserve_user_facts")
+        XCTAssertEqual(profile?["require_major_section_improvements"] as? Bool, true)
+    }
+
+    func testOptimizationDetailDecodesATSBlockersAndApplicationContext() throws {
+        let json = """
+        {
+          "sections": [],
+          "job_title": "iOS Engineer",
+          "company": "Acme",
+          "ats_score_before": 52,
+          "ats_score_after": 78,
+          "job_url": "https://example.com/job",
+          "application_id": "app-1",
+          "ats_blockers": [
+            {
+              "id": "kw",
+              "category": "keywords",
+              "title": "Missing required cloud terms",
+              "suggested_action": "Add AWS and CI/CD where truthful.",
+              "estimated_gain": 8,
+              "severity": "high"
+            }
+          ]
+        }
+        """
+
+        let detail = try JSONDecoder().decode(OptimizationDetailDTO.self, from: Data(json.utf8))
+
+        XCTAssertEqual(detail.jobTitle, "iOS Engineer")
+        XCTAssertEqual(detail.jobUrl, "https://example.com/job")
+        XCTAssertEqual(detail.applicationId, "app-1")
+        XCTAssertEqual(detail.atsBlockers.count, 1)
+        XCTAssertEqual(detail.atsBlockers.first?.category, "keywords")
+        XCTAssertEqual(detail.atsBlockers.first?.estimatedGain, 8)
+    }
+
+    func testApplicationDetailEnvelopeDecodesEmbeddedCoverLetterReport() throws {
+        let json = """
+        {
+          "success": true,
+          "application": {
+            "id": "app-1",
+            "job_title": "iOS Engineer",
+            "company_name": "Acme",
+            "status": "applied",
+            "optimization_id": "opt-1"
+          },
+          "expert_reports": [
+            {
+              "id": "report-1",
+              "run_id": "run-1",
+              "report_title": "Cover Letter",
+              "workflow_type": "cover_letter_architect",
+              "output_json": {
+                "cover_letter_variants": [
+                  { "letter": "Dear Hiring Manager,\\nI am excited to apply." }
+                ]
+              }
+            }
+          ]
+        }
+        """
+
+        let envelope = try JSONDecoder().decode(ApplicationDetailEnvelope.self, from: Data(json.utf8))
+
+        XCTAssertEqual(envelope.expertReports.count, 1)
+        XCTAssertEqual(envelope.expertReports.first?.runId, "run-1")
+        XCTAssertEqual(envelope.expertReports.first?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
     }
 
     func testSubmitApplicationPackageOrchestratesCreateCoverLetterAndTracking() async throws {
@@ -333,21 +441,23 @@ private final class SubmitApplicationTrackingSpy: ApplicationTrackingServiceProt
 private final class SubmitExpertWorkflowSpy: ExpertWorkflowServiceProtocol, @unchecked Sendable {
     var runTypes: [ExpertWorkflowType] = []
     var appliedRunIds: [String] = []
+    var appliedWorkflowTypes: [ExpertWorkflowType] = []
 
     func run(type: ExpertWorkflowType, optimizationId: String, token: String?, evidenceInputs: [String: JSONValue]) async throws -> ExpertWorkflowRunCreateResponseDTO {
         runTypes.append(type)
+        let output: String
+        if type == .atsOptimizationReport {
+            output = #""ats_report":{"recommended_keywords_to_add":["SwiftUI","CI/CD"],"keyword_placements":[{"keyword":"SwiftUI","section":"skills"}]}"#
+        } else {
+            output = #""cover_letter_variants":[{"tone":"Concise","letter":"Dear Hiring Manager,\nI am excited to apply."}]"#
+        }
         let json = """
         {
-          "workflow_type": "cover_letter_architect",
+          "workflow_type": "\(type.rawValue)",
           "run_id": "run-1",
           "status": "completed",
           "output": {
-            "cover_letter_variants": [
-              {
-                "tone": "Concise",
-                "letter": "Dear Hiring Manager,\\nI am excited to apply."
-              }
-            ]
+            \(output)
           }
         }
         """
@@ -360,12 +470,13 @@ private final class SubmitExpertWorkflowSpy: ExpertWorkflowServiceProtocol, @unc
 
     func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?) async throws -> ExpertWorkflowApplyResponseDTO {
         appliedRunIds.append(runId)
+        appliedWorkflowTypes.append(workflowType)
         let json = """
         {
           "success": true,
-          "workflow_type": "cover_letter_architect",
+          "workflow_type": "\(workflowType.rawValue)",
           "updated_fields": [],
-          "apply_mode": "select_cover_letter_variant",
+          "apply_mode": "default",
           "selection_index": 0
         }
         """

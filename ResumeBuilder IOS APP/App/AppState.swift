@@ -15,6 +15,7 @@ final class AppState {
     var creditsBalance: Int = 0
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
+    var applicationsRefreshToken: Int = 0
     var hasBootstrappedSession = false
     var exportCompletion: ExportCompletionRecord?
 

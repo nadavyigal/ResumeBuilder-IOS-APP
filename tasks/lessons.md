@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-06-02
+**Category:** SwiftUI
+**Rule:** When chaining throwing decoder helpers with nil-coalescing, assign each `try` result to local optional values before using `??`.
+**Why:** A focused build failed because Swift does not allow `try` directly to the right of a non-assignment `??` expression in the ATS blocker decoder.
+
+### 2026-06-02
 **Category:** Test
 **Rule:** In Swift XCTest, avoid asserting arrays of tuples directly and keep string fixtures exactly aligned with expected parsed output.
 **Why:** The first Phase 2 focused test run failed first on tuple-array equality, then on a cover-letter fixture missing the comma expected by the assertion; element-wise tuple assertions and matching fixtures made the test intent clear.

@@ -22,10 +22,16 @@ final class OptimizedResumeViewModel {
     var jobTitle: String?
     var company: String?
     var contact: ResumeContact?
+    var atsBlockers: [ATSOptimizationBlocker] = []
+    var jobURLString: String?
+    var applicationId: String?
+    var isImprovingATS = false
+    var atsUpliftMessage: String?
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
     private let analysisService: any ResumeAnalysisServiceProtocol
+    private let expertService: any ExpertWorkflowServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
     private static var detailCache: [String: OptimizationDetailDTO] = [:]
 
@@ -39,7 +45,8 @@ final class OptimizedResumeViewModel {
         company: String? = nil,
         contact: ResumeContact? = nil,
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
-        analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService()
+        analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
+        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -51,6 +58,7 @@ final class OptimizedResumeViewModel {
         self.contact = contact
         self.optimizationService = optimizationService
         self.analysisService = analysisService
+        self.expertService = expertService
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
@@ -59,6 +67,27 @@ final class OptimizedResumeViewModel {
 
     var isAwaitingInitialSections: Bool {
         optimizationId != nil && sections.isEmpty && !didAttemptInitialSectionLoad
+    }
+
+    var atsStatusLabel: String {
+        let score = atsScoreAfter ?? atsScoreBefore ?? 0
+        if score >= 80 { return "High" }
+        if score >= 70 { return "Strong" }
+        if score >= 55 { return "Medium" }
+        return "Low"
+    }
+
+    var atsStatusDescription: String {
+        switch atsStatusLabel {
+        case "High":
+            return "Strong match for this role. Keep edits truthful before applying."
+        case "Strong":
+            return "Close to high. A focused keyword and metrics pass may lift it further."
+        case "Medium":
+            return "Useful foundation, but ATS blockers still need attention."
+        default:
+            return "Low match. Improve role keywords, title fit, metrics, and section coverage before submitting."
+        }
     }
 
     /// Plain text of all sections joined for clipboard copy.
@@ -189,6 +218,9 @@ final class OptimizedResumeViewModel {
         if company == nil  { company  = detail.company  }
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+        atsBlockers = detail.atsBlockers
+        if jobURLString == nil { jobURLString = detail.jobUrl }
+        if applicationId == nil { applicationId = detail.applicationId }
     }
 
     func applyExpertATSResult(_ applyResult: ExpertWorkflowApplyResponseDTO) {
@@ -316,6 +348,53 @@ final class OptimizedResumeViewModel {
             }
         } catch {
             errorMessage = "Saved your edit, but couldn't refresh the ATS score: \(error.localizedDescription)"
+        }
+    }
+
+    func improveATS(token: String?, appState: AppState) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isImprovingATS = true
+        atsUpliftMessage = nil
+        errorMessage = nil
+        defer { isImprovingATS = false }
+
+        do {
+            let evidence: [String: JSONValue] = [
+                "user_context": .string("Improve ATS blockers while preserving user facts. Do not invent tools, metrics, employers, education, or certifications.")
+            ]
+            let run = try await expertService.run(
+                type: .atsOptimizationReport,
+                optimizationId: optId,
+                token: token,
+                evidenceInputs: evidence
+            )
+            let apply = try await expertService.apply(
+                runId: run.runId,
+                workflowType: .atsOptimizationReport,
+                token: token,
+                selectionIndex: nil,
+                screeningSelectedIndices: nil,
+                selectedFields: nil
+            )
+            mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
+            applyExpertATSResult(apply)
+            Self.detailCache.removeValue(forKey: optId)
+            appState.resumeSectionsNeedRefresh = true
+            appState.resumePreviewRefreshToken += 1
+            await rescanATS(token: token)
+            atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
+        } catch let apiError as APIClientError {
+            errorMessage = apiError.userFacingMessage
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

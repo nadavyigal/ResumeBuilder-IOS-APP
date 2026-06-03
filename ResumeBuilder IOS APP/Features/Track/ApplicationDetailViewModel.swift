@@ -6,6 +6,7 @@ import Observation
 final class ApplicationDetailViewModel {
     private(set) var item: ApplicationItem
     private(set) var expertReportsCount: Int = 0
+    private(set) var expertReports: [ApplicationExpertReportItem] = []
     var isLoading = false
     var actionError: String?
     var isMarkingApplied = false
@@ -30,14 +31,21 @@ final class ApplicationDetailViewModel {
         do {
             let detail = try await service.fetchDetail(id: item.id, token: token)
             item = detail.application
+            if !detail.expertReports.isEmpty {
+                expertReports = detail.expertReports
+                expertReportsCount = detail.expertReports.count
+                return
+            }
         } catch {
             actionError = error.localizedDescription
         }
 
         do {
             let reports = try await service.fetchExpertReports(applicationId: item.id, token: token)
+            expertReports = reports
             expertReportsCount = reports.count
         } catch {
+            expertReports = []
             expertReportsCount = 0
         }
     }
