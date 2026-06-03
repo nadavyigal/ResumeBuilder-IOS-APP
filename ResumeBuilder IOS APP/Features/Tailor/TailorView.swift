@@ -507,16 +507,24 @@ struct TailorView: View {
                 Task {
                     if appState.isAuthenticated {
                         await viewModel.optimize(appState: appState)
+                        #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
+                        #endif
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
+                            #if DEBUG
                             print("➡️ [TAILOR VIEW] switching to .optimized tab with id=\(optId)")
+                            #endif
                             appState.latestOptimizationId = optId
                             onSwitchTab(.optimized)
                         } else if viewModel.reviewId != nil {
+                            #if DEBUG
                             print("➡️ [TAILOR VIEW] navigating to review screen")
+                            #endif
                             shouldNavigate = true
                         } else {
+                            #if DEBUG
                             print("⚠️ [TAILOR VIEW] no id to navigate with — staying on tailor tab")
+                            #endif
                         }
                     } else {
                         await viewModel.runFreeATS(appState: appState)
