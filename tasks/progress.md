@@ -3,14 +3,14 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
-Active Story: Post-optimization upgrade complete; next planned story is authenticated real-device package/manual-edit smoke
-Last Completed Story: Post-optimization upgrade: strong optimization contract, focused manual amend, ATS uplift, and Me package hub (2026-06-02)
-Next Recommended Story: Authenticated real-device smoke for strong optimize → manual edit → ATS uplift → submit package → Me application package hub
+Active Story: WP-1 in progress — PostHog key fix shipped; device smoke blocked on founder unlocking device
+Last Completed Story: WP-1 PostHog fix: Run Script build phase now injects POSTHOG_API_KEY into Info.plist; all tests pass; device binary built (2026-06-03)
+Next Recommended Story: Founder unlocks iPhone 13, installs the WP-1 device build, runs optimize→design→expert→export smoke, screenshots PostHog Live Events
 Estimated Completion: 78%
 Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Post-optimization upgrade: focused `OptimizedResumeViewModelTests` passed 15/15; `xcodebuild build` succeeded on iPhone 17 simulator using `/tmp/resumebuilder-derived`; full `xcodebuild test` passed 70 XCTest + 5 Swift Testing tests; `simctl` install/launch smoke succeeded on booted iPhone 17 with late Home screenshot checked at `/tmp/resumebuilder-smoke/post-optimization-upgrade-iphone17-late.png` (2026-06-02). iPhone SE simulator and authenticated live optimize/package smoke were not available in this environment. Default project-local `.derivedData` codesign is blocked by FileProvider/Finder extended attributes, but signed build/test passes from `/tmp` DerivedData.
-Last Updated: 2026-06-02
+Last Validation: WP-1 session (2026-06-03): PostHog Run Script fix verified — POSTHOG_API_KEY and POSTHOG_HOST appear in both simulator and iphoneos Debug Info.plist. Full test suite passed: 70 XCTest + 5 Swift Testing (all pass after analytics test update). Simulator launch screenshot confirmed Home renders at /var/tmp/resumebuilder-smoke/wp1-launch.png. Device build (iphoneos Debug) compiled and signed successfully at /var/tmp/resumebuilder-device-derived/Build/Products/Debug-iphoneos/. iPhone 13 UDID 00008110-00192DDA2143801E was unavailable (locked) during install attempt — founder must unlock and install manually.
+Last Updated: 2026-06-03
 Current Branch: main
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md

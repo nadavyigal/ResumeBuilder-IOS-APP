@@ -15,6 +15,16 @@
 
 ## Lessons
 
+### 2026-06-03
+**Category:** Build
+**Rule:** `INFOPLIST_KEY_*` build settings only inject predefined system keys (NSCamera, UILaunch, etc.) into a generated Info.plist — arbitrary custom keys like `POSTHOG_API_KEY` are silently omitted. Use a Run Script build phase with PlistBuddy to inject custom Info.plist keys after GENERATE_INFOPLIST_FILE runs.
+**Why:** The POSTHOG_API_KEY build setting appeared correctly in `-showBuildSettings` output but never reached the app's Info.plist, silently disabling all analytics. Xcode 26.5 confirmed: custom INFOPLIST_KEY_* values are dropped.
+
+### 2026-06-03
+**Category:** Build
+**Rule:** When GENERATE_INFOPLIST_FILE=YES is active and a project uses `fileSystemSynchronizedGroups`, do NOT place a file named `Info.plist` in the app source directory — the auto-sync mechanism picks it up as a resource AND the build system processes it as the INFOPLIST_FILE, producing a "Multiple commands produce" conflict.
+**Why:** Creating Info.plist in the app folder triggered two build commands writing to the same output path; the file system synchronized group auto-includes all files in the folder without needing explicit project references.
+
 ### 2026-06-02
 **Category:** SwiftUI
 **Rule:** When chaining throwing decoder helpers with nil-coalescing, assign each `try` result to local optional values before using `??`.

@@ -131,6 +131,7 @@
 				335AA75F2FA77AB800FD6628 /* Sources */,
 				335AA7602FA77AB800FD6628 /* Frameworks */,
 				335AA7612FA77AB800FD6628 /* Resources */,
+				AABB1122CCDD3344EEFF5566AABB1122 /* Inject PostHog API Key */,
 			);
 			buildRules = (
 			);
@@ -213,6 +214,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AABB1122CCDD3344EEFF5566AABB1122 /* Inject PostHog API Key */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Inject PostHog API Key";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\nset -e\nPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -n \"${POSTHOG_API_KEY}\" ]; then\n  /usr/libexec/PlistBuddy -c \"Delete :POSTHOG_API_KEY\" \"${PLIST}\" 2>/dev/null || true\n  /usr/libexec/PlistBuddy -c \"Add :POSTHOG_API_KEY string ${POSTHOG_API_KEY}\" \"${PLIST}\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :POSTHOG_HOST\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :POSTHOG_HOST string https://us.i.posthog.com\" \"${PLIST}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		335AA75F2FA77AB800FD6628 /* Sources */ = {
@@ -386,8 +409,6 @@
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_POSTHOG_API_KEY = "$(POSTHOG_API_KEY)";
-				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -423,8 +444,6 @@
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_POSTHOG_API_KEY = "$(POSTHOG_API_KEY)";
-				INFOPLIST_KEY_POSTHOG_HOST = "https://us.i.posthog.com";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
