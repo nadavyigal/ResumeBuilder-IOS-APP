@@ -8,6 +8,10 @@ struct ApplicationDetailView: View {
     @State private var showAttachPicker = false
     @State private var expertVM: ExpertModesViewModel? = nil
     @State private var navigateToOptimizedResume = false
+    @State private var isDownloadingResume = false
+    @State private var resumeShareURL: URL?
+    @State private var showResumeShare = false
+    @State private var showCopiedCoverLetter = false
 
     private var token: String? { appState.session?.accessToken }
 
@@ -80,26 +84,7 @@ struct ApplicationDetailView: View {
                     }
                 }
 
-                if let summary = optimizedAttachmentSummary {
-                    Section("Attached resume") {
-                        Text(summary.filename)
-                            .font(.body)
-
-                        if let url = summary.url {
-                            ShareLink(item: url) {
-                                Label("Share link", systemImage: "square.and.arrow.up")
-                            }
-                        }
-
-                        if let url = summary.url {
-                            Button {
-                                UIApplication.shared.open(url)
-                            } label: {
-                                Label("Open in Safari", systemImage: "safari")
-                            }
-                        }
-                    }
-                }
+                packageHubSection
 
                 Section("Overview") {
                     LabeledContent("Role", value: vm.item.jobTitle ?? "—")
@@ -137,6 +122,12 @@ struct ApplicationDetailView: View {
                 Task { await vm.attachOptimizedResume(optimizationHistoryId: picked.id, token: token) }
             }
         }
+        .sheet(isPresented: $showResumeShare, onDismiss: { resumeShareURL = nil }) {
+            if let resumeShareURL {
+                ShareSheet(items: [resumeShareURL])
+                    .ignoresSafeArea()
+            }
+        }
         .task {
             if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, expertVM == nil {
                 let resumeVM = OptimizedResumeViewModel(
@@ -167,6 +158,23 @@ struct ApplicationDetailView: View {
         } message: {
             Text(vm.actionError ?? "")
         }
+        .overlay(alignment: .top) {
+            if showCopiedCoverLetter {
+                Label("Cover letter copied", systemImage: "checkmark.circle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.vertical, AppSpacing.sm)
+                    .background(AppColors.accentTeal, in: Capsule())
+                    .padding(.top, AppSpacing.md)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showCopiedCoverLetter = false }
+                        }
+                    }
+            }
+        }
     }
 
     private struct AttachmentSummary {
@@ -175,7 +183,7 @@ struct ApplicationDetailView: View {
     }
 
     private var optimizedAttachmentSummary: AttachmentSummary? {
-        let id = vm.item.optimizedResumeId
+        let id = vm.item.optimizedResumeId ?? vm.item.optimizationId
         let link = vm.item.optimizedResumeURL
         guard id != nil || (link?.isEmpty == false) else { return nil }
 
@@ -189,6 +197,126 @@ struct ApplicationDetailView: View {
 
         let urlParsed = link.flatMap { URL(string: $0) }
         return AttachmentSummary(filename: name, url: urlParsed)
+    }
+
+    @ViewBuilder
+    private var packageHubSection: some View {
+        Section("Submission Package") {
+            if optimizedAttachmentSummary == nil && coverLetterReport == nil && packageJobURL == nil {
+                LabeledContent("Package", value: "Attach an optimized resume to complete this application.")
+                    .foregroundStyle(.secondary)
+            } else {
+                if let score = vm.item.atsScore {
+                    LabeledContent("ATS match", value: "\(score)% · \(atsStatusLabel(score))")
+                }
+
+                if let summary = optimizedAttachmentSummary {
+                    LabeledContent("Resume", value: summary.filename)
+
+                    Button {
+                        Task { await shareOptimizedResume() }
+                    } label: {
+                        Label(isDownloadingResume ? "Preparing…" : "Share Resume PDF", systemImage: "square.and.arrow.up")
+                    }
+                    .disabled(isDownloadingResume)
+
+                    if let url = summary.url {
+                        Button {
+                            UIApplication.shared.open(url)
+                        } label: {
+                            Label("Open Resume Link", systemImage: "safari")
+                        }
+                    }
+                }
+
+                if let report = coverLetterReport {
+                    Button {
+                        if let text = report.coverLetterText {
+                            UIPasteboard.general.string = text
+                            withAnimation { showCopiedCoverLetter = true }
+                        }
+                    } label: {
+                        Label("Copy Cover Letter", systemImage: "doc.on.doc")
+                    }
+                    .disabled(report.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false)
+
+                    if let text = report.coverLetterText {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Cover Letter")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Text(text)
+                                .font(.footnote)
+                                .textSelection(.enabled)
+                                .lineLimit(8)
+                        }
+                    } else {
+                        LabeledContent("Cover Letter", value: report.reportTitle ?? "Saved")
+                    }
+                }
+
+                if let url = packageJobURL {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Label("Open Job Link", systemImage: "link")
+                    }
+                }
+            }
+        }
+    }
+
+    private var coverLetterReport: ApplicationExpertReportItem? {
+        vm.expertReports.first { report in
+            report.workflowType == ExpertWorkflowType.coverLetterArchitect.rawValue
+                || report.reportTitle?.localizedCaseInsensitiveContains("cover") == true
+                || report.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        }
+    }
+
+    private var packageJobURL: URL? {
+        guard let raw = vm.item.sourceURL?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            return nil
+        }
+        if let url = URL(string: raw), url.scheme != nil {
+            return url
+        }
+        return URL(string: "https://\(raw)")
+    }
+
+    @MainActor
+    private func shareOptimizedResume() async {
+        guard !isDownloadingResume else { return }
+        if let existingURL = optimizedAttachmentSummary?.url {
+            resumeShareURL = existingURL
+            showResumeShare = true
+            return
+        }
+        guard let oid = vm.item.optimizationId ?? vm.item.optimizedResumeId else {
+            vm.actionError = "Attach an optimized resume before sharing."
+            return
+        }
+        guard let token else {
+            vm.actionError = "Please sign in first."
+            return
+        }
+        isDownloadingResume = true
+        defer { isDownloadingResume = false }
+        do {
+            resumeShareURL = try await PDFExporter.downloadPDF(optimizationId: oid, token: token)
+            showResumeShare = true
+        } catch let apiError as APIClientError {
+            vm.actionError = apiError.userFacingMessage
+        } catch {
+            vm.actionError = error.localizedDescription
+        }
+    }
+
+    private func atsStatusLabel(_ score: Int) -> String {
+        if score >= 80 { return "High" }
+        if score >= 70 { return "Strong" }
+        if score >= 55 { return "Medium" }
+        return "Low"
     }
 
     private func formattedAppliedBadge(from iso: String?) -> String? {

@@ -589,6 +589,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
     let optimizationId: String?
     let optimizedResumeURL: String?
     let optimizedResumeId: String?
+    let sourceURL: String?
     let jobExtraction: JSONValue?
     let contact: JSONValue?
 
@@ -603,6 +604,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         optimizationId: String? = nil,
         optimizedResumeURL: String? = nil,
         optimizedResumeId: String? = nil,
+        sourceURL: String? = nil,
         jobExtraction: JSONValue? = nil,
         contact: JSONValue? = nil
     ) {
@@ -616,6 +618,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         self.optimizationId = optimizationId
         self.optimizedResumeURL = optimizedResumeURL
         self.optimizedResumeId = optimizedResumeId
+        self.sourceURL = sourceURL
         self.jobExtraction = jobExtraction
         self.contact = contact
     }
@@ -631,6 +634,8 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         case optimizationId = "optimization_id"
         case optimizedResumeURL = "optimized_resume_url"
         case optimizedResumeId = "optimized_resume_id"
+        case sourceURL = "source_url"
+        case jobURL = "job_url"
         case jobExtraction = "job_extraction"
         case contact
     }
@@ -646,6 +651,9 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         optimizationId = try c.decodeIfPresent(String.self, forKey: .optimizationId)
         optimizedResumeURL = try c.decodeIfPresent(String.self, forKey: .optimizedResumeURL)
         optimizedResumeId = try c.decodeIfPresent(String.self, forKey: .optimizedResumeId)
+        sourceURL =
+            try c.decodeIfPresent(String.self, forKey: .sourceURL)
+            ?? c.decodeIfPresent(String.self, forKey: .jobURL)
         jobExtraction = try c.decodeIfPresent(JSONValue.self, forKey: .jobExtraction)
         contact = try c.decodeIfPresent(JSONValue.self, forKey: .contact)
         if let intScore = try? c.decode(Int.self, forKey: .atsScore) {
@@ -670,6 +678,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         try c.encodeIfPresent(optimizationId, forKey: .optimizationId)
         try c.encodeIfPresent(optimizedResumeURL, forKey: .optimizedResumeURL)
         try c.encodeIfPresent(optimizedResumeId, forKey: .optimizedResumeId)
+        try c.encodeIfPresent(sourceURL, forKey: .sourceURL)
         try c.encodeIfPresent(jobExtraction, forKey: .jobExtraction)
         try c.encodeIfPresent(contact, forKey: .contact)
     }
@@ -685,12 +694,50 @@ struct ApplicationDetailEnvelope: Codable, Sendable {
     let application: ApplicationItem
     let htmlUrl: String?
     let jsonUrl: String?
+    let expertReports: [ApplicationExpertReportItem]
 
     enum CodingKeys: String, CodingKey {
         case success
         case application
         case htmlUrl
         case jsonUrl
+        case expertReports = "expert_reports"
+        case reports
+    }
+
+    init(
+        success: Bool?,
+        application: ApplicationItem,
+        htmlUrl: String?,
+        jsonUrl: String?,
+        expertReports: [ApplicationExpertReportItem] = []
+    ) {
+        self.success = success
+        self.application = application
+        self.htmlUrl = htmlUrl
+        self.jsonUrl = jsonUrl
+        self.expertReports = expertReports
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        success = try c.decodeIfPresent(Bool.self, forKey: .success)
+        application = try c.decode(ApplicationItem.self, forKey: .application)
+        htmlUrl = try c.decodeIfPresent(String.self, forKey: .htmlUrl)
+        jsonUrl = try c.decodeIfPresent(String.self, forKey: .jsonUrl)
+        expertReports =
+            try c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .expertReports)
+            ?? c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .reports)
+            ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(success, forKey: .success)
+        try c.encode(application, forKey: .application)
+        try c.encodeIfPresent(htmlUrl, forKey: .htmlUrl)
+        try c.encodeIfPresent(jsonUrl, forKey: .jsonUrl)
+        try c.encode(expertReports, forKey: .expertReports)
     }
 }
 
@@ -837,12 +884,98 @@ struct ApplicationExpertReportItem: Codable, Identifiable, Sendable {
     let reportTitle: String?
     let workflowType: String?
     let savedAt: String?
+    let runId: String?
+    let outputJson: JSONValue?
+    let coverLetterText: String?
+    let assetUrl: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case reportTitle = "report_title"
         case workflowType = "workflow_type"
         case savedAt = "saved_at"
+        case runId = "run_id"
+        case outputJson = "output_json"
+        case output
+        case coverLetterText = "cover_letter_text"
+        case letter
+        case assetUrl = "asset_url"
+        case url
+    }
+
+    init(
+        id: String,
+        reportTitle: String? = nil,
+        workflowType: String? = nil,
+        savedAt: String? = nil,
+        runId: String? = nil,
+        outputJson: JSONValue? = nil,
+        coverLetterText: String? = nil,
+        assetUrl: String? = nil
+    ) {
+        self.id = id
+        self.reportTitle = reportTitle
+        self.workflowType = workflowType
+        self.savedAt = savedAt
+        self.runId = runId
+        self.outputJson = outputJson
+        self.coverLetterText = coverLetterText
+        self.assetUrl = assetUrl
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id)
+            ?? c.decodeIfPresent(String.self, forKey: .runId)
+            ?? UUID().uuidString
+        reportTitle = try c.decodeIfPresent(String.self, forKey: .reportTitle)
+        workflowType = try c.decodeIfPresent(String.self, forKey: .workflowType)
+        savedAt = try c.decodeIfPresent(String.self, forKey: .savedAt)
+        runId = try c.decodeIfPresent(String.self, forKey: .runId)
+        outputJson =
+            try c.decodeIfPresent(JSONValue.self, forKey: .outputJson)
+            ?? c.decodeIfPresent(JSONValue.self, forKey: .output)
+        coverLetterText =
+            try c.decodeIfPresent(String.self, forKey: .coverLetterText)
+            ?? c.decodeIfPresent(String.self, forKey: .letter)
+            ?? Self.extractCoverLetter(from: outputJson)
+        assetUrl =
+            try c.decodeIfPresent(String.self, forKey: .assetUrl)
+            ?? c.decodeIfPresent(String.self, forKey: .url)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encodeIfPresent(reportTitle, forKey: .reportTitle)
+        try c.encodeIfPresent(workflowType, forKey: .workflowType)
+        try c.encodeIfPresent(savedAt, forKey: .savedAt)
+        try c.encodeIfPresent(runId, forKey: .runId)
+        try c.encodeIfPresent(outputJson, forKey: .outputJson)
+        try c.encodeIfPresent(coverLetterText, forKey: .coverLetterText)
+        try c.encodeIfPresent(assetUrl, forKey: .assetUrl)
+    }
+
+    private static func extractCoverLetter(from value: JSONValue?) -> String? {
+        guard let value else { return nil }
+        if let direct = value["letter"]?.stringValue ?? value["body"]?.stringValue ?? value["cover_letter"]?.stringValue {
+            return direct
+        }
+        if let variants = value["cover_letter_variants"], case .array(let rows) = variants {
+            for row in rows {
+                if let letter = row["letter"]?.stringValue ?? row["body"]?.stringValue {
+                    return letter
+                }
+            }
+        }
+        if case .object(let object) = value {
+            for child in object.values {
+                if let found = extractCoverLetter(from: child) {
+                    return found
+                }
+            }
+        }
+        return nil
     }
 }
 
@@ -1507,6 +1640,9 @@ struct OptimizationDetailDTO: Decodable, Sendable {
     let company: String?
     let atsScoreBefore: Int?
     let atsScoreAfter: Int?
+    let atsBlockers: [ATSOptimizationBlocker]
+    let jobUrl: String?
+    let applicationId: String?
 
     private enum CodingKeys: String, CodingKey {
         case sections
@@ -1518,6 +1654,12 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         case atsScoreBefore = "ats_score_before"
         case atsScoreAfterCamel = "atsScoreAfter"
         case atsScoreAfter  = "ats_score_after"
+        case atsBlockersCamel = "atsBlockers"
+        case atsBlockers = "ats_blockers"
+        case jobUrlCamel = "jobUrl"
+        case jobUrl = "job_url"
+        case applicationIdCamel = "applicationId"
+        case applicationId = "application_id"
     }
 
     init(from decoder: Decoder) throws {
@@ -1534,6 +1676,58 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         atsScoreAfter =
             try c.decodeIfPresent(Int.self, forKey: .atsScoreAfter)
             ?? c.decodeIfPresent(Int.self, forKey: .atsScoreAfterCamel)
+        atsBlockers =
+            try c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockers)
+            ?? c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockersCamel)
+            ?? []
+        jobUrl =
+            try c.decodeIfPresent(String.self, forKey: .jobUrl)
+            ?? c.decodeIfPresent(String.self, forKey: .jobUrlCamel)
+        applicationId =
+            try c.decodeIfPresent(String.self, forKey: .applicationId)
+            ?? c.decodeIfPresent(String.self, forKey: .applicationIdCamel)
+    }
+}
+
+struct ATSOptimizationBlocker: Codable, Identifiable, Sendable, Equatable {
+    let id: String
+    let category: String
+    let title: String
+    let detail: String?
+    let suggestedAction: String?
+    let estimatedGain: Int?
+    let severity: String?
+
+    init(
+        id: String = UUID().uuidString,
+        category: String,
+        title: String,
+        detail: String? = nil,
+        suggestedAction: String? = nil,
+        estimatedGain: Int? = nil,
+        severity: String? = nil
+    ) {
+        self.id = id
+        self.category = category
+        self.title = title
+        self.detail = detail
+        self.suggestedAction = suggestedAction
+        self.estimatedGain = estimatedGain
+        self.severity = severity
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        id = try c.decodeString(for: ["id"]) ?? UUID().uuidString
+        category = try c.decodeString(for: ["category", "type"]) ?? "ATS"
+        let decodedTitle = try c.decodeString(for: ["title", "label", "message"])
+        let decodedSuggestedAction = try c.decodeString(for: ["suggested_action", "suggestedAction"])
+        let decodedAction = try c.decodeString(for: ["action", "suggestion"])
+        title = decodedTitle ?? decodedSuggestedAction ?? "ATS improvement"
+        detail = try c.decodeString(for: ["detail", "description", "rationale", "text"])
+        suggestedAction = decodedSuggestedAction ?? decodedAction
+        estimatedGain = try c.decodeInt(for: ["estimated_gain", "estimatedGain", "estimated_impact"])
+        severity = try c.decodeString(for: ["severity", "priority"])
     }
 }
 

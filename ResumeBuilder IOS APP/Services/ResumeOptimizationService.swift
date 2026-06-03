@@ -101,6 +101,28 @@ struct RefineSectionApplyRequest: Codable, Sendable {
     }
 }
 
+enum ResumeOptimizationMode: String, Sendable {
+    case strongFaithful = "strong_faithful"
+}
+
+enum OptimizeRequestBody {
+    nonisolated static let defaultMode = ResumeOptimizationMode.strongFaithful.rawValue
+
+    nonisolated static func build(resumeId: String, jobDescriptionId: String) -> [String: Any] {
+        [
+            "resumeId": resumeId,
+            "jobDescriptionId": jobDescriptionId,
+            "optimization_mode": defaultMode,
+            "quality_profile": [
+                "rewrite_depth": "substantial",
+                "fact_policy": "preserve_user_facts",
+                "ats_target": "high_when_supported",
+                "require_major_section_improvements": true,
+            ],
+        ]
+    }
+}
+
 protocol ResumeOptimizationServiceProtocol: Sendable {
     func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse
     func refineSection(_ request: RefineSectionRequest, token: String) async throws -> RefineSectionResponse
@@ -113,7 +135,7 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
 
     func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {
         logger.info("Optimize start resumeId=\(resumeId, privacy: .public)")
-        let body: [String: Any] = ["resumeId": resumeId, "jobDescriptionId": jobDescriptionId]
+        let body = OptimizeRequestBody.build(resumeId: resumeId, jobDescriptionId: jobDescriptionId)
         do {
             let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token, timeout: 120)
             logger.info("Optimize response success=\(response.success ?? false) sections=\(response.sections?.count ?? 0)")

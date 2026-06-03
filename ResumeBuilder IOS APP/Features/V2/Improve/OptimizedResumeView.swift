@@ -15,6 +15,8 @@ struct OptimizedResumeView: View {
     @State private var editingSectionId: String? = nil
     @State private var isManualEditMode = false
     @State private var manualEditTextBySection: [String: String] = [:]
+    @State private var manualEditError: String? = nil
+    @State private var showDiscardManualEditConfirmation = false
     @State private var submitVM: SubmitApplicationViewModel? = nil
     @State private var showSubmitPackageSheet = false
     @State private var navigateToModifications = false
@@ -63,8 +65,8 @@ struct OptimizedResumeView: View {
                         .padding(.top, AppSpacing.xl)
                 }
 
-                if isManualEditMode {
-                    manualEditPanel
+                if viewModel.optimizationIdentifier != nil {
+                    atsUpliftPanel
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
@@ -151,6 +153,9 @@ struct OptimizedResumeView: View {
                     accessToken: appState.session?.accessToken
                 )
             }
+        }
+        .sheet(isPresented: $isManualEditMode) {
+            manualEditSheet
         }
         .sheet(isPresented: $showPDFShare, onDismiss: { pdfTempURL = nil }) {
             if let url = pdfTempURL {
@@ -287,7 +292,7 @@ struct OptimizedResumeView: View {
                     .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
 
                     improveButton(title: isManualEditMode ? "Done" : "Edit", icon: isManualEditMode ? "checkmark.circle" : "square.and.pencil") {
-                        toggleManualEditMode()
+                        openManualEditor()
                     }
                     .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil || viewModel.isSaving)
 
@@ -318,30 +323,182 @@ struct OptimizedResumeView: View {
         .buttonStyle(GradientButtonStyle())
     }
 
-    private var manualEditPanel: some View {
+    private var atsUpliftPanel: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack {
-                Text("Manual Edits")
-                    .font(.appHeadline)
-                    .foregroundStyle(AppColors.textPrimary)
+            HStack(alignment: .center, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ATS Match")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textTertiary)
+                    HStack(spacing: AppSpacing.sm) {
+                        Text(viewModel.atsStatusLabel)
+                            .font(.appHeadline)
+                            .foregroundStyle(atsStatusColor)
+                        if let before = viewModel.atsScoreBefore, let after = viewModel.atsScoreAfter {
+                            Text("\(before)% → \(after)%")
+                                .font(.appCaption.weight(.semibold))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    Text(viewModel.atsStatusDescription)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
                 Spacer()
-                if viewModel.isRefreshingATS {
-                    ProgressView()
-                        .tint(AppColors.accentTeal)
+                Button {
+                    Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
+                } label: {
+                    if viewModel.isImprovingATS {
+                        ProgressView()
+                            .tint(AppColors.accentTeal)
+                            .frame(width: 32, height: 32)
+                    } else {
+                        Image(systemName: "gauge.medium")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                            .frame(width: 40, height: 40)
+                            .glassCard(cornerRadius: AppRadii.md)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isImprovingATS)
+            }
+
+            if !viewModel.atsBlockers.isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    ForEach(viewModel.atsBlockers.prefix(3)) { blocker in
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .imageScale(.small)
+                                .foregroundStyle(AppColors.accentSky)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(blocker.title)
+                                    .font(.appCaption.weight(.semibold))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                if let action = blocker.suggestedAction ?? blocker.detail {
+                                    Text(action)
+                                        .font(.appCaption)
+                                        .foregroundStyle(AppColors.textTertiary)
+                                        .lineLimit(2)
+                                }
+                            }
+                            Spacer()
+                            if let gain = blocker.estimatedGain {
+                                Text("+\(gain)")
+                                    .font(.appCaption.weight(.bold))
+                                    .foregroundStyle(AppColors.accentTeal)
+                            }
+                        }
+                    }
                 }
             }
 
-            ForEach(viewModel.sections) { section in
-                manualEditSection(section)
+            if let message = viewModel.atsUpliftMessage {
+                Label(message, systemImage: "checkmark.circle.fill")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var atsStatusColor: Color {
+        switch viewModel.atsStatusLabel {
+        case "High": return AppColors.accentTeal
+        case "Strong": return AppColors.accentSky
+        case "Medium": return AppColors.accentCyan
+        default: return AppColors.accentViolet
+        }
+    }
+
+    private var manualEditSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                manualSectionSelector
+
+                if let section = selectedManualSection {
+                    focusedManualEditor(section)
+                } else {
+                    ContentUnavailableView("No section selected", systemImage: "doc.text")
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                if let manualEditError {
+                    Text(manualEditError)
+                        .font(.appCaption)
+                        .foregroundStyle(.red)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(AppSpacing.lg)
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Edit Resume")
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(selectedManualSection.map(hasPendingManualEdit(for:)) ?? false)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        closeManualEditorRespectingDirtyState()
+                    }
+                    .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .confirmationDialog(
+                "Discard unsaved edit?",
+                isPresented: $showDiscardManualEditConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Discard", role: .destructive) {
+                    if let section = selectedManualSection {
+                        manualEditTextBySection[section.id] = section.body
+                    }
+                    isManualEditMode = false
+                }
+                Button("Keep Editing", role: .cancel) {}
             }
         }
     }
 
-    private func manualEditSection(_ section: OptimizedResumeSection) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text(section.type.displayName)
-                .font(.appSubheadline.weight(.semibold))
-                .foregroundStyle(AppColors.textPrimary)
+    private var manualSectionSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppSpacing.sm) {
+                ForEach(viewModel.sections) { section in
+                    Button {
+                        editingSectionId = section.id
+                        manualEditError = nil
+                    } label: {
+                        Text(section.type.displayName)
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(editingSectionId == section.id ? .black : AppColors.textPrimary)
+                            .padding(.horizontal, AppSpacing.md)
+                            .frame(height: 36)
+                            .background(
+                                editingSectionId == section.id ? AppColors.accentTeal : .clear,
+                                in: Capsule()
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(AppColors.glassStroke, lineWidth: editingSectionId == section.id ? 0 : 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func focusedManualEditor(_ section: OptimizedResumeSection) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(section.type.displayName)
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Edit only facts you can verify. Save refreshes the preview and ATS score.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            }
 
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
@@ -356,16 +513,17 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textPrimary)
                     .scrollContentBackground(.hidden)
                     .padding(AppSpacing.sm)
-                    .frame(minHeight: editorHeight(for: section.body))
+                    .frame(minHeight: max(220, editorHeight(for: section.body)))
             }
 
             HStack(spacing: AppSpacing.sm) {
                 Button {
                     manualEditTextBySection[section.id] = section.body
+                    manualEditError = nil
                 } label: {
                     Label("Cancel", systemImage: "xmark")
                         .font(.appCaption.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .frame(maxWidth: .infinity, minHeight: 42)
                         .glassCard(cornerRadius: AppRadii.md)
                 }
                 .buttonStyle(GradientButtonStyle())
@@ -374,17 +532,23 @@ struct OptimizedResumeView: View {
                 Button {
                     Task { await saveManualEdit(section) }
                 } label: {
-                    Label("Save", systemImage: "checkmark")
+                    Label(viewModel.isSaving ? "Saving" : "Save", systemImage: "checkmark")
                         .font(.appCaption.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .frame(maxWidth: .infinity, minHeight: 42)
                         .glassCard(cornerRadius: AppRadii.md)
                 }
                 .buttonStyle(GradientButtonStyle())
                 .disabled(viewModel.isSaving || !hasPendingManualEdit(for: section))
             }
         }
-        .padding(AppSpacing.lg)
-        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var selectedManualSection: OptimizedResumeSection? {
+        if let editingSectionId,
+           let selected = viewModel.sections.first(where: { $0.id == editingSectionId }) {
+            return selected
+        }
+        return viewModel.sections.first
     }
 
     private func manualEditBinding(for section: OptimizedResumeSection) -> Binding<String> {
@@ -404,18 +568,29 @@ struct OptimizedResumeView: View {
         return current != section.body
     }
 
-    private func toggleManualEditMode() {
-        if isManualEditMode {
-            isManualEditMode = false
-            return
-        }
+    private func openManualEditor() {
         manualEditTextBySection = Dictionary(uniqueKeysWithValues: viewModel.sections.map { ($0.id, $0.body) })
+        editingSectionId = heuristicSectionId ?? viewModel.sections.first?.id
+        manualEditError = nil
         isManualEditMode = true
+    }
+
+    private func closeManualEditorRespectingDirtyState() {
+        if let section = selectedManualSection, hasPendingManualEdit(for: section) {
+            showDiscardManualEditConfirmation = true
+        } else {
+            isManualEditMode = false
+        }
     }
 
     @MainActor
     private func saveManualEdit(_ section: OptimizedResumeSection) async {
         let text = manualEditTextBySection[section.id] ?? section.body
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            manualEditError = "Section text cannot be empty."
+            return
+        }
+        manualEditError = nil
         await viewModel.saveManualEdit(sectionId: section.id, newText: text, token: appState.session?.accessToken)
         guard viewModel.errorMessage == nil else { return }
         manualEditTextBySection[section.id] = text
@@ -579,6 +754,7 @@ struct OptimizedResumeView: View {
 
 private struct SubmitApplicationSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @Bindable var vm: SubmitApplicationViewModel
     let accessToken: String?
 
@@ -694,7 +870,12 @@ private struct SubmitApplicationSheet: View {
                 icon: "paperplane.fill",
                 isLoading: vm.isSubmitting
             ) {
-                Task { await vm.submit(token: accessToken) }
+                Task {
+                    await vm.submit(token: accessToken)
+                    if vm.package != nil {
+                        appState.applicationsRefreshToken += 1
+                    }
+                }
             }
             .disabled(!vm.canSubmit)
         }
