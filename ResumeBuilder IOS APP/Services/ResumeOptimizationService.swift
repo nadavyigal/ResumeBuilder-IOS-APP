@@ -102,21 +102,28 @@ struct RefineSectionApplyRequest: Codable, Sendable {
         let text: String
     }
 
-    init(sectionId: String, optimizationId: String, acceptedText: String, originalText: String = "") {
+    init(
+        sectionId: String,
+        sectionType: ResumeSectionType,
+        optimizationId: String,
+        acceptedText: String,
+        originalText: String = ""
+    ) {
         self.optimizationId = optimizationId
         self.selection = ApplySelection(
             sectionId: sectionId,
-            field: Self.fieldFor(sectionId: sectionId),
+            field: Self.field(for: sectionType),
             text: originalText
         )
         self.suggestion = acceptedText
     }
 
-    private static func fieldFor(sectionId: String) -> String {
-        switch sectionId.lowercased() {
-        case "summary": return "summary"
-        case "skills":  return "skills"
-        default:        return "bullet"
+    static func field(for sectionType: ResumeSectionType) -> String {
+        switch sectionType {
+        case .summary:    return "summary"
+        case .skills:     return "skills"
+        case .experience: return "bullet"
+        case .education, .additional: return "custom"
         }
     }
 }
@@ -202,7 +209,7 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
             throw APIClientError.invalidResponse
         }
         // Backend returns { ok: Bool, updated?: Bool, reason?: String }
-        struct ApplyResponse: Decodable { let ok: Bool? }
+        struct ApplyResponse: Decodable, Sendable { let ok: Bool? }
         let response: ApplyResponse = try await apiClient.postJSON(endpoint: .refineSectionApply, body: body, token: token)
         return response.ok == true
     }
