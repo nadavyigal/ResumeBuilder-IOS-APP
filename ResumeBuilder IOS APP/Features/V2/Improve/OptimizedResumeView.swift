@@ -44,6 +44,13 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
+                // Improve actions — above the resume so they are easy to reach
+                if viewModel.optimizationIdentifier != nil {
+                    improveActionsRow
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
+                }
+
                 // Inline resume preview — the main content
                 if let optId = viewModel.optimizationIdentifier {
                     ResumePreviewWebView(
@@ -57,7 +64,6 @@ struct OptimizedResumeView: View {
                     )
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
-                    .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                     .padding(.horizontal, AppSpacing.lg)
                 } else if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
                     ProgressView("Loading resume…")
@@ -276,40 +282,42 @@ struct OptimizedResumeView: View {
             }
             .buttonStyle(GradientButtonStyle())
             .disabled(viewModel.optimizationIdentifier == nil || viewModel.sections.isEmpty)
-
-            VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                Text("Improve further")
-                    .font(.appCaption.weight(.semibold))
-                    .foregroundStyle(AppColors.textTertiary)
-                    .padding(.leading, AppSpacing.xs)
-
-                HStack(spacing: AppSpacing.md) {
-                    improveButton(title: "Refine", icon: "wand.and.stars") {
-                        editingSectionId = heuristicSectionId
-                        refineInstruction = ""
-                        showRefineSheet = true
-                    }
-                    .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
-
-                    improveButton(title: isManualEditMode ? "Done" : "Edit", icon: isManualEditMode ? "checkmark.circle" : "square.and.pencil") {
-                        openManualEditor()
-                    }
-                    .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil || viewModel.isSaving)
-
-                    improveButton(title: "Design", icon: "paintbrush") {
-                        onSwitchTab(.design)
-                    }
-                    .disabled(viewModel.optimizationIdentifier == nil)
-
-                    improveButton(title: "Expert", icon: "rectangle.stack.badge.person.crop") {
-                        onSwitchTab(.expert)
-                    }
-                    .disabled(viewModel.optimizationIdentifier == nil)
-                }
-            }
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.8))
+    }
+
+    private var improveActionsRow: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Improve further")
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textTertiary)
+                .padding(.leading, AppSpacing.xs)
+
+            HStack(spacing: AppSpacing.md) {
+                improveButton(title: "Refine", icon: "wand.and.stars") {
+                    editingSectionId = heuristicSectionId
+                    refineInstruction = ""
+                    showRefineSheet = true
+                }
+                .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
+
+                improveButton(title: isManualEditMode ? "Done" : "Edit", icon: isManualEditMode ? "checkmark.circle" : "square.and.pencil") {
+                    openManualEditor()
+                }
+                .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil || viewModel.isSaving)
+
+                improveButton(title: "Design", icon: "paintbrush") {
+                    onSwitchTab(.design)
+                }
+                .disabled(viewModel.optimizationIdentifier == nil)
+
+                improveButton(title: "Expert", icon: "rectangle.stack.badge.person.crop") {
+                    onSwitchTab(.expert)
+                }
+                .disabled(viewModel.optimizationIdentifier == nil)
+            }
+        }
     }
 
     private func improveButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
@@ -942,7 +950,38 @@ private struct SubmitApplicationSheet: View {
             }
             .padding(AppSpacing.lg)
             .glassCard(cornerRadius: AppRadii.lg)
+
+            if !package.screeningAnswers.isEmpty {
+                screeningAnswersView(package.screeningAnswers)
+            }
         }
+    }
+
+    private func screeningAnswersView(_ answers: [ExpertScreeningAnswer]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Screening Answers")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            ForEach(answers) { answer in
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(answer.question)
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(answer.answer)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .textSelection(.enabled)
+                    if let note = answer.confidenceNote {
+                        Text(note)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
+                }
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
     }
 }
 

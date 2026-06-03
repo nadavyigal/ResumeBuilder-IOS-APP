@@ -19,6 +19,7 @@ struct SubmitApplicationPackage: Identifiable, Sendable {
     let application: ApplicationItem
     let resumePDFURL: URL
     let coverLetterText: String
+    let screeningAnswers: [ExpertScreeningAnswer]
     let jobURL: URL?
     let coverLetterRunId: String
 }
@@ -93,6 +94,7 @@ final class SubmitApplicationViewModel {
                     sourceURL: normalizedSourceURLString,
                     status: "saved",
                     optimizationId: optimizationId,
+                    optimizedResumeId: optimizationId,
                     contact: contactJSON(from: resumeProvider.contact)
                 ),
                 token: token
@@ -104,12 +106,23 @@ final class SubmitApplicationViewModel {
             )
             try await applicationService.markApplied(id: application.id, token: token)
 
-            let coverLetterRun = try await expertService.run(
+            // Run cover letter and screening answers in parallel.
+            async let coverLetterRunTask = expertService.run(
                 type: .coverLetterArchitect,
                 optimizationId: optimizationId,
                 token: token,
                 evidenceInputs: coverLetterEvidence
             )
+            async let screeningRunTask = expertService.run(
+                type: .screeningAnswerStudio,
+                optimizationId: optimizationId,
+                token: token,
+                evidenceInputs: [:]
+            )
+
+            let coverLetterRun = try await coverLetterRunTask
+            let screeningRun = try? await screeningRunTask
+
             let parsed = ExpertReportParsing.parsedOutput(from: coverLetterRun.output)
             let selectedIndex = clampedCoverLetterIndex(parsed.recommendedIndex, count: parsed.coverLetterVariants.count)
             let coverLetter = selectedIndex.flatMap { parsed.coverLetterVariants[safe: $0]?.letter }
@@ -133,10 +146,41 @@ final class SubmitApplicationViewModel {
                 token: token
             )
 
+            // Extract and save screening answers only after successful persistence.
+            var screeningAnswers: [ExpertScreeningAnswer] = []
+            if let screeningRun {
+                let generatedAnswers = ExpertReportParsing.parsedOutput(from: screeningRun.output).screeningAnswers
+                if !generatedAnswers.isEmpty {
+                    // Use the original backend indices (ExpertScreeningAnswer.id = enumerated idx),
+                    // not the filtered-list positions, so the server selects the correct rows.
+                    let selectedIndices = generatedAnswers.map(\.id)
+                    do {
+                        _ = try await expertService.apply(
+                            runId: screeningRun.runId,
+                            workflowType: .screeningAnswerStudio,
+                            token: token,
+                            selectionIndex: nil,
+                            screeningSelectedIndices: selectedIndices,
+                            selectedFields: nil
+                        )
+                        _ = try await applicationService.saveExpertReport(
+                            applicationId: application.id,
+                            runId: screeningRun.runId,
+                            token: token
+                        )
+                        screeningAnswers = generatedAnswers
+                    } catch {
+                        // Screening failure is non-fatal; package ships with cover letter only.
+                        screeningAnswers = []
+                    }
+                }
+            }
+
             package = SubmitApplicationPackage(
                 application: application,
                 resumePDFURL: resumeURL,
                 coverLetterText: coverLetter,
+                screeningAnswers: screeningAnswers,
                 jobURL: normalizedSourceURL,
                 coverLetterRunId: coverLetterRun.runId
             )

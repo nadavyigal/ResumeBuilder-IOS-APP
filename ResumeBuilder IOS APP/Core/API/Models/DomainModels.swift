@@ -747,6 +747,7 @@ struct ApplicationCreateRequest: Sendable, Equatable {
     let sourceURL: String?
     let status: String
     let optimizationId: String?
+    let optimizedResumeId: String?
     let jobExtraction: JSONValue?
     let contact: JSONValue?
 
@@ -756,6 +757,7 @@ struct ApplicationCreateRequest: Sendable, Equatable {
         sourceURL: String? = nil,
         status: String = "saved",
         optimizationId: String? = nil,
+        optimizedResumeId: String? = nil,
         jobExtraction: JSONValue? = nil,
         contact: JSONValue? = nil
     ) {
@@ -764,6 +766,7 @@ struct ApplicationCreateRequest: Sendable, Equatable {
         self.sourceURL = sourceURL
         self.status = status
         self.optimizationId = optimizationId
+        self.optimizedResumeId = optimizedResumeId
         self.jobExtraction = jobExtraction
         self.contact = contact
     }
@@ -776,6 +779,7 @@ enum ApplicationCreateRequestBody {
         sourceURL: String?,
         status: String,
         optimizationId: String?,
+        optimizedResumeId: String? = nil,
         jobExtraction: JSONValue? = nil,
         contact: JSONValue? = nil
     ) -> [String: Any] {
@@ -789,6 +793,9 @@ enum ApplicationCreateRequestBody {
         }
         if let optimizationId, !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["optimization_id"] = optimizationId
+        }
+        if let optimizedResumeId, !optimizedResumeId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["optimized_resume_id"] = optimizedResumeId
         }
         if let jobExtraction {
             body["job_extraction"] = jsonObject(from: jobExtraction)
@@ -806,6 +813,7 @@ enum ApplicationCreateRequestBody {
             sourceURL: request.sourceURL,
             status: request.status,
             optimizationId: request.optimizationId,
+            optimizedResumeId: request.optimizedResumeId,
             jobExtraction: request.jobExtraction,
             contact: request.contact
         )
