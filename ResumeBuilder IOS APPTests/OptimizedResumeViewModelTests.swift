@@ -341,6 +341,42 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.package?.screeningAnswers, [])
         XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
     }
+
+    func testSubmitApplicationPackageIncludesScreeningAnswersWhenPersistSucceeds() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF screening".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowWithScreeningSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+        vm.jobTitle = "iOS Engineer"
+        vm.companyName = "Acme"
+
+        await vm.submit(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        // Both workflows ran.
+        XCTAssertEqual(Set(expertService.runTypes), [.coverLetterArchitect, .screeningAnswerStudio])
+        // Both were applied in order.
+        XCTAssertEqual(expertService.appliedRunIds, ["run-cl", "run-screening"])
+        XCTAssertEqual(expertService.appliedWorkflowTypes, [.coverLetterArchitect, .screeningAnswerStudio])
+        // Screening apply used original backend indices; entry at index 1 had empty answer → filtered.
+        XCTAssertEqual(expertService.appliedScreeningIndices.first, [0, 2])
+        // Both reports persisted.
+        XCTAssertEqual(applicationService.savedReports.count, 2)
+        // Package carries the two non-empty screening answers.
+        XCTAssertEqual(vm.package?.screeningAnswers.count, 2)
+        XCTAssertEqual(vm.package?.screeningAnswers.first?.question, "Why this role?")
+        XCTAssertEqual(vm.package?.screeningAnswers.last?.question, "Expected salary?")
+        XCTAssertEqual(vm.package?.screeningAnswers.last?.confidenceNote, "Market rate")
+        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+    }
 }
 
 @MainActor
@@ -504,6 +540,54 @@ private final class SubmitExpertWorkflowSpy: ExpertWorkflowServiceProtocol, @unc
           "apply_mode": "default",
           "selection_index": 0
         }
+        """
+        return try JSONDecoder().decode(ExpertWorkflowApplyResponseDTO.self, from: Data(json.utf8))
+    }
+}
+
+/// Spy that returns real screening answers for .screeningAnswerStudio
+/// (index 1 has an empty answer and will be filtered out; surviving IDs are [0, 2]).
+@MainActor
+private final class SubmitExpertWorkflowWithScreeningSpy: ExpertWorkflowServiceProtocol, @unchecked Sendable {
+    var runTypes: [ExpertWorkflowType] = []
+    var appliedRunIds: [String] = []
+    var appliedWorkflowTypes: [ExpertWorkflowType] = []
+    var appliedScreeningIndices: [[Int]] = []
+
+    func run(type: ExpertWorkflowType, optimizationId: String, token: String?, evidenceInputs: [String: JSONValue]) async throws -> ExpertWorkflowRunCreateResponseDTO {
+        runTypes.append(type)
+        let runId: String
+        let output: String
+        switch type {
+        case .screeningAnswerStudio:
+            runId = "run-screening"
+            output = """
+            "screening_answers":[
+              {"question":"Why this role?","answer":"Aligns with my goals.","evidence_used":[]},
+              {"question":"Gap?","answer":"","evidence_used":[]},
+              {"question":"Expected salary?","answer":"70k","evidence_used":[],"confidence_note":"Market rate"}
+            ]
+            """
+        default:
+            runId = "run-cl"
+            output = #""cover_letter_variants":[{"tone":"Concise","letter":"Dear Hiring Manager,\nI am excited to apply."}]"#
+        }
+        let json = """
+        {"workflow_type":"\(type.rawValue)","run_id":"\(runId)","status":"completed","output":{\(output)}}
+        """
+        return try JSONDecoder().decode(ExpertWorkflowRunCreateResponseDTO.self, from: Data(json.utf8))
+    }
+
+    func getStatus(runId: String, token: String?) async throws -> ExpertWorkflowRunSnapshot {
+        ExpertWorkflowRunSnapshot(runId: runId, status: "completed", workflowTypeRaw: ExpertWorkflowType.coverLetterArchitect.rawValue, output: .object([:]), missingEvidence: [])
+    }
+
+    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?) async throws -> ExpertWorkflowApplyResponseDTO {
+        appliedRunIds.append(runId)
+        appliedWorkflowTypes.append(workflowType)
+        if let idx = screeningSelectedIndices { appliedScreeningIndices.append(idx) }
+        let json = """
+        {"success":true,"workflow_type":"\(workflowType.rawValue)","updated_fields":[],"apply_mode":"default","selection_index":0}
         """
         return try JSONDecoder().decode(ExpertWorkflowApplyResponseDTO.self, from: Data(json.utf8))
     }

@@ -972,6 +972,11 @@ private struct SubmitApplicationSheet: View {
                         .font(.appBody)
                         .foregroundStyle(AppColors.textPrimary)
                         .textSelection(.enabled)
+                    if let note = answer.confidenceNote {
+                        Text(note)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
                 }
             }
         }

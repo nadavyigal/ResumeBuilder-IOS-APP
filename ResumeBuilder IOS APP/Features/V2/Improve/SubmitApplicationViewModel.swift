@@ -146,26 +146,33 @@ final class SubmitApplicationViewModel {
                 token: token
             )
 
-            // Extract and save screening answers if generated.
+            // Extract and save screening answers only after successful persistence.
             var screeningAnswers: [ExpertScreeningAnswer] = []
             if let screeningRun {
-                let screeningParsed = ExpertReportParsing.parsedOutput(from: screeningRun.output)
-                screeningAnswers = screeningParsed.screeningAnswers
-                if !screeningAnswers.isEmpty {
-                    let allIndices = screeningAnswers.indices.map { $0 }
-                    _ = try? await expertService.apply(
-                        runId: screeningRun.runId,
-                        workflowType: .screeningAnswerStudio,
-                        token: token,
-                        selectionIndex: nil,
-                        screeningSelectedIndices: allIndices,
-                        selectedFields: nil
-                    )
-                    _ = try? await applicationService.saveExpertReport(
-                        applicationId: application.id,
-                        runId: screeningRun.runId,
-                        token: token
-                    )
+                let generatedAnswers = ExpertReportParsing.parsedOutput(from: screeningRun.output).screeningAnswers
+                if !generatedAnswers.isEmpty {
+                    // Use the original backend indices (ExpertScreeningAnswer.id = enumerated idx),
+                    // not the filtered-list positions, so the server selects the correct rows.
+                    let selectedIndices = generatedAnswers.map(\.id)
+                    do {
+                        _ = try await expertService.apply(
+                            runId: screeningRun.runId,
+                            workflowType: .screeningAnswerStudio,
+                            token: token,
+                            selectionIndex: nil,
+                            screeningSelectedIndices: selectedIndices,
+                            selectedFields: nil
+                        )
+                        _ = try await applicationService.saveExpertReport(
+                            applicationId: application.id,
+                            runId: screeningRun.runId,
+                            token: token
+                        )
+                        screeningAnswers = generatedAnswers
+                    } catch {
+                        // Screening failure is non-fatal; package ships with cover letter only.
+                        screeningAnswers = []
+                    }
                 }
             }
 
