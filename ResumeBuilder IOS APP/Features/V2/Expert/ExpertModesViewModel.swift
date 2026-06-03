@@ -176,6 +176,11 @@ final class ExpertModesViewModel {
                 Task {
                     await resumeViewModel.forceReloadSections(appState: appState)
                 }
+                if type == .atsOptimizationReport {
+                    Task {
+                        await resumeViewModel.rescanATS(token: token)
+                    }
+                }
             }
             Task {
                 try? await Task.sleep(for: .seconds(1.5))

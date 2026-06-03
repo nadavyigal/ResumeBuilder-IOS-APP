@@ -7,6 +7,7 @@ protocol SubmitResumePDFProviding: AnyObject {
     var jobTitle: String? { get }
     var company: String? { get }
     var contact: ResumeContact? { get }
+    var jobURLString: String? { get }
 
     func downloadPDF(token: String?) async throws -> URL
 }
@@ -47,6 +48,7 @@ final class SubmitApplicationViewModel {
         self.expertService = expertService
         self.jobTitle = resumeProvider.jobTitle ?? ""
         self.companyName = resumeProvider.company ?? ""
+        self.sourceURLString = resumeProvider.jobURLString ?? ""
     }
 
     var canSubmit: Bool {
