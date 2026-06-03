@@ -50,6 +50,16 @@
         }
       }
     },
+    "%@. %@ %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@ %3$@."
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
@@ -123,6 +133,16 @@
     },
     "%lld%%" : {
 
+    },
+    "%lld%% → %lld%%" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld%% → %2$lld%%"
+          }
+        }
+      }
     },
     "%lld%% match" : {
 
@@ -249,6 +269,12 @@
     "ATS keywords" : {
 
     },
+    "ATS match" : {
+
+    },
+    "ATS Match" : {
+
+    },
     "ATS score" : {
 
     },
@@ -262,9 +288,6 @@
 
     },
     "Attach resume" : {
-
-    },
-    "Attached resume" : {
 
     },
     "Attaching…" : {
@@ -312,6 +335,9 @@
     "Company" : {
 
     },
+    "Company name" : {
+
+    },
     "Compare" : {
 
     },
@@ -327,10 +353,22 @@
     "Copy" : {
 
     },
+    "Copy Cover Letter" : {
+
+    },
     "Copy share text" : {
 
     },
     "Copy Text" : {
+
+    },
+    "Cover Letter" : {
+
+    },
+    "Cover letter copied" : {
+
+    },
+    "Cover Letter Notes" : {
 
     },
     "Credit Packs" : {
@@ -365,6 +403,12 @@
         }
       }
     },
+    "Discard" : {
+
+    },
+    "Discard unsaved edit?" : {
+
+    },
     "Don't have an account?" : {
 
     },
@@ -378,6 +422,12 @@
 
     },
     "Edit Expert Input" : {
+
+    },
+    "Edit only facts you can verify. Save refreshes the preview and ATS score." : {
+
+    },
+    "Edit Resume" : {
 
     },
     "Edits from refine, chat, and expert tools will appear here." : {
@@ -555,6 +605,15 @@
     "Input saved for this run" : {
 
     },
+    "Job Link" : {
+
+    },
+    "Job title" : {
+
+    },
+    "Keep Editing" : {
+
+    },
     "Keyword coverage" : {
 
     },
@@ -651,6 +710,9 @@
     "No screening answers generated." : {
 
     },
+    "No section selected" : {
+
+    },
     "No summary options generated." : {
 
     },
@@ -666,7 +728,10 @@
     "OK" : {
 
     },
-    "Open in Safari" : {
+    "Open Job Link" : {
+
+    },
+    "Open Resume Link" : {
 
     },
     "Opens the ATS breakdown pillars." : {
@@ -693,7 +758,7 @@
     "Optimized Resume" : {
 
     },
-    "Optimizing your resume…" : {
+    "Optional details to mention" : {
 
     },
     "or" : {
@@ -709,6 +774,12 @@
 
     },
     "Overview" : {
+
+    },
+    "Package" : {
+
+    },
+    "Package ready" : {
 
     },
     "Password" : {
@@ -730,6 +801,9 @@
 
     },
     "Placement suggestions" : {
+
+    },
+    "Preparing…" : {
 
     },
     "Preview" : {
@@ -814,6 +888,9 @@
     "Rendering preview…" : {
 
     },
+    "Resume" : {
+
+    },
     "Resume Builder" : {
 
     },
@@ -892,6 +969,9 @@
     "Saved resumes unavailable" : {
 
     },
+    "Saving" : {
+
+    },
     "Saving does not change your resume text." : {
 
     },
@@ -950,7 +1030,7 @@
     "Share again" : {
 
     },
-    "Share link" : {
+    "Share Resume PDF" : {
 
     },
     "Share score" : {
@@ -993,6 +1073,12 @@
 
     },
     "StoreKit wiring is scaffolded and intentionally left minimal in this pass." : {
+
+    },
+    "Submission Package" : {
+
+    },
+    "Submit Package" : {
 
     },
     "Subscores" : {

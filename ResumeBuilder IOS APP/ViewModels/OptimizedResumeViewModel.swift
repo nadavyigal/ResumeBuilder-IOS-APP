@@ -267,13 +267,24 @@ final class OptimizedResumeViewModel {
             return
         }
         isSaving = true
+        errorMessage = nil
         defer { isSaving = false }
         do {
-            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: acceptedText)
-            let success = try await optimizationService.applySectionRefine(request, token: token)
-            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+            let section = sections.first(where: { $0.id == sectionId })
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                sectionType: section?.type ?? .additional,
+                optimizationId: optId,
+                acceptedText: acceptedText,
+                originalText: section?.body ?? ""
+            )
+            let ok = try await optimizationService.applySectionRefine(request, token: token)
+            if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
+                Self.detailCache.removeValue(forKey: optId)
+            } else if !ok {
+                errorMessage = "We couldn't save that edit. Please try again."
             }
             pendingRefine = nil
             activeSectionId = nil
@@ -304,13 +315,20 @@ final class OptimizedResumeViewModel {
         defer { isSaving = false }
 
         do {
-            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: newText)
-            let success = try await optimizationService.applySectionRefine(request, token: token)
-            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+            let section = sections.first(where: { $0.id == sectionId })
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                sectionType: section?.type ?? .additional,
+                optimizationId: optId,
+                acceptedText: newText,
+                originalText: section?.body ?? ""
+            )
+            let ok = try await optimizationService.applySectionRefine(request, token: token)
+            if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
                 Self.detailCache.removeValue(forKey: optId)
-            } else if !success {
+            } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
         } catch let apiError as APIClientError {
