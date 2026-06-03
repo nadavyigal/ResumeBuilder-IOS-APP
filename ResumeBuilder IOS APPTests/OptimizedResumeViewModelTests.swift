@@ -322,18 +322,23 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(resumeProvider.downloadCalls, 1)
         XCTAssertEqual(applicationService.createdRequests.count, 1)
         XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "iOS Engineer")
+        XCTAssertEqual(applicationService.createdRequests.first?.optimizedResumeId, "opt-1")
         XCTAssertEqual(applicationService.attached.count, 1)
         XCTAssertEqual(applicationService.attached.first?.0, "app-1")
         XCTAssertEqual(applicationService.attached.first?.1, "opt-1")
         XCTAssertEqual(applicationService.markedAppliedIds, ["app-1"])
-        XCTAssertEqual(expertService.runTypes, [.coverLetterArchitect])
+        // Both cover letter and screening run in parallel; spy returns cover_letter output for both.
+        XCTAssertEqual(Set(expertService.runTypes), [.coverLetterArchitect, .screeningAnswerStudio])
+        // Cover letter is applied; screening apply is skipped because spy output has no screening_answers.
         XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
+        XCTAssertEqual(expertService.appliedWorkflowTypes, [.coverLetterArchitect])
         XCTAssertEqual(applicationService.savedReports.count, 1)
         XCTAssertEqual(applicationService.savedReports.first?.0, "app-1")
         XCTAssertEqual(applicationService.savedReports.first?.1, "run-1")
         XCTAssertEqual(vm.package?.application.id, "app-1")
         XCTAssertEqual(vm.package?.resumePDFURL, resumeURL)
         XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+        XCTAssertEqual(vm.package?.screeningAnswers, [])
         XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
     }
 }
@@ -394,6 +399,7 @@ private final class SubmitResumeProviderSpy: SubmitResumePDFProviding {
     var jobTitle: String? = "Existing Role"
     var company: String? = "Existing Co"
     var contact: ResumeContact? = nil
+    var jobURLString: String? = nil
     var downloadCalls = 0
     private let pdfURL: URL
 
