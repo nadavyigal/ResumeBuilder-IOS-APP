@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-04
+**Category:** Build
+**Rule:** When `xcodebuild test` uses a `-derivedDataPath` that contains a stale build without custom Info.plist keys, the "Inject Runtime Config" script will not re-run unless you first `rm -rf` that derived data path; always do a clean build after applying the runtime config patch to avoid a confusing runtime `preconditionFailure` crash that looks like a code bug.
+**Why:** After applying the Inject Runtime Config patch, the first test run used stale derived data. The stale Info.plist lacked `API_BASE_URL`, causing a runtime crash (`Fatal error: Missing or invalid API_BASE_URL in Info.plist`) and `** TEST FAILED **` even though the build settings were correct. A clean `rm -rf /tmp/derived && xcodebuild test` resolved it immediately.
+
 ### 2026-06-03
 **Category:** Build
 **Rule:** `INFOPLIST_KEY_*` build settings only inject predefined system keys (NSCamera, UILaunch, etc.) into a generated Info.plist — arbitrary custom keys like `POSTHOG_API_KEY` are silently omitted. Use a Run Script build phase with PlistBuddy to inject custom Info.plist keys after GENERATE_INFOPLIST_FILE runs.

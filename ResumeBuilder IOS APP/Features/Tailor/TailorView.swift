@@ -158,7 +158,7 @@ struct TailorView: View {
             } message: {
                 Text("Save to reuse on other jobs without re-uploading.")
             }
-            .onChange(of: viewModel.pendingSaveResumeId) { newId in
+            .onChange(of: viewModel.pendingSaveResumeId) { _, newId in
                 if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
                     saveDisplayName = viewModel.selectedResumeName ?? ""
                     showSavePrompt = true

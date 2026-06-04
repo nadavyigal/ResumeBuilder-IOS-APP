@@ -72,7 +72,7 @@ final class ImproveViewModel {
     }
 
     func loadAnalysis(token: String?, force: Bool = false) async {
-        guard let token, let resumeId else { return }
+        guard let token, resumeId != nil else { return }
         if !force, let analysis, analysis.subscores != nil {
             return
         }
@@ -106,7 +106,7 @@ final class ImproveViewModel {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return
         }
-        guard let optimizationId else {
+        guard optimizationId != nil else {
             errorMessage = "Run Optimize first to create an optimization, then rescan."
             return
         }
@@ -166,7 +166,7 @@ final class ImproveViewModel {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return nil
         }
-        guard let resumeId else {
+        guard resumeId != nil else {
             errorMessage = ResumeOptimizationError.missingResumeId.localizedDescription
             return nil
         }
