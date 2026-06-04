@@ -126,7 +126,7 @@ final class SubmitApplicationViewModel {
             let parsed = ExpertReportParsing.parsedOutput(from: coverLetterRun.output)
             let selectedIndex = clampedCoverLetterIndex(parsed.recommendedIndex, count: parsed.coverLetterVariants.count)
             let coverLetter = selectedIndex.flatMap { parsed.coverLetterVariants[safe: $0]?.letter }
-                ?? firstString(in: coverLetterRun.output, keys: ["letter", "body", "cover_letter"])
+                ?? firstString(in: coverLetterRun.output, keys: ["letter", "body", "cover_letter", "text", "content", "full_letter"])
                 ?? ""
             guard !coverLetter.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw SubmitApplicationError.emptyCoverLetter
