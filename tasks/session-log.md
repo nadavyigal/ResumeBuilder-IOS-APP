@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-06-04
+**Task:** WP-1 continuation — Apply App Store readiness changes, verify clean build with all Info.plist keys, run 72-test suite, smoke simulator, build signed device binary
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — upgraded "Inject PostHog API Key" → "Inject Runtime Config": script now injects API_BASE_URL (required, build fails if missing) + POSTHOG_API_KEY + POSTHOG_HOST; added `alwaysOutOfDate = 1`; added API_BASE_URL = https://www.resumelybuilderai.com to Debug + Release build settings; added Secrets.swift.example to PBXFileSystemSynchronizedBuildFileExceptionSet (excluded from app bundle)
+- `ResumeBuilder IOS APP/Core/API/BackendConfig.swift` — removed hardcoded production URL fallback; now uses preconditionFailure if API_BASE_URL is missing or invalid
+- `ResumeBuilder IOS APP/Features/Tailor/TailorView.swift` — fixed deprecated two-argument `.onChange(of:)` to three-argument form
+- `ResumeBuilder IOS APP/ViewModels/ImproveViewModel.swift` — fixed three `guard let` warnings to `guard ... != nil` where the unwrapped value was unused
+- `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated WP-1 status and founder action items
+**Decisions Made:**
+- Previous session's readiness changes were in the project root as uncommitted modifications; applied them via git patch to this worktree so they can be committed to a PR branch
+- Test failure on first run was caused by stale derived data (API_BASE_URL was absent from cached Info.plist); clean build resolves it
+- Device binary built at `/var/tmp/resumebuilder-device-wt/Build/Products/Debug-iphoneos/` — all three runtime keys confirmed in Info.plist
+- ASC upload path: Fastlane NOT installed, no .p8 key → manual Xcode Organizer (Distribute App → App Store Connect → Upload)
+**Validation:**
+- Clean build (INFO.plist injection): API_BASE_URL, POSTHOG_API_KEY=phc_***, POSTHOG_HOST all present in simulator and device Debug Info.plist
+- 72 XCTest tests passed (0 failures) on iPhone 17 simulator
+- Simulator smoke: app installed and launched; Home screen rendered cleanly (screenshot: /var/tmp/resumebuilder-smoke-wt/wp1-home.png)
+- Device binary (iphoneos Debug) compiled and signed successfully; all 3 Info.plist keys confirmed
+**Next Recommended Action:** Founder: install device binary → sign in → run optimize→design→expert→export on real device → screenshot PostHog Live Events for app_launched + optimization_completed + export_success → archive via Xcode Organizer (Product → Archive → Distribute App → App Store Connect)
+
 ### 2026-06-03
 **Task:** WP-1 — Pre-submission device smoke and PostHog live-event verification
 **Files Changed:**
