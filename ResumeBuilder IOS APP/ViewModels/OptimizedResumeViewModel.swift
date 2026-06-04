@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OSLog
 
 @Observable
 @MainActor
@@ -130,6 +131,8 @@ final class OptimizedResumeViewModel {
         return try await downloadPDF(with: token, optimizationId: optId)
     }
 
+    private static let downloadLogger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
+
     private func downloadPDF(with token: String, optimizationId optId: String) async throws -> URL {
         var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
         components.path = "/api/download/\(optId)"
@@ -138,10 +141,13 @@ final class OptimizedResumeViewModel {
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        Self.downloadLogger.info("HTTP start GET \(url.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
+            Self.downloadLogger.error("HTTP invalid response for \(url.absoluteString)")
             throw APIClientError.invalidResponse
         }
+        Self.downloadLogger.info("HTTP response status=\(http.statusCode) bytes=\(data.count)")
         if http.statusCode == 401 { throw APIClientError.unauthorized }
         if http.statusCode == 402 { throw APIClientError.paymentRequired }
         guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
@@ -365,7 +371,7 @@ final class OptimizedResumeViewModel {
                 atsScoreAfter = optimized
             }
         } catch {
-            errorMessage = "Saved your edit, but couldn't refresh the ATS score: \(error.localizedDescription)"
+            errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
         }
     }
 
@@ -408,6 +414,9 @@ final class OptimizedResumeViewModel {
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
             await rescanATS(token: token)
+            // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
+            // Clear any error rescanATS set so it doesn't mislead the user.
+            errorMessage = nil
             atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
