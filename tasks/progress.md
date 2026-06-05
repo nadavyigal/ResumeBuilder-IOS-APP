@@ -1,19 +1,19 @@
 # Project Progress
 
 Project: ResumeBuilder iOS
-Status: In Progress
-Current Phase: Pre-release (TestFlight prep)
-Active Story: WP-1 in progress — PostHog key fix shipped; device smoke blocked on founder unlocking device
-Last Completed Story: WP-1 PostHog fix: Run Script build phase now injects POSTHOG_API_KEY into Info.plist; all tests pass; device binary built (2026-06-03)
-Next Recommended Story: Founder unlocks iPhone 13, installs the WP-1 device build, runs optimize→design→expert→export smoke, screenshots PostHog Live Events
-Estimated Completion: 78%
-Blockers: `/api/v1/resumes` returns production Next.js 404 HTML; backend route must ship before Resume Library can be re-enabled
+Status: Submitted for Review
+Current Phase: App Store Review
+Active Story: Monitor Apple review for Resumely 1.0 build 1
+Last Completed Story: Resumely 1.0 build 1 submitted to App Store review (2026-06-05)
+Next Recommended Story: Monitor App Store Connect; if Apple responds, handle only the review outcome before starting post-launch scope
+Estimated Completion: Submitted; awaiting Apple review
+Blockers: Apple review outcome is external; `/api/v1/resumes` still returns production Next.js 404 HTML, so Resume Library remains disabled
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors instead of mock fallback content; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: WP-1 session (2026-06-03): PostHog Run Script fix verified — POSTHOG_API_KEY and POSTHOG_HOST appear in both simulator and iphoneos Debug Info.plist. Full test suite passed: 70 XCTest + 5 Swift Testing (all pass after analytics test update). Simulator launch screenshot confirmed Home renders at /var/tmp/resumebuilder-smoke/wp1-launch.png. Device build (iphoneos Debug) compiled and signed successfully at /var/tmp/resumebuilder-device-derived/Build/Products/Debug-iphoneos/. iPhone 13 UDID 00008110-00192DDA2143801E was unavailable (locked) during install attempt — founder must unlock and install manually.
-Last Updated: 2026-06-03
+Last Validation: Founder confirmed App Store Connect submission of Resumely 1.0 build 1 on 2026-06-05. The submitted screenshot set had already passed count, dimension, uniqueness, opacity, and targeted visual checks; Apple review result is pending.
+Last Updated: 2026-06-05
 Current Branch: main
 Latest Base Commit: 9f8012c — Merge pull request #27 from nadavyigal/codex/live-upload-end-to-end
-Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
+Active Spec: docs/specs/app-store-screenshot-generator.md
 Latest QA Report: —
 
 ## Tab Structure (as of 2026-05-20)
@@ -59,4 +59,4 @@ Latest QA Report: —
 - `Features/V2/Profile/ProfileViewV2.swift`
 - `Features/Track/ApplicationsListView.swift`
 
-Notes: App is pre-release v1.0 build 1. V2 folder is active target for all new screens. Dark mode only. No App Store submission yet.
+Notes: App is submitted as v1.0 build 1 and awaiting Apple review. V2 folder is active target for all new screens. Dark mode only.

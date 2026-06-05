@@ -15,6 +15,17 @@
 
 ## Sessions
 
+### 2026-06-05
+**Task:** Resumely 1.0 build 1 submitted to App Store review
+**Files Changed:** `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`
+**Decisions Made:** Treat the founder-confirmed App Store Connect status as the
+release source of truth. Keep the Resume Library backend gap separate from the
+submission status.
+**Validation:** Founder confirmed submission on 2026-06-05. No approval,
+rejection, or live-store status is claimed.
+**Next Recommended Action:** Monitor App Store Connect and respond only to the
+review outcome before starting post-launch scope.
+
 ### 2026-06-03
 **Task:** WP-1 — Pre-submission device smoke and PostHog live-event verification
 **Files Changed:**
@@ -355,3 +366,23 @@
 **Files Changed:** 49 new markdown files created. No Swift files changed.
 **Decisions Made:** Thin router design — AGENTS.md/CLAUDE.md/CODEX.md route to detail files in .agent-os/. Task memory lives in tasks/. Product + architecture docs in docs/.
 **Next Recommended Action:** Read `tasks/lessons.md` + `tasks/progress.md`, then plan the next story from `plan-phases-3-5-6.md` using the feature-planning workflow.
+## 2026-06-05 — App Store Screenshot Generator
+
+**Task:** Replace the five duplicated App Store concepts with 10 unique upload-ready screenshots for every required device family.
+
+**Completed:**
+- Expanded marketing screenshot mode to 10 deterministic scenes.
+- Added screenshot-mode app startup that bypasses API/auth initialization.
+- Added automated generation and validation scripts.
+- Generated 10 iPhone 6.9-inch PNGs at 1320x2868.
+- Corrected the App Store upload set after portal rejection: normalized all iPhone screenshots to 1290x2796 opaque RGB PNGs and all iPad screenshots to opaque RGB PNGs, then revalidated count, dimensions, uniqueness, and alpha absence.
+- Replaced the iPhone set again after App Store Connect identified the active 6.5-inch screenshot well: captured all 10 screens natively on the dedicated iPhone 11 Pro Max simulator at 1242x2688, converted them to opaque RGB PNGs without resizing, and visually inspected screenshots 1, 6, and 10.
+- Generated 10 iPad 13-inch PNGs at 2064x2752.
+- Corrected the truncated ATS summary in slot 2.
+- Added upload manifest and drag-and-drop folder documentation.
+
+**Verification:**
+- Xcode simulator build succeeded without warnings.
+- 77 tests passed.
+- Both screenshot sets passed count, dimension, and duplicate-hash validation.
+- Final phone and tablet images were visually inspected.

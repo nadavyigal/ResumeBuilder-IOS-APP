@@ -20,10 +20,11 @@
 
 ## Screenshots
 
-- [x] iPhone 6.7" screenshots (required): min 3, max 10 — rb-aso-002 exported 5 PNGs at 1290x2796
-- [x] iPhone 6.5" screenshots (required) — rb-aso-002 exported 5 PNGs at 1242x2688
-- [ ] iPad screenshots (if iPad is supported)
-- [x] Screenshots show real app UI (not mockups) — launch-argument-only SwiftUI renderer, captured in simulator
+- [x] iPhone 6.9" screenshots: 10 unique PNGs exported at an accepted 1320x2868 size in `app-store-v1/iphone-6.9`
+- [x] iPhone 6.5" alternate-size screenshots: 5 PNGs at 1242x2688; optional when 6.9" screenshots are supplied
+- [x] iPad 13" screenshots: 10 unique PNGs exported at 2064x2752 in `app-store-v1/ipad-13`
+- [x] Slot 2 ATS summary renders in full without truncation
+- [x] Screenshots are simulator captures rendered by the app's launch-argument-only SwiftUI marketing mode
 - [x] Screenshots show: ATS score, Tailor, AI edits, Design/PDF export, Expert review
 - [ ] App preview video (optional but recommended)
 
@@ -59,8 +60,8 @@
 
 ## Final Pre-Submission
 
-- [ ] Build is archived and uploaded to App Store Connect
-- [ ] Build selected in App Store Connect submission
+- [x] Build is archived and uploaded to App Store Connect
+- [x] Build selected in App Store Connect submission
 - [ ] Compliance questions answered (uses encryption: Yes, for HTTPS)
 - [ ] Export compliance documented
-- [ ] "Submit for Review" clicked
+- [x] "Submit for Review" clicked on 2026-06-05

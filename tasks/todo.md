@@ -1,44 +1,36 @@
 # Current Task
 
-**Objective:** WP-1 — Authenticated real-device smoke, PostHog live-event verification, and ASC upload path resolution before App Store Connect upload.
-**Status:** Partially complete — build + analytics fix done; device smoke requires founder action (device was locked during session)
+**Objective:** Monitor Resumely 1.0 build 1 after App Store submission.
+**Status:** Submitted for Review on 2026-06-05; awaiting Apple.
 **Branch:** `main`
 
 ## Scope
-- Fix POSTHOG_API_KEY not reaching Info.plist (blocked analytics from firing)
-- Build a signed device binary with PostHog key embedded
-- Install on physical iPhone 13 and smoke the core path
-- Verify PostHog Live Events receives app_launched, optimization_completed, export_success
-- Resolve ASC upload path (EXD-006)
+- Expand launch-argument screenshot mode from 5 to 10 unique scenes.
+- Render separate upload-ready iPhone 6.9-inch and iPad 13-inch sets.
+- Automate capture, file naming, dimension checks, uniqueness checks, and manifest generation.
 
 ## Checklist
-- [x] Read AGENTS.md, CLAUDE.md, progress.md, todo.md, session-log.md, lessons.md
-- [x] Diagnose PostHog key not reaching Info.plist (INFOPLIST_KEY_* limitation for custom keys in Xcode 26.5)
-- [x] Fix: add Run Script build phase (PlistBuddy) to inject POSTHOG_API_KEY + POSTHOG_HOST after GENERATE_INFOPLIST_FILE
-- [x] Verify key in simulator build Info.plist: POSTHOG_API_KEY = phc_*** (see Secrets.xcconfig)
-- [x] Build signed device binary (Debug-iphoneos) — BUILD SUCCEEDED
-- [x] Verify key in device build Info.plist — confirmed
-- [x] Update broken analytics test (testDisabledAnalyticsDoesNotRequireTransport → testServiceIsEnabledWhenTransportIsProvided)
-- [x] Run full test suite — all XCTest + 5 Swift Testing tests pass
-- [x] Simulate app launch on iPhone 17 simulator — Home screen renders correctly
-- [x] Resolve ASC upload path: Fastlane NOT installed, no ASC API key (.p8) found → manual Xcode Organizer path
-- [ ] **FOUNDER ACTION REQUIRED**: Unlock iPhone 13 → install device build → authenticate → run optimize → design → expert → export → screenshot each step
-- [ ] **FOUNDER ACTION REQUIRED**: Screenshot PostHog Live Events showing app_launched, optimization_completed, export_success
-- [ ] **FOUNDER ACTION REQUIRED**: Verify export PDF renders correctly on device
+- [x] Read lessons, progress, feature-planning workflow, product state, architecture, and technical risks.
+- [x] Audit the existing 5-slot renderer and current product features.
+- [x] Define the 10-scene product story.
+- [x] Define required iPhone and iPad outputs.
+- [x] Write product brief.
+- [x] Write feature spec with acceptance criteria and technical design.
+- [x] Break implementation into five independently testable stories.
+- [x] Approve the draft spec.
+- [x] Implement the 10 responsive screenshot scenes.
+- [x] Add automated capture and validation scripts.
+- [x] Build and run tests.
+- [x] Generate 10 iPhone and 10 iPad screenshots.
+- [x] Validate and visually inspect all final files.
+- [x] Strip alpha channels, normalize iPhone output to 1290x2796, and revalidate all upload files after App Store Connect rejected the first encoding.
+- [x] Replace the rejected set with 10 native iPhone 11 Pro Max captures at the portal-requested 1242x2688 dimensions.
+- [x] Upload the final screenshots and build to App Store Connect.
+- [x] Select Resumely 1.0 build 1 and submit for review.
 
-## Device Install Command (run when device is unlocked)
-```bash
-xcrun devicectl device install app \
-  --device 4A1D6EF2-8945-55B8-931A-46980B2A27E2 \
-  "/var/tmp/resumebuilder-device-derived/Build/Products/Debug-iphoneos/ResumeBuilder IOS APP.app"
-```
-Or simply open Xcode → Product → Run with the iPhone 13 selected as destination.
+## Next
 
-## ASC Upload Path (EXD-006)
-- Fastlane: NOT installed (no Fastfile, no gem, not in PATH)
-- ASC API key (.p8): NOT found anywhere on the machine
-- **Conclusion: Manual upload path via Xcode Organizer**
-  1. In Xcode: Product → Archive
-  2. Window → Organizer → select the archive
-  3. Distribute App → App Store Connect → Upload
-  4. Follow the prompts (uses the Apple Distribution certificate already on keychain)
+- Monitor App Store Connect for the review outcome.
+- Do not claim approval or live-store availability until Apple confirms it.
+- Keep the `/api/v1/resumes` backend gap tracked separately; it no longer blocks
+  the already completed submission.
