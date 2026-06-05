@@ -16,6 +16,13 @@
 ## Lessons
 
 ### 2026-05-18
+**Category:** API
+**Rule:** Never write hand-crafted PDF byte strings with XRef offsets — the offsets will be wrong and the backend pdf-parse will throw "bad XRef entry" → 422. Use `UIGraphicsPDFRenderer` to generate mock PDFs in iOS, and use `pdfjs-dist` (not `pdf-parse`) on the backend.
+**Why:** `MockResumeLibraryService.downloadResumePDF` had a minimal PDF string where object 2 was declared at offset 58 but actually started at offset 52 (and similar drift for obj 3 and startxref). This is impossible to get right by eye. `UIGraphicsPDFRenderer` generates valid PDFs automatically. On the backend, `pdf-parse` v1.1.1 uses pdf.js v1.9.426 which has no XRef recovery; `pdfjs-dist` v5 falls back to a full linear scan.
+
+
+
+### 2026-05-18
 **Category:** SwiftUI
 **Rule:** Never call `onSelect` or any selection callback from a Cancel button in a sheet. Use `@Environment(\.dismiss)` instead.
 **Why:** `SavedResumePickerSheet` Cancel was calling `onSelect(URL(fileURLWithPath: "/dev/null"), "")`, which set `selectedResumeURL` to `/dev/null` and `selectedResumeName` to empty string. The optimize flow then tried to read `/dev/null` and iOS returned "The file 'null' couldn't be opened because you don't have permission to view it."
