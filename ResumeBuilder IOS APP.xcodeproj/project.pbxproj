@@ -238,15 +238,17 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
 			);
 			name = "Inject Runtime Config";
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/inject-runtime-config.stamp",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\nPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -z \"${API_BASE_URL}\" ]; then\n  echo \"error: API_BASE_URL build setting is required\"\n  exit 1\nfi\n/usr/libexec/PlistBuddy -c \"Delete :API_BASE_URL\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :API_BASE_URL string ${API_BASE_URL}\" \"${PLIST}\"\nif [ -n \"${POSTHOG_API_KEY}\" ]; then\n  /usr/libexec/PlistBuddy -c \"Delete :POSTHOG_API_KEY\" \"${PLIST}\" 2>/dev/null || true\n  /usr/libexec/PlistBuddy -c \"Add :POSTHOG_API_KEY string ${POSTHOG_API_KEY}\" \"${PLIST}\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :POSTHOG_HOST\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :POSTHOG_HOST string https://us.i.posthog.com\" \"${PLIST}\"\n";
+			shellScript = "#!/bin/sh\nset -e\nPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -z \"${API_BASE_URL}\" ]; then\n  echo \"error: API_BASE_URL build setting is required\"\n  exit 1\nfi\n/usr/libexec/PlistBuddy -c \"Delete :API_BASE_URL\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :API_BASE_URL string ${API_BASE_URL}\" \"${PLIST}\"\nif [ -n \"${POSTHOG_API_KEY}\" ]; then\n  /usr/libexec/PlistBuddy -c \"Delete :POSTHOG_API_KEY\" \"${PLIST}\" 2>/dev/null || true\n  /usr/libexec/PlistBuddy -c \"Add :POSTHOG_API_KEY string ${POSTHOG_API_KEY}\" \"${PLIST}\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :POSTHOG_HOST\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :POSTHOG_HOST string https://us.i.posthog.com\" \"${PLIST}\"\ntouch \"${DERIVED_FILE_DIR}/inject-runtime-config.stamp\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
