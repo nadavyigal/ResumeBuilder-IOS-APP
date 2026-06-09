@@ -144,7 +144,6 @@
 				335AA75F2FA77AB800FD6628 /* Sources */,
 				335AA7602FA77AB800FD6628 /* Frameworks */,
 				335AA7612FA77AB800FD6628 /* Resources */,
-			AABB1122CCDD3344EEFF5566AABB1122 /* Inject Runtime Config */,
 			);
 			buildRules = (
 			);
