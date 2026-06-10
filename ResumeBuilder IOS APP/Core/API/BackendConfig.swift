@@ -5,6 +5,12 @@ enum BackendConfig {
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
     static let isMonetizationEnabled = false
 
+    /// Sign in with Apple is hidden until the Apple provider is enabled in the
+    /// Supabase dashboard (Authentication -> Providers -> Apple, with this
+    /// app's bundle ID in Client IDs). The reviewer hit provider_disabled on
+    /// 2026-06-10; email auth is the only sign-in until this flips to true.
+    static let isAppleSignInEnabled = false
+
     // Supabase credentials — anon key is intentionally client-visible (same as NEXT_PUBLIC_*).
     // RLS policies enforce data isolation; the anon key alone grants no elevated access.
     static let supabaseURL = URL(string: "https://brtdyamysfmctrhuankn.supabase.co")!
