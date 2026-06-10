@@ -1,8 +1,8 @@
 # Current Task
 
-**Objective:** WP-1 — Release-readiness committed; device smoke + PostHog live-event verification remain as founder actions before ASC upload.
-**Status:** Code/build/tests complete. All founder-action items below are unblocked.
-**Branch:** `claude/tender-banach-89238f`
+**Objective:** PR #51 — Update the open mock-library PDF fix PR with latest `main` so founder can merge, rebuild in Xcode, and smoke test.
+**Status:** PR branch merged with `origin/main`; local Debug simulator build and tests pass. Founder Xcode rebuild/smoke remains the next action.
+**Branch:** `claude/epic-sammet-146689`
 
 ## Scope
 - Apply App Store readiness fixes (Inject Runtime Config, BackendConfig, warning cleanup, bundle exclusions)
@@ -13,6 +13,13 @@
 - Document founder device smoke steps
 
 ## Checklist
+- [x] Merge `origin/main` into PR #51 branch
+- [x] Confirm PR delta after merge
+- [x] Run `git diff --check`
+- [x] Run Debug simulator build on iPhone 17 simulator
+- [x] Run XCTest/Swift Testing suite on iPhone 17 simulator
+- [ ] **FOUNDER ACTION**: Merge PR #51 if GitHub checks stay green
+- [ ] **FOUNDER ACTION**: Pull latest `main` locally, rebuild in Xcode, and smoke optimize → design → expert → export
 - [x] Apply Inject Runtime Config build script (API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST via PlistBuddy)
 - [x] BackendConfig.swift uses preconditionFailure; no hardcoded fallback URL
 - [x] TailorView.swift deprecated onChange fixed; ImproveViewModel.swift guard-let warnings fixed
