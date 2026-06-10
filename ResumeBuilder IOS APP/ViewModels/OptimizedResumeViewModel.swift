@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OSLog
 
 @Observable
 @MainActor
@@ -9,6 +10,7 @@ final class OptimizedResumeViewModel {
     var resumeId: String?
     var isRefining = false
     var isSaving = false
+    var isRefreshingATS = false
     var isLoadingSections = false
     var errorMessage: String? = nil
     var pendingRefine: (original: String, suggested: String)? = nil
@@ -20,9 +22,19 @@ final class OptimizedResumeViewModel {
     /// Job context for the header card.
     var jobTitle: String?
     var company: String?
+    var contact: ResumeContact?
+    var atsBlockers: [ATSOptimizationBlocker] = []
+    var jobURLString: String?
+    var applicationId: String?
+    var isImprovingATS = false
+    var atsUpliftMessage: String?
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
+    private let analysisService: any ResumeAnalysisServiceProtocol
+    private let expertService: any ExpertWorkflowServiceProtocol
+    private var didAttemptInitialSectionLoad: Bool
+    private static var detailCache: [String: OptimizationDetailDTO] = [:]
 
     init(
         optimizationId: String?,
@@ -32,8 +44,10 @@ final class OptimizedResumeViewModel {
         atsScoreAfter: Int? = nil,
         jobTitle: String? = nil,
         company: String? = nil,
-        optimizationService: any ResumeOptimizationServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeOptimizationService() : ResumeOptimizationService()
+        contact: ResumeContact? = nil,
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
+        analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
+        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -42,19 +56,64 @@ final class OptimizedResumeViewModel {
         self.atsScoreAfter = atsScoreAfter
         self.jobTitle = jobTitle
         self.company = company
+        self.contact = contact
         self.optimizationService = optimizationService
+        self.analysisService = analysisService
+        self.expertService = expertService
+        self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
     /// Exposed for downstream tools (e.g. chat) that share the same optimization id.
     var optimizationIdentifier: String? { optimizationId }
 
+    var isAwaitingInitialSections: Bool {
+        optimizationId != nil && sections.isEmpty && !didAttemptInitialSectionLoad
+    }
+
+    var atsStatusLabel: String {
+        let score = atsScoreAfter ?? atsScoreBefore ?? 0
+        if score >= 80 { return "High" }
+        if score >= 70 { return "Strong" }
+        if score >= 55 { return "Medium" }
+        return "Low"
+    }
+
+    var atsStatusDescription: String {
+        switch atsStatusLabel {
+        case "High":
+            return "Strong match for this role. Keep edits truthful before applying."
+        case "Strong":
+            return "Close to high. A focused keyword and metrics pass may lift it further."
+        case "Medium":
+            return "Useful foundation, but ATS blockers still need attention."
+        default:
+            return "Low match. Improve role keywords, title fit, metrics, and section coverage before submitting."
+        }
+    }
+
     /// Plain text of all sections joined for clipboard copy.
     var plainTextResume: String {
-        sections.map { "\($0.type.displayName.uppercased())\n\($0.body)" }
-            .joined(separator: "\n\n")
+        var blocks: [String] = []
+        if let contact, contact.hasDisplayableValue {
+            let header = [
+                contact.name,
+                contact.title,
+                contact.contactLine.isEmpty ? nil : contact.contactLine,
+            ]
+            .compactMap { value -> String? in
+                let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            .joined(separator: "\n")
+            if !header.isEmpty { blocks.append(header) }
+        }
+        blocks.append(contentsOf: sections.map { "\($0.type.displayName.uppercased())\n\($0.body)" })
+        return blocks.joined(separator: "\n\n")
     }
 
     /// Downloads the PDF for this optimization and returns a temp file URL for sharing.
+    /// Note: analytics (.exportStarted / .exportSuccess / .exportFailed) are tracked by
+    /// ResumeExportAction, not here, to avoid double-firing from callers that use that wrapper.
     func downloadPDF(appState: AppState) async throws -> URL {
         try await appState.callWithFreshToken { token in
             try await self.downloadPDF(with: token)
@@ -72,6 +131,8 @@ final class OptimizedResumeViewModel {
         return try await downloadPDF(with: token, optimizationId: optId)
     }
 
+    private static let downloadLogger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
+
     private func downloadPDF(with token: String, optimizationId optId: String) async throws -> URL {
         var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
         components.path = "/api/download/\(optId)"
@@ -80,28 +141,29 @@ final class OptimizedResumeViewModel {
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        Self.downloadLogger.info("HTTP start GET \(url.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
+            Self.downloadLogger.error("HTTP invalid response for \(url.absoluteString)")
             throw APIClientError.invalidResponse
         }
+        Self.downloadLogger.info("HTTP response status=\(http.statusCode) bytes=\(data.count)")
         if http.statusCode == 401 { throw APIClientError.unauthorized }
         if http.statusCode == 402 { throw APIClientError.paymentRequired }
         guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
-        let dest = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Resume_\(optId).pdf")
-        try data.write(to: dest, options: .atomic)
-        return dest
+        return try ExportFileStore.writePDFData(data, optimizationId: optId)
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
     /// from OptimizationReviewView where the apply response contains only the optimizationId).
     func loadSections(appState: AppState) async {
-        guard sections.isEmpty, !isLoadingSections else { return }
+        guard sections.isEmpty, !isLoadingSections, !didAttemptInitialSectionLoad else { return }
+        didAttemptInitialSectionLoad = true
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {
             try await appState.callWithFreshToken { token in
-                try await self.loadSections(with: token)
+                try await self.loadSections(with: token, useCache: false)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -115,7 +177,7 @@ final class OptimizedResumeViewModel {
         defer { isLoadingSections = false }
         do {
             try await appState.callWithFreshToken { token in
-                try await self.loadSections(with: token)
+                try await self.loadSections(with: token, useCache: false)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -123,7 +185,8 @@ final class OptimizedResumeViewModel {
     }
 
     func loadSections(token: String?) async {
-        guard sections.isEmpty, !isLoadingSections, let optId = optimizationId, let token else { return }
+        guard sections.isEmpty, !isLoadingSections, !didAttemptInitialSectionLoad, let optId = optimizationId, let token else { return }
+        didAttemptInitialSectionLoad = true
         isLoadingSections = true
         defer { isLoadingSections = false }
         do {
@@ -133,21 +196,45 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    private func loadSections(with token: String) async throws {
+    private func loadSections(with token: String, useCache: Bool = true) async throws {
         guard let optId = optimizationId else { return }
-        try await loadSections(with: token, optimizationId: optId)
+        try await loadSections(with: token, optimizationId: optId, useCache: useCache)
     }
 
-    private func loadSections(with token: String, optimizationId optId: String) async throws {
+    private func loadSections(with token: String, optimizationId optId: String, useCache: Bool = true) async throws {
+        if useCache, let cached = Self.detailCache[optId] {
+            apply(detail: cached)
+            return
+        }
+
         let detail: OptimizationDetailDTO = try await APIClient().get(
             endpoint: .optimizationDetail(id: optId),
             token: token
         )
+        Self.detailCache[optId] = detail
+        apply(detail: detail)
+    }
+
+    private func apply(detail: OptimizationDetailDTO) {
         sections = detail.sections
+        if let detailContact = detail.contact, detailContact.hasDisplayableValue {
+            contact = detailContact
+        }
         if jobTitle == nil { jobTitle = detail.jobTitle }
         if company == nil  { company  = detail.company  }
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+        atsBlockers = detail.atsBlockers
+        if jobURLString == nil { jobURLString = detail.jobUrl }
+        if applicationId == nil { applicationId = detail.applicationId }
+    }
+
+    func applyExpertATSResult(_ applyResult: ExpertWorkflowApplyResponseDTO) {
+        if let after = applyResult.newAtsScore {
+            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+        } else if let after = applyResult.atsImpact?.after {
+            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+        }
     }
 
     func refineSection(sectionId: String, instruction: String, token: String?) async {
@@ -186,13 +273,24 @@ final class OptimizedResumeViewModel {
             return
         }
         isSaving = true
+        errorMessage = nil
         defer { isSaving = false }
         do {
-            let request = RefineSectionApplyRequest(sectionId: sectionId, optimizationId: optId, acceptedText: acceptedText)
-            let success = try await optimizationService.applySectionRefine(request, token: token)
-            if success, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+            let section = sections.first(where: { $0.id == sectionId })
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                sectionType: section?.type ?? .additional,
+                optimizationId: optId,
+                acceptedText: acceptedText,
+                originalText: section?.body ?? ""
+            )
+            let ok = try await optimizationService.applySectionRefine(request, token: token)
+            if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
+                Self.detailCache.removeValue(forKey: optId)
+            } else if !ok {
+                errorMessage = "We couldn't save that edit. Please try again."
             }
             pendingRefine = nil
             activeSectionId = nil
@@ -203,6 +301,125 @@ final class OptimizedResumeViewModel {
             default:
                 errorMessage = apiError.localizedDescription
             }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func saveManualEdit(sectionId: String, newText: String, token: String?) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            let section = sections.first(where: { $0.id == sectionId })
+            let request = RefineSectionApplyRequest(
+                sectionId: sectionId,
+                sectionType: section?.type ?? .additional,
+                optimizationId: optId,
+                acceptedText: newText,
+                originalText: section?.body ?? ""
+            )
+            let ok = try await optimizationService.applySectionRefine(request, token: token)
+            if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
+                sections[idx].body = newText
+                sections[idx].status = "edited"
+                Self.detailCache.removeValue(forKey: optId)
+            } else if !ok {
+                errorMessage = "We couldn't save that edit. Please try again."
+            }
+        } catch let apiError as APIClientError {
+            switch apiError {
+            case .serverError(let status, _) where status >= 500:
+                errorMessage = "The server encountered an issue saving this change (\(status)). Please try again later."
+            default:
+                errorMessage = apiError.localizedDescription
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func rescanATS(token: String?) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isRefreshingATS = true
+        defer { isRefreshingATS = false }
+
+        do {
+            let response = try await analysisService.rescan(optimizationId: optId, token: token)
+            if let original = response.originalScore {
+                atsScoreBefore = original
+            }
+            if let optimized = response.optimizedScore {
+                atsScoreAfter = optimized
+            }
+        } catch {
+            errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
+        }
+    }
+
+    func improveATS(token: String?, appState: AppState) async {
+        guard let token else {
+            errorMessage = ResumeOptimizationError.missingToken.localizedDescription
+            return
+        }
+        guard let optId = optimizationId else {
+            errorMessage = ResumeOptimizationError.missingOptimizationId.localizedDescription
+            return
+        }
+
+        isImprovingATS = true
+        atsUpliftMessage = nil
+        errorMessage = nil
+        defer { isImprovingATS = false }
+
+        do {
+            let evidence: [String: JSONValue] = [
+                "user_context": .string("Improve ATS blockers while preserving user facts. Do not invent tools, metrics, employers, education, or certifications.")
+            ]
+            let run = try await expertService.run(
+                type: .atsOptimizationReport,
+                optimizationId: optId,
+                token: token,
+                evidenceInputs: evidence
+            )
+            let apply = try await expertService.apply(
+                runId: run.runId,
+                workflowType: .atsOptimizationReport,
+                token: token,
+                selectionIndex: nil,
+                screeningSelectedIndices: nil,
+                selectedFields: nil
+            )
+            mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
+            applyExpertATSResult(apply)
+            Self.detailCache.removeValue(forKey: optId)
+            appState.resumeSectionsNeedRefresh = true
+            appState.resumePreviewRefreshToken += 1
+            await rescanATS(token: token)
+            // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
+            // Clear any error rescanATS set so it doesn't mislead the user.
+            errorMessage = nil
+            atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
+        } catch let apiError as APIClientError {
+            errorMessage = apiError.userFacingMessage
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -228,7 +445,13 @@ final class OptimizedResumeViewModel {
             let rewritten = root["rewritten_resume"] ?? root["resume"]
             guard let rewritten else { return }
             if let rebuilt = ExpertResumeSectionMapping.sections(fromRewrittenResume: rewritten) {
-                sections = rebuilt
+                if applyResult.updatedFields.contains("entire_resume") || applyResult.updatedFields.isEmpty {
+                    sections = rebuilt
+                } else {
+                    for section in rebuilt where applyResult.updatedFields.contains(fieldName(for: section.type)) {
+                        patchSection(type: section.type, body: section.body)
+                    }
+                }
             }
         case .achievementQuantifier:
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
@@ -265,6 +488,21 @@ final class OptimizedResumeViewModel {
         guard let idx = sections.firstIndex(where: { $0.type == type }) else { return }
         sections[idx].body = newBody
         sections[idx].status = "improved"
+    }
+
+    private func fieldName(for type: ResumeSectionType) -> String {
+        switch type {
+        case .summary:
+            return "summary"
+        case .experience:
+            return "experience"
+        case .skills:
+            return "skills"
+        case .education:
+            return "education"
+        case .additional:
+            return "certifications"
+        }
     }
 }
 

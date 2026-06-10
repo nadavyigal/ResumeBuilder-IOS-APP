@@ -1,51 +1,49 @@
 # Current Task
 
-**Objective:** Merge Track→Me, Redesign Optimized Resume, Real Resume Library (Stories 1–5)
-**Status:** COMPLETE ✅
-**Spec:** See plan in `/Users/nadavyigal/.claude/plans/implement-story-1-first-partitioned-mist.md`
+**Objective:** WP-1 — Release-readiness committed; device smoke + PostHog live-event verification remain as founder actions before ASC upload.
+**Status:** Code/build/tests complete. All founder-action items below are unblocked.
+**Branch:** `claude/tender-banach-89238f`
 
-## Execution Order
-1. [x] Story 1 — Tab restructure (Tailor/Optimized/Design/Expert/Me) ✅
-2. [x] Story 3 — Combine Score+Tailor; set appState.latestOptimizationId on optimize ✅
-3. [x] Story 2 — Optimized Resume page: preview-first, no section boxes ✅
-4. [x] Story 5 — Me page: applications inline, drop ProfileViewV2 ✅
-5. [x] Story 4 — Resume library: backend + save-prompt + picker (mocks first) ✅
+## Scope
+- Apply App Store readiness fixes (Inject Runtime Config, BackendConfig, warning cleanup, bundle exclusions)
+- Verify clean build with API_BASE_URL + POSTHOG keys in Info.plist
+- Run full test suite
+- Build signed device binary
+- Resolve ASC upload path (EXD-006)
+- Document founder device smoke steps
 
-## Story 3 Checklist — Combine Score + Tailor
-- [x] Port `runFreeATS` from `ScoreViewModel` into `TailorViewModel`
-- [x] Add `atsResult: ATSScoreResult?` property to `TailorViewModel`
-- [x] Add `onSwitchTab: (ResumlyTab) -> Void` param to `TailorView`
-- [x] Branch optimize button on `appState.isAuthenticated`: unauth → free ATS, auth → optimize
-- [x] On optimize success: set `appState.latestOptimizationId`; call `onSwitchTab(.optimized)`
-- [x] Remove `NavigationLink(... shouldNavigate)` block from `TailorView`
-- [x] Delete `Features/Score/ScoreView.swift`
-- [x] Delete `Features/Score/ScoreViewModel.swift`
-- [x] Xcode build passes
+## Checklist
+- [x] Apply Inject Runtime Config build script (API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST via PlistBuddy)
+- [x] BackendConfig.swift uses preconditionFailure; no hardcoded fallback URL
+- [x] TailorView.swift deprecated onChange fixed; ImproveViewModel.swift guard-let warnings fixed
+- [x] Secrets.swift.example excluded from app bundle (PBXFileSystemSynchronizedBuildFileExceptionSet)
+- [x] API_BASE_URL = https://www.resumelybuilderai.com in Debug + Release build settings
+- [x] Verify API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST in simulator Debug Info.plist — confirmed
+- [x] Full test suite: 72 XCTest passed (0 failures) on iPhone 17 simulator
+- [x] Simulator smoke — Home screen renders (screenshot: /var/tmp/resumebuilder-smoke-wt/wp1-home.png)
+- [x] Device binary (Debug-iphoneos) built and signed — all 3 Info.plist keys confirmed
+- [x] ASC upload path resolved: Fastlane NOT installed, no .p8 key → manual Xcode Organizer
+- [ ] **FOUNDER ACTION**: Install device binary on real device (see command below)
+- [ ] **FOUNDER ACTION**: Sign in, run optimize → design → expert → export; screenshot each step
+- [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
+- [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly
+- [ ] **FOUNDER ACTION**: Create Release archive via Xcode Organizer → Distribute App → App Store Connect
 
-## Story 2 Checklist — Optimized Resume preview-first
-- [x] Strip `ForEach(viewModel.sections) { ResumeSectionCard }` from `OptimizedResumeView`
-- [x] Add inline `ResumePreviewWebView` with aspect ratio 8.5:11
-- [x] Replace bottom bar with Refine / Send to Expert / Open Design buttons
-- [x] Update `OptimizedResumeTabView` to use real `OptimizedResumeView`
-- [x] Xcode build passes
+## Device Install Command
+Open the worktree in Xcode with your device connected, then Product → Run.
+Or via terminal when device is trusted and unlocked:
+```bash
+xcrun devicectl device install app \
+  --device <YOUR-DEVICE-UDID> \
+  "/var/tmp/resumebuilder-device-wt/Build/Products/Debug-iphoneos/ResumeBuilder IOS APP.app"
+```
 
-## Story 5 Checklist — Me + applications inline
-- [x] Add `applicationsSection` to `ProfileView` using `ApplicationsViewModel`
-- [x] Delete `Features/V2/Profile/ProfileViewV2.swift`
-- [x] Delete `Features/Track/ApplicationsListView.swift`
-- [x] Xcode build passes
-
-## Story 4 Checklist — Resume library (mocks)
-- [x] Add `SavedResume` model
-- [x] Add Endpoints cases: savedResumes / saveResume / deleteResume / renameResume
-- [x] Create `ResumeLibraryService` (real + mock)
-- [x] Create `ResumeLibraryViewModel`
-- [x] Add save prompt after upload in TailorView
-- [x] Create `SavedResumePickerSheet`
-- [x] Remove legacy single-slot cache from TailorViewModel
-- [x] Xcode build passes
-
-## Post-Implementation TODOs
-- [ ] Simulator smoke test all 5 tabs
-- [ ] Flip `BackendConfig.useMockLibraryService = false` once web API ships `/api/v1/resumes`
-- [ ] Create PR: `claude/hungry-chatelet-a86030` → `main`
+## ASC Upload Path (EXD-006 resolved)
+- Fastlane: NOT installed (no Fastfile, no gem, not in PATH)
+- ASC API key (.p8): NOT present on this machine
+- **Path: Manual Xcode Organizer**
+  1. Xcode: Product → Archive (uses Release config + automatic signing)
+  2. Window → Organizer → select archive
+  3. Distribute App → App Store Connect → Upload
+  4. Authorize Apple Distribution key access in Keychain when prompted
+  5. Complete upload in Xcode — no .p8 file needed for GUI upload

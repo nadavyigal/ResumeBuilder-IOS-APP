@@ -6,6 +6,7 @@ enum APIClientError: Error, LocalizedError {
     case paymentRequired
     case serverError(status: Int, message: String)
     case invalidResponse
+    case invalidURL(String)
 
     var errorDescription: String? {
         switch self {
@@ -17,7 +18,35 @@ enum APIClientError: Error, LocalizedError {
             return "Server error (\(status)): \(message)"
         case .invalidResponse:
             return "Invalid server response"
+        case .invalidURL(let path):
+            return "Invalid URL for endpoint: \(path)"
         }
+    }
+}
+
+extension APIClientError {
+    nonisolated var isNotFound: Bool {
+        if case .serverError(let status, _) = self {
+            return status == 404
+        }
+        return false
+    }
+
+    nonisolated var userFacingMessage: String {
+        switch self {
+        case .serverError(_, let message):
+            return message.strippingHTMLTags().isEmpty ? localizedDescription : message.strippingHTMLTags()
+        default:
+            return localizedDescription
+        }
+    }
+}
+
+private extension String {
+    nonisolated func strippingHTMLTags() -> String {
+        replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
@@ -45,9 +74,10 @@ struct APIClient {
     func postJSON<T: Decodable>(
         endpoint: Endpoint,
         body: [String: Any],
-        token: String?
+        token: String?,
+        timeout: TimeInterval? = nil
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -55,7 +85,11 @@ struct APIClient {
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        return try await send(request)
+        // Use the long-running session when a custom timeout is requested so the
+        // session-level timeoutIntervalForRequest is also extended — not just the
+        // per-request value. This matches the uploadResume pattern.
+        let activeSession = timeout != nil ? Self.uploadSession : session
+        return try await send(request, using: activeSession)
     }
 
     /// Chat & other endpoints that encode arrays of heterogeneous field objects reliably via `Any`.
@@ -65,7 +99,7 @@ struct APIClient {
         token: String?,
         timeout: TimeInterval? = nil
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -76,7 +110,7 @@ struct APIClient {
     }
 
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -85,13 +119,14 @@ struct APIClient {
     }
 
     func getWithQuery<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
+        let endpointURL = try url(for: endpoint)
         var components = URLComponents(
-            url: url(for: endpoint),
+            url: endpointURL,
             resolvingAgainstBaseURL: false
         )
         let items = endpoint.queryItems
         if !items.isEmpty { components?.queryItems = items }
-        let url = components?.url ?? url(for: endpoint)
+        let url = components?.url ?? endpointURL
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
@@ -101,7 +136,7 @@ struct APIClient {
     }
 
     func getData(endpoint: Endpoint, token: String?) async throws -> Data {
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: requestTimeout)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -122,7 +157,7 @@ struct APIClient {
         body: [String: Any],
         token: String?
     ) async throws -> T {
-        var request = URLRequest(url: url(for: endpoint))
+        var request = URLRequest(url: try url(for: endpoint))
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -137,7 +172,8 @@ struct APIClient {
         fileURL: URL,
         jobDescription: String? = nil,
         jobDescriptionURL: String? = nil,
-        token: String?
+        token: String?,
+        deferOptimization: Bool = false
     ) async throws -> ResumeUploadResponse {
         try await uploadMultipart(
             endpoint: .uploadResume,
@@ -147,6 +183,7 @@ struct APIClient {
             fields: [
                 "jobDescription": jobDescription,
                 "jobDescriptionUrl": jobDescriptionURL,
+                "deferOptimization": deferOptimization ? "true" : nil,
             ]
         )
     }
@@ -177,7 +214,7 @@ struct APIClient {
         fields: [String: String?]
     ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: url(for: endpoint), timeoutInterval: 120)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -187,26 +224,19 @@ struct APIClient {
             request.setValue(sessionId, forHTTPHeaderField: "x-session-id")
         }
 
-        let filename = fileURL.lastPathComponent
         let didAccess = fileURL.startAccessingSecurityScopedResource()
-        let fileData = try await Task.detached(priority: .userInitiated) {
-            defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
-            return try Data(contentsOf: fileURL)
+        defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
+        let uploadFile = try await Task.detached(priority: .userInitiated) {
+            try UploadFilePreflight.loadResumeFile(fileURL)
         }.value
 
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
-        body.append(fileData)
-
-        for (name, value) in fields {
-            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-            body.append(value.data(using: .utf8)!)
-        }
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var uploadFields = fields
+        uploadFields["resumeText"] = uploadFile.resumeText
+        let body = MultipartUploadBodyBuilder.build(
+            boundary: boundary,
+            uploadFile: uploadFile,
+            fields: uploadFields
+        )
 
         request.httpBody = body
         return try await send(request, using: Self.uploadSession)
@@ -250,7 +280,34 @@ struct APIClient {
         }
     }
 
-    private func url(for endpoint: Endpoint) -> URL {
-        URL(string: endpoint.path, relativeTo: baseURL)!.absoluteURL
+    private func url(for endpoint: Endpoint) throws -> URL {
+        guard let url = URL(string: endpoint.path, relativeTo: baseURL)?.absoluteURL else {
+            throw APIClientError.invalidURL(endpoint.path)
+        }
+        return url
+    }
+}
+
+enum MultipartUploadBodyBuilder {
+    nonisolated static func build(
+        boundary: String,
+        uploadFile: UploadFileDescriptor,
+        fields: [String: String?]
+    ) -> Data {
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"resume\"; filename=\"\(uploadFile.filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(uploadFile.mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(uploadFile.data)
+
+        for (name, value) in fields {
+            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
+            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append(value.data(using: .utf8)!)
+        }
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        return body
     }
 }

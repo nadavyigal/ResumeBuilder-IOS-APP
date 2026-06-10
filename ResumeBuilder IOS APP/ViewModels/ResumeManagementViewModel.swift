@@ -33,8 +33,7 @@ final class ResumeManagementViewModel {
     private let apiClient: APIClient
 
     init(
-        historyService: any OptimizationHistoryServiceProtocol = BackendConfig.useMockServices
-        ? MockOptimizationHistoryService() : OptimizationHistoryService(),
+        historyService: any OptimizationHistoryServiceProtocol = RuntimeServices.optimizationHistoryService(),
         apiClient: APIClient = APIClient()
     ) {
         self.historyService = historyService

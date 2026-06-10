@@ -21,11 +21,13 @@ final class DesignViewModel {
     private(set) var optimizationId: String?
     private let designService: any ResumeDesignServiceProtocol
     private let apiClient = APIClient()
+    private var templatesByCategory: [String: [DesignTemplate]] = [:]
+    private var loadingCategories: Set<String> = []
+    private var didLoadInitialAssignment = false
 
     init(
         optimizationId: String?,
-        designService: any ResumeDesignServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeDesignService() : ResumeDesignService()
+        designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
     ) {
         self.optimizationId = optimizationId
         self.designService = designService
@@ -46,19 +48,96 @@ final class DesignViewModel {
         optimizationId = id
         templates = []
         selectedTemplateId = nil
+        customization = .default
         didApplyCustomization = false
         styleHistory = []
+        didLoadInitialAssignment = false
     }
 
     func loadTemplates(token: String?) async {
         guard let token else { return }
+        if !didLoadInitialAssignment, let optId = optimizationId {
+            didLoadInitialAssignment = true
+            await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
+        }
+        let category = activeCategory
+        if let cached = templatesByCategory[category] {
+            templates = cached
+            if selectedTemplateId == nil || selectedTemplate?.category != category {
+                selectedTemplateId = cached.first?.id
+            }
+            return
+        }
+        guard !loadingCategories.contains(category) else { return }
+        loadingCategories.insert(category)
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            loadingCategories.remove(category)
+            if activeCategory == category {
+                isLoading = false
+            }
+        }
         do {
-            templates = try await designService.templates(category: activeCategory, token: token)
-            if selectedTemplateId == nil { selectedTemplateId = templates.first?.id }
+            let loadedTemplates = try await designService.templates(category: category, token: token)
+            templatesByCategory[category] = loadedTemplates
+            guard activeCategory == category else { return }
+            templates = loadedTemplates
+            if selectedTemplateId == nil || selectedTemplate?.category != category {
+                selectedTemplateId = loadedTemplates.first?.id
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            if activeCategory == category {
+                errorMessage = userFacingMessage(for: error)
+            }
+        }
+    }
+
+    func loadCurrentAssignment(token: String?) async {
+        guard let token, let optId = optimizationId else { return }
+        await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
+        didLoadInitialAssignment = true
+    }
+
+    func selectCategory(_ category: String) {
+        guard activeCategory != category else { return }
+        activeCategory = category
+        if let cached = templatesByCategory[category] {
+            templates = cached
+            selectedTemplateId = cached.first?.id
+        } else {
+            templates = []
+            selectedTemplateId = nil
+        }
+    }
+
+    func selectTemplate(_ templateId: String) {
+        selectedTemplateId = templateId
+    }
+
+    private func loadCurrentAssignment(optimizationId optId: String, token: String, shouldSyncCategory: Bool) async {
+        do {
+            guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return }
+            if let template = assignment.template {
+                templatesByCategory[template.category] = mergeTemplate(template, into: templatesByCategory[template.category] ?? [])
+                if shouldSyncCategory, activeCategory != template.category {
+                    activeCategory = template.category
+                }
+                if activeCategory == template.category {
+                    templates = mergeTemplate(template, into: templates)
+                }
+                selectedTemplateId = template.id
+            }
+            if let customizationValue = assignment.customization,
+               let decoded = Self.designCustomization(from: customizationValue) {
+                customization = decoded
+            }
+            didApplyCustomization = true
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 404 {
+                return
+            }
+        } catch {
+            // Non-fatal: the user can still choose a fresh template.
         }
     }
 
@@ -78,6 +157,10 @@ final class DesignViewModel {
 
     func applyDesign(token: String?) async -> Bool {
         guard let token, let optId = optimizationId else { return false }
+        guard !isLoading else {
+            errorMessage = "Design templates are still loading. Try again in a moment."
+            return false
+        }
         guard let templateId = selectedTemplateId else {
             errorMessage = "Choose a design template first."
             return false
@@ -94,11 +177,12 @@ final class DesignViewModel {
             )
             if ok {
                 didApplyCustomization = true
-                await loadStyleHistory(token: token)
+                styleHistory = []
+                await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
             }
             return ok
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = userFacingMessage(for: error)
             return false
         }
     }
@@ -109,9 +193,6 @@ final class DesignViewModel {
         errorMessage = nil
         defer { isUndoing = false }
         do {
-            if styleHistory.isEmpty {
-                await loadStyleHistory(token: token)
-            }
             if styleHistory.count >= 2, let prevId = styleHistory[1].customizationId {
                 let body: [String: Any] = [
                     "optimization_id": optId,
@@ -135,9 +216,75 @@ final class DesignViewModel {
                     throw APIClientError.serverError(status: 400, message: err)
                 }
             }
-            await loadStyleHistory(token: token)
+            styleHistory = []
+            await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    private func mergeTemplate(_ template: DesignTemplate, into existing: [DesignTemplate]) -> [DesignTemplate] {
+        var merged = existing.filter { $0.id != template.id }
+        merged.insert(template, at: 0)
+        return merged
+    }
+
+    private static func designCustomization(from value: JSONValue) -> DesignCustomization? {
+        guard case .object(let root) = value else { return nil }
+        let accent =
+            root["accent_color"]?.stringValue
+            ?? root["accentColor"]?.stringValue
+            ?? root["color_scheme"]?["accent"]?.stringValue
+            ?? root["color_scheme"]?["primary"]?.stringValue
+        let fontStyle =
+            root["font_style"]?.stringValue
+            ?? root["fontStyle"]?.stringValue
+            ?? fontStyle(from: root["font_family"])
+        let spacing =
+            root["spacing"]?.numberValue
+            ?? spacingValue(from: root["spacing"])
+
+        return DesignCustomization(
+            spacing: min(1, max(0, spacing ?? DesignCustomization.default.spacing)),
+            accentColor: (accent ?? DesignCustomization.default.accentColor).replacingOccurrences(of: "#", with: ""),
+            fontStyle: fontStyle ?? DesignCustomization.default.fontStyle
+        )
+    }
+
+    private static func fontStyle(from value: JSONValue?) -> String? {
+        guard case .object(let fonts) = value else { return nil }
+        let merged = [
+            fonts["heading"]?.stringValue,
+            fonts["body"]?.stringValue,
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+        .lowercased()
+        if merged.contains("georgia") { return "classic" }
+        if merged.contains("system") { return "minimal" }
+        if merged.isEmpty { return nil }
+        return "modern"
+    }
+
+    private static func spacingValue(from value: JSONValue?) -> Double? {
+        guard case .object(let spacing) = value else { return nil }
+        let lineHeightString = spacing["line_height"]?.stringValue ?? spacing["lineHeight"]?.stringValue
+        let lineHeight = lineHeightString.flatMap(Double.init)
+        if let lineHeight {
+            if lineHeight <= 1.4 { return 0.2 }
+            if lineHeight >= 1.6 { return 0.8 }
+            return 0.5
+        }
+        let gap = spacing["section_gap"]?.stringValue ?? ""
+        if gap.contains("10") { return 0.2 }
+        if gap.contains("22") { return 0.8 }
+        return nil
+    }
+
+    private func userFacingMessage(for error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            return apiError.userFacingMessage
+        }
+        return error.localizedDescription
     }
 }

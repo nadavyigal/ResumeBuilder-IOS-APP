@@ -60,32 +60,7 @@ struct TailorView: View {
                             .offset(y: appeared ? 0 : 16)
 
                             if viewModel.selectedResumeName?.isEmpty != false && appState.isAuthenticated {
-                                Button {
-                                    if let token = appState.session?.accessToken {
-                                        Task { await libraryViewModel.load(token: token) }
-                                    }
-                                    showLibraryPicker = true
-                                } label: {
-                                    HStack(spacing: 10) {
-                                        Image(systemName: "books.vertical.fill")
-                                            .font(.system(size: 15, weight: .semibold))
-                                            .foregroundStyle(Theme.accentBlue)
-                                        Text("Use a saved resume")
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(Theme.textPrimary)
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(Theme.textTertiary)
-                                    }
-                                    .padding(12)
-                                    .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .strokeBorder(Theme.accentBlue.opacity(0.25), lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                                libraryButton
                                 .opacity(appeared ? 1 : 0)
                                 .offset(y: appeared ? 0 : 16)
                             }
@@ -104,8 +79,8 @@ struct TailorView: View {
                         }
 
                         // ── Processing state ─────────────────────────────────
-                        if viewModel.isOptimizing {
-                            OptimizingView()
+                        if viewModel.isOptimizing || viewModel.isRunningFreeATS {
+                            ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
                                 .transition(.scale.combined(with: .opacity))
                         }
 
@@ -183,10 +158,12 @@ struct TailorView: View {
             } message: {
                 Text("Save to reuse on other jobs without re-uploading.")
             }
-            .onChange(of: viewModel.pendingSaveResumeId) { newId in
-                if newId != nil {
+            .onChange(of: viewModel.pendingSaveResumeId) { _, newId in
+                if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
                     saveDisplayName = viewModel.selectedResumeName ?? ""
                     showSavePrompt = true
+                } else if newId != nil {
+                    viewModel.pendingSaveResumeId = nil
                 }
             }
             .fileImporter(
@@ -218,6 +195,55 @@ struct TailorView: View {
     }
 
     // MARK: - Subviews
+
+    private var libraryButton: some View {
+        Button {
+            guard RuntimeFeatures.isResumeLibraryEnabled else {
+                libraryViewModel.errorMessage = "Resume Library is not available yet."
+                return
+            }
+            if let token = appState.session?.accessToken {
+                Task { await libraryViewModel.load(token: token) }
+            }
+            showLibraryPicker = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "books.vertical.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue : Theme.textTertiary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(RuntimeFeatures.isResumeLibraryEnabled ? "Use a saved resume" : "Saved resumes unavailable")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Theme.textPrimary)
+                    if !RuntimeFeatures.isResumeLibraryEnabled {
+                        Text("Resume Library is not available yet.")
+                            .font(.caption)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                }
+                Spacer()
+                if RuntimeFeatures.isResumeLibraryEnabled {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+            }
+            .padding(12)
+            .background(
+                (RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue.opacity(0.08) : Color.white.opacity(0.04)),
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                        RuntimeFeatures.isResumeLibraryEnabled ? Theme.accentBlue.opacity(0.25) : Color.white.opacity(0.08),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(!RuntimeFeatures.isResumeLibraryEnabled)
+    }
 
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -260,11 +286,12 @@ struct TailorView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
+            let circleFill: AnyShapeStyle = isFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary)
             HStack(spacing: 14) {
                 // Step number badge
                 ZStack {
                     Circle()
-                        .fill(isFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
+                        .fill(circleFill)
                         .frame(width: 36, height: 36)
                     if isFilled {
                         Image(systemName: "checkmark")
@@ -480,16 +507,24 @@ struct TailorView: View {
                 Task {
                     if appState.isAuthenticated {
                         await viewModel.optimize(appState: appState)
+                        #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
+                        #endif
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
+                            #if DEBUG
                             print("➡️ [TAILOR VIEW] switching to .optimized tab with id=\(optId)")
+                            #endif
                             appState.latestOptimizationId = optId
                             onSwitchTab(.optimized)
                         } else if viewModel.reviewId != nil {
+                            #if DEBUG
                             print("➡️ [TAILOR VIEW] navigating to review screen")
+                            #endif
                             shouldNavigate = true
                         } else {
+                            #if DEBUG
                             print("⚠️ [TAILOR VIEW] no id to navigate with — staying on tailor tab")
+                            #endif
                         }
                     } else {
                         await viewModel.runFreeATS(appState: appState)
@@ -512,13 +547,13 @@ struct TailorView: View {
                 .frame(height: 50)
                 .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 .background(
-                    canOptimize && !viewModel.isOptimizing
+                    canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS)
                         ? AnyShapeStyle(Theme.brandGradient)
                         : AnyShapeStyle(Theme.bgPrimary.opacity(0.5)),
                     in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                 )
                 .shadow(
-                    color: canOptimize && !viewModel.isOptimizing ? Theme.accent.opacity(0.35) : .clear,
+                    color: canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS) ? Theme.accent.opacity(0.35) : .clear,
                     radius: 10, y: 5
                 )
             }

@@ -1,0 +1,5 @@
+project_id = "brtdyamysfmctrhuankn"
+
+[functions.delete_account]
+# Performs its own JWT validation and returns stable JSON errors.
+verify_jwt = false

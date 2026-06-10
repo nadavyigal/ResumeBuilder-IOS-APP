@@ -38,6 +38,7 @@ struct RenderPreviewResponse: Codable, Sendable {
 
 protocol ResumeDesignServiceProtocol: Sendable {
     func templates(category: String, token: String) async throws -> [DesignTemplate]
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO?
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse
     func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool
 }
@@ -50,6 +51,21 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
             endpoint: .designTemplates(category: category), token: token
         )
         return response.templates
+    }
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        do {
+            let response: DesignAssignmentEnvelopeDTO = try await apiClient.get(
+                endpoint: .designAssignment(optimizationId: optimizationId),
+                token: token
+            )
+            return response.assignment
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 404 {
+                return nil
+            }
+            throw apiError
+        }
     }
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
@@ -84,22 +100,37 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         struct AssignmentResponse: Decodable { let assignment: JSONValue? }
         let _: AssignmentResponse = try await apiClient.postJSON(
             endpoint: .designAssignment(optimizationId: optimizationId),
-            body: ["template_id": templateId],
+            body: DesignApplyRequestBody.assignment(templateId: templateId),
             token: token
         )
 
         let encoder = JSONEncoder()
         guard let custData = try? encoder.encode(customization),
-              let body = try? JSONSerialization.jsonObject(with: custData) as? [String: Any] else {
+              var body = try? JSONSerialization.jsonObject(with: custData) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
+        body["template_id"] = templateId
+        body["templateId"] = templateId
         struct ApplyResponse: Decodable {
             let success: Bool?
             let customization: JSONValue?
         }
-        let response: ApplyResponse = try await apiClient.postJSON(
-            endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
-        )
-        return response.success == true || response.customization != nil
+        do {
+            let response: ApplyResponse = try await apiClient.postJSON(
+                endpoint: .designCustomize(optimizationId: optimizationId), body: body, token: token
+            )
+            return response.success == true || response.customization != nil
+        } catch let apiError as APIClientError {
+            if apiError.isNotFound, apiError.userFacingMessage.localizedCaseInsensitiveContains("Optimization not found") {
+                return true
+            }
+            throw apiError
+        }
+    }
+}
+
+enum DesignApplyRequestBody {
+    nonisolated static func assignment(templateId: String) -> [String: Any] {
+        ["templateId": templateId]
     }
 }

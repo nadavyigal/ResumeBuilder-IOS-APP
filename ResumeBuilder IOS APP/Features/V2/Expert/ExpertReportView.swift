@@ -8,6 +8,7 @@ struct ExpertReportView: View {
     let needsUserInput: Bool
     var showApplyButton: Bool
     var isApplying: Bool
+    var applyButtonTitle: String = "Apply Changes"
     var onApply: () -> Void
 
     @State private var evidenceExpanded = false
@@ -97,7 +98,7 @@ struct ExpertReportView: View {
             }
 
             if showApplyButton {
-                GradientButton(title: "Apply Changes", isLoading: isApplying, action: onApply)
+                GradientButton(title: applyButtonTitle, isLoading: isApplying, action: onApply)
             }
 
             if let copiedLabel {

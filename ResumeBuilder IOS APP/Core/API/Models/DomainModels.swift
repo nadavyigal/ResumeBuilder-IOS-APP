@@ -42,6 +42,17 @@ enum JSONValue: Codable, Hashable, Sendable {
         guard case .object(let dict) = self else { return nil }
         return dict[key]
     }
+
+    var stringValue: String? {
+        guard case .string(let value) = self else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    var numberValue: Double? {
+        guard case .number(let value) = self else { return nil }
+        return value
+    }
 }
 
 struct APIStatusResponse: Codable, Sendable {
@@ -578,6 +589,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
     let optimizationId: String?
     let optimizedResumeURL: String?
     let optimizedResumeId: String?
+    let sourceURL: String?
     let jobExtraction: JSONValue?
     let contact: JSONValue?
 
@@ -592,6 +604,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         optimizationId: String? = nil,
         optimizedResumeURL: String? = nil,
         optimizedResumeId: String? = nil,
+        sourceURL: String? = nil,
         jobExtraction: JSONValue? = nil,
         contact: JSONValue? = nil
     ) {
@@ -605,6 +618,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         self.optimizationId = optimizationId
         self.optimizedResumeURL = optimizedResumeURL
         self.optimizedResumeId = optimizedResumeId
+        self.sourceURL = sourceURL
         self.jobExtraction = jobExtraction
         self.contact = contact
     }
@@ -620,6 +634,8 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         case optimizationId = "optimization_id"
         case optimizedResumeURL = "optimized_resume_url"
         case optimizedResumeId = "optimized_resume_id"
+        case sourceURL = "source_url"
+        case jobURL = "job_url"
         case jobExtraction = "job_extraction"
         case contact
     }
@@ -635,6 +651,9 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         optimizationId = try c.decodeIfPresent(String.self, forKey: .optimizationId)
         optimizedResumeURL = try c.decodeIfPresent(String.self, forKey: .optimizedResumeURL)
         optimizedResumeId = try c.decodeIfPresent(String.self, forKey: .optimizedResumeId)
+        sourceURL =
+            try c.decodeIfPresent(String.self, forKey: .sourceURL)
+            ?? c.decodeIfPresent(String.self, forKey: .jobURL)
         jobExtraction = try c.decodeIfPresent(JSONValue.self, forKey: .jobExtraction)
         contact = try c.decodeIfPresent(JSONValue.self, forKey: .contact)
         if let intScore = try? c.decode(Int.self, forKey: .atsScore) {
@@ -659,6 +678,7 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         try c.encodeIfPresent(optimizationId, forKey: .optimizationId)
         try c.encodeIfPresent(optimizedResumeURL, forKey: .optimizedResumeURL)
         try c.encodeIfPresent(optimizedResumeId, forKey: .optimizedResumeId)
+        try c.encodeIfPresent(sourceURL, forKey: .sourceURL)
         try c.encodeIfPresent(jobExtraction, forKey: .jobExtraction)
         try c.encodeIfPresent(contact, forKey: .contact)
     }
@@ -674,12 +694,169 @@ struct ApplicationDetailEnvelope: Codable, Sendable {
     let application: ApplicationItem
     let htmlUrl: String?
     let jsonUrl: String?
+    let expertReports: [ApplicationExpertReportItem]
 
     enum CodingKeys: String, CodingKey {
         case success
         case application
         case htmlUrl
         case jsonUrl
+        case expertReports = "expert_reports"
+        case reports
+    }
+
+    init(
+        success: Bool?,
+        application: ApplicationItem,
+        htmlUrl: String?,
+        jsonUrl: String?,
+        expertReports: [ApplicationExpertReportItem] = []
+    ) {
+        self.success = success
+        self.application = application
+        self.htmlUrl = htmlUrl
+        self.jsonUrl = jsonUrl
+        self.expertReports = expertReports
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        success = try c.decodeIfPresent(Bool.self, forKey: .success)
+        application = try c.decode(ApplicationItem.self, forKey: .application)
+        htmlUrl = try c.decodeIfPresent(String.self, forKey: .htmlUrl)
+        jsonUrl = try c.decodeIfPresent(String.self, forKey: .jsonUrl)
+        expertReports =
+            try c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .expertReports)
+            ?? c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .reports)
+            ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(success, forKey: .success)
+        try c.encode(application, forKey: .application)
+        try c.encodeIfPresent(htmlUrl, forKey: .htmlUrl)
+        try c.encodeIfPresent(jsonUrl, forKey: .jsonUrl)
+        try c.encode(expertReports, forKey: .expertReports)
+    }
+}
+
+struct ApplicationCreateRequest: Sendable, Equatable {
+    let jobTitle: String
+    let companyName: String
+    let sourceURL: String?
+    let status: String
+    let optimizationId: String?
+    let optimizedResumeId: String?
+    let jobExtraction: JSONValue?
+    let contact: JSONValue?
+
+    init(
+        jobTitle: String,
+        companyName: String,
+        sourceURL: String? = nil,
+        status: String = "saved",
+        optimizationId: String? = nil,
+        optimizedResumeId: String? = nil,
+        jobExtraction: JSONValue? = nil,
+        contact: JSONValue? = nil
+    ) {
+        self.jobTitle = jobTitle
+        self.companyName = companyName
+        self.sourceURL = sourceURL
+        self.status = status
+        self.optimizationId = optimizationId
+        self.optimizedResumeId = optimizedResumeId
+        self.jobExtraction = jobExtraction
+        self.contact = contact
+    }
+}
+
+enum ApplicationCreateRequestBody {
+    nonisolated static func build(
+        jobTitle: String,
+        companyName: String,
+        sourceURL: String?,
+        status: String,
+        optimizationId: String?,
+        optimizedResumeId: String? = nil,
+        jobExtraction: JSONValue? = nil,
+        contact: JSONValue? = nil
+    ) -> [String: Any] {
+        var body: [String: Any] = [
+            "job_title": jobTitle,
+            "company_name": companyName,
+            "status": status,
+        ]
+        if let sourceURL, !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["source_url"] = sourceURL
+        }
+        if let optimizationId, !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["optimization_id"] = optimizationId
+        }
+        if let optimizedResumeId, !optimizedResumeId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["optimized_resume_id"] = optimizedResumeId
+        }
+        if let jobExtraction {
+            body["job_extraction"] = jsonObject(from: jobExtraction)
+        }
+        if let contact {
+            body["contact"] = jsonObject(from: contact)
+        }
+        return body
+    }
+
+    nonisolated static func build(_ request: ApplicationCreateRequest) -> [String: Any] {
+        build(
+            jobTitle: request.jobTitle,
+            companyName: request.companyName,
+            sourceURL: request.sourceURL,
+            status: request.status,
+            optimizationId: request.optimizationId,
+            optimizedResumeId: request.optimizedResumeId,
+            jobExtraction: request.jobExtraction,
+            contact: request.contact
+        )
+    }
+
+    private nonisolated static func jsonObject(from value: JSONValue) -> Any {
+        switch value {
+        case .string(let string):
+            return string
+        case .number(let number):
+            return number
+        case .bool(let bool):
+            return bool
+        case .object(let object):
+            return object.mapValues(jsonObject(from:))
+        case .array(let array):
+            return array.map(jsonObject(from:))
+        case .null:
+            return NSNull()
+        }
+    }
+}
+
+struct ApplicationCreateEnvelope: Decodable, Sendable {
+    let success: Bool?
+    let application: ApplicationItem
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case application
+        case data
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        success = try c.decodeIfPresent(Bool.self, forKey: .success)
+        if let app = try c.decodeIfPresent(ApplicationItem.self, forKey: .application) {
+            application = app
+        } else if let app = try c.decodeIfPresent(ApplicationItem.self, forKey: .data) {
+            application = app
+        } else {
+            application = try ApplicationItem(from: decoder)
+        }
     }
 }
 
@@ -704,18 +881,109 @@ struct ApplicationExpertReportsEnvelope: Codable, Sendable {
     }
 }
 
+struct ApplicationExpertReportSaveEnvelope: Codable, Sendable {
+    let success: Bool?
+    let report: ApplicationExpertReportItem
+}
+
 /// Saved expert run metadata linked to an application (from `GET .../expert-reports`).
 struct ApplicationExpertReportItem: Codable, Identifiable, Sendable {
     let id: String
     let reportTitle: String?
     let workflowType: String?
     let savedAt: String?
+    let runId: String?
+    let outputJson: JSONValue?
+    let coverLetterText: String?
+    let assetUrl: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case reportTitle = "report_title"
         case workflowType = "workflow_type"
         case savedAt = "saved_at"
+        case runId = "run_id"
+        case outputJson = "output_json"
+        case output
+        case coverLetterText = "cover_letter_text"
+        case letter
+        case assetUrl = "asset_url"
+        case url
+    }
+
+    init(
+        id: String,
+        reportTitle: String? = nil,
+        workflowType: String? = nil,
+        savedAt: String? = nil,
+        runId: String? = nil,
+        outputJson: JSONValue? = nil,
+        coverLetterText: String? = nil,
+        assetUrl: String? = nil
+    ) {
+        self.id = id
+        self.reportTitle = reportTitle
+        self.workflowType = workflowType
+        self.savedAt = savedAt
+        self.runId = runId
+        self.outputJson = outputJson
+        self.coverLetterText = coverLetterText
+        self.assetUrl = assetUrl
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id)
+            ?? c.decodeIfPresent(String.self, forKey: .runId)
+            ?? UUID().uuidString
+        reportTitle = try c.decodeIfPresent(String.self, forKey: .reportTitle)
+        workflowType = try c.decodeIfPresent(String.self, forKey: .workflowType)
+        savedAt = try c.decodeIfPresent(String.self, forKey: .savedAt)
+        runId = try c.decodeIfPresent(String.self, forKey: .runId)
+        outputJson =
+            try c.decodeIfPresent(JSONValue.self, forKey: .outputJson)
+            ?? c.decodeIfPresent(JSONValue.self, forKey: .output)
+        coverLetterText =
+            try c.decodeIfPresent(String.self, forKey: .coverLetterText)
+            ?? c.decodeIfPresent(String.self, forKey: .letter)
+            ?? Self.extractCoverLetter(from: outputJson)
+        assetUrl =
+            try c.decodeIfPresent(String.self, forKey: .assetUrl)
+            ?? c.decodeIfPresent(String.self, forKey: .url)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encodeIfPresent(reportTitle, forKey: .reportTitle)
+        try c.encodeIfPresent(workflowType, forKey: .workflowType)
+        try c.encodeIfPresent(savedAt, forKey: .savedAt)
+        try c.encodeIfPresent(runId, forKey: .runId)
+        try c.encodeIfPresent(outputJson, forKey: .outputJson)
+        try c.encodeIfPresent(coverLetterText, forKey: .coverLetterText)
+        try c.encodeIfPresent(assetUrl, forKey: .assetUrl)
+    }
+
+    private static func extractCoverLetter(from value: JSONValue?) -> String? {
+        guard let value else { return nil }
+        if let direct = value["letter"]?.stringValue ?? value["body"]?.stringValue ?? value["cover_letter"]?.stringValue {
+            return direct
+        }
+        if let variants = value["cover_letter_variants"], case .array(let rows) = variants {
+            for row in rows {
+                if let letter = row["letter"]?.stringValue ?? row["body"]?.stringValue {
+                    return letter
+                }
+            }
+        }
+        if case .object(let object) = value {
+            for child in object.values {
+                if let found = extractCoverLetter(from: child) {
+                    return found
+                }
+            }
+        }
+        return nil
     }
 }
 
@@ -914,10 +1182,13 @@ struct ChatAffectedField: Codable, Sendable {
             try c.decodeIfPresent(String.self, forKey: .sectionId)
             ?? c.decodeIfPresent(String.self, forKey: .section_id) ?? ""
 
-        field =
-            try c.decodeIfPresent(String.self, forKey: .field)
-                ?? c.decodeIfPresent(String.self, forKey: .fieldPath)
-                ?? c.decodeIfPresent(String.self, forKey: .field_path)
+        if let v = try c.decodeIfPresent(String.self, forKey: .field) {
+            field = v
+        } else if let v = try c.decodeIfPresent(String.self, forKey: .fieldPath) {
+            field = v
+        } else {
+            field = try c.decodeIfPresent(String.self, forKey: .field_path)
+        }
 
         originalValue =
             try c.decodeIfPresent(JSONValue.self, forKey: .originalValue)
@@ -1346,19 +1617,146 @@ struct OptimizationReviewApplyResponseDTO: Decodable, Sendable {
 
 // MARK: - Optimization detail (Phase 3 section fetch)
 
+struct ResumeContact: Codable, Equatable, Sendable {
+    let name: String?
+    let email: String?
+    let phone: String?
+    let location: String?
+    let title: String?
+    let linkedin: String?
+    let portfolio: String?
+
+    var hasDisplayableValue: Bool {
+        [name, email, phone, location, title, linkedin, portfolio]
+            .contains { $0?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
+    }
+
+    var contactLine: String {
+        [email, phone, location, linkedin, portfolio]
+            .compactMap { value in
+                let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            .joined(separator: " | ")
+    }
+}
+
 struct OptimizationDetailDTO: Decodable, Sendable {
     let sections: [OptimizedResumeSection]
+    let contact: ResumeContact?
     let jobTitle: String?
     let company: String?
     let atsScoreBefore: Int?
     let atsScoreAfter: Int?
+    let atsBlockers: [ATSOptimizationBlocker]
+    let jobUrl: String?
+    let applicationId: String?
 
     private enum CodingKeys: String, CodingKey {
         case sections
+        case contact
+        case jobTitleCamel   = "jobTitle"
         case jobTitle       = "job_title"
         case company
+        case atsScoreBeforeCamel = "atsScoreBefore"
         case atsScoreBefore = "ats_score_before"
+        case atsScoreAfterCamel = "atsScoreAfter"
         case atsScoreAfter  = "ats_score_after"
+        case atsBlockersCamel = "atsBlockers"
+        case atsBlockers = "ats_blockers"
+        case jobUrlCamel = "jobUrl"
+        case jobUrl = "job_url"
+        case applicationIdCamel = "applicationId"
+        case applicationId = "application_id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sections = try c.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections) ?? []
+        contact = try c.decodeIfPresent(ResumeContact.self, forKey: .contact)
+        jobTitle =
+            try c.decodeIfPresent(String.self, forKey: .jobTitle)
+            ?? c.decodeIfPresent(String.self, forKey: .jobTitleCamel)
+        company = try c.decodeIfPresent(String.self, forKey: .company)
+        atsScoreBefore =
+            try c.decodeIfPresent(Int.self, forKey: .atsScoreBefore)
+            ?? c.decodeIfPresent(Int.self, forKey: .atsScoreBeforeCamel)
+        atsScoreAfter =
+            try c.decodeIfPresent(Int.self, forKey: .atsScoreAfter)
+            ?? c.decodeIfPresent(Int.self, forKey: .atsScoreAfterCamel)
+        atsBlockers =
+            try c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockers)
+            ?? c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockersCamel)
+            ?? []
+        jobUrl =
+            try c.decodeIfPresent(String.self, forKey: .jobUrl)
+            ?? c.decodeIfPresent(String.self, forKey: .jobUrlCamel)
+        applicationId =
+            try c.decodeIfPresent(String.self, forKey: .applicationId)
+            ?? c.decodeIfPresent(String.self, forKey: .applicationIdCamel)
+    }
+}
+
+struct ATSOptimizationBlocker: Codable, Identifiable, Sendable, Equatable {
+    let id: String
+    let category: String
+    let title: String
+    let detail: String?
+    let suggestedAction: String?
+    let estimatedGain: Int?
+    let severity: String?
+
+    init(
+        id: String = UUID().uuidString,
+        category: String,
+        title: String,
+        detail: String? = nil,
+        suggestedAction: String? = nil,
+        estimatedGain: Int? = nil,
+        severity: String? = nil
+    ) {
+        self.id = id
+        self.category = category
+        self.title = title
+        self.detail = detail
+        self.suggestedAction = suggestedAction
+        self.estimatedGain = estimatedGain
+        self.severity = severity
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        id = try c.decodeString(for: ["id"]) ?? UUID().uuidString
+        category = try c.decodeString(for: ["category", "type"]) ?? "ATS"
+        let decodedTitle = try c.decodeString(for: ["title", "label", "message"])
+        let decodedSuggestedAction = try c.decodeString(for: ["suggested_action", "suggestedAction"])
+        let decodedAction = try c.decodeString(for: ["action", "suggestion"])
+        title = decodedTitle ?? decodedSuggestedAction ?? "ATS improvement"
+        detail = try c.decodeString(for: ["detail", "description", "rationale", "text"])
+        suggestedAction = decodedSuggestedAction ?? decodedAction
+        estimatedGain = try c.decodeInt(for: ["estimated_gain", "estimatedGain", "estimated_impact"])
+        severity = try c.decodeString(for: ["severity", "priority"])
+    }
+}
+
+// MARK: - Design assignment
+
+struct DesignAssignmentEnvelopeDTO: Decodable, Sendable {
+    let assignment: DesignAssignmentDTO?
+    let error: String?
+}
+
+struct DesignAssignmentDTO: Decodable, Sendable {
+    let id: String?
+    let optimizationId: String?
+    let template: DesignTemplate?
+    let customization: JSONValue?
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case optimizationId = "optimization_id"
+        case template
+        case customization
     }
 }
 

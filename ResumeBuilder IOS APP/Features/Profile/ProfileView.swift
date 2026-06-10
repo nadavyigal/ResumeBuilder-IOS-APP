@@ -8,23 +8,29 @@ private struct ApplicationComparePair: Identifiable {
 
 struct ProfileView: View {
     var isActive: Bool = false
+    var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     @Environment(AppState.self) private var appState
     @State private var showPaywall = false
+    @State private var showOnboarding = false
     @State private var latestOptimization: OptimizationHistoryItem?
     @State private var profileMessage: String?
     @State private var appeared = false
+    @State private var navigateToLatestResume = false
 
     @State private var applicationsViewModel = ApplicationsViewModel()
     @State private var appSelectionMode = false
     @State private var appSelectedIds = Set<String>()
     @State private var comparePair: ApplicationComparePair?
+    @State private var showDeleteConfirmation = false
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
 
-    private var email: String { appState.session?.email ?? "Signed in" }
-    private var initials: String {
-        let parts = email.split(separator: "@").first?.split(separator: ".") ?? []
-        let letters = parts.prefix(2).compactMap { $0.first.map(String.init) }
-        return letters.joined().uppercased().prefix(2).description
+    private var accountInfo: AccountDisplayInfo {
+        AccountDisplayInfo.resolve(
+            isAuthenticated: appState.isAuthenticated,
+            email: appState.session?.email
+        )
     }
 
     var body: some View {
@@ -64,6 +70,19 @@ struct ProfileView: View {
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                .navigationDestination(isPresented: $navigateToLatestResume) {
+                    if let opt = latestOptimization {
+                        OptimizedResumeView(
+                            viewModel: OptimizedResumeViewModel(
+                                optimizationId: opt.id,
+                                atsScoreAfter: opt.matchScorePercent,
+                                jobTitle: opt.jobTitle,
+                                company: opt.company
+                            ),
+                            onSwitchTab: onSwitchTab
+                        )
+                    }
+                }
             }
             .navigationBarHidden(true)
             .task(id: isActive) {
@@ -79,6 +98,20 @@ struct ProfileView: View {
                 NavigationStack { PaywallView() }
                     .preferredColorScheme(.dark)
                     .tint(Theme.accent)
+            }
+            .sheet(isPresented: $showOnboarding) {
+                NavigationStack {
+                    OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
+            }
+            .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    showOnboarding = false
+                }
+            }
+            .onChange(of: appState.applicationsRefreshToken) { _, _ in
+                guard isActive else { return }
+                Task { await applicationsViewModel.load(token: appState.session?.accessToken) }
             }
             .sheet(item: $comparePair) { pair in
                 NavigationStack {
@@ -113,7 +146,7 @@ struct ProfileView: View {
                         .frame(width: 76, height: 76)
                         .shadow(color: Theme.accent.opacity(0.4), radius: 16, y: 6)
 
-                    Text(initials.isEmpty ? "R" : initials)
+                    Text(accountInfo.avatarInitials)
                         .font(.system(size: 26, weight: .black, design: .rounded))
                         .foregroundStyle(Theme.brandGradient)
                 }
@@ -127,11 +160,11 @@ struct ProfileView: View {
         .padding(.bottom, 48)
         .overlay(alignment: .bottomLeading) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(email)
+                Text(accountInfo.title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
-                Text("Active account")
+                Text(accountInfo.subtitle)
                     .font(.caption)
                     .foregroundStyle(Theme.textTertiary)
             }
@@ -191,15 +224,9 @@ struct ProfileView: View {
     private var latestResumeSection: some View {
         ProfileSection(title: "Latest Resume", icon: "doc.text.fill", iconColor: Theme.accent) {
             if let opt = latestOptimization {
-                NavigationLink {
-                    OptimizedResumeView(
-                        viewModel: OptimizedResumeViewModel(
-                            optimizationId: opt.id,
-                            atsScoreAfter: opt.matchScorePercent,
-                            jobTitle: opt.jobTitle,
-                            company: opt.company
-                        )
-                    )
+                Button {
+                    appState.latestOptimizationId = opt.id
+                    navigateToLatestResume = true
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -255,7 +282,7 @@ struct ProfileView: View {
                     Image(systemName: "tray")
                         .font(.title3)
                         .foregroundStyle(Theme.textTertiary)
-                    Text("Tailor a resume to start tracking applications.")
+                    Text(appState.isAuthenticated ? "Tailor a resume to start tracking applications." : "Sign in to track applications.")
                         .font(.subheadline)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -300,7 +327,7 @@ struct ProfileView: View {
                                 .buttonStyle(.plain)
                             } else {
                                 NavigationLink {
-                                    ApplicationDetailView(application: app)
+                                    ApplicationDetailView(application: app, onSwitchTab: onSwitchTab)
                                 } label: {
                                     applicationRow(app, selected: false)
                                 }
@@ -390,17 +417,93 @@ struct ProfileView: View {
 
     private var accountSection: some View {
         ProfileSection(title: "Account", icon: "person.crop.circle.fill", iconColor: Theme.textTertiary) {
-            Button(role: .destructive) {
-                appState.signOut()
-            } label: {
-                profileRow(
-                    icon: "rectangle.portrait.and.arrow.right",
-                    label: "Sign Out",
-                    color: .red,
-                    isDestructive: true
-                )
+            if accountInfo.showsSignIn {
+                VStack(spacing: 0) {
+                    Label("Your data stays private. We never share your resume.", systemImage: "lock.shield.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+
+                    Button {
+                        showOnboarding = true
+                    } label: {
+                        profileRow(icon: "person.crop.circle.badge.plus", label: "Sign In", color: Theme.accent, isAction: true)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .buttonStyle(.plain)
+
+            if accountInfo.showsSignOut {
+                Button(role: .destructive) {
+                    appState.signOut()
+                } label: {
+                    profileRow(
+                        icon: "rectangle.portrait.and.arrow.right",
+                        label: "Sign Out",
+                        color: .red,
+                        isDestructive: true
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    if isDeletingAccount {
+                        HStack(spacing: 12) {
+                            ProgressView().tint(.red)
+                            Text("Deleting account…")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.red)
+                            Spacer()
+                        }
+                        .padding(14)
+                    } else {
+                        profileRow(
+                            icon: "trash",
+                            label: "Delete Account",
+                            color: .red,
+                            isDestructive: true
+                        )
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isDeletingAccount)
+                .alert("Delete your account?", isPresented: $showDeleteConfirmation) {
+                    Button("Delete Account", role: .destructive) {
+                        deleteAccount()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This permanently deletes your account, resumes, optimizations, and all personal data. This action cannot be undone.")
+                }
+                .alert("Could not delete account", isPresented: Binding(
+                    get: { deleteAccountError != nil },
+                    set: { if !$0 { deleteAccountError = nil } }
+                )) {
+                    Button("OK", role: .cancel) { deleteAccountError = nil }
+                } message: {
+                    Text(deleteAccountError ?? "Please try again.")
+                }
+            }
+        }
+    }
+
+    private func deleteAccount() {
+        isDeletingAccount = true
+        Task {
+            do {
+                try await appState.deleteAccount()
+                // Success: session cleared; profile returns to signed-out state.
+            } catch {
+                deleteAccountError = error.localizedDescription
+            }
+            isDeletingAccount = false
         }
     }
 
@@ -439,7 +542,10 @@ struct ProfileView: View {
 
     @MainActor
     private func loadLatestOptimization() async {
-        guard appState.session?.accessToken != nil else { return }
+        guard appState.session?.accessToken != nil else {
+            profileMessage = "Sign in and optimize a resume to see it here."
+            return
+        }
         do {
             let response: OptimizationHistoryResponse = try await appState.callWithFreshToken { token in
                 try await appState.apiClient.get(

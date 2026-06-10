@@ -1,8 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct RedesignResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: DesignViewModel
+    var isActive = true
     var onPreview: (() -> Void)? = nil
 
     private let categories = [
@@ -26,11 +28,6 @@ struct RedesignResumeView: View {
                     // Live preview card
                     previewCard
 
-                    // Template strip
-                    if !viewModel.templates.isEmpty {
-                        templateStrip
-                    }
-
                     // Style controls
                     styleControls
 
@@ -42,9 +39,13 @@ struct RedesignResumeView: View {
                     ) {
                         Task {
                             let success = await viewModel.applyDesign(token: appState.session?.accessToken)
-                            if success { onPreview?() }
+                            if success {
+                                appState.resumePreviewRefreshToken += 1
+                                onPreview?()
+                            }
                         }
                     }
+                    .disabled(viewModel.isLoading || viewModel.selectedTemplateId == nil)
                     .padding(.horizontal, AppSpacing.lg)
 
                     if let error = viewModel.errorMessage {
@@ -64,7 +65,10 @@ struct RedesignResumeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task { await viewModel.undoLastDesign(token: appState.session?.accessToken) }
+                        Task {
+                            await viewModel.undoLastDesign(token: appState.session?.accessToken)
+                            appState.resumePreviewRefreshToken += 1
+                        }
                     } label: {
                         if viewModel.isUndoing {
                             ProgressView()
@@ -77,7 +81,6 @@ struct RedesignResumeView: View {
             }
             .task {
                 await viewModel.loadTemplates(token: appState.session?.accessToken)
-                await viewModel.loadStyleHistory(token: appState.session?.accessToken)
             }
             .onChange(of: viewModel.activeCategory) { _, _ in
                 Task { await viewModel.loadTemplates(token: appState.session?.accessToken) }
@@ -92,7 +95,7 @@ struct RedesignResumeView: View {
             ForEach(categories, id: \.0) { cat in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.activeCategory = cat.0
+                        viewModel.selectCategory(cat.0)
                     }
                 } label: {
                     Text(cat.1)
@@ -122,12 +125,11 @@ struct RedesignResumeView: View {
                     optimizationId: optId,
                     sections: [],
                     templateId: viewModel.selectedTemplateId,
-                    customization: viewModel.customization
+                    customization: viewModel.customization,
+                    isActive: isActive,
+                    renderDebounce: .milliseconds(450)
                 )
-                // Recreate the web view whenever template or accent changes so the
-                // preview reflects the current customization.
-                .id((viewModel.selectedTemplateId ?? "") + viewModel.customization.accentColor)
-                .frame(height: 240)
+                .frame(height: previewHeight)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppRadii.glass, style: .continuous)
@@ -165,24 +167,8 @@ struct RedesignResumeView: View {
         .padding(.horizontal, AppSpacing.lg)
     }
 
-    private var templateStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AppSpacing.lg) {
-                ForEach(viewModel.templates) { template in
-                    TemplateThumbnail(
-                        name: template.name,
-                        category: template.category,
-                        thumbnailURL: template.thumbnailURL.flatMap(URL.init),
-                        isSelected: viewModel.selectedTemplateId == template.id,
-                        isPremium: template.isPremium
-                    )
-                    .onTapGesture {
-                        withAnimation { viewModel.selectedTemplateId = template.id }
-                    }
-                }
-            }
-            .padding(.horizontal, AppSpacing.lg)
-        }
+    private var previewHeight: CGFloat {
+        min(560, max(380, UIScreen.main.bounds.height * 0.56))
     }
 
     private var styleControls: some View {

@@ -46,7 +46,6 @@ struct OptimizationDesignSheet: View {
             }
             .task {
                 await designVM.loadTemplates(token: appState.session?.accessToken)
-                await designVM.loadStyleHistory(token: appState.session?.accessToken)
             }
             .onChange(of: designVM.activeCategory) { _, _ in
                 Task { await designVM.loadTemplates(token: appState.session?.accessToken) }
@@ -63,7 +62,7 @@ struct OptimizationDesignSheet: View {
             ForEach(categories, id: \.0) { cat in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        designVM.activeCategory = cat.0
+                        designVM.selectCategory(cat.0)
                     }
                 } label: {
                     Text(cat.1)
@@ -132,13 +131,14 @@ struct OptimizationDesignSheet: View {
                     TemplateThumbnail(
                         name: template.name,
                         category: template.category,
+                        templateId: template.id,
                         thumbnailURL: template.thumbnailURL.flatMap(URL.init),
                         isSelected: designVM.selectedTemplateId == template.id,
                         isPremium: template.isPremium
                     )
                     .onTapGesture {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            designVM.selectedTemplateId = template.id
+                            designVM.selectTemplate(template.id)
                         }
                     }
                 }
@@ -298,9 +298,13 @@ struct OptimizationDesignSheet: View {
             ) {
                 Task {
                     let ok = await designVM.applyDesign(token: appState.session?.accessToken)
-                    if ok { isPresented = false }
+                    if ok {
+                        appState.resumePreviewRefreshToken += 1
+                        isPresented = false
+                    }
                 }
             }
+            .disabled(designVM.isLoading || designVM.selectedTemplateId == nil)
 
             if designVM.canUndoDesign {
                 Button {

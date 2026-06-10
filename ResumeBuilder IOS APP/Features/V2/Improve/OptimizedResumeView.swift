@@ -4,6 +4,7 @@ import UIKit
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: OptimizedResumeViewModel
+    var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     /// ATS headline percent for export "share score" copy (from Improve analysis).
@@ -12,6 +13,12 @@ struct OptimizedResumeView: View {
     @State private var showRefineSheet = false
     @State private var refineInstruction = ""
     @State private var editingSectionId: String? = nil
+    @State private var isManualEditMode = false
+    @State private var manualEditTextBySection: [String: String] = [:]
+    @State private var manualEditError: String? = nil
+    @State private var showDiscardManualEditConfirmation = false
+    @State private var submitVM: SubmitApplicationViewModel? = nil
+    @State private var showSubmitPackageSheet = false
     @State private var navigateToModifications = false
 
     // Download & copy
@@ -19,9 +26,13 @@ struct OptimizedResumeView: View {
     @State private var pdfTempURL: URL? = nil
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
+    @State private var showExportSuccess = false
 
     // Design VM for preview fidelity (passes current template + customization to preview)
     @State private var designVM: DesignViewModel? = nil
+    // Updated by the preview web view after each render-preview call.
+    // Passed to the export action so the PDF matches the displayed design template.
+    @State private var renderedPreviewHTML: String? = nil
 
     var body: some View {
         ScrollView {
@@ -33,22 +44,36 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
+                // Improve actions — above the resume so they are easy to reach
+                if viewModel.optimizationIdentifier != nil {
+                    improveActionsRow
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
+                }
+
                 // Inline resume preview — the main content
-                if viewModel.isLoadingSections {
-                    ProgressView("Loading resume…")
-                        .tint(AppColors.accentViolet)
-                        .padding(.top, AppSpacing.xl)
-                } else if let optId = viewModel.optimizationIdentifier {
+                if let optId = viewModel.optimizationIdentifier {
                     ResumePreviewWebView(
                         optimizationId: optId,
                         sections: viewModel.sections,
+                        contact: viewModel.contact,
                         templateId: designVM?.selectedTemplateId,
-                        customization: designVM?.customization
+                        customization: designVM?.customization,
+                        isActive: isActive,
+                        renderedHTML: $renderedPreviewHTML
                     )
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
-                    .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                     .padding(.horizontal, AppSpacing.lg)
+                } else if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
+                    ProgressView("Loading resume…")
+                        .tint(AppColors.accentViolet)
+                        .padding(.top, AppSpacing.xl)
+                }
+
+                if viewModel.optimizationIdentifier != nil {
+                    atsUpliftPanel
+                        .padding(.horizontal, AppSpacing.lg)
                 }
 
                 if let error = viewModel.errorMessage {
@@ -63,11 +88,31 @@ struct OptimizedResumeView: View {
         }
         .scrollIndicators(.hidden)
         .task {
-            print("🔍 [OPTIMIZED VIEW] task started: optId=\(viewModel.optimizationIdentifier ?? "nil") sections=\(viewModel.sections.count) isLoading=\(viewModel.isLoadingSections)")
-            await viewModel.loadSections(appState: appState)
-            print("🔍 [OPTIMIZED VIEW] loadSections done: sections=\(viewModel.sections.count) error=\(viewModel.errorMessage ?? "none")")
             if let optId = viewModel.optimizationIdentifier, designVM == nil {
                 designVM = DesignViewModel(optimizationId: optId)
+            }
+            let currentDesignVM = designVM
+            async let sectionLoad: Void = viewModel.loadSections(appState: appState)
+            async let assignmentLoad: Void = currentDesignVM?.loadCurrentAssignment(token: appState.session?.accessToken) ?? ()
+            await sectionLoad
+            await assignmentLoad
+        }
+        .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
+            Task {
+                await viewModel.forceReloadSections(appState: appState)
+                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+            }
+        }
+        .onChange(of: viewModel.optimizationIdentifier) { _, newId in
+            renderedPreviewHTML = nil
+            pdfTempURL = nil
+            showPDFShare = false
+            showExportSuccess = appState.isExportComplete(for: newId)
+            if let newId {
+                designVM = DesignViewModel(optimizationId: newId)
+                Task { await designVM?.loadCurrentAssignment(token: appState.session?.accessToken) }
+            } else {
+                designVM = nil
             }
         }
         .screenBackground(showRadialGlow: false)
@@ -86,28 +131,6 @@ struct OptimizedResumeView: View {
                     Divider()
 
                     Button {
-                        Task {
-                            guard !isDownloadingPDF else { return }
-                            isDownloadingPDF = true
-                            viewModel.errorMessage = nil
-                            do {
-                                pdfTempURL = try await viewModel.downloadPDF(appState: appState)
-                                showPDFShare = true
-                            } catch {
-                                viewModel.errorMessage = "PDF download failed: \(error.localizedDescription)"
-                            }
-                            isDownloadingPDF = false
-                        }
-                    } label: {
-                        if isDownloadingPDF {
-                            Label("Downloading…", systemImage: "arrow.down.circle")
-                        } else {
-                            Label("Download PDF", systemImage: "arrow.down.doc.fill")
-                        }
-                    }
-                    .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
-
-                    Button {
                         UIPasteboard.general.string = viewModel.plainTextResume
                         showCopyConfirmation = true
                     } label: {
@@ -120,11 +143,25 @@ struct OptimizedResumeView: View {
                 }
             }
         }
+        .onAppear {
+            showExportSuccess = appState.isExportComplete(for: viewModel.optimizationIdentifier)
+        }
         .safeAreaInset(edge: .bottom) {
             bottomBar
         }
         .sheet(isPresented: $showRefineSheet) {
             refineSheet
+        }
+        .sheet(isPresented: $showSubmitPackageSheet) {
+            if let submitVM {
+                SubmitApplicationSheet(
+                    vm: submitVM,
+                    accessToken: appState.session?.accessToken
+                )
+            }
+        }
+        .sheet(isPresented: $isManualEditMode) {
+            manualEditSheet
         }
         .sheet(isPresented: $showPDFShare, onDismiss: { pdfTempURL = nil }) {
             if let url = pdfTempURL {
@@ -221,45 +258,412 @@ struct OptimizedResumeView: View {
 
     private var bottomBar: some View {
         VStack(spacing: AppSpacing.sm) {
+            if showExportSuccess || appState.isExportComplete(for: viewModel.optimizationIdentifier) {
+                exportSuccessActions
+            }
+
             GradientButton(
-                title: "Refine Resume",
-                icon: "wand.and.stars",
-                isLoading: viewModel.isRefining
+                title: "Preview & Export PDF",
+                icon: "arrow.down.doc.fill",
+                isLoading: isDownloadingPDF
             ) {
-                editingSectionId = heuristicSectionId
-                refineInstruction = ""
-                showRefineSheet = true
+                Task { await performExport() }
             }
-            .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
+            .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
 
-            HStack(spacing: AppSpacing.md) {
-                Button {
-                    onSwitchTab(.expert)
-                } label: {
-                    Label("Send to Expert", systemImage: "rectangle.stack.badge.person.crop")
-                        .font(.appSubheadline)
-                        .foregroundStyle(AppColors.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .glassCard(cornerRadius: AppRadii.md)
-                }
-                .buttonStyle(GradientButtonStyle())
-                .disabled(viewModel.optimizationIdentifier == nil)
-
-                Button {
-                    onSwitchTab(.design)
-                } label: {
-                    Label("Open Design", systemImage: "paintbrush")
-                        .font(.appSubheadline)
-                        .foregroundStyle(AppColors.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .glassCard(cornerRadius: AppRadii.md)
-                }
-                .buttonStyle(GradientButtonStyle())
-                .disabled(viewModel.optimizationIdentifier == nil)
+            Button {
+                openSubmitPackage()
+            } label: {
+                Label("Submit Package", systemImage: "paperplane.fill")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 46)
+                    .glassCard(cornerRadius: AppRadii.md)
             }
+            .buttonStyle(GradientButtonStyle())
+            .disabled(viewModel.optimizationIdentifier == nil || viewModel.sections.isEmpty)
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.8))
+    }
+
+    private var improveActionsRow: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Improve further")
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textTertiary)
+                .padding(.leading, AppSpacing.xs)
+
+            HStack(spacing: AppSpacing.md) {
+                improveButton(title: "Refine", icon: "wand.and.stars") {
+                    editingSectionId = heuristicSectionId
+                    refineInstruction = ""
+                    showRefineSheet = true
+                }
+                .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil)
+
+                improveButton(title: isManualEditMode ? "Done" : "Edit", icon: isManualEditMode ? "checkmark.circle" : "square.and.pencil") {
+                    openManualEditor()
+                }
+                .disabled(viewModel.sections.isEmpty || viewModel.optimizationIdentifier == nil || viewModel.isSaving)
+
+                improveButton(title: "Design", icon: "paintbrush") {
+                    onSwitchTab(.design)
+                }
+                .disabled(viewModel.optimizationIdentifier == nil)
+
+                improveButton(title: "Expert", icon: "rectangle.stack.badge.person.crop") {
+                    onSwitchTab(.expert)
+                }
+                .disabled(viewModel.optimizationIdentifier == nil)
+            }
+        }
+    }
+
+    private func improveButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .glassCard(cornerRadius: AppRadii.md)
+        }
+        .buttonStyle(GradientButtonStyle())
+    }
+
+    private var atsUpliftPanel: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack(alignment: .center, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ATS Match")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textTertiary)
+                    HStack(spacing: AppSpacing.sm) {
+                        Text(viewModel.atsStatusLabel)
+                            .font(.appHeadline)
+                            .foregroundStyle(atsStatusColor)
+                        if let before = viewModel.atsScoreBefore, let after = viewModel.atsScoreAfter {
+                            Text("\(before)% → \(after)%")
+                                .font(.appCaption.weight(.semibold))
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+                    }
+                    Text(viewModel.atsStatusDescription)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                Spacer()
+                Button {
+                    Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
+                } label: {
+                    if viewModel.isImprovingATS {
+                        ProgressView()
+                            .tint(AppColors.accentTeal)
+                            .frame(width: 32, height: 32)
+                    } else {
+                        Image(systemName: "gauge.medium")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                            .frame(width: 40, height: 40)
+                            .glassCard(cornerRadius: AppRadii.md)
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isImprovingATS)
+            }
+
+            if !viewModel.atsBlockers.isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    ForEach(viewModel.atsBlockers.prefix(3)) { blocker in
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .imageScale(.small)
+                                .foregroundStyle(AppColors.accentSky)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(blocker.title)
+                                    .font(.appCaption.weight(.semibold))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                if let action = blocker.suggestedAction ?? blocker.detail {
+                                    Text(action)
+                                        .font(.appCaption)
+                                        .foregroundStyle(AppColors.textTertiary)
+                                        .lineLimit(2)
+                                }
+                            }
+                            Spacer()
+                            if let gain = blocker.estimatedGain {
+                                Text("+\(gain)")
+                                    .font(.appCaption.weight(.bold))
+                                    .foregroundStyle(AppColors.accentTeal)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let message = viewModel.atsUpliftMessage {
+                Label(message, systemImage: "checkmark.circle.fill")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var atsStatusColor: Color {
+        switch viewModel.atsStatusLabel {
+        case "High": return AppColors.accentTeal
+        case "Strong": return AppColors.accentSky
+        case "Medium": return AppColors.accentCyan
+        default: return AppColors.accentViolet
+        }
+    }
+
+    private var manualEditSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                manualSectionSelector
+
+                if let section = selectedManualSection {
+                    focusedManualEditor(section)
+                } else {
+                    ContentUnavailableView("No section selected", systemImage: "doc.text")
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                if let manualEditError {
+                    Text(manualEditError)
+                        .font(.appCaption)
+                        .foregroundStyle(.red)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(AppSpacing.lg)
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Edit Resume")
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(selectedManualSection.map(hasPendingManualEdit(for:)) ?? false)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        closeManualEditorRespectingDirtyState()
+                    }
+                    .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .confirmationDialog(
+                "Discard unsaved edit?",
+                isPresented: $showDiscardManualEditConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Discard", role: .destructive) {
+                    if let section = selectedManualSection {
+                        manualEditTextBySection[section.id] = section.body
+                    }
+                    isManualEditMode = false
+                }
+                Button("Keep Editing", role: .cancel) {}
+            }
+        }
+    }
+
+    private var manualSectionSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppSpacing.sm) {
+                ForEach(viewModel.sections) { section in
+                    Button {
+                        editingSectionId = section.id
+                        manualEditError = nil
+                    } label: {
+                        Text(section.type.displayName)
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(editingSectionId == section.id ? .black : AppColors.textPrimary)
+                            .padding(.horizontal, AppSpacing.md)
+                            .frame(height: 36)
+                            .background(
+                                editingSectionId == section.id ? AppColors.accentTeal : .clear,
+                                in: Capsule()
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(AppColors.glassStroke, lineWidth: editingSectionId == section.id ? 0 : 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func focusedManualEditor(_ section: OptimizedResumeSection) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(section.type.displayName)
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Edit only facts you can verify. Save refreshes the preview and ATS score.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                    .fill(.black.opacity(0.18))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                            .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+                    )
+
+                TextEditor(text: manualEditBinding(for: section))
+                    .font(.appBody)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .padding(AppSpacing.sm)
+                    .frame(minHeight: max(220, editorHeight(for: section.body)))
+            }
+
+            HStack(spacing: AppSpacing.sm) {
+                Button {
+                    manualEditTextBySection[section.id] = section.body
+                    manualEditError = nil
+                } label: {
+                    Label("Cancel", systemImage: "xmark")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 42)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.isSaving || !hasPendingManualEdit(for: section))
+
+                Button {
+                    Task { await saveManualEdit(section) }
+                } label: {
+                    Label(viewModel.isSaving ? "Saving" : "Save", systemImage: "checkmark")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 42)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.isSaving || !hasPendingManualEdit(for: section))
+            }
+        }
+    }
+
+    private var selectedManualSection: OptimizedResumeSection? {
+        if let editingSectionId,
+           let selected = viewModel.sections.first(where: { $0.id == editingSectionId }) {
+            return selected
+        }
+        return viewModel.sections.first
+    }
+
+    private func manualEditBinding(for section: OptimizedResumeSection) -> Binding<String> {
+        Binding(
+            get: { manualEditTextBySection[section.id] ?? section.body },
+            set: { manualEditTextBySection[section.id] = $0 }
+        )
+    }
+
+    private func editorHeight(for text: String) -> CGFloat {
+        let lineCount = max(4, min(12, text.components(separatedBy: .newlines).count + 2))
+        return CGFloat(lineCount * 24)
+    }
+
+    private func hasPendingManualEdit(for section: OptimizedResumeSection) -> Bool {
+        let current = manualEditTextBySection[section.id] ?? section.body
+        return current != section.body
+    }
+
+    private func openManualEditor() {
+        manualEditTextBySection = Dictionary(uniqueKeysWithValues: viewModel.sections.map { ($0.id, $0.body) })
+        editingSectionId = heuristicSectionId ?? viewModel.sections.first?.id
+        manualEditError = nil
+        isManualEditMode = true
+    }
+
+    private func closeManualEditorRespectingDirtyState() {
+        if let section = selectedManualSection, hasPendingManualEdit(for: section) {
+            showDiscardManualEditConfirmation = true
+        } else {
+            isManualEditMode = false
+        }
+    }
+
+    @MainActor
+    private func saveManualEdit(_ section: OptimizedResumeSection) async {
+        let text = manualEditTextBySection[section.id] ?? section.body
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            manualEditError = "Section text cannot be empty."
+            return
+        }
+        manualEditError = nil
+        await viewModel.saveManualEdit(sectionId: section.id, newText: text, token: appState.session?.accessToken)
+        guard viewModel.errorMessage == nil else { return }
+        manualEditTextBySection[section.id] = text
+        renderedPreviewHTML = nil
+        await viewModel.rescanATS(token: appState.session?.accessToken)
+    }
+
+    private func openSubmitPackage() {
+        submitVM = SubmitApplicationViewModel(resumeProvider: viewModel)
+        showSubmitPackageSheet = true
+    }
+
+    private var exportSuccessActions: some View {
+        VStack(spacing: AppSpacing.sm) {
+            Label("PDF exported successfully", systemImage: "checkmark.circle.fill")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.accentTeal)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: AppSpacing.md) {
+                Button {
+                    Task { await performExport() }
+                } label: {
+                    Label("Share again", systemImage: "square.and.arrow.up")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                Button {
+                    onSwitchTab(.tailor)
+                } label: {
+                    Label("New job", systemImage: "plus.circle")
+                        .font(.appCaption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+            }
+        }
+    }
+
+    @MainActor
+    private func performExport() async {
+        guard !isDownloadingPDF else { return }
+        isDownloadingPDF = true
+        viewModel.errorMessage = nil
+        defer { isDownloadingPDF = false }
+        do {
+            let result = try await ResumeExportAction.exportPDF(
+                viewModel: viewModel,
+                appState: appState,
+                renderedHTML: renderedPreviewHTML
+            )
+            pdfTempURL = result.fileURL
+            showPDFShare = true
+            showExportSuccess = true
+        } catch {
+            if case .serverError(_, let message)? = error as? APIClientError {
+                viewModel.errorMessage = message
+            } else {
+                viewModel.errorMessage = "PDF export failed: \(error.localizedDescription)"
+            }
+        }
     }
 
     // MARK: - Refine sheet
@@ -353,6 +757,246 @@ struct OptimizedResumeView: View {
                 }
             }
         }
+    }
+}
+
+private struct SubmitApplicationSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
+    @Bindable var vm: SubmitApplicationViewModel
+    let accessToken: String?
+
+    @State private var showCopiedCoverLetter = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    if let package = vm.package {
+                        packageView(package)
+                    } else {
+                        formView
+                    }
+
+                    if let error = vm.errorMessage {
+                        Text(error)
+                            .font(.appCaption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(AppSpacing.lg)
+            }
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Submit Package")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .overlay(alignment: .top) {
+                if showCopiedCoverLetter {
+                    Label("Cover letter copied", systemImage: "checkmark.circle.fill")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppColors.accentTeal, in: Capsule())
+                        .padding(.top, AppSpacing.md)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation { showCopiedCoverLetter = false }
+                            }
+                        }
+                }
+            }
+        }
+    }
+
+    private var formView: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Role")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("Job title", text: $vm.jobTitle)
+                    .textInputAutocapitalization(.words)
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Company")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("Company name", text: $vm.companyName)
+                    .textInputAutocapitalization(.words)
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Job Link")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                TextField("LinkedIn or job post URL", text: $vm.sourceURLString)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitPackageField()
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Cover Letter Notes")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                        .fill(.black.opacity(0.18))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                                .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+                        )
+                    if vm.coverLetterContext.isEmpty {
+                        Text("Optional details to mention")
+                            .font(.appBody)
+                            .foregroundStyle(AppColors.textTertiary)
+                            .padding(AppSpacing.lg)
+                            .allowsHitTesting(false)
+                    }
+                    TextEditor(text: $vm.coverLetterContext)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .scrollContentBackground(.hidden)
+                        .padding(AppSpacing.md)
+                        .frame(minHeight: 110)
+                }
+            }
+
+            GradientButton(
+                title: "Create Package",
+                icon: "paperplane.fill",
+                isLoading: vm.isSubmitting
+            ) {
+                Task {
+                    await vm.submit(token: accessToken)
+                    if vm.package != nil {
+                        appState.applicationsRefreshToken += 1
+                    }
+                }
+            }
+            .disabled(!vm.canSubmit)
+        }
+    }
+
+    private func packageView(_ package: SubmitApplicationPackage) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            Label("Package ready", systemImage: "checkmark.circle.fill")
+                .font(.appHeadline)
+                .foregroundStyle(AppColors.accentTeal)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text(package.application.jobTitle ?? vm.jobTitle)
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(package.application.companyName ?? vm.companyName)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+            .padding(AppSpacing.lg)
+            .glassCard(cornerRadius: AppRadii.lg)
+
+            VStack(spacing: AppSpacing.sm) {
+                ShareLink(item: package.resumePDFURL) {
+                    Label("Share Resume PDF", systemImage: "square.and.arrow.up")
+                        .font(.appSubheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                Button {
+                    UIPasteboard.general.string = package.coverLetterText
+                    withAnimation { showCopiedCoverLetter = true }
+                } label: {
+                    Label("Copy Cover Letter", systemImage: "doc.on.doc")
+                        .font(.appSubheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+
+                if let url = package.jobURL {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Label("Open Job Link", systemImage: "safari")
+                            .font(.appSubheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .glassCard(cornerRadius: AppRadii.md)
+                    }
+                    .buttonStyle(GradientButtonStyle())
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Cover Letter")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(package.coverLetterText)
+                    .font(.appBody)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .textSelection(.enabled)
+            }
+            .padding(AppSpacing.lg)
+            .glassCard(cornerRadius: AppRadii.lg)
+
+            if !package.screeningAnswers.isEmpty {
+                screeningAnswersView(package.screeningAnswers)
+            }
+        }
+    }
+
+    private func screeningAnswersView(_ answers: [ExpertScreeningAnswer]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Screening Answers")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            ForEach(answers) { answer in
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(answer.question)
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(answer.answer)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .textSelection(.enabled)
+                    if let note = answer.confidenceNote {
+                        Text(note)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
+                }
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+}
+
+private extension View {
+    func submitPackageField() -> some View {
+        self
+            .font(.appBody)
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.horizontal, AppSpacing.lg)
+            .frame(minHeight: 48)
+            .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                    .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+            )
     }
 }
 

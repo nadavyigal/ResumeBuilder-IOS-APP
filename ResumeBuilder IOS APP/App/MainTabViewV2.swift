@@ -12,16 +12,18 @@ struct MainTabViewV2: View {
         ZStack(alignment: .bottom) {
             // Keep tabs alive to preserve form fields and in-flight async state.
             Group {
-                TailorView(viewModel: tailorViewModel, onSwitchTab: switchTab)
+                HomeTabView(viewModel: tailorViewModel, onSwitchTab: switchTab)
                     .opacity(selectedTab == .tailor ? 1 : 0)
                     .allowsHitTesting(selectedTab == .tailor)
 
-                OptimizedResumeTabView(onSwitchTab: switchTab)
+                OptimizedResumeTabView(isActive: selectedTab == .optimized, onSwitchTab: switchTab)
                     .opacity(selectedTab == .optimized ? 1 : 0)
                     .allowsHitTesting(selectedTab == .optimized)
 
-                RedesignResumeView(
+                DesignTabView(
                     viewModel: designViewModel,
+                    isActive: selectedTab == .design,
+                    onSwitchTab: switchTab,
                     onPreview: { selectedTab = .optimized }
                 )
                 .opacity(selectedTab == .design ? 1 : 0)
@@ -31,7 +33,7 @@ struct MainTabViewV2: View {
                     .opacity(selectedTab == .expert ? 1 : 0)
                     .allowsHitTesting(selectedTab == .expert)
 
-                ProfileView(isActive: selectedTab == .me)
+                ProfileView(isActive: selectedTab == .me, onSwitchTab: switchTab)
                     .opacity(selectedTab == .me ? 1 : 0)
                     .allowsHitTesting(selectedTab == .me)
             }

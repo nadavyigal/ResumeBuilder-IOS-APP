@@ -1,6 +1,11 @@
 import Foundation
 import Observation
 
+struct ExportCompletionRecord: Codable, Sendable, Equatable {
+    let optimizationId: String
+    let exportedAt: Date
+}
+
 @Observable
 @MainActor
 final class AppState {
@@ -8,12 +13,23 @@ final class AppState {
     var pendingSharedJobURL: URL?
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    var resumeSectionsNeedRefresh: Bool = false
+    var resumePreviewRefreshToken: Int = 0
+    var applicationsRefreshToken: Int = 0
     var hasBootstrappedSession = false
+    var exportCompletion: ExportCompletionRecord?
 
-    private let latestOptimizationKey = "latest_optimization_id"
+    nonisolated static let latestOptimizationKey = "latest_optimization_id"
+    nonisolated static let exportCompletionKey = "last_export_completion"
 
     var latestOptimizationId: String? {
-        didSet { UserDefaults.standard.set(latestOptimizationId, forKey: latestOptimizationKey) }
+        didSet {
+            if let latestOptimizationId {
+                UserDefaults.standard.set(latestOptimizationId, forKey: Self.latestOptimizationKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
+            }
+        }
     }
 
     let apiClient = APIClient()
@@ -26,7 +42,14 @@ final class AppState {
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
-        latestOptimizationId = UserDefaults.standard.string(forKey: latestOptimizationKey)
+        let storedOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
+        if storedOptimizationId?.hasPrefix("mock-") == true {
+            UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
+            latestOptimizationId = nil
+        } else {
+            latestOptimizationId = storedOptimizationId
+        }
+        exportCompletion = Self.loadExportCompletion()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -46,10 +69,50 @@ final class AppState {
         session = nil
         creditsBalance = 0
         latestOptimizationId = nil
+        exportCompletion = nil
+        UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
+    }
+
+    /// Deletes the account server-side, then clears all local state.
+    func deleteAccount() async throws {
+        guard let token = session?.accessToken else {
+            throw APIClientError.unauthorized
+        }
+        do {
+            try await AuthService.shared.deleteAccount(accessToken: token)
+        } catch AuthServiceError.serverError(let message) where message.lowercased().contains("expired") || message.lowercased().contains("invalid") {
+            // Access token may be stale — refresh once and retry.
+            guard let freshToken = await refreshAccessToken() else {
+                throw APIClientError.unauthorized
+            }
+            try await AuthService.shared.deleteAccount(accessToken: freshToken)
+        }
+        AnalyticsService.shared.track(.accountDeleted)
+        signOut()
+    }
+
+    func markExportComplete(for optimizationId: String) {
+        let record = ExportCompletionRecord(optimizationId: optimizationId, exportedAt: Date())
+        exportCompletion = record
+        if let data = try? JSONEncoder().encode(record) {
+            UserDefaults.standard.set(data, forKey: Self.exportCompletionKey)
+        }
+    }
+
+    func isExportComplete(for optimizationId: String?) -> Bool {
+        guard let optimizationId, let exportCompletion else { return false }
+        return exportCompletion.optimizationId == optimizationId
+    }
+
+    private static func loadExportCompletion() -> ExportCompletionRecord? {
+        guard let data = UserDefaults.standard.data(forKey: exportCompletionKey) else { return nil }
+        return try? JSONDecoder().decode(ExportCompletionRecord.self, from: data)
     }
 
     func setSession(_ session: AuthSession) async {
         self.session = session
+        AnalyticsService.shared.setDistinctId(session.userId)
+        AnalyticsService.shared.track(.signInCompleted)
         await convertAnonymousSessionIfNeeded()
         await refreshCredits()
     }

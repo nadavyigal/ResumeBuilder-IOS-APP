@@ -9,7 +9,11 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        RootView()
+        if let slot = MarketingScreenshotSlot.current {
+            MarketingScreenshotView(slot: slot)
+        } else {
+            RootView()
+        }
     }
 }
 

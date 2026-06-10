@@ -1,7 +1,17 @@
 import Foundation
 
+protocol ApplicationTrackingServiceProtocol: Sendable {
+    func listApplications(token: String?) async throws -> [ApplicationItem]
+    func fetchDetail(id: String, token: String?) async throws -> ApplicationDetailEnvelope
+    func createApplication(_ request: ApplicationCreateRequest, token: String?) async throws -> ApplicationItem
+    func markApplied(id: String, token: String?) async throws
+    func attachOptimized(applicationId: String, optimizedResumeId: String, token: String?) async throws
+    func fetchExpertReports(applicationId: String, token: String?) async throws -> [ApplicationExpertReportItem]
+    func saveExpertReport(applicationId: String, runId: String, token: String?) async throws -> ApplicationExpertReportItem
+}
+
 /// Authenticated `/api/v1/applications/*` helpers (track / compare / expert reports).
-struct ApplicationTrackingService: Sendable {
+struct ApplicationTrackingService: ApplicationTrackingServiceProtocol, Sendable {
     enum ServiceError: Error {
         case missingToken
     }
@@ -16,6 +26,16 @@ struct ApplicationTrackingService: Sendable {
 
     func fetchDetail(id: String, token: String?) async throws -> ApplicationDetailEnvelope {
         try await apiClient.get(endpoint: .applicationDetail(id: id), token: token)
+    }
+
+    func createApplication(_ request: ApplicationCreateRequest, token: String?) async throws -> ApplicationItem {
+        guard let token else { throw ServiceError.missingToken }
+        let envelope: ApplicationCreateEnvelope = try await apiClient.postJSONObject(
+            endpoint: .applications,
+            bodyObject: ApplicationCreateRequestBody.build(request),
+            token: token
+        )
+        return envelope.application
     }
 
     func markApplied(id: String, token: String?) async throws {
@@ -41,5 +61,17 @@ struct ApplicationTrackingService: Sendable {
             token: token
         )
         return env.reports
+    }
+
+    func saveExpertReport(applicationId: String, runId: String, token: String?) async throws -> ApplicationExpertReportItem {
+        guard !runId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw APIClientError.invalidResponse
+        }
+        let envelope: ApplicationExpertReportSaveEnvelope = try await apiClient.postJSON(
+            endpoint: .applicationExpertReports(id: applicationId),
+            body: ["run_id": runId],
+            token: token
+        )
+        return envelope.report
     }
 }

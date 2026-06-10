@@ -20,11 +20,11 @@
 
 ## Screenshots
 
-- [ ] iPhone 6.7" screenshots (required): min 3, max 10
-- [ ] iPhone 6.5" screenshots (required)
+- [x] iPhone 6.7" screenshots (required): min 3, max 10 — rb-aso-002 exported 5 PNGs at 1290x2796
+- [x] iPhone 6.5" screenshots (required) — rb-aso-002 exported 5 PNGs at 1242x2688
 - [ ] iPad screenshots (if iPad is supported)
-- [ ] Screenshots show real app UI (not mockups)
-- [ ] Screenshots show: Score tab, Tailor tab, Design tab, PDF export, Profile
+- [x] Screenshots show real app UI (not mockups) — launch-argument-only SwiftUI renderer, captured in simulator
+- [x] Screenshots show: ATS score, Tailor, AI edits, Design/PDF export, Expert review
 - [ ] App preview video (optional but recommended)
 
 ---

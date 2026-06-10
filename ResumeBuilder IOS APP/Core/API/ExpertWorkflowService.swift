@@ -24,19 +24,35 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
 }
 
 /// Client for `/api/v1/expert-workflows/*`.
-struct ExpertWorkflowService: Sendable {
+protocol ExpertWorkflowServiceProtocol: Sendable {
+    func run(type: ExpertWorkflowType, optimizationId: String, token: String?, evidenceInputs: [String: JSONValue]) async throws -> ExpertWorkflowRunCreateResponseDTO
+    func getStatus(runId: String, token: String?) async throws -> ExpertWorkflowRunSnapshot
+    func apply(
+        runId: String,
+        workflowType: ExpertWorkflowType,
+        token: String?,
+        selectionIndex: Int?,
+        screeningSelectedIndices: [Int]?,
+        selectedFields: [String]?
+    ) async throws -> ExpertWorkflowApplyResponseDTO
+}
+
+/// Client for `/api/v1/expert-workflows/*`.
+struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
     var apiClient: APIClient = APIClient()
 
     /// Begins a surfaced expert workflow for the given optimization.
     func run(
         type: ExpertWorkflowType,
         optimizationId: String,
-        token: String?
+        token: String?,
+        evidenceInputs: [String: JSONValue] = [:]
     ) async throws -> ExpertWorkflowRunCreateResponseDTO {
         try await runInternal(
             type: type,
             optimizationId: optimizationId,
-            token: token
+            token: token,
+            evidenceInputs: evidenceInputs
         )
     }
 
@@ -66,7 +82,8 @@ struct ExpertWorkflowService: Sendable {
         workflowType: ExpertWorkflowType,
         token: String?,
         selectionIndex: Int? = nil,
-        screeningSelectedIndices: [Int]? = nil
+        screeningSelectedIndices: [Int]? = nil,
+        selectedFields: [String]? = nil
     ) async throws -> ExpertWorkflowApplyResponseDTO {
         guard let token else { throw ExpertWorkflowServiceError.missingToken }
         guard !runId.isEmpty else { throw ExpertWorkflowServiceError.emptyRunId }
@@ -80,6 +97,9 @@ struct ExpertWorkflowService: Sendable {
         }
         if workflowType == .screeningAnswerStudio, let screeningSelectedIndices {
             body["selected_indices"] = screeningSelectedIndices
+        }
+        if workflowType == .fullResumeRewrite, let selectedFields {
+            body["selected_fields"] = selectedFields
         }
 
         let dto: ExpertWorkflowApplyResponseDTO = try await apiClient.postJSONObject(
@@ -99,7 +119,8 @@ struct ExpertWorkflowService: Sendable {
     private func runInternal(
         type: ExpertWorkflowType,
         optimizationId: String,
-        token: String?
+        token: String?,
+        evidenceInputs: [String: JSONValue]
     ) async throws -> ExpertWorkflowRunCreateResponseDTO {
         guard let token else { throw ExpertWorkflowServiceError.missingToken }
         guard !optimizationId.isEmpty else { throw ExpertWorkflowServiceError.missingOptimizationId }
@@ -107,7 +128,7 @@ struct ExpertWorkflowService: Sendable {
             "optimization_id": optimizationId,
             "workflow_type": type.rawValue,
             "options": [String: Any](),
-            "evidence_inputs": [String: Any](),
+            "evidence_inputs": evidenceInputs.mapValues(Self.jsonObject(from:)),
         ]
 
         do {
@@ -122,11 +143,19 @@ struct ExpertWorkflowService: Sendable {
             }
             return dto
         } catch let api as APIClientError {
-            if case .serverError(let status, let message) = api, status == 402 {
-                throw ExpertWorkflowServiceError.premiumRequired(
-                    Self.extractLockedPreview(fromJSONString: message)
-                        ?? Self.fallbackPremiumHint
-                )
+            if case .serverError(let status, let message) = api {
+                if status == 402 {
+                    throw ExpertWorkflowServiceError.premiumRequired(
+                        Self.extractLockedPreview(fromJSONString: message)
+                            ?? Self.fallbackPremiumHint
+                    )
+                }
+                if status >= 500 {
+                    let lower = message.lowercased()
+                    if lower.contains("not found") || lower.contains("access denied") {
+                        throw ExpertWorkflowServiceError.missingOptimizationId
+                    }
+                }
             }
             throw api
         }
@@ -154,6 +183,23 @@ struct ExpertWorkflowService: Sendable {
             return "select_screening_answers"
         default:
             return "default"
+        }
+    }
+
+    private static func jsonObject(from value: JSONValue) -> Any {
+        switch value {
+        case .string(let string):
+            return string
+        case .number(let number):
+            return number
+        case .bool(let bool):
+            return bool
+        case .object(let object):
+            return object.mapValues(jsonObject(from:))
+        case .array(let array):
+            return array.map(jsonObject(from:))
+        case .null:
+            return NSNull()
         }
     }
 }

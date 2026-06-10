@@ -92,7 +92,9 @@ extension ATSSubScores {
     static func integerAverage(of values: [Int?]) -> Int? {
         let nums = values.compactMap { $0 }
         guard !nums.isEmpty else { return nil }
-        return Int((Double(nums.reduce(0, +)) / Double(nums.count)).rounded())
+        let sum = nums.reduce(0, +)
+        let average = Double(sum) / Double(nums.count)
+        return Int(average.rounded())
     }
 
     /// Four UI pillars aligned with the web compact breakdown (derived from ATS v2 subscores).

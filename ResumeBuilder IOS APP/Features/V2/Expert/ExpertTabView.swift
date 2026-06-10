@@ -8,6 +8,7 @@ struct ExpertTabView: View {
     var onSwitchTab: (ResumlyTab) -> Void
 
     @State private var expertVM: ExpertModesViewModel? = nil
+    private let trackingService = ApplicationTrackingService()
 
     var body: some View {
         Group {
@@ -20,11 +21,15 @@ struct ExpertTabView: View {
             }
         }
         .onAppear { syncVM() }
+        .task(id: appState.latestOptimizationId) {
+            syncVM()
+            await linkCurrentOptimizationToApplicationIfAvailable()
+        }
         .onChange(of: appState.latestOptimizationId) { syncVM() }
     }
 
     private func syncVM() {
-        guard let id = appState.latestOptimizationId else {
+        guard let id = appState.latestOptimizationId, !id.hasPrefix("mock-") else {
             expertVM = nil
             return
         }
@@ -35,13 +40,31 @@ struct ExpertTabView: View {
         )
     }
 
+    private func linkCurrentOptimizationToApplicationIfAvailable() async {
+        guard let id = appState.latestOptimizationId,
+              !id.hasPrefix("mock-"),
+              let token = appState.session?.accessToken,
+              let vm = expertVM else {
+            return
+        }
+        do {
+            let apps = try await trackingService.listApplications(token: token)
+            if let app = apps.first(where: { $0.optimizationId == id || $0.optimizedResumeId == id }) {
+                vm.applicationId = app.id
+                await vm.loadSavedReports(token: token)
+            }
+        } catch {
+            // Expert can still run without an application link.
+        }
+    }
+
     private var noOptimizationView: some View {
         ContentUnavailableView {
             Label("No expert analysis yet", systemImage: "rectangle.stack.badge.person.crop")
         } description: {
-            Text("Run Optimize in the Tailor tab to unlock expert workflows.")
+            Text("Run Optimize on Home to unlock expert workflows.")
         } actions: {
-            Button("Go to Tailor") { onSwitchTab(.tailor) }
+            Button("Go to Home") { onSwitchTab(.tailor) }
                 .buttonStyle(.borderedProminent)
                 .tint(Theme.accent)
         }

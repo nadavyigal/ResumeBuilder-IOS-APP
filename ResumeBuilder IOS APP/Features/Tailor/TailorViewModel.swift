@@ -30,9 +30,7 @@ final class TailorViewModel {
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
     init(
-        optimizationService: any ResumeOptimizationServiceProtocol = BackendConfig.useMockServices
-            ? MockResumeOptimizationService()
-            : ResumeOptimizationService()
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
     ) {
         self.optimizationService = optimizationService
     }
@@ -49,8 +47,18 @@ final class TailorViewModel {
         try? FileManager.default.removeItem(at: dest)
         try? FileManager.default.copyItem(at: url, to: dest)
 
-        selectedResumeURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
+        let candidateURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
+        do {
+            _ = try UploadFilePreflight.loadResumeFile(candidateURL)
+        } catch {
+            selectedResumeURL = nil
+            selectedResumeName = nil
+            errorMessage = error.localizedDescription
+            return
+        }
+        selectedResumeURL = candidateURL
         selectedResumeName = filename
+        errorMessage = nil
     }
 
     /// Pre-fills Step 1 from a file URL already downloaded from the library.
@@ -83,6 +91,8 @@ final class TailorViewModel {
         optimizationId = nil
         defer { isOptimizing = false }
 
+        AnalyticsService.shared.track(.optimizationStarted)
+
         do {
             // Step 1 — upload PDF + job context. Server stores resume and JD,
             // returns ids we need for the optimize call.
@@ -91,10 +101,14 @@ final class TailorViewModel {
                     fileURL: selectedResumeURL,
                     jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
                     jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
-                    token: token
+                    token: token,
+                    deferOptimization: true
                 )
             }
             uploadResponse = upload
+            #if DEBUG
+            print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
+            #endif
 
             // Offer to save the uploaded resume to the library (prompt shown in TailorView).
             if let resumeId = upload.resumeId, !resumeId.isEmpty {
@@ -122,16 +136,31 @@ final class TailorViewModel {
                 )
             }
 
+            #if DEBUG
             print("🔍 [TAILOR] optimize response: reviewId=\(optimize.reviewId ?? "nil") optimizationId=\(optimize.optimizationId ?? "nil") sections=\(optimize.sections?.count ?? 0) error=\(optimize.error ?? "none")")
+            #endif
             if let reviewId = optimize.reviewId, !reviewId.isEmpty {
                 self.reviewId = reviewId
+                #if DEBUG
                 print("✅ [TAILOR] → reviewId set: \(reviewId)")
+                #endif
             } else if let optId = optimize.optimizationId, !optId.isEmpty {
                 self.optimizationId = optId
+                #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
+                #endif
+                AnalyticsService.shared.track(.optimizationCompleted)
             } else {
+                #if DEBUG
                 print("❌ [TAILOR] → no valid id in response")
+                #endif
                 errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
+            }
+        } catch let apiError as APIClientError {
+            if case .serverError(_, let message) = apiError {
+                errorMessage = enhancedError(message)
+            } else {
+                errorMessage = apiError.localizedDescription
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -171,5 +200,14 @@ final class TailorViewModel {
         guard jobDescriptionURL.isEmpty, let sharedURL = appState.pendingSharedJobURL else { return }
         jobDescriptionURL = sharedURL.absoluteString
         appState.clearPendingSharedJobURL()
+    }
+
+    private func enhancedError(_ message: String) -> String {
+        let lower = message.lowercased()
+        if lower.contains("function_invocation_timeout") || lower.contains("timed out") || lower.contains("timeout") {
+            return "The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again."
+        }
+        guard lower.contains("read") && lower.contains("pdf") else { return message }
+        return message + "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer."
     }
 }

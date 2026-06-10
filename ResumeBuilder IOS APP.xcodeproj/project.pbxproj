@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */; };
 		1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */; };
+		749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */; };
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
+		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
 		AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */; };
+		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
+		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,16 +30,35 @@
 
 /* Begin PBXFileReference section */
 		335AA7632FA77AB800FD6628 /* ResumeBuilder IOS APP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ResumeBuilder IOS APP.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuntimeServicesTests.swift; sourceTree = "<group>"; };
 		49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImproveViewModelTests.swift; sourceTree = "<group>"; };
+		497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OptimizedResumeViewModelTests.swift; sourceTree = "<group>"; };
 		4A5A8068E4FED9A03DB1E4D3 /* ResumeBuilder IOS APPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ResumeBuilder IOS APPTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationParsingTests.swift; sourceTree = "<group>"; };
 		76421689162B5723CAA363D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveEndpointStabilizationTests.swift; sourceTree = "<group>"; };
+		9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpertReportParsingTests.swift; sourceTree = "<group>"; };
+		AA11223344556677889900BB /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
+		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AA55CC77EE99AA11BB22CC33 /* Exceptions for "ResumeBuilder IOS APP" folder in "ResumeBuilder IOS APP" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/API/Secrets.swift.example,
+			);
+			target = 335AA7622FA77AB800FD6628 /* ResumeBuilder IOS APP */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		335AA7652FA77AB800FD6628 /* ResumeBuilder IOS APP */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AA55CC77EE99AA11BB22CC33 /* Exceptions for "ResumeBuilder IOS APP" folder in "ResumeBuilder IOS APP" target */,
+			);
 			path = "ResumeBuilder IOS APP";
 			sourceTree = "<group>";
 		};
@@ -66,6 +90,7 @@
 				335AA7642FA77AB800FD6628 /* Products */,
 				BFB9678CFF121264B5745A8F /* Frameworks */,
 				EBBAC22E32DDC2060C87D2CB /* ResumeBuilder IOS APPTests */,
+				CC00FF001122334455667788 /* Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -97,9 +122,14 @@
 		EBBAC22E32DDC2060C87D2CB /* ResumeBuilder IOS APPTests */ = {
 			isa = PBXGroup;
 			children = (
+				AA11223344556677889900BB /* AnalyticsServiceTests.swift */,
+				9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */,
 				49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */,
+				9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */,
+				497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */,
 				54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */,
 				F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */,
+				45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */,
 			);
 			path = "ResumeBuilder IOS APPTests";
 			sourceTree = "<group>";
@@ -197,6 +227,31 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AABB1122CCDD3344EEFF5566AABB1122 /* Inject Runtime Config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Inject Runtime Config";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/inject-runtime-config.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\nset -e\nPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -z \"${API_BASE_URL}\" ]; then\n  echo \"error: API_BASE_URL build setting is required\"\n  exit 1\nfi\n/usr/libexec/PlistBuddy -c \"Delete :API_BASE_URL\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :API_BASE_URL string ${API_BASE_URL}\" \"${PLIST}\"\nif [ -n \"${POSTHOG_API_KEY}\" ]; then\n  /usr/libexec/PlistBuddy -c \"Delete :POSTHOG_API_KEY\" \"${PLIST}\" 2>/dev/null || true\n  /usr/libexec/PlistBuddy -c \"Add :POSTHOG_API_KEY string ${POSTHOG_API_KEY}\" \"${PLIST}\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :POSTHOG_HOST\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :POSTHOG_HOST string https://us.i.posthog.com\" \"${PLIST}\"\ntouch \"${DERIVED_FILE_DIR}/inject-runtime-config.stamp\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		335AA75F2FA77AB800FD6628 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -209,9 +264,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */,
+				0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */,
 				AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */,
+				DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */,
+				749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */,
 				D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */,
 				1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */,
+				D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,9 +320,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
+				EAGER_LINKING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -324,6 +386,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMPILATION_CACHE_ENABLE_CACHING = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 8VC4R5M425;
@@ -344,31 +407,31 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		335AA76F2FA77ABA00FD6628 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC00FF001122334455667788 /* Secrets.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
+					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+					API_BASE_URL = "https://www.resumelybuilderai.com";
+					CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -384,25 +447,24 @@
 		};
 		335AA7702FA77ABA00FD6628 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CC00FF001122334455667788 /* Secrets.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
+					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+					API_BASE_URL = "https://www.resumelybuilderai.com";
+					CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

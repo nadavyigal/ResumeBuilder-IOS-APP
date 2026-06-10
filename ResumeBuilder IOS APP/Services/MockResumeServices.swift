@@ -157,19 +157,44 @@ struct MockResumeOptimizationService: ResumeOptimizationServiceProtocol {
 // MARK: - Mock Design
 
 struct MockResumeDesignService: ResumeDesignServiceProtocol {
+    private static let allTemplates: [DesignTemplate] = [
+        // traditional
+        DesignTemplate(id: "trad-1", slug: "classic-ats",     name: "Classic ATS",      description: "Clean, ATS-friendly layout",           category: "traditional", isPremium: false, thumbnailURL: nil, atsScore: 98),
+        DesignTemplate(id: "trad-2", slug: "timeless",        name: "Timeless",          description: "Conservative serif layout",             category: "traditional", isPremium: false, thumbnailURL: nil, atsScore: 95),
+        // modern
+        DesignTemplate(id: "mod-1",  slug: "modern-pro",      name: "Modern Pro",        description: "Contemporary single-column design",     category: "modern",      isPremium: false, thumbnailURL: nil, atsScore: 90),
+        DesignTemplate(id: "mod-2",  slug: "sleek",           name: "Sleek",             description: "Minimalist accent-line style",          category: "modern",      isPremium: false, thumbnailURL: nil, atsScore: 88),
+        // creative
+        DesignTemplate(id: "cre-1",  slug: "creative-edge",   name: "Creative Edge",     description: "Stand-out visual design",               category: "creative",    isPremium: true,  thumbnailURL: nil, atsScore: 72),
+        DesignTemplate(id: "cre-2",  slug: "portfolio",       name: "Portfolio",         description: "Sidebar layout for visual roles",       category: "creative",    isPremium: true,  thumbnailURL: nil, atsScore: 68),
+        // corporate
+        DesignTemplate(id: "corp-1", slug: "executive",       name: "Executive",         description: "Premium executive template",            category: "corporate",   isPremium: true,  thumbnailURL: nil, atsScore: 92),
+        DesignTemplate(id: "corp-2", slug: "boardroom",       name: "Boardroom",         description: "Formal two-column corporate layout",    category: "corporate",   isPremium: true,  thumbnailURL: nil, atsScore: 89),
+    ]
+
     func templates(category: String, token: String) async throws -> [DesignTemplate] {
         try await Task.sleep(for: .milliseconds(600))
-        return [
-            DesignTemplate(id: "t1", slug: "classic-ats", name: "Classic ATS", description: "Clean, ATS-friendly layout", category: "ats_safe", isPremium: false, thumbnailURL: nil, atsScore: 98),
-            DesignTemplate(id: "t2", slug: "modern-pro", name: "Modern Pro", description: "Contemporary single-column design", category: "modern", isPremium: false, thumbnailURL: nil, atsScore: 90),
-            DesignTemplate(id: "t3", slug: "creative-edge", name: "Creative Edge", description: "Stand-out visual design", category: "creative", isPremium: true, thumbnailURL: nil, atsScore: 72),
-            DesignTemplate(id: "t4", slug: "executive", name: "Executive", description: "Premium executive template", category: category, isPremium: true, thumbnailURL: nil, atsScore: 88),
-        ]
+        let filtered = Self.allTemplates.filter { $0.category == category }
+        return filtered.isEmpty ? Self.allTemplates.filter { $0.category == "traditional" } : filtered
+    }
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        DesignAssignmentDTO(
+            id: "mock-design-assignment",
+            optimizationId: optimizationId,
+            template: Self.allTemplates.first,
+            customization: .object([
+                "accent_color": .string("6366F1"),
+                "font_style": .string("modern"),
+                "spacing": .number(0.5),
+            ])
+        )
     }
 
     func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
         try await Task.sleep(for: .milliseconds(800))
-        let html = MockResumeHTMLBuilder.build(accentHex: request.customization.accentColor)
+        let category = Self.allTemplates.first { $0.id == request.templateId }?.category ?? "traditional"
+        let html = MockResumeHTMLBuilder.build(accentHex: request.customization.accentColor, category: category)
         return RenderPreviewResponse(success: true, previewHTML: html, error: nil)
     }
 
@@ -208,87 +233,233 @@ struct MockRecentExportsService: RecentExportsServiceProtocol {
 // MARK: - Mock HTML builder
 
 enum MockResumeHTMLBuilder {
-    static func build(accentHex: String = "6366F1") -> String {
+    static func build(accentHex: String = "6366F1", category: String = "traditional") -> String {
+        switch category.lowercased() {
+        case "modern":      return buildModern(accentHex: accentHex)
+        case "creative":    return buildCreative(accentHex: accentHex)
+        case "corporate":   return buildCorporate(accentHex: accentHex)
+        default:            return buildTraditional(accentHex: accentHex)
+        }
+    }
+
+    // MARK: Traditional — centered header, horizontal rule sections
+
+    private static func buildTraditional(accentHex: String) -> String {
         """
-        <!DOCTYPE html>
-        <html>
-        <head>
+        <!DOCTYPE html><html><head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Georgia, 'Times New Roman', serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.45; }
-          .name { font-size: 20pt; font-weight: bold; letter-spacing: 0.5px; color: #\(accentHex); }
-          .contact { font-size: 9pt; color: #555; margin-top: 4px; }
-          .divider { border: none; border-top: 1.5px solid #\(accentHex); margin: 14px 0 10px; }
-          h2 { font-size: 9.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accentHex); margin-bottom: 7px; }
-          p { margin-bottom: 5px; }
-          .entry { margin-bottom: 10px; }
-          .entry-header { display: flex; justify-content: space-between; }
-          .entry-title { font-weight: bold; font-size: 10pt; }
-          .entry-meta { font-size: 9pt; color: #555; margin-bottom: 3px; }
-          .entry-date { font-size: 9pt; color: #777; }
-          ul { margin-left: 17px; margin-top: 3px; }
-          li { margin-bottom: 3px; font-size: 9.5pt; }
-          .skills-grid { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-          .skill { font-size: 9.5pt; }
+          body { font-family: Georgia, serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 32px 40px; line-height: 1.45; }
+          .hdr { text-align: center; margin-bottom: 10px; }
+          .name { font-size: 18pt; font-weight: bold; color: #1a1a1a; }
+          .contact { font-size: 8.5pt; color: #555; margin-top: 4px; }
+          .rule { border: none; border-top: 1.5px solid #\(accentHex); margin: 10px 0 8px; }
+          h2 { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accentHex); margin-bottom: 6px; }
+          p { margin-bottom: 4px; font-size: 9.5pt; }
+          .entry { margin-bottom: 8px; }
+          .row { display: flex; justify-content: space-between; }
+          .bold { font-weight: bold; }
+          .meta { font-size: 8.5pt; color: #555; }
+          .date { font-size: 8.5pt; color: #777; }
+          ul { margin-left: 15px; margin-top: 2px; }
+          li { font-size: 9pt; margin-bottom: 2px; }
         </style>
-        </head>
-        <body>
-          <div class="name">Alex Johnson</div>
-          <div class="contact">alex.johnson@email.com &nbsp;·&nbsp; (555) 123-4567 &nbsp;·&nbsp; linkedin.com/in/alexjohnson &nbsp;·&nbsp; San Francisco, CA</div>
-          <hr class="divider">
-
+        </head><body>
+          <div class="hdr">
+            <div class="name">Alex Johnson</div>
+            <div class="contact">alex.johnson@email.com · (555) 123-4567 · San Francisco, CA</div>
+          </div>
+          <hr class="rule">
           <h2>Summary</h2>
-          <p>Experienced software engineer with 8+ years building scalable distributed systems at high-growth companies. Track record of reducing infrastructure costs by 35%, leading cross-functional teams of 10+, and delivering customer-facing features that drive measurable retention. Expert in TypeScript, Go, and cloud-native architecture.</p>
-          <hr class="divider">
-
+          <p>Experienced software engineer with 8+ years building scalable distributed systems. Expert in TypeScript, Go, and cloud-native architecture.</p>
+          <hr class="rule">
           <h2>Experience</h2>
           <div class="entry">
-            <div class="entry-header">
-              <span class="entry-title">Senior Software Engineer</span>
-              <span class="entry-date">Jun 2021 – Present</span>
-            </div>
-            <div class="entry-meta">Stripe · San Francisco, CA</div>
+            <div class="row"><span class="bold">Senior Software Engineer — Stripe</span><span class="date">2021 – Present</span></div>
             <ul>
-              <li>Architected real-time fraud detection pipeline processing 2M events/day, reducing chargebacks by 28%</li>
-              <li>Led migration of 40-service monolith to microservices, cutting deployment time from 45 min to 8 min</li>
-              <li>Mentored 5 junior engineers; 3 promoted to mid-level within 18 months</li>
+              <li>Architected fraud detection pipeline processing 2M events/day, reducing chargebacks 28%</li>
+              <li>Led monolith-to-microservices migration, cutting deploy time from 45 min to 8 min</li>
             </ul>
           </div>
-          <div class="entry">
-            <div class="entry-header">
-              <span class="entry-title">Software Engineer II</span>
-              <span class="entry-date">Mar 2019 – May 2021</span>
-            </div>
-            <div class="entry-meta">Shopify · Remote</div>
-            <ul>
-              <li>Built checkout optimization feature A/B tested across 6M merchants, increasing conversion by 4.2%</li>
-              <li>Reduced API P99 latency by 60% via Redis caching layer and query optimizations</li>
-              <li>On-call lead for Payments platform serving $50B+ in annual GMV</li>
-            </ul>
-          </div>
-          <hr class="divider">
-
+          <hr class="rule">
           <h2>Skills</h2>
-          <div class="skills-grid">
-            <span class="skill">TypeScript</span><span class="skill">Go</span><span class="skill">Python</span>
-            <span class="skill">React</span><span class="skill">Node.js</span><span class="skill">PostgreSQL</span>
-            <span class="skill">Redis</span><span class="skill">Kafka</span><span class="skill">Kubernetes</span>
-            <span class="skill">AWS</span><span class="skill">CI/CD</span><span class="skill">System Design</span>
-          </div>
-          <hr class="divider">
-
+          <p>TypeScript · Go · React · PostgreSQL · Redis · Kubernetes · AWS · CI/CD</p>
+          <hr class="rule">
           <h2>Education</h2>
-          <div class="entry">
-            <div class="entry-header">
-              <span class="entry-title">B.S. Computer Science</span>
-              <span class="entry-date">2015 – 2019</span>
+          <p class="bold">B.S. Computer Science — UC Berkeley, 2019</p>
+        </body></html>
+        """
+    }
+
+    // MARK: Modern — left accent sidebar, left-aligned name
+
+    private static func buildModern(accentHex: String) -> String {
+        """
+        <!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10pt; color: #1a1a1a; background: #fff; line-height: 1.45; display: flex; min-height: 100vh; }
+          .sidebar { width: 4px; background: linear-gradient(to bottom, #\(accentHex), #\(accentHex)88); flex-shrink: 0; }
+          .main { padding: 28px 36px; flex: 1; }
+          .name { font-size: 16pt; font-weight: bold; color: #1a1a1a; }
+          .contact { font-size: 8.5pt; color: #555; margin-top: 3px; }
+          .rule { border: none; border-top: 0.5px solid #ddd; margin: 10px 0 8px; }
+          h2 { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #\(accentHex); margin-bottom: 5px; }
+          p { margin-bottom: 4px; font-size: 9.5pt; }
+          .entry { margin-bottom: 7px; }
+          .row { display: flex; justify-content: space-between; }
+          .bold { font-weight: 600; }
+          .meta { font-size: 8.5pt; color: #555; }
+          .date { font-size: 8.5pt; color: #888; }
+          ul { margin-left: 14px; margin-top: 2px; }
+          li { font-size: 9pt; margin-bottom: 2px; }
+        </style>
+        </head><body>
+          <div class="sidebar"></div>
+          <div class="main">
+            <div class="name">Alex Johnson</div>
+            <div class="contact">alex.johnson@email.com · (555) 123-4567 · San Francisco, CA</div>
+            <hr class="rule">
+            <h2>Summary</h2>
+            <p>Software engineer with 8+ years in scalable distributed systems. TypeScript, Go, cloud-native architecture.</p>
+            <hr class="rule">
+            <h2>Experience</h2>
+            <div class="entry">
+              <div class="row"><span class="bold">Senior Software Engineer</span><span class="date">2021 – Present</span></div>
+              <div class="meta">Stripe · San Francisco</div>
+              <ul>
+                <li>Fraud detection pipeline: 2M events/day, −28% chargebacks</li>
+                <li>Microservices migration: deploy time 45 min → 8 min</li>
+              </ul>
             </div>
-            <div class="entry-meta">University of California, Berkeley</div>
+            <hr class="rule">
+            <h2>Skills</h2>
+            <p>TypeScript · Go · React · PostgreSQL · Redis · Kubernetes · AWS</p>
+            <hr class="rule">
+            <h2>Education</h2>
+            <p class="bold">B.S. Computer Science — UC Berkeley, 2019</p>
           </div>
-        </body>
-        </html>
+        </body></html>
+        """
+    }
+
+    // MARK: Creative — bold gradient header, coloured section labels
+
+    private static func buildCreative(accentHex: String) -> String {
+        """
+        <!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10pt; color: #1a1a1a; background: #fff; line-height: 1.45; }
+          .hdr { background: linear-gradient(135deg, #\(accentHex), #\(accentHex)99); padding: 24px 32px; }
+          .name { font-size: 18pt; font-weight: bold; color: #fff; }
+          .contact { font-size: 8.5pt; color: rgba(255,255,255,0.8); margin-top: 4px; }
+          .body { padding: 20px 32px; }
+          .section-label { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #\(accentHex); margin: 12px 0 4px; }
+          p { margin-bottom: 4px; font-size: 9.5pt; }
+          .entry { margin-bottom: 8px; }
+          .row { display: flex; justify-content: space-between; }
+          .bold { font-weight: 600; }
+          .meta { font-size: 8.5pt; color: #555; }
+          .date { font-size: 8.5pt; color: #888; }
+          ul { margin-left: 14px; margin-top: 2px; }
+          li { font-size: 9pt; margin-bottom: 2px; }
+        </style>
+        </head><body>
+          <div class="hdr">
+            <div class="name">Alex Johnson</div>
+            <div class="contact">alex.johnson@email.com · (555) 123-4567 · San Francisco, CA</div>
+          </div>
+          <div class="body">
+            <div class="section-label">Summary</div>
+            <p>Software engineer with 8+ years in scalable distributed systems. TypeScript, Go, cloud-native architecture.</p>
+            <div class="section-label">Experience</div>
+            <div class="entry">
+              <div class="row"><span class="bold">Senior Software Engineer — Stripe</span><span class="date">2021–Present</span></div>
+              <ul>
+                <li>Fraud pipeline: 2M events/day, −28% chargebacks</li>
+                <li>Microservices migration: deploy 45 min → 8 min</li>
+              </ul>
+            </div>
+            <div class="section-label">Skills</div>
+            <p>TypeScript · Go · React · PostgreSQL · Redis · Kubernetes · AWS</p>
+            <div class="section-label">Education</div>
+            <p class="bold">B.S. Computer Science — UC Berkeley, 2019</p>
+          </div>
+        </body></html>
+        """
+    }
+
+    // MARK: Corporate — two-column body (sidebar left, experience right)
+
+    private static func buildCorporate(accentHex: String) -> String {
+        """
+        <!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Georgia, serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 28px 36px; line-height: 1.45; }
+          .top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #\(accentHex); padding-bottom: 8px; margin-bottom: 12px; }
+          .name { font-size: 16pt; font-weight: bold; color: #1a1a1a; }
+          .contact { font-size: 8pt; color: #555; text-align: right; }
+          .cols { display: flex; gap: 16px; }
+          .left { width: 30%; border-right: 0.5px solid #ddd; padding-right: 12px; }
+          .right { flex: 1; }
+          h2 { font-size: 8.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #\(accentHex); margin: 0 0 5px; }
+          .section { margin-bottom: 12px; }
+          p { margin-bottom: 3px; font-size: 9pt; }
+          .entry { margin-bottom: 7px; }
+          .row { display: flex; justify-content: space-between; }
+          .bold { font-weight: bold; }
+          .date { font-size: 8pt; color: #888; }
+          ul { margin-left: 13px; margin-top: 2px; }
+          li { font-size: 8.5pt; margin-bottom: 2px; }
+        </style>
+        </head><body>
+          <div class="top">
+            <div class="name">Alex Johnson</div>
+            <div class="contact">alex.johnson@email.com<br>(555) 123-4567 · San Francisco</div>
+          </div>
+          <div class="cols">
+            <div class="left">
+              <div class="section">
+                <h2>Skills</h2>
+                <p>TypeScript · Go</p>
+                <p>React · Node.js</p>
+                <p>PostgreSQL · Redis</p>
+                <p>Kubernetes · AWS</p>
+              </div>
+              <div class="section">
+                <h2>Education</h2>
+                <p class="bold">B.S. Computer Science</p>
+                <p>UC Berkeley, 2019</p>
+              </div>
+            </div>
+            <div class="right">
+              <div class="section">
+                <h2>Summary</h2>
+                <p>Software engineer with 8+ years building scalable distributed systems. TypeScript, Go, cloud-native architecture.</p>
+              </div>
+              <div class="section">
+                <h2>Experience</h2>
+                <div class="entry">
+                  <div class="row"><span class="bold">Senior Software Engineer — Stripe</span><span class="date">2021–Present</span></div>
+                  <ul>
+                    <li>Fraud pipeline: 2M events/day, −28% chargebacks</li>
+                    <li>Microservices: deploy 45 min → 8 min</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </body></html>
         """
     }
 }

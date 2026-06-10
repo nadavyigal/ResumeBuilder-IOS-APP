@@ -19,8 +19,7 @@ final class HistoryViewModel {
     private var hasLoaded = false
     private let historyService: any OptimizationHistoryServiceProtocol
 
-    init(historyService: any OptimizationHistoryServiceProtocol = BackendConfig.useMockServices
-         ? MockOptimizationHistoryService() : OptimizationHistoryService()) {
+    init(historyService: any OptimizationHistoryServiceProtocol = RuntimeServices.optimizationHistoryService()) {
         self.historyService = historyService
     }
 

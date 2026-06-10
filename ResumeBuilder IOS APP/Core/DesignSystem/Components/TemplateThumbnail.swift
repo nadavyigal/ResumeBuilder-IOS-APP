@@ -3,6 +3,7 @@ import SwiftUI
 struct TemplateThumbnail: View {
     let name: String
     let category: String
+    var templateId: String = ""
     var thumbnailURL: URL? = nil
     var isSelected: Bool = false
     var isPremium: Bool = false
@@ -43,11 +44,11 @@ struct TemplateThumbnail: View {
                     case .success(let img):
                         img.resizable().scaledToFill()
                     default:
-                        MiniResumeCanvas(category: category)
+                        MiniResumeCanvas(category: category, templateId: templateId)
                     }
                 }
             } else {
-                MiniResumeCanvas(category: category)
+                MiniResumeCanvas(category: category, templateId: templateId)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -95,14 +96,31 @@ struct TemplateThumbnail: View {
 /// Used when no server thumbnail URL is available.
 private struct MiniResumeCanvas: View {
     let category: String
+    let templateId: String
 
     // Light-mode resume palette (on off-white paper background)
     private let dark   = Color(red: 0.12, green: 0.12, blue: 0.20)
     private let mid    = Color(red: 0.48, green: 0.48, blue: 0.58).opacity(0.55)
     private let light  = Color(red: 0.58, green: 0.58, blue: 0.66).opacity(0.35)
-    private let violet = Color(hex: "6C63FF")
-    private let teal   = Color(hex: "40E0D0")
-    private let sky    = Color(hex: "4EA8FF")
+
+    private var accent: Color {
+        let palette: [Color] = [
+            Color(hex: "6C63FF"),
+            Color(hex: "40BFB0"),
+            Color(hex: "4EA8FF"),
+            Color(hex: "FF6B6B"),
+            Color(hex: "2D9B6F"),
+            Color(hex: "F5A623"),
+            Color(hex: "8B5CF6"),
+            Color(hex: "475569"),
+        ]
+        guard !templateId.isEmpty else { return palette[0] }
+        var hash = 5381
+        for scalar in templateId.unicodeScalars {
+            hash = ((hash << 5) &+ hash) &+ Int(scalar.value)
+        }
+        return palette[abs(hash) % palette.count]
+    }
 
     var body: some View {
         Group {
@@ -133,11 +151,11 @@ private struct MiniResumeCanvas: View {
 
             hRule(mid)
             Spacer().frame(height: 5)
-            sectionBlock(accent: violet.opacity(0.7))
+            sectionBlock(accent: accent.opacity(0.7))
             Spacer().frame(height: 5)
             hRule(light)
             Spacer().frame(height: 5)
-            sectionBlock(accent: violet.opacity(0.7))
+            sectionBlock(accent: accent.opacity(0.7))
             Spacer()
         }
         .padding(9)
@@ -147,7 +165,7 @@ private struct MiniResumeCanvas: View {
     private var modern: some View {
         HStack(spacing: 0) {
             // Accent sidebar
-            LinearGradient(colors: [violet, teal], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [accent, accent.opacity(0.6)], startPoint: .top, endPoint: .bottom)
                 .frame(width: 4)
 
             VStack(alignment: .leading, spacing: 0) {
@@ -175,7 +193,7 @@ private struct MiniResumeCanvas: View {
             // Bold gradient header
             ZStack {
                 LinearGradient(
-                    colors: [violet, sky, teal],
+                    colors: [accent, accent.opacity(0.7), accent.opacity(0.4)],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
                 VStack(spacing: 2) {
@@ -188,10 +206,10 @@ private struct MiniResumeCanvas: View {
             // Body with coloured section labels
             VStack(alignment: .leading, spacing: 3) {
                 Spacer().frame(height: 3)
-                fixedBar(w: 26, h: 3.5, color: violet.opacity(0.85))
+                fixedBar(w: 26, h: 3.5, color: accent.opacity(0.85))
                 bodyLines(2)
                 Spacer().frame(height: 3)
-                fixedBar(w: 26, h: 3.5, color: teal.opacity(0.85))
+                fixedBar(w: 26, h: 3.5, color: accent.opacity(0.7))
                 bodyLines(2)
                 Spacer()
             }
@@ -214,7 +232,7 @@ private struct MiniResumeCanvas: View {
 
             HStack(alignment: .top, spacing: 5) {
                 VStack(alignment: .leading, spacing: 3) {
-                    fixedBar(w: 24, h: 3.5, color: violet.opacity(0.7))
+                    fixedBar(w: 24, h: 3.5, color: accent.opacity(0.7))
                     bodyLines(3)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -222,7 +240,7 @@ private struct MiniResumeCanvas: View {
                 Rectangle().fill(light).frame(width: 0.5)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    fixedBar(w: 24, h: 3.5, color: violet.opacity(0.7))
+                    fixedBar(w: 24, h: 3.5, color: accent.opacity(0.7))
                     bodyLines(3)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

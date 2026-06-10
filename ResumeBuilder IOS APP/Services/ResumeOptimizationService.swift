@@ -21,7 +21,7 @@ enum ResumeOptimizationError: LocalizedError, Sendable {
     }
 }
 
-struct OptimizeResponse: Codable, Sendable {
+struct OptimizeResponse: Decodable, Sendable {
     let success: Bool?
     let sections: [OptimizedResumeSection]?
     let optimizationId: String?
@@ -32,7 +32,8 @@ struct OptimizeResponse: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success, sections, error
         case optimizationId = "optimization_id"
-        case reviewId = "review_id"
+        case reviewId
+        case review_id
     }
 
     private enum NestedCodingKeys: String, CodingKey {
@@ -56,7 +57,10 @@ struct OptimizeResponse: Codable, Sendable {
 
         success = try container.decodeIfPresent(Bool.self, forKey: .success) ?? nestedData?.success
         optimizationId = try container.decodeIfPresent(String.self, forKey: .optimizationId) ?? nestedData?.optimizationId
-        reviewId = try container.decodeIfPresent(String.self, forKey: .reviewId) ?? nestedData?.reviewId
+        reviewId =
+            try container.decodeIfPresent(String.self, forKey: .reviewId)
+            ?? container.decodeIfPresent(String.self, forKey: .review_id)
+            ?? nestedData?.reviewId
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
 
         let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)
@@ -85,15 +89,64 @@ struct RefineSectionResponse: Codable, Sendable {
     let error: String?
 }
 
+// Backend /api/v1/refine-section/apply expects:
+// { optimizationId, selection: { sectionId, field, text }, suggestion }
 struct RefineSectionApplyRequest: Codable, Sendable {
-    let sectionId: String
     let optimizationId: String
-    let acceptedText: String
+    let selection: ApplySelection
+    let suggestion: String
 
-    private enum CodingKeys: String, CodingKey {
-        case sectionId      = "section_id"
-        case optimizationId = "optimization_id"
-        case acceptedText   = "accepted_text"
+    struct ApplySelection: Codable, Sendable {
+        let sectionId: String
+        let field: String
+        let text: String
+    }
+
+    init(
+        sectionId: String,
+        sectionType: ResumeSectionType,
+        optimizationId: String,
+        acceptedText: String,
+        originalText: String = ""
+    ) {
+        self.optimizationId = optimizationId
+        self.selection = ApplySelection(
+            sectionId: sectionId,
+            field: Self.field(for: sectionType),
+            text: originalText
+        )
+        self.suggestion = acceptedText
+    }
+
+    static func field(for sectionType: ResumeSectionType) -> String {
+        switch sectionType {
+        case .summary:    return "summary"
+        case .skills:     return "skills"
+        case .experience: return "bullet"
+        case .education, .additional: return "custom"
+        }
+    }
+}
+
+enum ResumeOptimizationMode: String, Sendable {
+    case strongFaithful = "strong_faithful"
+}
+
+enum OptimizeRequestBody {
+    nonisolated static let defaultMode = ResumeOptimizationMode.strongFaithful.rawValue
+
+    nonisolated static func build(resumeId: String, jobDescriptionId: String) -> [String: Any] {
+        [
+            "resumeId": resumeId,
+            "jobDescriptionId": jobDescriptionId,
+            "optimization_mode": defaultMode,
+            "quality_profile": [
+                "rewrite_depth": "substantial",
+                "fact_policy": "preserve_user_facts",
+                "ats_target": "high_when_supported",
+                "require_major_section_improvements": true,
+            ],
+        ]
     }
 }
 
@@ -109,9 +162,9 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
 
     func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {
         logger.info("Optimize start resumeId=\(resumeId, privacy: .public)")
-        let body: [String: Any] = ["resumeId": resumeId, "jobDescriptionId": jobDescriptionId]
+        let body = OptimizeRequestBody.build(resumeId: resumeId, jobDescriptionId: jobDescriptionId)
         do {
-            let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token)
+            let response: OptimizeResponse = try await apiClient.postJSON(endpoint: .optimize, body: body, token: token, timeout: 120)
             logger.info("Optimize response success=\(response.success ?? false) sections=\(response.sections?.count ?? 0)")
 
             // Review-based flow: server returns reviewId instead of optimizationId+sections.
@@ -126,7 +179,8 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
                 throw ResumeOptimizationError.invalidResponse(msg)
             }
             guard response.optimizationId != nil else {
-                throw ResumeOptimizationError.invalidResponse("Optimization finished without an optimization identifier.")
+                let msg = response.error ?? "Optimization did not complete. Please try again."
+                throw ResumeOptimizationError.invalidResponse(msg)
             }
             logger.info("Optimize decode complete optimizationId=\(response.optimizationId ?? "missing", privacy: .public)")
             return response
@@ -154,8 +208,9 @@ struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
               let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw APIClientError.invalidResponse
         }
-        struct ApplyResponse: Decodable { let success: Bool? }
+        // Backend returns { ok: Bool, updated?: Bool, reason?: String }
+        struct ApplyResponse: Decodable, Sendable { let ok: Bool? }
         let response: ApplyResponse = try await apiClient.postJSON(endpoint: .refineSectionApply, body: body, token: token)
-        return response.success == true
+        return response.ok == true
     }
 }
