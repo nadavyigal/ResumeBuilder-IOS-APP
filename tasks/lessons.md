@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-06-09
+**Category:** API
+**Rule:** iOS `Codable`-style request bodies use snake_case keys by default; Next.js backend destructuring uses camelCase. Always add both aliases (`jobTitle || job_title`, `company || company_name`) on the backend side — fixing one end is fragile since web clients also call the same route.
+**Why:** `POST /api/v1/applications` validated against `jobTitle`/`company` (camelCase) while iOS sent `job_title`/`company_name` (snake_case). The backend saw all fields as `undefined` and returned 400 "Missing required fields", silently failing every Submit Package call. Smoke test logs revealed the mismatch. Fix: destructure both forms on the backend and merge them before validation.
+
+### 2026-06-09
 **Category:** Build
 **Rule:** A Run Script phase that modifies the generated Info.plist via PlistBuddy MUST declare `$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)` as an `inputPath` AND a sentinel stamp file (e.g. `$(DERIVED_FILE_DIR)/inject-runtime-config.stamp`) as its `outputPath`; without the inputPath, Xcode's parallel build system schedules `ProcessInfoPlistFile` AFTER the script, silently overwriting every custom key the script injects.
 **Why:** `ProcessInfoPlistFile` (the `GENERATE_INFOPLIST_FILE = YES` plist generation step) ran at log line 52 while the script ran at log line 48 on a parallel build. The script succeeded, the build succeeded, but the generated plist wiped `API_BASE_URL`, `POSTHOG_API_KEY`, and `POSTHOG_HOST` before code signing. Adding the Info.plist as an `inputPath` creates an explicit dependency edge that forces `ProcessInfoPlistFile` to complete first. Adding the stamp file as `outputPath` satisfies Xcode's new build system requirement that mutable-output scripts also declare a virtual output node.
