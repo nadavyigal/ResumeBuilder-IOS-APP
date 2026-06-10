@@ -73,6 +73,24 @@ final class AppState {
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
     }
 
+    /// Deletes the account server-side, then clears all local state.
+    func deleteAccount() async throws {
+        guard let token = session?.accessToken else {
+            throw APIClientError.unauthorized
+        }
+        do {
+            try await AuthService.shared.deleteAccount(accessToken: token)
+        } catch AuthServiceError.serverError(let message) where message.lowercased().contains("expired") || message.lowercased().contains("invalid") {
+            // Access token may be stale — refresh once and retry.
+            guard let freshToken = await refreshAccessToken() else {
+                throw APIClientError.unauthorized
+            }
+            try await AuthService.shared.deleteAccount(accessToken: freshToken)
+        }
+        AnalyticsService.shared.track(.accountDeleted)
+        signOut()
+    }
+
     func markExportComplete(for optimizationId: String) {
         let record = ExportCompletionRecord(optimizationId: optimizationId, exportedAt: Date())
         exportCompletion = record

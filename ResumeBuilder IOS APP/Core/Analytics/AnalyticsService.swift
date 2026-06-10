@@ -47,6 +47,7 @@ enum AnalyticsEvent: Sendable {
     case jobAdded(hasURL: Bool, hasPaste: Bool)
     case freeATSCompleted(scoreBucket: String)
     case signInCompleted
+    case accountDeleted
     case optimizationStarted
     case optimizationCompleted
     case exportStarted
@@ -61,6 +62,7 @@ enum AnalyticsEvent: Sendable {
         case .jobAdded: return "job_added"
         case .freeATSCompleted: return "free_ats_completed"
         case .signInCompleted: return "sign_in_completed"
+        case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
         case .optimizationCompleted: return "optimization_completed"
         case .exportStarted: return "export_started"
@@ -73,7 +75,7 @@ enum AnalyticsEvent: Sendable {
         switch self {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
-        case .guestModeStarted, .resumeUploaded, .signInCompleted,
+        case .guestModeStarted, .resumeUploaded, .signInCompleted, .accountDeleted,
              .optimizationStarted, .optimizationCompleted, .exportStarted, .exportSuccess:
             return [:]
         case .jobAdded(let hasURL, let hasPaste):

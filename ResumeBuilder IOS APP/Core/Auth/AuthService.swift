@@ -127,6 +127,38 @@ final class AuthService: @unchecked Sendable {
         return session
     }
 
+    // MARK: - Account deletion
+
+    /// Permanently deletes the user's account and all server-side data via the
+    /// `delete_account` edge function (App Store Guideline 5.1.1(v)).
+    func deleteAccount(accessToken: String) async throws {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("functions/v1/delete_account")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = Data("{}".utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+
+        struct DeleteAccountResponse: Decodable {
+            let success: Bool?
+            let error: String?
+        }
+        let decoded = try? JSONDecoder().decode(DeleteAccountResponse.self, from: data)
+
+        guard (200...299).contains(httpResponse.statusCode), decoded?.success == true else {
+            throw AuthServiceError.serverError(decoded?.error ?? "Account deletion failed. Please try again.")
+        }
+
+        clearSession()
+    }
+
     // MARK: - Token refresh
 
     func refreshSession(refreshToken: String) async throws -> AuthSession {
