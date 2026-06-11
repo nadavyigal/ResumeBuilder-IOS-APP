@@ -3,16 +3,16 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: App Store submission readiness
-Active Story: Real-device smoke fix — PDF export and Submit Package shared PDF dependency
-Last Completed Story: Investigated founder smoke logs showing PDF export failed with "Invalid server response" and Submit Package blocked before package creation. Added a local text-layer PDF fallback after WKWebView/backend download failure, validated simulator Debug build and focused OptimizedResumeViewModel tests on iPhone 17 simulator (2026-06-11).
-Next Recommended Story: Founder pulls latest `main`, rebuilds/runs on real device, signs in, smokes optimize→Improve ATS→Preview & Export PDF→Submit Package, then screenshots PostHog Live Events (app_launched + optimization_completed + export_success).
+Active Story: Real-device smoke fix — Submit Package missing company context
+Last Completed Story: Investigated rerun smoke logs showing Submit Package never reached PDF/application/expert API calls. Root cause: Create Package was disabled when live optimization detail omitted company. Added safe role/company fallbacks, visible missing-context copy, submit-stage logs, and an ATS/screenshot alignment plan. Focused OptimizedResumeViewModel tests passed on iPhone 17 simulator (2026-06-11).
+Next Recommended Story: Publish/merge Submit Package missing-company fix, then founder pulls latest, rebuilds/runs on real device, signs in, smokes optimize→Improve ATS→Preview & Export PDF→Submit Package, and captures logs showing `Submit package ready`.
 Estimated Completion: 90%
 Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: PDF/export smoke fix (2026-06-11): `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pdf-fix-derived build` succeeded. Focused `xcodebuild test ... -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` succeeded: 18 XCTest tests passed, including local PDF signature coverage.
+Last Validation: Submit Package missing-company fix (2026-06-11): `git diff --check` passed. Focused `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-submit-package-derived -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` succeeded: 19 XCTest tests passed, including missing-company package coverage.
 Last Updated: 2026-06-11
-Current Branch: main
-Latest Base Commit: 462e0b9 — chore: sync Localizable.xcstrings (account deletion string keys)
+Current Branch: codex/fix-submit-package-missing-company
+Latest Base Commit: 2338ea4 — Merge pull request #54 from nadavyigal/codex/fix-pdf-export-submit-package
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
@@ -45,6 +45,7 @@ Latest QA Report: —
 - Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
 - Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
 - Optimized resume now supports an assisted Submit Package flow. It downloads the optimized resume PDF, creates an application via `/api/v1/applications`, attaches the optimized resume, marks the application applied, runs Cover Letter Architect, saves the expert report to the application, and presents share/copy/open-link actions without attempting third-party auto-submit.
+- Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
 - iOS optimize requests now ask for `optimization_mode: strong_faithful` with a substantial-but-factual quality profile. The Optimized tab surfaces ATS status/blockers when returned by optimization detail, offers an Improve ATS action through the existing Expert ATS workflow/apply path, and uses a focused section-editor sheet with empty-section validation and dirty-state discard protection for manual amendments.
 - Me/Application Detail now acts as a package hub when application rows include an optimization, resume link, job link, or saved cover-letter report: users can share/download the optimized resume PDF, copy the cover letter, open the job link, and see ATS status. Submit Package bumps an app-wide applications refresh token so Me reloads when active.
 

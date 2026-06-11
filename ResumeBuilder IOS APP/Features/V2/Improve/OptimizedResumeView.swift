@@ -835,6 +835,15 @@ private struct SubmitApplicationSheet: View {
                     .submitPackageField()
             }
 
+            if let missingContextMessage = vm.missingContextMessage {
+                Label(missingContextMessage, systemImage: "info.circle.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(AppSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+            }
+
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 Text("Job Link")
                     .font(.appCaption.weight(.semibold))

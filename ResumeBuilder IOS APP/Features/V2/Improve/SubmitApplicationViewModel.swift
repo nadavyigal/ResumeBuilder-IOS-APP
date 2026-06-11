@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OSLog
 
 @MainActor
 protocol SubmitResumePDFProviding: AnyObject {
@@ -38,6 +39,7 @@ final class SubmitApplicationViewModel {
     private weak var resumeProvider: (any SubmitResumePDFProviding)?
     private let applicationService: any ApplicationTrackingServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
+    private static let logger = Logger(subsystem: "ResumeBuilder", category: "SubmitPackage")
 
     init(
         resumeProvider: any SubmitResumePDFProviding,
@@ -54,9 +56,22 @@ final class SubmitApplicationViewModel {
 
     var canSubmit: Bool {
         resumeProvider?.optimizationIdentifier != nil
-            && !jobTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !isSubmitting
+    }
+
+    var missingContextMessage: String? {
+        let missingRole = jobTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let missingCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        switch (missingRole, missingCompany) {
+        case (true, true):
+            return "Role and company were not detected. You can edit them, or the package will use safe placeholders."
+        case (true, false):
+            return "Role was not detected. You can edit it, or the package will use Target Role."
+        case (false, true):
+            return "Company was not detected. You can edit it, or the package will use Company not specified."
+        case (false, false):
+            return nil
+        }
     }
 
     func clearError() {
@@ -75,10 +90,8 @@ final class SubmitApplicationViewModel {
 
         let trimmedJobTitle = jobTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedJobTitle.isEmpty, !trimmedCompany.isEmpty else {
-            errorMessage = "Add the role and company before creating the package."
-            return
-        }
+        let packageJobTitle = trimmedJobTitle.isEmpty ? "Target Role" : trimmedJobTitle
+        let packageCompany = trimmedCompany.isEmpty ? "Company not specified" : trimmedCompany
 
         isSubmitting = true
         errorMessage = nil
@@ -86,11 +99,13 @@ final class SubmitApplicationViewModel {
         defer { isSubmitting = false }
 
         do {
+            Self.logger.info("Submit package start optimizationId=\(optimizationId)")
             let resumeURL = try await resumeProvider.downloadPDF(token: token)
+            Self.logger.info("Submit package PDF ready")
             let application = try await applicationService.createApplication(
                 ApplicationCreateRequest(
-                    jobTitle: trimmedJobTitle,
-                    companyName: trimmedCompany,
+                    jobTitle: packageJobTitle,
+                    companyName: packageCompany,
                     sourceURL: normalizedSourceURLString,
                     status: "saved",
                     optimizationId: optimizationId,
@@ -99,12 +114,14 @@ final class SubmitApplicationViewModel {
                 ),
                 token: token
             )
+            Self.logger.info("Submit package application created id=\(application.id)")
             try await applicationService.attachOptimized(
                 applicationId: application.id,
                 optimizedResumeId: optimizationId,
                 token: token
             )
             try await applicationService.markApplied(id: application.id, token: token)
+            Self.logger.info("Submit package application marked applied")
 
             // Run cover letter and screening answers in parallel.
             async let coverLetterRunTask = expertService.run(
@@ -122,6 +139,7 @@ final class SubmitApplicationViewModel {
 
             let coverLetterRun = try await coverLetterRunTask
             let screeningRun = try? await screeningRunTask
+            Self.logger.info("Submit package expert workflows completed coverLetterRunId=\(coverLetterRun.runId)")
 
             let parsed = ExpertReportParsing.parsedOutput(from: coverLetterRun.output)
             let selectedIndex = clampedCoverLetterIndex(parsed.recommendedIndex, count: parsed.coverLetterVariants.count)
@@ -145,6 +163,7 @@ final class SubmitApplicationViewModel {
                 runId: coverLetterRun.runId,
                 token: token
             )
+            Self.logger.info("Submit package cover letter saved")
 
             // Extract and save screening answers only after successful persistence.
             var screeningAnswers: [ExpertScreeningAnswer] = []
@@ -184,6 +203,7 @@ final class SubmitApplicationViewModel {
                 jobURL: normalizedSourceURL,
                 coverLetterRunId: coverLetterRun.runId
             )
+            Self.logger.info("Submit package ready")
         } catch let error as SubmitApplicationError {
             errorMessage = error.localizedDescription
         } catch let apiError as APIClientError {

@@ -16,6 +16,11 @@
 ## Lessons
 
 ### 2026-06-11
+**Category:** UX
+**Rule:** Submit Package must not disable the primary action solely because backend/job parsing missed company or role context; allow submission with visible fallback copy and safe placeholders.
+**Why:** A real-device smoke showed no submit/download/application network calls after tapping Submit Package. The sheet's `canSubmit` required `companyName`, but the live optimization detail can omit company, so the user saw a non-working flow with no actionable explanation.
+
+### 2026-06-11
 **Category:** PDF
 **Rule:** PDF export and Submit Package must not depend solely on `/api/download`; after WKWebView or backend download failure, generate a valid local text-layer PDF from loaded optimization sections and contact data.
 **Why:** A real-device smoke showed both Preview & Export PDF and Submit Package failing because Submit Package calls the same PDF download path first. The backend fallback returned a non-usable/invalid response, so the shared PDF dependency blocked both flows.

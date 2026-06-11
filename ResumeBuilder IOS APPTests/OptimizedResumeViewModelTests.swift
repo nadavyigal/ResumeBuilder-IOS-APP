@@ -366,6 +366,32 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
     }
 
+    func testSubmitApplicationPackageUsesFallbackCompanyWhenMissing() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF missing company".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        resumeProvider.company = nil
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+
+        XCTAssertTrue(vm.canSubmit)
+        XCTAssertEqual(vm.missingContextMessage, "Company was not detected. You can edit it, or the package will use Company not specified.")
+
+        await vm.submit(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "Existing Role")
+        XCTAssertEqual(applicationService.createdRequests.first?.companyName, "Company not specified")
+        XCTAssertEqual(vm.package?.application.companyName, "Acme")
+    }
+
     func testSubmitApplicationPackageIncludesScreeningAnswersWhenPersistSucceeds() async throws {
         let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
         try Data("%PDF screening".utf8).write(to: resumeURL)
