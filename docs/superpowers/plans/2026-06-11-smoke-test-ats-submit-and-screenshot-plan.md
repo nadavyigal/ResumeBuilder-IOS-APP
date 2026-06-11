@@ -26,6 +26,7 @@ Resolve the remaining real-device smoke failures and align the live product expe
 
 ## Immediate Fix
 
+- Status: implemented on `codex/fix-submit-package-missing-company`.
 - Let Submit Package proceed when backend/job parsing misses company or role context.
 - Show a lightweight info message in the sheet explaining the fallback.
 - Use safe placeholders:
@@ -49,9 +50,10 @@ Resolve the remaining real-device smoke failures and align the live product expe
 
 ### P1: ATS Quality Loop
 
-- Add a normal in-app ATS insight panel modeled after the screenshot catalog:
+- Status: MVP implemented on `codex/fix-submit-package-missing-company`.
+- Added a normal in-app ATS insight panel modeled after the screenshot catalog:
   - headline score before/after
-  - section scores
+  - score signals
   - top blockers
   - "Improve ATS" primary action
   - explicit "still low because..." explanation when optimized score remains below 55
@@ -68,8 +70,10 @@ Resolve the remaining real-device smoke failures and align the live product expe
 
 ## Validation Plan
 
-- Focused tests for Submit Package missing company/role context.
-- Simulator build/test on iPhone 17.
+- Focused tests for Submit Package missing company/role context: done.
+- Focused tests for low-score ATS insight explanation/actions: done.
+- Simulator build/test on iPhone 17: done.
+- Normal simulator app launch smoke on iPhone 17: done.
 - Real-device smoke with the user's actual resume/job.
 - PostHog verification for `optimization_completed` and `export_success`.
 - Screenshot comparison: live Optimized/ATS screens vs. App Store screenshot claims.

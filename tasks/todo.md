@@ -1,7 +1,7 @@
 # Current Task
 
-**Objective:** Fix real-device Submit Package startup failure when company context is missing, and plan ATS/screenshot alignment work.
-**Status:** Code fix implemented on `codex/fix-submit-package-missing-company`; focused OptimizedResumeViewModel tests pass. PR/publish remains next.
+**Objective:** Fix real-device Submit Package startup failure when company context is missing, and implement the first ATS/screenshot alignment surface.
+**Status:** Code implemented on `codex/fix-submit-package-missing-company`; focused OptimizedResumeViewModel tests pass; iPhone 17 simulator launch smoke passes. PR update/publish remains next.
 **Branch:** `codex/fix-submit-package-missing-company`
 
 ## Scope
@@ -9,7 +9,7 @@
 - Keep Submit Package unblocked when company/role context is missing
 - Add visible fallback copy and submit-stage logs
 - Explain why the ATS score is low and why App Store screenshot scenes are not normal app screens
-- Create plan for ATS/UI alignment work
+- Create and implement the first ATS/UI alignment plan slice
 - Verify focused tests and document lesson/progress
 
 ## Checklist
@@ -20,7 +20,10 @@
 - [x] Add submit-stage logs for future Xcode smoke traces
 - [x] Add focused missing-company Submit Package test
 - [x] Create ATS/screenshot alignment plan
+- [x] Add live Optimized-tab ATS insight panel with before/after, score signals, blockers, Improve ATS, and low-score explanation
+- [x] Add focused low-score ATS insight test
 - [x] Run focused OptimizedResumeViewModel test suite on iPhone 17 simulator
+- [x] Run iPhone 17 simulator launch smoke
 - [ ] Publish PR for this fix
 - [ ] **FOUNDER ACTION**: Pull merged fix, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
 - [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success

@@ -202,6 +202,41 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.atsUpliftMessage, "ATS improvements applied. Review the resume before submitting.")
     }
 
+    func testATSInsightsExplainLowScoreAndExposeActions() {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            atsScoreBefore: 18,
+            atsScoreAfter: 35,
+            optimizationService: MockResumeOptimizationService()
+        )
+        vm.atsBlockers = [
+            ATSOptimizationBlocker(
+                id: "kw",
+                category: "keywords",
+                title: "Missing 7 required keywords",
+                suggestedAction: "Add the role-specific cloud and partner ecosystem terms where truthful.",
+                estimatedGain: 12,
+                severity: "high"
+            ),
+            ATSOptimizationBlocker(
+                id: "metrics",
+                category: "experience",
+                title: "Experience lacks measurable outcomes",
+                suggestedAction: "Add revenue, pipeline, or team-size metrics to the strongest bullets.",
+                estimatedGain: 9,
+                severity: "medium"
+            ),
+        ]
+
+        XCTAssertEqual(vm.currentATSScore, 35)
+        XCTAssertEqual(vm.atsScoreDelta, 17)
+        XCTAssertEqual(vm.atsStatusLabel, "Low")
+        XCTAssertTrue(vm.atsLowScoreExplanation?.contains("missing 7 required keywords") == true)
+        XCTAssertEqual(vm.atsInsightRows.count, 4)
+        XCTAssertTrue(vm.atsInsightRows.contains { $0.id == "skills" && $0.reason.contains("keywords") })
+        XCTAssertEqual(vm.atsRecommendedActions.first, "Add the role-specific cloud and partner ecosystem terms where truthful.")
+    }
+
     // MARK: - submit package
 
     func testApplicationCreateRequestBodyUsesBackendFieldNames() {
