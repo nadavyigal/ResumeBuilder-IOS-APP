@@ -362,6 +362,9 @@
     "Copy Text" : {
 
     },
+    "Could not delete account" : {
+
+    },
     "Cover Letter" : {
 
     },
@@ -378,6 +381,15 @@
 
     },
     "Delete" : {
+
+    },
+    "Delete Account" : {
+
+    },
+    "Delete your account?" : {
+
+    },
+    "Deleting account…" : {
 
     },
     "Design" : {
@@ -1191,6 +1203,9 @@
 
     },
     "Tap Download to generate PDF" : {
+
+    },
+    "This permanently deletes your account, resumes, optimizations, and all personal data. This action cannot be undone." : {
 
     },
     "This review was already applied on the web or another device." : {
