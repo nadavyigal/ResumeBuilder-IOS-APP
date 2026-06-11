@@ -2,6 +2,13 @@ import Foundation
 import Observation
 import OSLog
 
+struct ATSInsightRow: Identifiable, Sendable, Equatable {
+    let id: String
+    let title: String
+    let score: Int
+    let reason: String
+}
+
 @Observable
 @MainActor
 final class OptimizedResumeViewModel {
@@ -89,6 +96,89 @@ final class OptimizedResumeViewModel {
         default:
             return "Low match. Improve role keywords, title fit, metrics, and section coverage before submitting."
         }
+    }
+
+    var currentATSScore: Int {
+        atsScoreAfter ?? atsScoreBefore ?? 0
+    }
+
+    var atsScoreDelta: Int? {
+        guard let before = atsScoreBefore, let after = atsScoreAfter else { return nil }
+        return after - before
+    }
+
+    var atsLowScoreExplanation: String? {
+        guard currentATSScore < 55 else { return nil }
+        let blockerTitles = atsBlockers
+            .prefix(2)
+            .map(\.title)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+
+        if blockerTitles.isEmpty {
+            return "Still low because the resume needs stronger role alignment, measurable outcomes, keywords, and section coverage for this job."
+        }
+        return "Still low because \(blockerTitles.joined(separator: " and ")). Improve these before submitting."
+    }
+
+    var atsInsightRows: [ATSInsightRow] {
+        let score = currentATSScore
+        return [
+            ATSInsightRow(
+                id: "summary",
+                title: "Summary",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"]) ? 14 : -8),
+                reason: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"])
+                    ? "Needs tighter role positioning"
+                    : "Role positioning looks serviceable"
+            ),
+            ATSInsightRow(
+                id: "experience",
+                title: "Experience",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"]) ? 10 : -14),
+                reason: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"])
+                    ? "Add clearer outcomes and scope"
+                    : "Experience signals are carrying the match"
+            ),
+            ATSInsightRow(
+                id: "skills",
+                title: "Skills",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"]) ? 18 : -6),
+                reason: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"])
+                    ? "Missing role-specific keywords"
+                    : "Skill coverage is reasonably aligned"
+            ),
+            ATSInsightRow(
+                id: "keywords",
+                title: "Keywords",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["keyword", "ats", "required", "term"]) ? 20 : 0),
+                reason: hasATSBlocker(matching: ["keyword", "ats", "required", "term"])
+                    ? "Target terms from the job post are underused"
+                    : "Keyword coverage is not the main blocker"
+            ),
+        ]
+    }
+
+    var atsRecommendedActions: [String] {
+        let blockerActions = atsBlockers
+            .prefix(3)
+            .compactMap { blocker -> String? in
+                let action = (blocker.suggestedAction ?? blocker.detail ?? blocker.title)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return action.isEmpty ? nil : action
+            }
+        if !blockerActions.isEmpty { return blockerActions }
+        if currentATSScore < 55 {
+            return [
+                "Add missing role keywords where they are truthful.",
+                "Rewrite the summary around the exact target role.",
+                "Add measurable outcomes to the strongest experience bullets.",
+            ]
+        }
+        return [
+            "Run Improve ATS for a focused keyword and metrics pass.",
+            "Review every edit for factual accuracy before submitting.",
+        ]
     }
 
     /// Plain text of all sections joined for clipboard copy.
@@ -548,6 +638,25 @@ final class OptimizedResumeViewModel {
         case .additional:
             return "certifications"
         }
+    }
+
+    private func hasATSBlocker(matching keywords: [String]) -> Bool {
+        atsBlockers.contains { blocker in
+            let haystack = [
+                blocker.category,
+                blocker.title,
+                blocker.detail,
+                blocker.suggestedAction,
+            ]
+            .compactMap { $0 }
+            .joined(separator: " ")
+            .lowercased()
+            return keywords.contains { haystack.contains($0.lowercased()) }
+        }
+    }
+
+    private func adjustedATSScore(base: Int, penalty: Int) -> Int {
+        min(100, max(0, base - penalty))
     }
 }
 

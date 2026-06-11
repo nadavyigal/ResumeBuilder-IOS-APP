@@ -44,6 +44,11 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
+                if shouldShowATSInsightPanel {
+                    atsInsightPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
                 // Improve actions — above the resume so they are easy to reach
                 if viewModel.optimizationIdentifier != nil {
                     improveActionsRow
@@ -201,6 +206,11 @@ struct OptimizedResumeView: View {
 
     // MARK: - ATS score card (unchanged)
 
+    private var shouldShowATSInsightPanel: Bool {
+        viewModel.optimizationIdentifier != nil
+            && (viewModel.atsScoreBefore != nil || viewModel.atsScoreAfter != nil || !viewModel.atsBlockers.isEmpty)
+    }
+
     private var atsScoreCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             if let title = viewModel.jobTitle {
@@ -252,6 +262,158 @@ struct OptimizedResumeView: View {
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var atsInsightPanel: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            HStack(alignment: .top, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("ATS insights")
+                        .font(.appCaption.weight(.bold))
+                        .foregroundStyle(AppColors.accentTeal)
+                    Text("See what's blocking this resume")
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text(viewModel.atsStatusDescription)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: AppSpacing.sm)
+
+                VStack(spacing: 2) {
+                    Text("\(viewModel.currentATSScore)")
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .foregroundStyle(atsStatusColor)
+                    Text("/ 100")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textTertiary)
+                }
+                .frame(minWidth: 88)
+                .padding(.vertical, AppSpacing.sm)
+                .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+            }
+
+            if let delta = viewModel.atsScoreDelta {
+                HStack(spacing: AppSpacing.md) {
+                    scoreDeltaTile(title: "Before", value: viewModel.atsScoreBefore)
+                    Image(systemName: "arrow.right")
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.accentSky)
+                    scoreDeltaTile(title: "Optimized", value: viewModel.atsScoreAfter)
+                    Spacer(minLength: 0)
+                    Text(delta >= 0 ? "+\(delta) pts" : "\(delta) pts")
+                        .font(.appCaption.weight(.bold))
+                        .foregroundStyle(delta >= 0 ? AppColors.accentTeal : AppColors.accentViolet)
+                }
+            }
+
+            if let explanation = viewModel.atsLowScoreExplanation {
+                Label(explanation, systemImage: "exclamationmark.triangle.fill")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.accentSky)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(AppSpacing.md)
+                    .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Score signals")
+                    .font(.appCaption.weight(.bold))
+                    .foregroundStyle(AppColors.textTertiary)
+                ForEach(viewModel.atsInsightRows) { row in
+                    atsInsightRow(row)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                Text("Top blockers")
+                    .font(.appCaption.weight(.bold))
+                    .foregroundStyle(AppColors.textTertiary)
+                ForEach(Array(viewModel.atsRecommendedActions.prefix(3).enumerated()), id: \.offset) { _, action in
+                    HStack(alignment: .top, spacing: AppSpacing.sm) {
+                        Circle()
+                            .fill(AppColors.accentTeal)
+                            .frame(width: 7, height: 7)
+                            .padding(.top, 6)
+                        Text(action)
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+
+            Button {
+                Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    if viewModel.isImprovingATS {
+                        ProgressView()
+                            .tint(AppColors.textPrimary)
+                    } else {
+                        Image(systemName: "gauge.with.dots.needle.67percent")
+                    }
+                    Text(viewModel.isImprovingATS ? "Improving ATS..." : "Improve ATS")
+                }
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(GradientButtonStyle())
+            .disabled(viewModel.isImprovingATS)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func scoreDeltaTile(title: String, value: Int?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title.uppercased())
+                .font(.appCaption.weight(.bold))
+                .foregroundStyle(AppColors.textTertiary)
+            Text(value.map { "\($0)" } ?? "--")
+                .font(.appHeadline)
+                .foregroundStyle(title == "Optimized" ? AppColors.accentTeal : AppColors.textPrimary)
+        }
+        .frame(width: 92, alignment: .leading)
+        .padding(AppSpacing.md)
+        .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                .stroke(title == "Optimized" ? AppColors.accentTeal.opacity(0.45) : AppColors.glassStroke, lineWidth: 1)
+        }
+    }
+
+    private func atsInsightRow(_ row: ATSInsightRow) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack {
+                Text(row.title)
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+                Text("\(row.score)")
+                    .font(.appCaption.weight(.bold))
+                    .foregroundStyle(atsSignalColor(score: row.score))
+            }
+
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(AppColors.glassStroke)
+                    Capsule()
+                        .fill(atsSignalColor(score: row.score))
+                        .frame(width: proxy.size.width * CGFloat(row.score) / 100)
+                }
+            }
+            .frame(height: 8)
+
+            Text(row.reason)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+        }
+        .padding(.vertical, 2)
     }
 
     // MARK: - New bottom bar
@@ -418,6 +580,13 @@ struct OptimizedResumeView: View {
         case "Medium": return AppColors.accentCyan
         default: return AppColors.accentViolet
         }
+    }
+
+    private func atsSignalColor(score: Int) -> Color {
+        if score >= 80 { return AppColors.accentTeal }
+        if score >= 70 { return AppColors.accentSky }
+        if score >= 55 { return AppColors.accentCyan }
+        return AppColors.accentViolet
     }
 
     private var manualEditSheet: some View {
@@ -833,6 +1002,15 @@ private struct SubmitApplicationSheet: View {
                 TextField("Company name", text: $vm.companyName)
                     .textInputAutocapitalization(.words)
                     .submitPackageField()
+            }
+
+            if let missingContextMessage = vm.missingContextMessage {
+                Label(missingContextMessage, systemImage: "info.circle.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .padding(AppSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.sm) {

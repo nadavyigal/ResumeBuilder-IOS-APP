@@ -202,6 +202,41 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.atsUpliftMessage, "ATS improvements applied. Review the resume before submitting.")
     }
 
+    func testATSInsightsExplainLowScoreAndExposeActions() {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            atsScoreBefore: 18,
+            atsScoreAfter: 35,
+            optimizationService: MockResumeOptimizationService()
+        )
+        vm.atsBlockers = [
+            ATSOptimizationBlocker(
+                id: "kw",
+                category: "keywords",
+                title: "Missing 7 required keywords",
+                suggestedAction: "Add the role-specific cloud and partner ecosystem terms where truthful.",
+                estimatedGain: 12,
+                severity: "high"
+            ),
+            ATSOptimizationBlocker(
+                id: "metrics",
+                category: "experience",
+                title: "Experience lacks measurable outcomes",
+                suggestedAction: "Add revenue, pipeline, or team-size metrics to the strongest bullets.",
+                estimatedGain: 9,
+                severity: "medium"
+            ),
+        ]
+
+        XCTAssertEqual(vm.currentATSScore, 35)
+        XCTAssertEqual(vm.atsScoreDelta, 17)
+        XCTAssertEqual(vm.atsStatusLabel, "Low")
+        XCTAssertTrue(vm.atsLowScoreExplanation?.contains("missing 7 required keywords") == true)
+        XCTAssertEqual(vm.atsInsightRows.count, 4)
+        XCTAssertTrue(vm.atsInsightRows.contains { $0.id == "skills" && $0.reason.contains("keywords") })
+        XCTAssertEqual(vm.atsRecommendedActions.first, "Add the role-specific cloud and partner ecosystem terms where truthful.")
+    }
+
     // MARK: - submit package
 
     func testApplicationCreateRequestBodyUsesBackendFieldNames() {
@@ -364,6 +399,32 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
         XCTAssertEqual(vm.package?.screeningAnswers, [])
         XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
+    }
+
+    func testSubmitApplicationPackageUsesFallbackCompanyWhenMissing() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF missing company".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        resumeProvider.company = nil
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+
+        XCTAssertTrue(vm.canSubmit)
+        XCTAssertEqual(vm.missingContextMessage, "Company was not detected. You can edit it, or the package will use Company not specified.")
+
+        await vm.submit(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "Existing Role")
+        XCTAssertEqual(applicationService.createdRequests.first?.companyName, "Company not specified")
+        XCTAssertEqual(vm.package?.application.companyName, "Acme")
     }
 
     func testSubmitApplicationPackageIncludesScreeningAnswersWhenPersistSucceeds() async throws {

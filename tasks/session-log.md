@@ -16,6 +16,26 @@
 ## Sessions
 
 ### 2026-06-11
+**Task:** Fix Submit Package missing-company startup failure and implement first ATS/screenshot alignment slice
+**Files Changed:**
+- `ResumeBuilder IOS APP/Features/V2/Improve/SubmitApplicationViewModel.swift` — relaxed `canSubmit`, added safe role/company fallbacks, user-facing missing-context copy, and submit-stage OSLog markers.
+- `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift` — added ATS insight rows, before/after delta, recommended actions, and explicit low-score explanation data.
+- `ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift` — shows missing-context guidance in the Submit Package sheet and adds a live ATS insight panel with score signals, top blockers/actions, and Improve ATS.
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added missing-company Submit Package coverage and low-score ATS insight coverage.
+- `docs/superpowers/plans/2026-06-11-smoke-test-ats-submit-and-screenshot-plan.md` — documented the ATS-score and App Store screenshot alignment plan, then marked the Submit Package fix and ATS panel MVP implemented.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, validation, implemented plan slice, and next action.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, validation, and next action.
+**Decisions Made:**
+- Root cause: rerun smoke logs had no PDF/application/expert calls after Submit Package; the package flow was blocked before it started because the live optimization detail can omit company and `canSubmit` required it.
+- Missing company/role should be a recoverable context gap, not a disabled action. The sheet now explains the fallback and submits with safe placeholders.
+- The low ATS score is treated as a product-quality/guidance issue, not a UI score bug; the App Store screenshots are launch-argument-only marketing scenes, so the matching claim needs to exist in normal `Features/V2` product UI too.
+**Validation:**
+- `git diff --check` passed.
+- Focused tests succeeded on iPhone 17: `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-ats-insights-derived -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` passed 20/20 tests.
+- Simulator launch smoke succeeded on iPhone 17; normal Home screen rendered at `/tmp/resumebuilder-ats-insights-smoke-2.png`.
+**Next Recommended Action:** Publish/merge the PR update, then founder rebuilds on real device and confirms Xcode logs show `Submit package ready`; after that add backend QA fixtures for strong/weak ATS match quality.
+
+### 2026-06-11
 **Task:** Fix real-device smoke failures for Preview & Export PDF and Submit Package
 **Files Changed:**
 - `ResumeBuilder IOS APP/Core/Export/HTMLPDFExporter.swift` — added `LocalResumePDFExporter`, which creates a valid text-layer PDF from loaded optimization sections/contact data and stores it through the existing export file store.

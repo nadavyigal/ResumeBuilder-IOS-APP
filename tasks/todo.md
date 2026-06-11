@@ -1,25 +1,31 @@
 # Current Task
 
-**Objective:** Fix real-device smoke failures where Preview & Export PDF and Submit Package fail from the shared PDF path.
-**Status:** Code fix implemented on `main`; simulator Debug build and focused OptimizedResumeViewModel tests pass. Founder real-device re-smoke remains the next action.
-**Branch:** `main`
+**Objective:** Fix real-device Submit Package startup failure when company context is missing, and implement the first ATS/screenshot alignment surface.
+**Status:** Code implemented on `codex/fix-submit-package-missing-company`; focused OptimizedResumeViewModel tests pass; iPhone 17 simulator launch smoke passes. PR update/publish remains next.
+**Branch:** `codex/fix-submit-package-missing-company`
 
 ## Scope
-- Investigate real-device Xcode logs for PDF export and Submit Package failures
-- Make PDF export resilient when WKWebView/backend download fails
-- Keep Submit Package unblocked by generating a valid shareable PDF from loaded resume sections
-- Verify simulator build and focused tests
-- Document lesson/progress
+- Investigate real-device Xcode logs for Submit Package not starting
+- Keep Submit Package unblocked when company/role context is missing
+- Add visible fallback copy and submit-stage logs
+- Explain why the ATS score is low and why App Store screenshot scenes are not normal app screens
+- Create and implement the first ATS/UI alignment plan slice
+- Verify focused tests and document lesson/progress
 
 ## Checklist
-- [x] Read smoke logs and identify shared PDF dependency
-- [x] Add local text-layer PDF fallback for loaded optimization sections/contact data
-- [x] Validate backend download payload starts with `%PDF-` before sharing
-- [x] Preserve auth/payment failures instead of masking them with local fallback
-- [x] Add focused local PDF signature test
-- [x] Run Debug simulator build on iPhone 17 simulator
+- [x] Read smoke logs and confirm Submit Package did not reach PDF/application/expert API calls
+- [x] Identify missing-company disabled button root cause
+- [x] Allow submit with safe role/company fallbacks
+- [x] Add sheet guidance for missing role/company context
+- [x] Add submit-stage logs for future Xcode smoke traces
+- [x] Add focused missing-company Submit Package test
+- [x] Create ATS/screenshot alignment plan
+- [x] Add live Optimized-tab ATS insight panel with before/after, score signals, blockers, Improve ATS, and low-score explanation
+- [x] Add focused low-score ATS insight test
 - [x] Run focused OptimizedResumeViewModel test suite on iPhone 17 simulator
-- [ ] **FOUNDER ACTION**: Pull latest `main`, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
+- [x] Run iPhone 17 simulator launch smoke
+- [ ] Publish PR for this fix
+- [ ] **FOUNDER ACTION**: Pull merged fix, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
 - [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
 - [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly
 - [ ] **FOUNDER ACTION**: Create Release archive via Xcode Organizer → Distribute App → App Store Connect
