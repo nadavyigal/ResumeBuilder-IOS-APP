@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import WebKit
 
 /// Renders styled HTML in an off-screen WKWebView and exports it as a PDF file.
@@ -108,10 +109,92 @@ enum ExportFileStore {
     }
 }
 
+@MainActor
+enum LocalResumePDFExporter {
+    static func exportPDF(
+        sections: [OptimizedResumeSection],
+        contact: ResumeContact?,
+        optimizationId: String
+    ) throws -> URL {
+        let renderableSections = sections.compactMap { section -> (type: ResumeSectionType, body: String)? in
+            let body = section.body.trimmingCharacters(in: .whitespacesAndNewlines)
+            return body.isEmpty ? nil : (section.type, body)
+        }
+        guard contact?.hasDisplayableValue == true || !renderableSections.isEmpty else {
+            throw APIClientError.invalidResponse
+        }
+
+        let pageBounds = CGRect(x: 0, y: 0, width: 595, height: 842)
+        let margin: CGFloat = 48
+        let contentWidth = pageBounds.width - margin * 2
+        let renderer = UIGraphicsPDFRenderer(bounds: pageBounds)
+        let data = renderer.pdfData { context in
+            context.beginPage()
+            var y = margin
+
+            func draw(_ text: String, font: UIFont, color: UIColor = .black, spacing: CGFloat = 8) {
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.lineBreakMode = .byWordWrapping
+                paragraph.lineSpacing = 2
+                let attributes: [NSAttributedString.Key: Any] = [
+                    .font: font,
+                    .foregroundColor: color,
+                    .paragraphStyle: paragraph,
+                ]
+                let rect = text.boundingRect(
+                    with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude),
+                    options: [.usesLineFragmentOrigin, .usesFontLeading],
+                    attributes: attributes,
+                    context: nil
+                )
+
+                if y + ceil(rect.height) > pageBounds.height - margin {
+                    context.beginPage()
+                    y = margin
+                }
+
+                text.draw(
+                    with: CGRect(x: margin, y: y, width: contentWidth, height: ceil(rect.height)),
+                    options: [.usesLineFragmentOrigin, .usesFontLeading],
+                    attributes: attributes,
+                    context: nil
+                )
+                y += ceil(rect.height) + spacing
+            }
+
+            if let contact, contact.hasDisplayableValue {
+                if let name = contact.name?.trimmedNonEmpty {
+                    draw(name, font: .systemFont(ofSize: 24, weight: .bold), spacing: 4)
+                }
+                if let title = contact.title?.trimmedNonEmpty {
+                    draw(title, font: .systemFont(ofSize: 14, weight: .medium), color: .darkGray, spacing: 4)
+                }
+                if !contact.contactLine.isEmpty {
+                    draw(contact.contactLine, font: .systemFont(ofSize: 10), color: .darkGray, spacing: 18)
+                }
+            }
+
+            for section in renderableSections {
+                draw(section.type.displayName.uppercased(), font: .systemFont(ofSize: 12, weight: .bold), spacing: 5)
+                draw(section.body, font: .systemFont(ofSize: 10), spacing: 16)
+            }
+        }
+
+        return try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
+    }
+}
+
 enum HTMLPDFExporterError: LocalizedError, Sendable {
     case timedOut
 
     var errorDescription: String? {
         "PDF rendering timed out. Please try again."
+    }
+}
+
+private extension String {
+    var trimmedNonEmpty: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

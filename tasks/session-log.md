@@ -15,6 +15,22 @@
 
 ## Sessions
 
+### 2026-06-11
+**Task:** Fix real-device smoke failures for Preview & Export PDF and Submit Package
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/Export/HTMLPDFExporter.swift` — added `LocalResumePDFExporter`, which creates a valid text-layer PDF from loaded optimization sections/contact data and stores it through the existing export file store.
+- `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift` — routes PDF downloads through a local fallback, validates backend download payloads begin with `%PDF-`, preserves auth/payment failures, and surfaces backend error bodies in logs instead of generic invalid responses.
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added coverage that the local PDF fallback writes real PDF data.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, current status, and next smoke action.
+**Decisions Made:**
+- Root cause: Submit Package and Preview & Export PDF share the same PDF dependency; when WKWebView/backend download failed, Submit Package stopped before creating the application/expert package.
+- Kept the existing preferred order: styled WKWebView PDF first, backend `/api/download` second, local text-layer fallback third.
+- Treated unauthorized and payment-required as terminal so the local fallback cannot bypass account/payment gating.
+**Validation:**
+- Debug simulator build succeeded on iPhone 17: `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pdf-fix-derived build`
+- Focused tests succeeded on iPhone 17: `xcodebuild test ... -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` passed 18/18 tests.
+**Next Recommended Action:** Founder pulls latest `main`, rebuilds/runs on real device, signs in, smokes optimize → Improve ATS → Preview & Export PDF → Submit Package, then confirms the exported/shared PDF opens and screenshots PostHog `export_success`.
+
 ### 2026-06-04
 **Task:** WP-1 continuation — Apply App Store readiness changes, verify clean build with all Info.plist keys, run 72-test suite, smoke simulator, build signed device binary
 **Files Changed:**

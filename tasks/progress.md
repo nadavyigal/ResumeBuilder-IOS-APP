@@ -3,16 +3,16 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: App Store submission readiness
-Active Story: PR #51 — Updated mock PDF lesson PR with latest main for founder Xcode rebuild/smoke test
-Last Completed Story: PR #51 update: merged `origin/main` into `claude/epic-sammet-146689`, confirmed the code fix is already on main and the remaining PR delta is project memory/lesson documentation. Debug simulator build succeeded and 72 XCTest + 5 Swift Testing tests passed on iPhone 17 simulator (2026-06-10)
-Next Recommended Story: Founder installs device binary on real device, signs in, smokes optimize→design→expert→export, screenshots PostHog Live Events (app_launched + optimization_completed + export_success), then archives via Xcode Organizer for ASC upload
+Active Story: Real-device smoke fix — PDF export and Submit Package shared PDF dependency
+Last Completed Story: Investigated founder smoke logs showing PDF export failed with "Invalid server response" and Submit Package blocked before package creation. Added a local text-layer PDF fallback after WKWebView/backend download failure, validated simulator Debug build and focused OptimizedResumeViewModel tests on iPhone 17 simulator (2026-06-11).
+Next Recommended Story: Founder pulls latest `main`, rebuilds/runs on real device, signs in, smokes optimize→Improve ATS→Preview & Export PDF→Submit Package, then screenshots PostHog Live Events (app_launched + optimization_completed + export_success).
 Estimated Completion: 90%
 Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: PR #51 update (2026-06-10): `git diff --check` passed for the PR worktree. `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pr51-derived build` succeeded. `xcodebuild test` on the same simulator/derived data succeeded: 72 XCTest tests + 5 Swift Testing tests passed. Local setup required gitignored `Secrets.xcconfig` copied from `Secrets.xcconfig.template`.
-Last Updated: 2026-06-10
-Current Branch: claude/epic-sammet-146689
-Latest Base Commit: 9661853 — chore: sync Localizable.xcstrings (new account deletion strings)
+Last Validation: PDF/export smoke fix (2026-06-11): `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pdf-fix-derived build` succeeded. Focused `xcodebuild test ... -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` succeeded: 18 XCTest tests passed, including local PDF signature coverage.
+Last Updated: 2026-06-11
+Current Branch: main
+Latest Base Commit: 462e0b9 — chore: sync Localizable.xcstrings (account deletion string keys)
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
@@ -38,7 +38,7 @@ Latest QA Report: —
 - Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
 - Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
 - Optimized/Design preview now resets stale design state on optimization changes, pauses preview network work when hidden behind another tab, debounces Design preview customization changes, and avoids redundant WKWebView reloads for unchanged HTML
-- PDF export retains its off-screen WKWebView, times out stalled client-side PDF rendering, writes share files to stable Caches export URLs, and falls back to backend download before surfacing an export failure
+- PDF export retains its off-screen WKWebView, times out stalled client-side PDF rendering, writes share files to stable Caches export URLs, falls back to backend download, then generates a local text-layer PDF from loaded optimization sections/contact data before surfacing an export failure
 - Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, let full rewrites apply selected sections, save applied reports to linked applications, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
 - Expert tab links saved reports to Me applications by matching either `optimization_id` or `optimized_resume_id` from `/api/v1/applications`
 - rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path

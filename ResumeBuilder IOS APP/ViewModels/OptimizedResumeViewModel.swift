@@ -123,12 +123,12 @@ final class OptimizedResumeViewModel {
     func downloadPDF(token: String?) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
         guard let token else { throw APIClientError.unauthorized }
-        return try await downloadPDF(with: token, optimizationId: optId)
+        return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
     }
 
     private func downloadPDF(with token: String) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
-        return try await downloadPDF(with: token, optimizationId: optId)
+        return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
     }
 
     private static let downloadLogger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
@@ -150,8 +150,53 @@ final class OptimizedResumeViewModel {
         Self.downloadLogger.info("HTTP response status=\(http.statusCode) bytes=\(data.count)")
         if http.statusCode == 401 { throw APIClientError.unauthorized }
         if http.statusCode == 402 { throw APIClientError.paymentRequired }
-        guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
+        guard (200...299).contains(http.statusCode) else {
+            let message = Self.downloadErrorMessage(from: data)
+            Self.downloadLogger.error("HTTP failure status=\(http.statusCode) message=\(message)")
+            throw APIClientError.serverError(status: http.statusCode, message: message)
+        }
+        guard Self.looksLikePDF(data) else {
+            let message = Self.downloadErrorMessage(from: data)
+            Self.downloadLogger.error("HTTP download returned non-PDF data: \(message)")
+            throw APIClientError.serverError(status: http.statusCode, message: message)
+        }
         return try ExportFileStore.writePDFData(data, optimizationId: optId)
+    }
+
+    private func downloadPDFWithLocalFallback(with token: String, optimizationId optId: String) async throws -> URL {
+        do {
+            return try await downloadPDF(with: token, optimizationId: optId)
+        } catch APIClientError.unauthorized {
+            throw APIClientError.unauthorized
+        } catch APIClientError.paymentRequired {
+            throw APIClientError.paymentRequired
+        } catch {
+            if sections.isEmpty {
+                try? await loadSections(with: token, optimizationId: optId, useCache: false)
+            }
+            return try LocalResumePDFExporter.exportPDF(
+                sections: sections,
+                contact: contact,
+                optimizationId: optId
+            )
+        }
+    }
+
+    private static func looksLikePDF(_ data: Data) -> Bool {
+        data.prefix(5) == Data("%PDF-".utf8)
+    }
+
+    private static func downloadErrorMessage(from data: Data) -> String {
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let error = json["error"] as? String {
+            return error
+        }
+        let text = String(data: data, encoding: .utf8) ?? "Download failed"
+        let stripped = text
+            .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return stripped.isEmpty ? "Download failed" : String(stripped.prefix(240))
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated

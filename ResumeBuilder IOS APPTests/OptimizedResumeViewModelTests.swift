@@ -56,6 +56,30 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertTrue(text.contains("Swift, iOS"))
     }
 
+    func testLocalResumePDFExporterWritesValidPDFData() async throws {
+        let url = try LocalResumePDFExporter.exportPDF(
+            sections: [
+                OptimizedResumeSection(id: "s1", type: .summary, body: "Great engineer.", status: "optimized"),
+                OptimizedResumeSection(id: "s2", type: .skills, body: "Swift, iOS", status: "optimized"),
+            ],
+            contact: ResumeContact(
+                name: "Alex Resume",
+                email: "alex@example.com",
+                phone: nil,
+                location: "Tel Aviv",
+                title: "iOS Engineer",
+                linkedin: nil,
+                portfolio: nil
+            ),
+            optimizationId: "opt-local-test"
+        )
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let data = try Data(contentsOf: url)
+        XCTAssertEqual(data.prefix(5), Data("%PDF-".utf8))
+        XCTAssertGreaterThan(data.count, 100)
+    }
+
     // MARK: - rejectRefine
 
     func testRejectRefineClearsPendingState() async {
