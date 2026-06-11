@@ -15,6 +15,21 @@
 
 ## Sessions
 
+### 2026-05-18
+**Task:** Fix optimize 500 error ("bad XRef entry") and Profile/Me page not loading history
+**Files Changed:**
+- `Core/API/APIClient.swift` — parse JSON `"error"` field from non-2xx responses so errors display cleanly instead of raw JSON strings
+- `Features/Profile/ProfileView.swift` — add `isActive: Bool` param; switch `.task {}` → `.task(id: isActive)` with `guard isActive` so data reloads every time the Me tab is tapped
+- `App/MainTabViewV2.swift` — pass `isActive: selectedTab == .me` to ProfileView
+- `new-ResumeBuilder-ai-/src/app/api/upload-resume/route.ts` — (separate repo) wrap `parsePdf` in try-catch, return 422 with user-friendly message instead of leaking raw "bad XRef entry"
+**Decisions Made:**
+- Root cause of "cancelled" on Profile: all tabs are kept alive via `.opacity()`, so `.task {}` fires once at app startup before session is ready; `.task(id: isActive)` re-fires on every tab activation
+- Backend PDF fix committed in web repo branch `fix/pdf-parse-xref-error` → PR #57
+- iOS fixes committed in worktree → PR #18 → merged to main → pulled to main project dir
+**Next Recommended Action:** Rebuild in Xcode from the main project dir (now on commit `01bfecb`) → smoke-test Me tab loads history + Optimize with valid PDF flows normally
+
+---
+
 ### 2026-05-17
 **Task:** Fix preview not rendering — add mock design service flag, proper HTML, client-side fallback, Design tab live preview
 **Files Changed:**

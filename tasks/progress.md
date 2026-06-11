@@ -4,15 +4,15 @@ Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: Pre-release (TestFlight prep)
 Active Story: —
-Last Completed Story: Spec "Merge Track→Me, Redesign Optimised Resume, Real Resume Library" — all 5 stories (2026-05-15)
-Next Recommended Story: Simulator smoke test + flip BackendConfig.useMockLibraryService once web API ships; then TestFlight build prep
-Estimated Completion: 25%
-Blockers: —
+Last Completed Story: Fix optimize 500 error + Profile page not loading history (2026-05-18)
+Next Recommended Story: Simulator smoke test — Me tab shows history + Optimize with valid PDF flows normally; then flip BackendConfig.useMockLibraryService once web API ships
+Estimated Completion: 28%
+Blockers: Backend PDF fix (PR #57 in new-ResumeBuilder-ai-) needs to be deployed to production for the 422 fix to take effect server-side
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; Resume Library backend endpoints not yet live (mocks active)
-Last Validation: Xcode build succeeded after each story commit
-Last Updated: 2026-05-15
-Current Branch: claude/hungry-chatelet-a86030
-Latest Commit: feat(library): resume library — mock-first save, picker, and cleanup of single-slot cache
+Last Validation: git pull origin main ran in main project dir — 3 files updated to commit 01bfecb
+Last Updated: 2026-05-18
+Current Branch: main (main project dir at 01bfecb after pull)
+Latest Commit: fix(profile): isActive reload + APIClient JSON error parsing + PDF parse 422
 Active Spec: —
 Latest QA Report: —
 

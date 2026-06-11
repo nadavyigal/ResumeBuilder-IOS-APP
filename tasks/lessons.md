@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-05-18
+**Category:** Build
+**Rule:** After merging a PR from a worktree branch, always run `git pull origin main` in the **main project directory** before rebuilding in Xcode — Xcode references source files from the main checkout, not the worktree.
+**Why:** The project is built by Xcode from `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/`. Claude Code worktrees live in `.claude/worktrees/<name>/`. Merging a PR updates `origin/main` but the main project directory stays on the old commit until pulled. Rebuilding without pulling just rebuilds the old code.
+
+### 2026-05-18
+**Category:** SwiftUI
+**Rule:** Use `.task(id: isActive)` + `guard isActive else { return }` (not `.task {}`) when a view must reload data every time a tab is selected.
+**Why:** All tabs are kept alive via `.opacity()`, so `.task {}` (no id) fires exactly once at app startup and never again. At startup the session token may not be ready, causing URLError.cancelled (-999). The string "cancelled" then shows as the user-facing error forever because no retry ever fires.
+
+### 2026-05-18
 **Category:** SwiftUI
 **Rule:** Never call `onSelect` or any selection callback from a Cancel button in a sheet. Use `@Environment(\.dismiss)` instead.
 **Why:** `SavedResumePickerSheet` Cancel was calling `onSelect(URL(fileURLWithPath: "/dev/null"), "")`, which set `selectedResumeURL` to `/dev/null` and `selectedResumeName` to empty string. The optimize flow then tried to read `/dev/null` and iOS returned "The file 'null' couldn't be opened because you don't have permission to view it."
