@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-11
+**Category:** PDF
+**Rule:** PDF export and Submit Package must not depend solely on `/api/download`; after WKWebView or backend download failure, generate a valid local text-layer PDF from loaded optimization sections and contact data.
+**Why:** A real-device smoke showed both Preview & Export PDF and Submit Package failing because Submit Package calls the same PDF download path first. The backend fallback returned a non-usable/invalid response, so the shared PDF dependency blocked both flows.
+
 ### 2026-06-10
 **Category:** Build
 **Rule:** Before running local `xcodebuild` in a fresh worktree, copy `Secrets.xcconfig.template` to the gitignored `Secrets.xcconfig`; the project references that file as a base configuration and the build fails before compilation if it is missing.

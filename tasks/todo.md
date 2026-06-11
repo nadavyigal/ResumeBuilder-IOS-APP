@@ -1,37 +1,25 @@
 # Current Task
 
-**Objective:** PR #51 — Update the open mock-library PDF fix PR with latest `main` so founder can merge, rebuild in Xcode, and smoke test.
-**Status:** PR branch merged with `origin/main`; local Debug simulator build and tests pass. Founder Xcode rebuild/smoke remains the next action.
-**Branch:** `claude/epic-sammet-146689`
+**Objective:** Fix real-device smoke failures where Preview & Export PDF and Submit Package fail from the shared PDF path.
+**Status:** Code fix implemented on `main`; simulator Debug build and focused OptimizedResumeViewModel tests pass. Founder real-device re-smoke remains the next action.
+**Branch:** `main`
 
 ## Scope
-- Apply App Store readiness fixes (Inject Runtime Config, BackendConfig, warning cleanup, bundle exclusions)
-- Verify clean build with API_BASE_URL + POSTHOG keys in Info.plist
-- Run full test suite
-- Build signed device binary
-- Resolve ASC upload path (EXD-006)
-- Document founder device smoke steps
+- Investigate real-device Xcode logs for PDF export and Submit Package failures
+- Make PDF export resilient when WKWebView/backend download fails
+- Keep Submit Package unblocked by generating a valid shareable PDF from loaded resume sections
+- Verify simulator build and focused tests
+- Document lesson/progress
 
 ## Checklist
-- [x] Merge `origin/main` into PR #51 branch
-- [x] Confirm PR delta after merge
-- [x] Run `git diff --check`
+- [x] Read smoke logs and identify shared PDF dependency
+- [x] Add local text-layer PDF fallback for loaded optimization sections/contact data
+- [x] Validate backend download payload starts with `%PDF-` before sharing
+- [x] Preserve auth/payment failures instead of masking them with local fallback
+- [x] Add focused local PDF signature test
 - [x] Run Debug simulator build on iPhone 17 simulator
-- [x] Run XCTest/Swift Testing suite on iPhone 17 simulator
-- [ ] **FOUNDER ACTION**: Merge PR #51 if GitHub checks stay green
-- [ ] **FOUNDER ACTION**: Pull latest `main` locally, rebuild in Xcode, and smoke optimize → design → expert → export
-- [x] Apply Inject Runtime Config build script (API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST via PlistBuddy)
-- [x] BackendConfig.swift uses preconditionFailure; no hardcoded fallback URL
-- [x] TailorView.swift deprecated onChange fixed; ImproveViewModel.swift guard-let warnings fixed
-- [x] Secrets.swift.example excluded from app bundle (PBXFileSystemSynchronizedBuildFileExceptionSet)
-- [x] API_BASE_URL = https://www.resumelybuilderai.com in Debug + Release build settings
-- [x] Verify API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST in simulator Debug Info.plist — confirmed
-- [x] Full test suite: 72 XCTest passed (0 failures) on iPhone 17 simulator
-- [x] Simulator smoke — Home screen renders (screenshot: /var/tmp/resumebuilder-smoke-wt/wp1-home.png)
-- [x] Device binary (Debug-iphoneos) built and signed — all 3 Info.plist keys confirmed
-- [x] ASC upload path resolved: Fastlane NOT installed, no .p8 key → manual Xcode Organizer
-- [ ] **FOUNDER ACTION**: Install device binary on real device (see command below)
-- [ ] **FOUNDER ACTION**: Sign in, run optimize → design → expert → export; screenshot each step
+- [x] Run focused OptimizedResumeViewModel test suite on iPhone 17 simulator
+- [ ] **FOUNDER ACTION**: Pull latest `main`, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
 - [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
 - [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly
 - [ ] **FOUNDER ACTION**: Create Release archive via Xcode Organizer → Distribute App → App Store Connect
