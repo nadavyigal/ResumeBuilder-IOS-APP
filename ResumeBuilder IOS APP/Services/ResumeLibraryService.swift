@@ -10,7 +10,7 @@ protocol ResumeLibraryServiceProtocol: Sendable {
 }
 
 final class ResumeLibraryService: ResumeLibraryServiceProtocol, Sendable {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func listSavedResumes(token: String) async throws -> [SavedResume] {
         let response: SavedResumesResponse = try await apiClient.get(endpoint: .savedResumes, token: token)

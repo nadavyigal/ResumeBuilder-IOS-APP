@@ -41,7 +41,7 @@ final class OptimizedResumeViewModel {
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
-    private static var detailCache: [String: OptimizationDetailDTO] = [:]
+    private static var detailCache = OptimizationDetailCache()
 
     init(
         optimizationId: String?,
@@ -245,7 +245,7 @@ final class OptimizedResumeViewModel {
             Self.downloadLogger.error("HTTP failure status=\(http.statusCode) message=\(message)")
             throw APIClientError.serverError(status: http.statusCode, message: message)
         }
-        guard Self.looksLikePDF(data) else {
+        guard PDFDownloadValidator.looksLikePDF(data) else {
             let message = Self.downloadErrorMessage(from: data)
             Self.downloadLogger.error("HTTP download returned non-PDF data: \(message)")
             throw APIClientError.serverError(status: http.statusCode, message: message)
@@ -260,20 +260,19 @@ final class OptimizedResumeViewModel {
             throw APIClientError.unauthorized
         } catch APIClientError.paymentRequired {
             throw APIClientError.paymentRequired
+        } catch APIClientError.serverError(let status, let message) where (400...499).contains(status) {
+            throw APIClientError.serverError(status: status, message: message)
         } catch {
             if sections.isEmpty {
                 try? await loadSections(with: token, optimizationId: optId, useCache: false)
             }
+            errorMessage = "Server PDF unavailable — generated a local copy from your resume sections."
             return try LocalResumePDFExporter.exportPDF(
                 sections: sections,
                 contact: contact,
                 optimizationId: optId
             )
         }
-    }
-
-    private static func looksLikePDF(_ data: Data) -> Bool {
-        data.prefix(5) == Data("%PDF-".utf8)
     }
 
     private static func downloadErrorMessage(from data: Data) -> String {
@@ -337,16 +336,16 @@ final class OptimizedResumeViewModel {
     }
 
     private func loadSections(with token: String, optimizationId optId: String, useCache: Bool = true) async throws {
-        if useCache, let cached = Self.detailCache[optId] {
+        if useCache, let cached = Self.detailCache.value(for: optId) {
             apply(detail: cached)
             return
         }
 
-        let detail: OptimizationDetailDTO = try await APIClient().get(
+        let detail: OptimizationDetailDTO = try await RuntimeServices.sharedAPIClient.get(
             endpoint: .optimizationDetail(id: optId),
             token: token
         )
-        Self.detailCache[optId] = detail
+        Self.detailCache.store(detail, for: optId)
         apply(detail: detail)
     }
 
@@ -423,7 +422,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
-                Self.detailCache.removeValue(forKey: optId)
+                Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -468,7 +467,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
-                Self.detailCache.removeValue(forKey: optId)
+                Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -545,7 +544,7 @@ final class OptimizedResumeViewModel {
             )
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
             applyExpertATSResult(apply)
-            Self.detailCache.removeValue(forKey: optId)
+            Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
             await rescanATS(token: token)
@@ -756,5 +755,30 @@ private extension String {
     var nilIfEmpty: String? {
         let t = trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? nil : t
+    }
+}
+
+struct OptimizationDetailCache: Sendable {
+    private var storage: [String: OptimizationDetailDTO] = [:]
+    private var order: [String] = []
+    private let limit = 10
+
+    func value(for key: String) -> OptimizationDetailDTO? {
+        storage[key]
+    }
+
+    mutating func store(_ detail: OptimizationDetailDTO, for key: String) {
+        storage[key] = detail
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit, let oldest = order.first {
+            order.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
+
+    mutating func remove(_ key: String) {
+        storage.removeValue(forKey: key)
+        order.removeAll { $0 == key }
     }
 }

@@ -21,6 +21,7 @@ final class AppState {
 
     nonisolated static let latestOptimizationKey = "latest_optimization_id"
     nonisolated static let exportCompletionKey = "last_export_completion"
+    nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"
 
     var latestOptimizationId: String? {
         didSet {
@@ -32,8 +33,9 @@ final class AppState {
         }
     }
 
-    let apiClient = APIClient()
+    let apiClient = RuntimeServices.sharedAPIClient
     private let anonymousSessionKey = "anonymous_ats_session_id"
+    private var refreshTask: Task<String, Error>?
 
     var isAuthenticated: Bool {
         session != nil
@@ -55,6 +57,9 @@ final class AppState {
     func bootstrapAndRefreshSession() async {
         bootstrap()
         await refreshSessionIfNeeded()
+        if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
+            await convertAnonymousSessionIfNeeded()
+        }
         hasBootstrappedSession = true
     }
 
@@ -71,21 +76,14 @@ final class AppState {
         latestOptimizationId = nil
         exportCompletion = nil
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
+        refreshTask?.cancel()
+        refreshTask = nil
     }
 
     /// Deletes the account server-side, then clears all local state.
     func deleteAccount() async throws {
-        guard let token = session?.accessToken else {
-            throw APIClientError.unauthorized
-        }
-        do {
+        try await callWithFreshToken { token in
             try await AuthService.shared.deleteAccount(accessToken: token)
-        } catch AuthServiceError.serverError(let message) where message.lowercased().contains("expired") || message.lowercased().contains("invalid") {
-            // Access token may be stale — refresh once and retry.
-            guard let freshToken = await refreshAccessToken() else {
-                throw APIClientError.unauthorized
-            }
-            try await AuthService.shared.deleteAccount(accessToken: freshToken)
         }
         AnalyticsService.shared.track(.accountDeleted)
         signOut()
@@ -142,36 +140,55 @@ final class AppState {
             )
             anonymousATSSessionId = nil
             UserDefaults.standard.removeObject(forKey: anonymousSessionKey)
+            UserDefaults.standard.set(false, forKey: Self.anonymousConversionPendingKey)
         } catch {
-            // Keep the anonymous ID so conversion can be retried later.
+            UserDefaults.standard.set(true, forKey: Self.anonymousConversionPendingKey)
         }
     }
 
     func refreshSessionIfNeeded() async {
-        guard let refreshToken = session?.refreshToken else { return }
+        guard let currentSession = session,
+              let refreshToken = currentSession.refreshToken else { return }
+
+        guard JWTDecoder.shouldRefresh(accessToken: currentSession.accessToken) else { return }
+
         do {
             let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
             session = newSession
         } catch {
-            signOut()
+            if shouldSignOutAfterRefreshFailure(error) {
+                signOut()
+            }
         }
     }
 
     @discardableResult
     func refreshAccessToken() async -> String? {
+        if let existing = refreshTask {
+            return try? await existing.value
+        }
+
         guard let refreshToken = session?.refreshToken else {
             signOut()
             return nil
         }
 
-        do {
-            let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
-            session = newSession
-            return newSession.accessToken
-        } catch {
-            signOut()
-            return nil
+        let task = Task<String, Error> { @MainActor in
+            do {
+                let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
+                self.session = newSession
+                return newSession.accessToken
+            } catch {
+                if self.shouldSignOutAfterRefreshFailure(error) {
+                    self.signOut()
+                }
+                throw error
+            }
         }
+        refreshTask = task
+        defer { refreshTask = nil }
+
+        return try? await task.value
     }
 
     func callWithFreshToken<T>(_ work: (String) async throws -> T) async throws -> T {
@@ -199,5 +216,20 @@ final class AppState {
         } catch {
             // Keep prior balance on transient failures.
         }
+    }
+
+    private func shouldSignOutAfterRefreshFailure(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return false
+        }
+        if let authError = error as? AuthServiceError {
+            if case .invalidResponse = authError { return true }
+            return authError.isAuthFailure
+        }
+        if case AuthServiceError.serverError(let message) = error {
+            let lower = message.lowercased()
+            return lower.contains("401") || lower.contains("unauthorized")
+        }
+        return false
     }
 }

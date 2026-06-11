@@ -1,5 +1,7 @@
 # Project Progress
 
+**Code review remediation plan (2026-06-11):** Phases 0–5 implemented on `fix/code-review-remediation`; iPhone 17 simulator **TEST SUCCEEDED** (2026-06-11). `isMonetizationEnabled` remains `false`. Plan: `docs/superpowers/plans/2026-06-11-code-review-remediation-plan.md`
+
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: App Store submission readiness

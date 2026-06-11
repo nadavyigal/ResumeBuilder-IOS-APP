@@ -157,7 +157,7 @@ protocol ResumeOptimizationServiceProtocol: Sendable {
 }
 
 struct ResumeOptimizationService: ResumeOptimizationServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
     private let logger = Logger(subsystem: "ResumeBuilder", category: "ResumeOptimizationService")
 
     func optimize(resumeId: String, jobDescriptionId: String, token: String) async throws -> OptimizeResponse {

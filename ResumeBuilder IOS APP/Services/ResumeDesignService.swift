@@ -44,7 +44,7 @@ protocol ResumeDesignServiceProtocol: Sendable {
 }
 
 struct ResumeDesignService: ResumeDesignServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func templates(category: String, token: String) async throws -> [DesignTemplate] {
         let response: TemplateListResponse = try await apiClient.getWithQuery(
@@ -82,7 +82,7 @@ struct ResumeDesignService: ResumeDesignServiceProtocol {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (responseData, response) = try await URLSession.shared.data(for: urlRequest)
+        let (responseData, response) = try await apiClient.session.data(for: urlRequest)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let body = String(data: responseData, encoding: .utf8) ?? ""
             throw APIClientError.serverError(status: (response as? HTTPURLResponse)?.statusCode ?? 0, message: body)

@@ -92,7 +92,6 @@ Deno.serve(async (req) => {
     console.error("[delete_account] partial failure", { userId, failures });
     return jsonResponse(500, {
       error: "Some account data could not be deleted. Please try again.",
-      details: failures,
     });
   }
 

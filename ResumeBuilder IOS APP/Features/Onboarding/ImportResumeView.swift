@@ -9,7 +9,7 @@ struct ImportResumeView: View {
 
     var body: some View {
         Section("Master Resume") {
-            Button("Import PDF or DOCX") {
+            Button("Import PDF") {
                 isImporterPresented = true
             }
 
@@ -21,7 +21,7 @@ struct ImportResumeView: View {
         }
         .fileImporter(
             isPresented: $isImporterPresented,
-            allowedContentTypes: [.pdf, .data],
+            allowedContentTypes: [.pdf],
             allowsMultipleSelection: false
         ) { result in
             Task {

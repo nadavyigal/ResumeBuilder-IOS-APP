@@ -43,18 +43,6 @@ final class OnboardingViewModel {
         }
     }
 
-    // MARK: - Token refresh (called by AppState on 401)
-
-    func refreshIfNeeded() async {
-        guard let refreshToken = appState.session?.refreshToken else { return }
-        do {
-            let session = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
-            appState.session = session
-        } catch {
-            appState.signOut()
-        }
-    }
-
     // MARK: - Private
 
     private func validate() -> Bool {

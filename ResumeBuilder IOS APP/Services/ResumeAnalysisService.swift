@@ -19,7 +19,7 @@ protocol ResumeAnalysisServiceProtocol: Sendable {
 // MARK: - Real service
 
 struct ResumeAnalysisService: ResumeAnalysisServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     // MARK: ResumeAnalysisServiceProtocol
 
@@ -37,6 +37,7 @@ struct ResumeAnalysisService: ResumeAnalysisServiceProtocol {
             throw APIClientError.invalidResponse
         }
 
+        // Pre-optimize scoring compares the uploaded resume against the JD; optimized text is not available yet.
         let body: [String: Any] = [
             "resume_original": resumeText,
             "resume_optimized": resumeText,
@@ -63,9 +64,8 @@ struct ResumeAnalysisService: ResumeAnalysisServiceProtocol {
         )
     }
 
+    // TODO(Stage2-RES-IMPROVEMENTS): wire dedicated improvements endpoint when backend ships.
     func improvements(resumeId: String, jobDescription: String, token: String) async throws -> [ResumeImprovement] {
-        // Improvements are surfaced through the optimization review flow rather than a
-        // separate endpoint; return empty for now.
         return []
     }
 

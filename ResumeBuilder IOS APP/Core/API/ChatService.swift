@@ -20,9 +20,27 @@ enum ChatServiceError: LocalizedError, Sendable {
     }
 }
 
+protocol ChatMessaging: Sendable {
+    func fetchActiveSession(optimizationId: String, token: String?) async throws -> ChatSessionRecord?
+    func getMessages(sessionId: String, token: String?) async throws -> [ChatMessageRecord]
+    func sendMessage(
+        sessionId: String?,
+        optimizationId: String,
+        content: String,
+        token: String?
+    ) async throws -> (stream: AsyncThrowingStream<String, Error>, pendingChanges: [ChatPendingChange]?, resolvedSessionId: String?)
+    func approveChange(
+        optimizationId: String,
+        suggestionId: String,
+        affectedFields: [ChatAffectedField]?,
+        token: String?
+    ) async throws -> ChatApproveChangeResponseDTO
+    func rejectChange(sessionId: String, changeId: String, token: String?)
+}
+
 /// Native client for authenticated chat (`/api/v1/chat`).
-struct ChatService: Sendable {
-    var apiClient: APIClient = APIClient()
+struct ChatService: ChatMessaging, Sendable {
+    var apiClient: APIClient = RuntimeServices.sharedAPIClient
     var streamingClient: StreamingClient = StreamingClient()
 
     // MARK: - Session
@@ -114,6 +132,7 @@ struct ChatService: Sendable {
     }
 
     /// Matches web UX: rejecting is client-side only (`ChatSidebar.tsx` removes from local list).
+    /// TODO(Stage2-RES-CHAT): persist reject to backend when endpoint ships.
     func rejectChange(sessionId: String, changeId: String, token: String?) {
         _ = sessionId
         _ = changeId

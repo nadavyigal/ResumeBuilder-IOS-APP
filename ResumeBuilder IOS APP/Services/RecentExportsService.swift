@@ -5,7 +5,7 @@ protocol RecentExportsServiceProtocol: Sendable {
 }
 
 struct RecentExportsService: RecentExportsServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func list(token: String) async throws -> [ResumeExport] {
         struct Response: Decodable {

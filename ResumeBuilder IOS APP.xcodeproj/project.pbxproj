@@ -227,31 +227,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		AABB1122CCDD3344EEFF5566AABB1122 /* Inject Runtime Config */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
-			);
-			name = "Inject Runtime Config";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/inject-runtime-config.stamp",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nset -e\nPLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ -z \"${API_BASE_URL}\" ]; then\n  echo \"error: API_BASE_URL build setting is required\"\n  exit 1\nfi\n/usr/libexec/PlistBuddy -c \"Delete :API_BASE_URL\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :API_BASE_URL string ${API_BASE_URL}\" \"${PLIST}\"\nif [ -n \"${POSTHOG_API_KEY}\" ]; then\n  /usr/libexec/PlistBuddy -c \"Delete :POSTHOG_API_KEY\" \"${PLIST}\" 2>/dev/null || true\n  /usr/libexec/PlistBuddy -c \"Add :POSTHOG_API_KEY string ${POSTHOG_API_KEY}\" \"${PLIST}\"\nfi\n/usr/libexec/PlistBuddy -c \"Delete :POSTHOG_HOST\" \"${PLIST}\" 2>/dev/null || true\n/usr/libexec/PlistBuddy -c \"Add :POSTHOG_HOST string https://us.i.posthog.com\" \"${PLIST}\"\ntouch \"${DERIVED_FILE_DIR}/inject-runtime-config.stamp\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		335AA75F2FA77AB800FD6628 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -416,16 +391,16 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CC00FF001122334455667788 /* Secrets.xcconfig */;
 			buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-					API_BASE_URL = "https://www.resumelybuilderai.com";
-					CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
+				API_BASE_URL = "https://www.resumelybuilderai.com";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Config/Info.plist";
+				INFOPLIST_FILE = Config/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -449,16 +424,16 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CC00FF001122334455667788 /* Secrets.xcconfig */;
 			buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-					API_BASE_URL = "https://www.resumelybuilderai.com";
-					CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
+				API_BASE_URL = "https://www.resumelybuilderai.com";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Config/Info.plist";
+				INFOPLIST_FILE = Config/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -187,10 +187,8 @@ final class ImproveViewModel {
 
     private func loadAnalysis(with token: String) async throws {
         guard let resumeId else { return }
-        async let scoreTask = analysisService.score(resumeId: resumeId, jobDescription: jobDescription, token: token)
-        async let improvementsTask = analysisService.improvements(resumeId: resumeId, jobDescription: jobDescription, token: token)
-        analysis = try await scoreTask
-        improvements = try await improvementsTask
+        analysis = try await analysisService.score(resumeId: resumeId, jobDescription: jobDescription, token: token)
+        improvements = []
     }
 
     private func rescanATS(with token: String) async throws {

@@ -78,7 +78,7 @@ struct ScanResumeView: View {
         }
         .fileImporter(
             isPresented: $viewModel.isImporterPresented,
-            allowedContentTypes: [.pdf, .data],
+            allowedContentTypes: [.pdf],
             allowsMultipleSelection: false
         ) { result in
             Task {
@@ -115,7 +115,7 @@ struct ScanResumeView: View {
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
 
-                    Text("PDF or DOCX")
+                    Text("PDF only")
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                 }

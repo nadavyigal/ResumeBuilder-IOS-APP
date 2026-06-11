@@ -9,11 +9,20 @@ struct PDFExporter {
     }
 
     static func downloadPDF(optimizationId: String, token: String) async throws -> URL {
-        let data = try await APIClient().getData(endpoint: .download(id: optimizationId), token: token)
-        let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("resume-\(optimizationId)")
-            .appendingPathExtension("pdf")
-        try data.write(to: fileURL, options: .atomic)
-        return fileURL
+        let data = try await RuntimeServices.sharedAPIClient.getData(
+            endpoint: .download(id: optimizationId),
+            token: token
+        )
+        try PDFDownloadValidator.validatePDFData(data, statusCode: 200)
+        return try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
+    }
+
+    static func downloadPDFData(optimizationId: String, token: String) async throws -> Data {
+        let data = try await RuntimeServices.sharedAPIClient.getData(
+            endpoint: .download(id: optimizationId),
+            token: token
+        )
+        try PDFDownloadValidator.validatePDFData(data, statusCode: 200)
+        return data
     }
 }

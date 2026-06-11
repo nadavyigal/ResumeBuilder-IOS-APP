@@ -16,7 +16,7 @@ struct ApplicationTrackingService: ApplicationTrackingServiceProtocol, Sendable 
         case missingToken
     }
 
-    var apiClient: APIClient = APIClient()
+    var apiClient: APIClient = RuntimeServices.sharedAPIClient
 
     func listApplications(token: String?) async throws -> [ApplicationItem] {
         guard let token else { throw ServiceError.missingToken }

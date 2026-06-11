@@ -3,6 +3,7 @@ import Foundation
 enum BackendConfig {
     /// Stage 1 ships without monetization. Flip to `true` once the backend
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
+    /// TODO(Stage2-RES-MONETIZATION): enable after sandbox IAP QA passes.
     static let isMonetizationEnabled = false
 
     /// Sign in with Apple is hidden until the Apple provider is enabled in the
@@ -11,10 +12,15 @@ enum BackendConfig {
     /// 2026-06-10; email auth is the only sign-in until this flips to true.
     static let isAppleSignInEnabled = false
 
-    // Supabase credentials — anon key is intentionally client-visible (same as NEXT_PUBLIC_*).
-    // RLS policies enforce data isolation; the anon key alone grants no elevated access.
     static let supabaseURL = URL(string: "https://brtdyamysfmctrhuankn.supabase.co")!
-    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJydGR5YW15c2ZtY3RyaHVhbmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNDYwODQsImV4cCI6MjA3MjgyMjA4NH0.x7IhVevlwHqrhJOVtcLeX8U-fN-tSZn-0AcC1dsXuyU"
+
+    static var supabaseAnonKey: String {
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String,
+              !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            preconditionFailure("Missing or invalid SUPABASE_ANON_KEY in Info.plist")
+        }
+        return key
+    }
 
     static var apiBaseURL: URL {
         guard let rawValue = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String,
