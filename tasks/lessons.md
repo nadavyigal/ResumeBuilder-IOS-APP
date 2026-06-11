@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-10
+**Category:** Build
+**Rule:** Before running local `xcodebuild` in a fresh worktree, copy `Secrets.xcconfig.template` to the gitignored `Secrets.xcconfig`; the project references that file as a base configuration and the build fails before compilation if it is missing.
+**Why:** A PR update verification build failed with "Unable to open base configuration reference file 'Secrets.xcconfig'" until the ignored local config file was created from the committed template.
+
 ### 2026-06-09
 **Category:** API
 **Rule:** iOS `Codable`-style request bodies use snake_case keys by default; Next.js backend destructuring uses camelCase. Always add both aliases (`jobTitle || job_title`, `company || company_name`) on the backend side — fixing one end is fragile since web clients also call the same route.
@@ -189,6 +194,11 @@
 **Category:** SwiftUI
 **Rule:** When a `View` has a custom `init`, all callback properties (`var onSwitchTab: (Tab) -> Void`) must be assigned in the `init` body — they are NOT auto-synthesized. Forgetting this causes the default `{ _ in }` to be used even when a non-default is passed.
 **Why:** Swift's memberwise init is suppressed when a custom `init` exists. All stored properties including closure callbacks must be explicitly set.
+
+### 2026-05-18
+**Category:** API
+**Rule:** Never write hand-crafted PDF byte strings with XRef offsets — the offsets will be wrong and the backend pdf-parse will throw "bad XRef entry" → 422. Use `UIGraphicsPDFRenderer` to generate mock PDFs in iOS, and use `pdfjs-dist` (not `pdf-parse`) on the backend.
+**Why:** `MockResumeLibraryService.downloadResumePDF` had a minimal PDF string where object 2 was declared at offset 58 but actually started at offset 52 (and similar drift for obj 3 and startxref). This is impossible to get right by eye. `UIGraphicsPDFRenderer` generates valid PDFs automatically. On the backend, `pdf-parse` v1.1.1 uses pdf.js v1.9.426 which has no XRef recovery; `pdfjs-dist` v5 falls back to a full linear scan.
 
 ### 2026-05-18
 **Category:** SwiftUI

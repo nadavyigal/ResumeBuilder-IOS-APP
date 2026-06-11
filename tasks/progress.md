@@ -3,16 +3,16 @@
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: App Store submission readiness
-Active Story: WP-1 — Release-readiness changes committed; device smoke requires founder action
-Last Completed Story: WP-1 release-readiness pass: Inject Runtime Config build script (API_BASE_URL + POSTHOG_API_KEY + POSTHOG_HOST), BackendConfig preconditionFailure, TailorView/ImproveViewModel warning fixes, Secrets.swift.example excluded from bundle. 72 tests pass, simulator Home renders, device binary confirmed ready (2026-06-04)
+Active Story: PR #51 — Updated mock PDF lesson PR with latest main for founder Xcode rebuild/smoke test
+Last Completed Story: PR #51 update: merged `origin/main` into `claude/epic-sammet-146689`, confirmed the code fix is already on main and the remaining PR delta is project memory/lesson documentation. Debug simulator build succeeded and 72 XCTest + 5 Swift Testing tests passed on iPhone 17 simulator (2026-06-10)
 Next Recommended Story: Founder installs device binary on real device, signs in, smokes optimize→design→expert→export, screenshots PostHog Live Events (app_launched + optimization_completed + export_success), then archives via Xcode Organizer for ASC upload
 Estimated Completion: 90%
 Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: WP-1 session (2026-06-04): Clean build succeeded — Info.plist contains API_BASE_URL=https://www.resumelybuilderai.com, POSTHOG_API_KEY=phc_***, POSTHOG_HOST=https://us.i.posthog.com. 72 XCTest tests passed (0 failures) on iPhone 17 simulator. Simulator Home screenshot confirmed at /var/tmp/resumebuilder-smoke-wt/wp1-home.png. Device binary (Debug-iphoneos) built and signed at /var/tmp/resumebuilder-device-wt/Build/Products/Debug-iphoneos/ — all three Info.plist keys verified. ASC path: Fastlane NOT installed, no .p8 key → manual Xcode Organizer upload.
-Last Updated: 2026-06-04
-Current Branch: claude/tender-banach-89238f
-Latest Base Commit: 1f8ca29 — Merge pull request #48
+Last Validation: PR #51 update (2026-06-10): `git diff --check` passed for the PR worktree. `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pr51-derived build` succeeded. `xcodebuild test` on the same simulator/derived data succeeded: 72 XCTest tests + 5 Swift Testing tests passed. Local setup required gitignored `Secrets.xcconfig` copied from `Secrets.xcconfig.template`.
+Last Updated: 2026-06-10
+Current Branch: claude/epic-sammet-146689
+Latest Base Commit: 9661853 — chore: sync Localizable.xcstrings (new account deletion strings)
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
