@@ -251,6 +251,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(body["job_title"] as? String, "iOS Engineer")
         XCTAssertEqual(body["company_name"] as? String, "Acme")
         XCTAssertEqual(body["source_url"] as? String, "https://example.com/job")
+        XCTAssertEqual(body["job_url"] as? String, "https://example.com/job")
         XCTAssertEqual(body["status"] as? String, "saved")
         XCTAssertEqual(body["optimization_id"] as? String, "opt-1")
     }
@@ -357,7 +358,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(envelope.expertReports.first?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
     }
 
-    func testSubmitApplicationPackageOrchestratesCreateCoverLetterAndTracking() async throws {
+    func testSubmitApplicationPackageGeneratesDraftBeforeSavingToMe() async throws {
         let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
         try Data("%PDF phase 2".utf8).write(to: resumeURL)
         defer { try? FileManager.default.removeItem(at: resumeURL) }
@@ -379,26 +380,60 @@ final class OptimizedResumeViewModelTests: XCTestCase {
 
         XCTAssertNil(vm.errorMessage)
         XCTAssertEqual(resumeProvider.downloadCalls, 1)
-        XCTAssertEqual(applicationService.createdRequests.count, 1)
-        XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "iOS Engineer")
-        XCTAssertEqual(applicationService.createdRequests.first?.optimizedResumeId, "opt-1")
-        XCTAssertEqual(applicationService.attached.count, 1)
-        XCTAssertEqual(applicationService.attached.first?.0, "app-1")
-        XCTAssertEqual(applicationService.attached.first?.1, "opt-1")
-        XCTAssertEqual(applicationService.markedAppliedIds, ["app-1"])
+        XCTAssertEqual(applicationService.createdRequests.count, 0)
+        XCTAssertEqual(applicationService.attached.count, 0)
+        XCTAssertEqual(applicationService.markedAppliedIds, [])
         // Both cover letter and screening run in parallel; spy returns cover_letter output for both.
         XCTAssertEqual(Set(expertService.runTypes), [.coverLetterArchitect, .screeningAnswerStudio])
-        // Cover letter is applied; screening apply is skipped because spy output has no screening_answers.
+        XCTAssertEqual(expertService.appliedRunIds, [])
+        XCTAssertEqual(expertService.appliedWorkflowTypes, [])
+        XCTAssertEqual(applicationService.savedReports.count, 0)
+        XCTAssertNil(vm.package?.application)
+        XCTAssertEqual(vm.package?.jobTitle, "iOS Engineer")
+        XCTAssertEqual(vm.package?.companyName, "Acme")
+        XCTAssertEqual(vm.package?.resumePDFURL, resumeURL)
+        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+        XCTAssertEqual(vm.package?.screeningAnswers, [])
+        XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
+    }
+
+    func testSubmitApplicationPackageSaveToMePersistsJobLinkAndCoverLetter() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF package save".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+        vm.jobTitle = "iOS Engineer"
+        vm.companyName = "Acme"
+        vm.sourceURLString = "https://example.com/job"
+
+        await vm.submit(token: "tok")
+        await vm.savePackageToMe(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(applicationService.createdRequests.count, 1)
+        XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "iOS Engineer")
+        XCTAssertEqual(applicationService.createdRequests.first?.companyName, "Acme")
+        XCTAssertEqual(applicationService.createdRequests.first?.sourceURL, "https://example.com/job")
+        XCTAssertEqual(applicationService.createdRequests.first?.optimizationId, "opt-1")
+        XCTAssertEqual(applicationService.createdRequests.first?.optimizedResumeId, "opt-1")
+        XCTAssertEqual(applicationService.attached.first?.0, "app-1")
+        XCTAssertEqual(applicationService.attached.first?.1, "opt-1")
+        XCTAssertEqual(applicationService.markedAppliedIds, [])
         XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
         XCTAssertEqual(expertService.appliedWorkflowTypes, [.coverLetterArchitect])
         XCTAssertEqual(applicationService.savedReports.count, 1)
         XCTAssertEqual(applicationService.savedReports.first?.0, "app-1")
         XCTAssertEqual(applicationService.savedReports.first?.1, "run-1")
-        XCTAssertEqual(vm.package?.application.id, "app-1")
-        XCTAssertEqual(vm.package?.resumePDFURL, resumeURL)
-        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
-        XCTAssertEqual(vm.package?.screeningAnswers, [])
-        XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job")
+        XCTAssertEqual(vm.package?.application?.id, "app-1")
+        XCTAssertEqual(vm.package?.application?.sourceURL, "https://example.com/job")
     }
 
     func testSubmitApplicationPackageUsesFallbackCompanyWhenMissing() async throws {
@@ -420,11 +455,12 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.missingContextMessage, "Company was not detected. You can edit it, or the package will use Company not specified.")
 
         await vm.submit(token: "tok")
+        await vm.savePackageToMe(token: "tok")
 
         XCTAssertNil(vm.errorMessage)
         XCTAssertEqual(applicationService.createdRequests.first?.jobTitle, "Existing Role")
         XCTAssertEqual(applicationService.createdRequests.first?.companyName, "Company not specified")
-        XCTAssertEqual(vm.package?.application.companyName, "Acme")
+        XCTAssertEqual(vm.package?.application?.companyName, "Acme")
     }
 
     func testSubmitApplicationPackageIncludesScreeningAnswersWhenPersistSucceeds() async throws {
@@ -444,6 +480,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         vm.companyName = "Acme"
 
         await vm.submit(token: "tok")
+        await vm.savePackageToMe(token: "tok")
 
         XCTAssertNil(vm.errorMessage)
         // Both workflows ran.
@@ -532,6 +569,12 @@ private final class SubmitResumeProviderSpy: SubmitResumePDFProviding {
         downloadCalls += 1
         return pdfURL
     }
+
+    func refreshSubmitPackageContext(token: String?) async {
+        if jobURLString == nil {
+            jobURLString = "https://example.com/job-from-optimization"
+        }
+    }
 }
 
 @MainActor
@@ -577,7 +620,7 @@ private final class SubmitApplicationTrackingSpy: ApplicationTrackingServiceProt
             id: "app-1",
             jobTitle: "iOS Engineer",
             companyName: "Acme",
-            status: "applied",
+            status: "saved",
             optimizationId: "opt-1"
         )
     }

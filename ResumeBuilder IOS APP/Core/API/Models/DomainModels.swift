@@ -790,6 +790,7 @@ enum ApplicationCreateRequestBody {
         ]
         if let sourceURL, !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["source_url"] = sourceURL
+            body["job_url"] = sourceURL
         }
         if let optimizationId, !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["optimization_id"] = optimizationId

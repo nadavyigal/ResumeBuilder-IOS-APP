@@ -1058,9 +1058,6 @@ private struct SubmitApplicationSheet: View {
             ) {
                 Task {
                     await vm.submit(token: accessToken)
-                    if vm.package != nil {
-                        appState.applicationsRefreshToken += 1
-                    }
                 }
             }
             .disabled(!vm.canSubmit)
@@ -1069,20 +1066,49 @@ private struct SubmitApplicationSheet: View {
 
     private func packageView(_ package: SubmitApplicationPackage) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            Label("Package ready", systemImage: "checkmark.circle.fill")
+            Label(
+                package.application == nil ? "Package ready" : "Saved to Me",
+                systemImage: package.application == nil ? "tray.full.fill" : "checkmark.circle.fill"
+            )
                 .font(.appHeadline)
                 .foregroundStyle(AppColors.accentTeal)
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text(package.application.jobTitle ?? vm.jobTitle)
+                Text(package.application?.jobTitle ?? package.jobTitle)
                     .font(.appSubheadline.weight(.semibold))
                     .foregroundStyle(AppColors.textPrimary)
-                Text(package.application.companyName ?? vm.companyName)
+                Text(package.application?.companyName ?? package.companyName)
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textTertiary)
             }
             .padding(AppSpacing.lg)
             .glassCard(cornerRadius: AppRadii.lg)
+
+            if package.application == nil {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    Text("Review the resume, cover letter, and job link. Save this package to Me when it is ready.")
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+
+                    GradientButton(
+                        title: "Save Package to Me",
+                        icon: "tray.and.arrow.down.fill",
+                        isLoading: vm.isSavingPackage
+                    ) {
+                        Task {
+                            await vm.savePackageToMe(token: accessToken)
+                            if vm.package?.application != nil {
+                                appState.applicationsRefreshToken += 1
+                            }
+                        }
+                    }
+                    .disabled(vm.isSavingPackage)
+                }
+            } else {
+                Label("You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link.", systemImage: "person.crop.circle.badge.checkmark")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
 
             VStack(spacing: AppSpacing.sm) {
                 ShareLink(item: package.resumePDFURL) {
@@ -1108,7 +1134,7 @@ private struct SubmitApplicationSheet: View {
                     Button {
                         UIApplication.shared.open(url)
                     } label: {
-                        Label("Open Job Link", systemImage: "safari")
+                        Label("Submit at Job Link", systemImage: "safari")
                             .font(.appSubheadline.weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .glassCard(cornerRadius: AppRadii.md)

@@ -1,30 +1,29 @@
 # Current Task
 
-**Objective:** Review PR #56 (`fix/code-review-remediation`), remediate unresolved review feedback, verify, and merge to `main`.
-**Status:** Review remediation implemented; clean iPhone 17 simulator test run passed; PR #56 ready to merge to `main`.
-**Branch:** `fix/code-review-remediation`
+**Objective:** Fix Submit Package so it includes the optimization job link and Expert cover letter, asks the user to save the package, and persists it to Me for export or direct job-link submission.
+**Status:** Implemented locally; focused iPhone 17 tests and launch smoke passed.
+**Branch:** `codex/fix-submit-package-save-package`
 
 ## Scope
-- Inspect PR #56 status, checks, and thread-aware review comments
-- Remediate unresolved Swift 6/sendability, PDF validation, file-format, cache isolation, and safety feedback
-- Preserve `BackendConfig.isMonetizationEnabled = false`
-- Run clean iPhone 17 simulator tests
-- Commit, push, and merge PR #56 to `main`
+- Refresh optimization context before package generation so the job link is present when available
+- Generate a reviewable Submit Package draft before creating a Me application
+- Save to Me only after explicit user confirmation
+- Persist optimized resume attachment, job link, cover letter Expert report, and screening answers
+- Keep Me/Application Detail actions for PDF share, cover-letter copy, and job-link submission
 
 ## Checklist
-- [x] Read PR #56 metadata, checks, and review threads
-- [x] Fix unresolved review feedback locally
-- [x] Record lesson for failed Swift 6 cache actor build attempt
-- [x] Update progress memory
+- [x] Investigate PR #46 and confirm it is unrelated RunSmart code review remediation
+- [x] Split Create Package from Save Package to Me
+- [x] Add job-link alias `job_url` to application create requests
+- [x] Update Submit Package sheet copy/actions
+- [x] Update Me package hub job-link CTA
+- [x] Add focused unit coverage for draft generation and save-to-Me persistence
+- [x] Move untracked duplicate `* 2.swift` artifacts out of synchronized source folders
 - [x] Run `git diff --check`
-- [x] Run clean iPhone 17 simulator test suite
-- [x] Commit remediation
-- [x] Push `fix/code-review-remediation`
-- [x] Merge PR #56 to `main`
-- [ ] **FOUNDER ACTION**: Pull merged fix, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
-- [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
-- [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly
-- [ ] **FOUNDER ACTION**: Create Release archive via Xcode Organizer → Distribute App → App Store Connect
+- [x] Run focused iPhone 17 `OptimizedResumeViewModelTests`
+- [x] Run iPhone 17 simulator launch smoke
+- [x] Push branch and open PR #57
+- [ ] **FOUNDER ACTION**: Pull branch/PR, rebuild in Xcode, and real-device smoke optimize → Improve ATS → Preview & Export PDF → Submit Package → Save Package to Me → Me package actions
 
 ## Device Install Command
 Open the worktree in Xcode with your device connected, then Product → Run.
