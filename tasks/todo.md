@@ -1,23 +1,37 @@
 # Current Task
 
-**Objective:** Archive v1.0 (4) from `main` and resubmit to App Store review.
-**Status:** Code gates cleared; founder archives in Xcode.
+**Objective:** Implement Resume Aha Moments so users see grounded diagnosis, recruiter-style feedback, before/after rewrite, and confidence cues in the first resume/job flow.
+**Status:** Implemented
 **Branch:** `main`
+**Spec:** `docs/specs/resume-aha-moments.md`
 
-## Pre-Archive (done in repo)
-- [x] Commit string catalog + build 4 bump
-- [x] Merge PR #57 to `main`
-- [x] App Review notes in `docs/qa/app-store-readiness-checklist.md`
-- [x] Screenshot upload paths documented (`iphone-6.7/`, `ipad-13/`)
+## Files Planned
+- [x] `ResumeBuilder IOS APP/Models/ResumeDiagnosis.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeDiagnosisView.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeDiagnosisViewModel.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/BeforeAfterRewriteCard.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/RecruiterEyeViewCard.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeConfidenceChecklist.swift`
+- [x] `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift`
+- [x] `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Home/HomeActivationState.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Home/HomeTabView.swift`
+- [x] `ResumeBuilder IOS APP/Features/Tailor/TailorView.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Home/ResumeOptimizationLoadingView.swift`
+- [x] `ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift`
+- [x] `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift`
 
-## Founder — Archive & ASC
-- [ ] Xcode: confirm branch `main`, Product → Clean Build Folder
-- [ ] Product → Archive → Validate → Distribute → App Store Connect → Upload
-- [ ] ASC: upload screenshots from `dist/app-store-screenshots/rb-aso-002/` (see upload-manifest)
-- [ ] ASC: paste App Review notes + demo email/password from checklist
-- [ ] ASC: select build **1.0 (4)** → Submit for Review
+## Implementation Checklist
+- [x] Add diagnosis models, optional backend decode, and conservative fallback mapper.
+- [x] Build reusable before/after, recruiter-eye, and confidence checklist cards.
+- [x] Add `ResumeDiagnosisView` and `ResumeDiagnosisViewModel` with loading, success, empty, and error states.
+- [x] Route Home/Tailor optimization completion to Diagnosis before Optimized.
+- [x] Add smart empty/loading copy and a compact confidence checklist in Optimized.
+- [x] Add focused tests for mapper/fallback behavior.
 
-## ASC Upload Path
-1. Xcode: Product → Archive
-2. Organizer → Distribute App → App Store Connect → Upload
-3. Authorize Apple Distribution key in Keychain when prompted
+## Verification
+- [x] `git diff --check`
+- [x] Focused diagnosis tests
+- [x] Xcode build on iPhone 17 simulator
+- [x] Relevant test suite on iPhone 17 simulator
+- [x] Simulator smoke test for changed UI

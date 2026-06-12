@@ -35,12 +35,12 @@ enum HomeActivationState: Equatable, Sendable {
 
     var headline: String {
         switch self {
-        case .noResume: return "Upload your resume"
-        case .resumeNoJob: return "Add the job you're targeting"
+        case .noResume: return "Upload your resume for a recruiter-style read"
+        case .resumeNoJob: return "Paste a job to reveal missing keywords"
         case .readyForFreeATS: return "Ready for a free ATS check"
-        case .readyToOptimize: return "Ready to optimize"
+        case .readyToOptimize: return "Ready for your resume diagnosis"
         case .atsComplete: return "Your free ATS score is in"
-        case .optimizing: return "Working on your resume…"
+        case .optimizing: return "Finding the aha moments…"
         case .optimizedReady: return "Your optimized resume is ready"
         case .exportComplete: return "Resume exported successfully"
         }
@@ -49,19 +49,19 @@ enum HomeActivationState: Equatable, Sendable {
     var subheadline: String {
         switch self {
         case .noResume:
-            return "Start with a text-based PDF — we'll tailor it to your next role."
+            return "See what a recruiter may notice in 7 seconds, then get the next fix."
         case .resumeNoJob:
-            return "Paste a job link or description so we can match keywords."
+            return "A job description lets us compare keywords, gaps, and role fit."
         case .readyForFreeATS:
-            return "See how your resume scores before you sign in."
+            return "See the first score before signing in, then unlock the full diagnosis."
         case .readyToOptimize:
-            return "AI will rewrite your resume for this specific job."
+            return "Get your match score, top gaps, missing signals, and a better first rewrite."
         case .atsComplete:
             return "Sign in to unlock full optimization and PDF export."
         case .optimizing:
-            return "This usually takes under a minute."
+            return "Reading your resume, comparing it to the job, and preparing recruiter-style feedback."
         case .optimizedReady:
-            return "Preview and export your PDF, or refine further."
+            return "Review the diagnosis, preview the PDF, or refine further."
         case .exportComplete:
             return "Share it, apply, or keep improving in Optimized."
         }

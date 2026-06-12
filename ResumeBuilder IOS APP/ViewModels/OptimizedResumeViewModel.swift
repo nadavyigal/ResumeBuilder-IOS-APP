@@ -31,6 +31,7 @@ final class OptimizedResumeViewModel {
     var company: String?
     var contact: ResumeContact?
     var atsBlockers: [ATSOptimizationBlocker] = []
+    var backendDiagnosis: ResumeDiagnosis?
     var jobURLString: String?
     var applicationId: String?
     var isImprovingATS = false
@@ -179,6 +180,18 @@ final class OptimizedResumeViewModel {
             "Run Improve ATS for a focused keyword and metrics pass.",
             "Review every edit for factual accuracy before submitting.",
         ]
+    }
+
+    var resumeDiagnosis: ResumeDiagnosis {
+        ResumeDiagnosisMapper.make(
+            backendDiagnosis: backendDiagnosis,
+            matchScore: atsScoreBefore,
+            potentialScore: atsScoreAfter,
+            blockers: atsBlockers,
+            sections: sections,
+            jobTitle: jobTitle,
+            company: company
+        )
     }
 
     /// Plain text of all sections joined for clipboard copy.
@@ -368,6 +381,7 @@ final class OptimizedResumeViewModel {
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
         atsBlockers = detail.atsBlockers
+        backendDiagnosis = detail.diagnosis
         if jobURLString == nil { jobURLString = detail.jobUrl }
         if applicationId == nil { applicationId = detail.applicationId }
     }

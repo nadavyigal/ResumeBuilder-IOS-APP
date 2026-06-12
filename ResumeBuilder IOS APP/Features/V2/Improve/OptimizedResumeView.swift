@@ -49,6 +49,11 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
+                if viewModel.optimizationIdentifier != nil {
+                    diagnosisSnapshotPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
                 // Improve actions — above the resume so they are easy to reach
                 if viewModel.optimizationIdentifier != nil {
                     improveActionsRow
@@ -78,6 +83,9 @@ struct OptimizedResumeView: View {
 
                 if viewModel.optimizationIdentifier != nil {
                     atsUpliftPanel
+                        .padding(.horizontal, AppSpacing.lg)
+
+                    ResumeConfidenceChecklist(items: viewModel.resumeDiagnosis.confidenceChecklist)
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
@@ -414,6 +422,63 @@ struct OptimizedResumeView: View {
                 .foregroundStyle(AppColors.textTertiary)
         }
         .padding(.vertical, 2)
+    }
+
+    private var diagnosisSnapshotPanel: some View {
+        let diagnosis = viewModel.resumeDiagnosis
+        return VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack(alignment: .top, spacing: AppSpacing.md) {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Resume diagnosis")
+                        .font(.appCaption.weight(.bold))
+                        .foregroundStyle(AppColors.accentTeal)
+                    Text(diagnosis.recruiterReview.impression)
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: AppSpacing.sm)
+
+                VStack(spacing: 0) {
+                    Text("\(diagnosis.matchScore)")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.accentTeal)
+                    Text("% match")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(AppColors.textTertiary)
+                }
+            }
+
+            if !diagnosis.topGaps.isEmpty {
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    ForEach(diagnosis.topGaps.prefix(2)) { gap in
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            Circle()
+                                .fill(AppColors.accentSky)
+                                .frame(width: 7, height: 7)
+                                .padding(.top, 6)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(gap.title)
+                                    .font(.appCaption.weight(.semibold))
+                                    .foregroundStyle(AppColors.textPrimary)
+                                Text(gap.explanation)
+                                    .font(.appCaption)
+                                    .foregroundStyle(AppColors.textTertiary)
+                                    .lineLimit(2)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text(diagnosis.scoreNote)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     // MARK: - New bottom bar

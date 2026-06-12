@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-06-12
+**Category:** Build
+**Rule:** When adding flexible Swift `Codable` decoders with multiple possible keys, decode each throwing candidate into local optionals before nil-coalescing and keep custom decoding-key enums separate from synthesized encode keys.
+**Why:** A backend-diagnosis decoder patch failed to compile because throwing `decodeIfPresent` calls were chained inside `??`, one nested type referenced a missing decoding-key enum, and a custom key enum name collided with Codable synthesis expectations.
+
+### 2026-06-12
+**Category:** Test
+**Rule:** In this project, add new Swift test files to the explicit Xcode test target in `project.pbxproj`; do not trust a focused `xcodebuild` run that reports success with 0 executed tests.
+**Why:** `ResumeDiagnosisViewModelTests.swift` existed on disk, but the focused diagnosis test command initially ran zero tests until the PBX file and build phase entries were added.
+
+### 2026-06-12
 **Category:** UX
 **Rule:** Submit Package must generate a reviewable draft first, then save to Me only after the user explicitly confirms; do not mark the application applied during package creation.
 **Why:** The package flow was persisting too early and could miss the job link or saved cover letter context, leaving users without a reliable Me-tab package to export or submit from.
