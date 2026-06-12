@@ -1,7 +1,7 @@
 # Current Task
 
 **Objective:** Review PR #56 (`fix/code-review-remediation`), remediate unresolved review feedback, verify, and merge to `main`.
-**Status:** Review remediation implemented; clean iPhone 17 simulator test run passed. Commit/push/merge remains next.
+**Status:** Review remediation implemented; clean iPhone 17 simulator test run passed; PR #56 ready to merge to `main`.
 **Branch:** `fix/code-review-remediation`
 
 ## Scope
@@ -18,9 +18,9 @@
 - [x] Update progress memory
 - [x] Run `git diff --check`
 - [x] Run clean iPhone 17 simulator test suite
-- [ ] Commit remediation
-- [ ] Push `fix/code-review-remediation`
-- [ ] Merge PR #56 to `main`
+- [x] Commit remediation
+- [x] Push `fix/code-review-remediation`
+- [x] Merge PR #56 to `main`
 - [ ] **FOUNDER ACTION**: Pull merged fix, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
 - [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
 - [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly
