@@ -1,7 +1,7 @@
 import Foundation
 
 /// Decodes JWT payload fields for client-side expiry gating only — no signature verification.
-enum JWTDecoder {
+enum JWTDecoder: Sendable {
     static func expirationDate(from jwt: String) -> Date? {
         let parts = jwt.split(separator: ".")
         guard parts.count >= 2 else { return nil }

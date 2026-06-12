@@ -4,7 +4,7 @@ protocol RecentExportsServiceProtocol: Sendable {
     func list(token: String) async throws -> [ResumeExport]
 }
 
-struct RecentExportsService: RecentExportsServiceProtocol {
+struct RecentExportsService: RecentExportsServiceProtocol, Sendable {
     private let apiClient = RuntimeServices.sharedAPIClient
 
     func list(token: String) async throws -> [ResumeExport] {

@@ -20,17 +20,28 @@ final class KeychainStore: @unchecked Sendable {
             kSecAttrAccount as String: account,
         ]
 
-        SecItemDelete(query as CFDictionary)
-
         var insert = query
         insert[kSecValueData as String] = value
         insert[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 
         let status = SecItemAdd(insert as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            logger.error("Keychain save failed status=\(status)")
-            throw KeychainStoreError.saveFailed(status)
+        if status == errSecSuccess { return }
+
+        if status == errSecDuplicateItem {
+            let updates: [String: Any] = [
+                kSecValueData as String: value,
+                kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            ]
+            let updateStatus = SecItemUpdate(query as CFDictionary, updates as CFDictionary)
+            guard updateStatus == errSecSuccess else {
+                logger.error("Keychain update failed status=\(updateStatus)")
+                throw KeychainStoreError.saveFailed(updateStatus)
+            }
+            return
         }
+
+        logger.error("Keychain save failed status=\(status)")
+        throw KeychainStoreError.saveFailed(status)
     }
 
     func read(service: String, account: String) -> Data? {

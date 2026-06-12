@@ -62,7 +62,7 @@ final class ScanViewModel {
             defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
             guard FileManager.default.isReadableFile(atPath: fileURL.path) else { return (false, nil) }
             let ext = fileURL.pathExtension.lowercased()
-            guard ext == "pdf" || ext == "docx" else { return (false, nil) }
+            guard ext == "pdf" else { return (false, nil) }
             let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             let dest = docs.appendingPathComponent("cached_resume.\(ext)")
             try? FileManager.default.removeItem(at: dest)

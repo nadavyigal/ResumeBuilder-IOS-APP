@@ -41,7 +41,7 @@ final class OptimizedResumeViewModel {
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
-    private static var detailCache = OptimizationDetailCache()
+    private static let detailCache = OptimizationDetailCacheActor()
 
     init(
         optimizationId: String?,
@@ -336,7 +336,7 @@ final class OptimizedResumeViewModel {
     }
 
     private func loadSections(with token: String, optimizationId optId: String, useCache: Bool = true) async throws {
-        if useCache, let cached = Self.detailCache.value(for: optId) {
+        if useCache, let cached = await Self.detailCache.value(for: optId) {
             apply(detail: cached)
             return
         }
@@ -345,7 +345,7 @@ final class OptimizedResumeViewModel {
             endpoint: .optimizationDetail(id: optId),
             token: token
         )
-        Self.detailCache.store(detail, for: optId)
+        await Self.detailCache.store(detail, for: optId)
         apply(detail: detail)
     }
 
@@ -422,7 +422,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
-                Self.detailCache.remove(optId)
+                await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -467,7 +467,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
-                Self.detailCache.remove(optId)
+                await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -544,7 +544,7 @@ final class OptimizedResumeViewModel {
             )
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
             applyExpertATSResult(apply)
-            Self.detailCache.remove(optId)
+            await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
             await rescanATS(token: token)
@@ -758,7 +758,7 @@ private extension String {
     }
 }
 
-struct OptimizationDetailCache: Sendable {
+struct OptimizationDetailCache {
     private var storage: [String: OptimizationDetailDTO] = [:]
     private var order: [String] = []
     private let limit = 10
@@ -778,6 +778,31 @@ struct OptimizationDetailCache: Sendable {
     }
 
     mutating func remove(_ key: String) {
+        storage.removeValue(forKey: key)
+        order.removeAll { $0 == key }
+    }
+}
+
+actor OptimizationDetailCacheActor {
+    private var storage: [String: OptimizationDetailDTO] = [:]
+    private var order: [String] = []
+    private let limit = 10
+
+    func value(for key: String) -> OptimizationDetailDTO? {
+        storage[key]
+    }
+
+    func store(_ detail: OptimizationDetailDTO, for key: String) {
+        storage[key] = detail
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit, let oldest = order.first {
+            order.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
+
+    func remove(_ key: String) {
         storage.removeValue(forKey: key)
         order.removeAll { $0 == key }
     }

@@ -18,7 +18,7 @@ protocol ResumeAnalysisServiceProtocol: Sendable {
 
 // MARK: - Real service
 
-struct ResumeAnalysisService: ResumeAnalysisServiceProtocol {
+struct ResumeAnalysisService: ResumeAnalysisServiceProtocol, Sendable {
     private let apiClient = RuntimeServices.sharedAPIClient
 
     // MARK: ResumeAnalysisServiceProtocol

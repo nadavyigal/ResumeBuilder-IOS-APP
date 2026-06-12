@@ -1,30 +1,26 @@
 # Current Task
 
-**Objective:** Fix real-device Submit Package startup failure when company context is missing, and implement the first ATS/screenshot alignment surface.
-**Status:** Code implemented on `codex/fix-submit-package-missing-company`; focused OptimizedResumeViewModel tests pass; iPhone 17 simulator launch smoke passes. PR update/publish remains next.
-**Branch:** `codex/fix-submit-package-missing-company`
+**Objective:** Review PR #56 (`fix/code-review-remediation`), remediate unresolved review feedback, verify, and merge to `main`.
+**Status:** Review remediation implemented; clean iPhone 17 simulator test run passed. Commit/push/merge remains next.
+**Branch:** `fix/code-review-remediation`
 
 ## Scope
-- Investigate real-device Xcode logs for Submit Package not starting
-- Keep Submit Package unblocked when company/role context is missing
-- Add visible fallback copy and submit-stage logs
-- Explain why the ATS score is low and why App Store screenshot scenes are not normal app screens
-- Create and implement the first ATS/UI alignment plan slice
-- Verify focused tests and document lesson/progress
+- Inspect PR #56 status, checks, and thread-aware review comments
+- Remediate unresolved Swift 6/sendability, PDF validation, file-format, cache isolation, and safety feedback
+- Preserve `BackendConfig.isMonetizationEnabled = false`
+- Run clean iPhone 17 simulator tests
+- Commit, push, and merge PR #56 to `main`
 
 ## Checklist
-- [x] Read smoke logs and confirm Submit Package did not reach PDF/application/expert API calls
-- [x] Identify missing-company disabled button root cause
-- [x] Allow submit with safe role/company fallbacks
-- [x] Add sheet guidance for missing role/company context
-- [x] Add submit-stage logs for future Xcode smoke traces
-- [x] Add focused missing-company Submit Package test
-- [x] Create ATS/screenshot alignment plan
-- [x] Add live Optimized-tab ATS insight panel with before/after, score signals, blockers, Improve ATS, and low-score explanation
-- [x] Add focused low-score ATS insight test
-- [x] Run focused OptimizedResumeViewModel test suite on iPhone 17 simulator
-- [x] Run iPhone 17 simulator launch smoke
-- [ ] Publish PR for this fix
+- [x] Read PR #56 metadata, checks, and review threads
+- [x] Fix unresolved review feedback locally
+- [x] Record lesson for failed Swift 6 cache actor build attempt
+- [x] Update progress memory
+- [x] Run `git diff --check`
+- [x] Run clean iPhone 17 simulator test suite
+- [ ] Commit remediation
+- [ ] Push `fix/code-review-remediation`
+- [ ] Merge PR #56 to `main`
 - [ ] **FOUNDER ACTION**: Pull merged fix, rebuild in Xcode, and smoke optimize → Improve ATS → Preview & Export PDF → Submit Package
 - [ ] **FOUNDER ACTION**: Screenshot PostHog Live Events showing app_launched + optimization_completed + export_success
 - [ ] **FOUNDER ACTION**: Confirm export PDF renders correctly

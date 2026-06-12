@@ -1,6 +1,6 @@
 import Foundation
 
-enum PDFDownloadValidator {
+enum PDFDownloadValidator: Sendable {
     static func looksLikePDF(_ data: Data) -> Bool {
         data.prefix(5) == Data("%PDF-".utf8)
     }

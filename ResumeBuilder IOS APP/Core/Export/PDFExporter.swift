@@ -9,20 +9,20 @@ struct PDFExporter {
     }
 
     static func downloadPDF(optimizationId: String, token: String) async throws -> URL {
-        let data = try await RuntimeServices.sharedAPIClient.getData(
+        let response = try await RuntimeServices.sharedAPIClient.getDataResponse(
             endpoint: .download(id: optimizationId),
             token: token
         )
-        try PDFDownloadValidator.validatePDFData(data, statusCode: 200)
-        return try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
+        try PDFDownloadValidator.validatePDFData(response.data, statusCode: response.statusCode)
+        return try ExportFileStore.writePDFData(response.data, optimizationId: optimizationId)
     }
 
     static func downloadPDFData(optimizationId: String, token: String) async throws -> Data {
-        let data = try await RuntimeServices.sharedAPIClient.getData(
+        let response = try await RuntimeServices.sharedAPIClient.getDataResponse(
             endpoint: .download(id: optimizationId),
             token: token
         )
-        try PDFDownloadValidator.validatePDFData(data, statusCode: 200)
-        return data
+        try PDFDownloadValidator.validatePDFData(response.data, statusCode: response.statusCode)
+        return response.data
     }
 }

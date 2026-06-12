@@ -3,7 +3,6 @@ import Foundation
 
 struct ReceiptVerifier {
     private let apiClient = RuntimeServices.sharedAPIClient
-    private let allowedProductIDs: Set<String> = ["credits_basic", "credits_saver", "credits_super"]
 
     func verifyPurchase(productID: String, transactionID: String, token: String) async throws {
         let trimmedProduct = productID.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -11,7 +10,7 @@ struct ReceiptVerifier {
         guard !trimmedProduct.isEmpty, !trimmedTransaction.isEmpty else {
             throw ReceiptVerifierError.invalidPayload
         }
-        guard allowedProductIDs.contains(trimmedProduct) else {
+        guard StoreKitProductCatalog.availableProductIDs.contains(trimmedProduct) else {
             throw ReceiptVerifierError.invalidProductID
         }
 

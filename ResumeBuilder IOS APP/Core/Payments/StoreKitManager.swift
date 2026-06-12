@@ -4,10 +4,14 @@ import Foundation
 import Observation
 import StoreKit
 
+enum StoreKitProductCatalog: Sendable {
+    static let availableProductIDs: Set<String> = ["credits_basic", "credits_saver", "credits_super"]
+}
+
 @Observable
 @MainActor
 final class StoreKitManager {
-    var availableProductIDs: [String] = ["credits_basic", "credits_saver", "credits_super"]
+    var availableProductIDs: [String] = Array(StoreKitProductCatalog.availableProductIDs).sorted()
     private(set) var products: [Product] = []
 
     func loadProducts() async {
