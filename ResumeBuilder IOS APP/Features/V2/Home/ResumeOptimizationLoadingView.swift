@@ -5,6 +5,7 @@ struct ResumeOptimizationLoadingView: View {
     enum Mode: Sendable {
         case optimization
         case atsCheck
+        case diagnosis
 
         var title: String {
             switch self {
@@ -12,6 +13,8 @@ struct ResumeOptimizationLoadingView: View {
                 return "Optimizing your resume"
             case .atsCheck:
                 return "Scanning your resume"
+            case .diagnosis:
+                return "Preparing your diagnosis"
             }
         }
 
@@ -21,6 +24,8 @@ struct ResumeOptimizationLoadingView: View {
                 return "Matching your experience to this role."
             case .atsCheck:
                 return "Checking ATS signals before you sign in."
+            case .diagnosis:
+                return "Turning resume and job signals into recruiter-style feedback."
             }
         }
 
@@ -28,10 +33,10 @@ struct ResumeOptimizationLoadingView: View {
             switch self {
             case .optimization:
                 return [
-                    "Scanning keywords",
-                    "Matching the job",
-                    "Rewriting bullets",
-                    "Polishing your resume"
+                    "Reading your resume",
+                    "Comparing against the job",
+                    "Finding missing signals",
+                    "Preparing recruiter-style feedback"
                 ]
             case .atsCheck:
                 return [
@@ -39,6 +44,13 @@ struct ResumeOptimizationLoadingView: View {
                     "Finding ATS signals",
                     "Checking keywords",
                     "Preparing your score"
+                ]
+            case .diagnosis:
+                return [
+                    "Reading your resume",
+                    "Comparing against the job",
+                    "Finding missing signals",
+                    "Preparing recruiter-style feedback"
                 ]
             }
         }

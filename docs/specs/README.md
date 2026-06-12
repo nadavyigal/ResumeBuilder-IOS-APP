@@ -15,6 +15,7 @@ Each spec should use `.agent-os/templates/feature-spec-template.md` and be saved
 
 | Spec | Status | File |
 |------|--------|------|
+| Resume Aha Moments | Approved | `resume-aha-moments.md` |
 | Resumely Pre-Submission UX/UI Transformation | Approved | `resumely-pre-submission-ux-ui-transformation.md` |
 | Optimization detail — phases 3, 5, 6 | In Progress | `plan-phases-3-5-6.md` (root) |
 

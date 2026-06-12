@@ -1,21 +1,21 @@
 # Project Progress
 
-**Submit Package + resubmission prep (2026-06-12):** PR #57 merged to `main`. Build bumped to **1.0 (4)** for ASC resubmission. String catalog synced. App Review notes and screenshot upload paths documented in `docs/qa/app-store-readiness-checklist.md`. Ready to archive from `main`.
+**Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: Ready to Archive
-Current Phase: App Store resubmission
-Active Story: Archive v1.0 (4) and resubmit to App Store review
-Last Completed Story: Cleared four archive gates — merged submit-package fix, build 4, review notes, screenshot handoff docs.
-Next Recommended Story: Archive in Xcode → upload to ASC → paste review notes → select build 1.0 (4) → Submit for Review.
-Estimated Completion: 95%
-Blockers: ASC upload + review submission require founder in Xcode/ASC; confirm demo account on clean install before submit
+Status: Aha moments implemented locally
+Current Phase: Product experience polish
+Active Story: Resume Aha Moments validation and handoff
+Last Completed Story: Added diagnosis screen/components and routed Home/Tailor optimization completion through recruiter-style diagnosis before Improve.
+Next Recommended Story: Run an authenticated real-device smoke with a real resume/job to verify backend diagnosis payloads, then tune copy/heuristics from live examples.
+Estimated Completion: 92%
+Blockers: Authenticated live diagnosis smoke requires a signed-in simulator/device with real resume/job input.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Submit Package save-to-Me fix (2026-06-12): `git diff --check` passed. Focused iPhone 17 run `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:"ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests" -derivedDataPath /tmp/resumebuilder-submit-package-derived` succeeded: 21 tests passed. Simulator launch smoke on iPhone 17 succeeded and screenshot saved to `/tmp/resumebuilder-submit-package-smoke.png`.
+Last Validation: Resume Aha Moments (2026-06-12): `git diff --check` passed. Focused iPhone 17 diagnosis tests passed 6/6, including snake_case backend diagnosis decoding. Debug iPhone 17 simulator build succeeded. Full iPhone 17 test suite succeeded before the decoder hardening: 81 XCTest tests plus 5 Swift Testing tests, 0 failures. Simulator install/launch smoke succeeded and Home aha copy rendered at `/tmp/resumebuilder-aha-smoke-iphone17-late.png`.
 Last Updated: 2026-06-12
 Current Branch: main
 Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep
-Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
+Active Spec: docs/specs/resume-aha-moments.md
 Latest QA Report: —
 
 ## Tab Structure (as of 2026-05-20)
@@ -49,6 +49,8 @@ Latest QA Report: —
 - Optimized resume now supports an assisted Submit Package flow. It refreshes optimization detail before package generation, downloads the optimized resume PDF, runs Cover Letter Architect and Screening Answer Studio, previews a draft package, then saves it to Me only after user confirmation. Saving creates a saved application, attaches the optimized resume, saves Expert reports, and presents share/copy/submit-at-link actions without attempting third-party auto-submit.
 - Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
 - Optimized resume now has a normal in-app ATS insight panel that maps App Store screenshot claims to a reachable product surface: headline score, before/after delta, score signals, top blockers/actions, Improve ATS, and an explicit low-score explanation when the optimized score remains below 55.
+- Home/Tailor now route successful resume/job optimization into a V2 Resume Diagnosis screen before the full Improve tab. Diagnosis shows estimated match guidance, potential score, top gaps, missing keywords, recruiter-eye review, before/after rewrite, and grounded CTAs to improve or edit the target job.
+- Optimized resume now reuses the diagnosis mapper for a compact recruiter snapshot and confidence checklist so the user sees why the resume is stronger before export/payment.
 - iOS optimize requests now ask for `optimization_mode: strong_faithful` with a substantial-but-factual quality profile. The Optimized tab surfaces ATS status/blockers when returned by optimization detail, offers an Improve ATS action through the existing Expert ATS workflow/apply path, and uses a focused section-editor sheet with empty-section validation and dirty-state discard protection for manual amendments.
 - Me/Application Detail now acts as a package hub when application rows include an optimization, resume link, job link, or saved cover-letter report: users can share/download the optimized resume PDF, copy the cover letter, open the job link, and see ATS status. Submit Package bumps an app-wide applications refresh token so Me reloads when active.
 
