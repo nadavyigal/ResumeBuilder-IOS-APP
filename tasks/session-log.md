@@ -15,6 +15,12 @@
 
 ## Sessions
 
+### 2026-06-12
+**Task:** Clear four App Store archive gates (branch hygiene, build number, review notes, screenshot handoff)
+**Files Changed:** `project.pbxproj`, `Localizable.xcstrings`, `docs/qa/app-store-readiness-checklist.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `tasks/todo.md`, `tasks/progress.md`
+**Decisions Made:** Merged PR #57 to `main`. Bumped to build 4 for fresh ASC upload. Documented email-only App Review path after 2026-06-10 Apple Sign In rejection. iPad 13" screenshot paths added to upload manifest.
+**Next Recommended Action:** Archive v1.0 (4) from `main` in Xcode → upload → paste review notes from checklist → Submit for Review.
+
 ### 2026-06-11
 **Task:** Fix Submit Package missing-company startup failure and implement first ATS/screenshot alignment slice
 **Files Changed:**
