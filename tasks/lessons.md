@@ -16,6 +16,16 @@
 ## Lessons
 
 ### 2026-06-12
+**Category:** UX
+**Rule:** Submit Package must generate a reviewable draft first, then save to Me only after the user explicitly confirms; do not mark the application applied during package creation.
+**Why:** The package flow was persisting too early and could miss the job link or saved cover letter context, leaving users without a reliable Me-tab package to export or submit from.
+
+### 2026-06-12
+**Category:** Build
+**Rule:** Before Xcode builds in this file-system synchronized project, move untracked duplicate `* 2.swift` artifacts out of app and test source folders because Xcode will compile them automatically.
+**Why:** A focused iPhone 17 test build failed with `Invalid redeclaration of 'JWTDecoder'` because the untracked `JWTDecoder 2.swift` file was auto-included alongside the tracked source.
+
+### 2026-06-12
 **Category:** Build
 **Rule:** Under project-wide default MainActor isolation, do not wrap a mutable helper struct inside an actor unless the helper's methods are explicitly nonisolated; put the mutable storage directly in the actor or the actor will fail to call the helper synchronously.
 **Why:** A PR #56 cache-race remediation first introduced `OptimizationDetailCacheActor` that delegated to `OptimizationDetailCache`, but Swift 6 treated the helper's methods as MainActor-isolated and the build failed.

@@ -10,6 +10,7 @@ protocol SubmitResumePDFProviding: AnyObject {
     var contact: ResumeContact? { get }
     var jobURLString: String? { get }
 
+    func refreshSubmitPackageContext(token: String?) async
     func downloadPDF(token: String?) async throws -> URL
 }
 
@@ -17,12 +18,18 @@ extension OptimizedResumeViewModel: SubmitResumePDFProviding {}
 
 struct SubmitApplicationPackage: Identifiable, Sendable {
     let id = UUID()
-    let application: ApplicationItem
+    var application: ApplicationItem?
+    let optimizationId: String
+    let jobTitle: String
+    let companyName: String
+    let sourceURLString: String?
     let resumePDFURL: URL
     let coverLetterText: String
     let screeningAnswers: [ExpertScreeningAnswer]
     let jobURL: URL?
     let coverLetterRunId: String
+    let coverLetterSelectionIndex: Int
+    let screeningRunId: String?
 }
 
 @Observable
@@ -33,6 +40,7 @@ final class SubmitApplicationViewModel {
     var sourceURLString = ""
     var coverLetterContext = ""
     var isSubmitting = false
+    var isSavingPackage = false
     var errorMessage: String?
     var package: SubmitApplicationPackage?
 
@@ -88,6 +96,9 @@ final class SubmitApplicationViewModel {
             return
         }
 
+        await resumeProvider.refreshSubmitPackageContext(token: token)
+        applyProviderContextIfNeeded()
+
         let trimmedJobTitle = jobTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
         let packageJobTitle = trimmedJobTitle.isEmpty ? "Target Role" : trimmedJobTitle
@@ -102,26 +113,6 @@ final class SubmitApplicationViewModel {
             Self.logger.info("Submit package start optimizationId=\(optimizationId)")
             let resumeURL = try await resumeProvider.downloadPDF(token: token)
             Self.logger.info("Submit package PDF ready")
-            let application = try await applicationService.createApplication(
-                ApplicationCreateRequest(
-                    jobTitle: packageJobTitle,
-                    companyName: packageCompany,
-                    sourceURL: normalizedSourceURLString,
-                    status: "saved",
-                    optimizationId: optimizationId,
-                    optimizedResumeId: optimizationId,
-                    contact: contactJSON(from: resumeProvider.contact)
-                ),
-                token: token
-            )
-            Self.logger.info("Submit package application created id=\(application.id)")
-            try await applicationService.attachOptimized(
-                applicationId: application.id,
-                optimizedResumeId: optimizationId,
-                token: token
-            )
-            try await applicationService.markApplied(id: application.id, token: token)
-            Self.logger.info("Submit package application marked applied")
 
             // Run cover letter and screening answers in parallel.
             async let coverLetterRunTask = expertService.run(
@@ -150,58 +141,31 @@ final class SubmitApplicationViewModel {
                 throw SubmitApplicationError.emptyCoverLetter
             }
 
-            _ = try await expertService.apply(
-                runId: coverLetterRun.runId,
-                workflowType: .coverLetterArchitect,
-                token: token,
-                selectionIndex: selectedIndex ?? 0,
-                screeningSelectedIndices: nil,
-                selectedFields: nil
-            )
-            _ = try await applicationService.saveExpertReport(
-                applicationId: application.id,
-                runId: coverLetterRun.runId,
-                token: token
-            )
-            Self.logger.info("Submit package cover letter saved")
-
-            // Extract and save screening answers only after successful persistence.
+            // Extract screening answers for the package preview. Persistence happens only
+            // after the user confirms saving the package to Me.
             var screeningAnswers: [ExpertScreeningAnswer] = []
+            var screeningRunId: String?
             if let screeningRun {
                 let generatedAnswers = ExpertReportParsing.parsedOutput(from: screeningRun.output).screeningAnswers
                 if !generatedAnswers.isEmpty {
-                    // Use the original backend indices (ExpertScreeningAnswer.id = enumerated idx),
-                    // not the filtered-list positions, so the server selects the correct rows.
-                    let selectedIndices = generatedAnswers.map(\.id)
-                    do {
-                        _ = try await expertService.apply(
-                            runId: screeningRun.runId,
-                            workflowType: .screeningAnswerStudio,
-                            token: token,
-                            selectionIndex: nil,
-                            screeningSelectedIndices: selectedIndices,
-                            selectedFields: nil
-                        )
-                        _ = try await applicationService.saveExpertReport(
-                            applicationId: application.id,
-                            runId: screeningRun.runId,
-                            token: token
-                        )
-                        screeningAnswers = generatedAnswers
-                    } catch {
-                        // Screening failure is non-fatal; package ships with cover letter only.
-                        screeningAnswers = []
-                    }
+                    screeningAnswers = generatedAnswers
+                    screeningRunId = screeningRun.runId
                 }
             }
 
             package = SubmitApplicationPackage(
-                application: application,
+                application: nil,
+                optimizationId: optimizationId,
+                jobTitle: packageJobTitle,
+                companyName: packageCompany,
+                sourceURLString: normalizedSourceURLString,
                 resumePDFURL: resumeURL,
                 coverLetterText: coverLetter,
                 screeningAnswers: screeningAnswers,
                 jobURL: normalizedSourceURL,
-                coverLetterRunId: coverLetterRun.runId
+                coverLetterRunId: coverLetterRun.runId,
+                coverLetterSelectionIndex: selectedIndex ?? 0,
+                screeningRunId: screeningRunId
             )
             Self.logger.info("Submit package ready")
         } catch let error as SubmitApplicationError {
@@ -211,6 +175,124 @@ final class SubmitApplicationViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func savePackageToMe(token: String?) async {
+        guard let token else {
+            errorMessage = "Please sign in first."
+            return
+        }
+        guard var package else {
+            errorMessage = "Create the package before saving it to Me."
+            return
+        }
+        guard package.application == nil else { return }
+
+        isSavingPackage = true
+        errorMessage = nil
+        defer { isSavingPackage = false }
+
+        do {
+            let application = try await applicationService.createApplication(
+                ApplicationCreateRequest(
+                    jobTitle: package.jobTitle,
+                    companyName: package.companyName,
+                    sourceURL: package.sourceURLString,
+                    status: "saved",
+                    optimizationId: package.optimizationId,
+                    optimizedResumeId: package.optimizationId,
+                    contact: contactJSON(from: resumeProvider?.contact)
+                ),
+                token: token
+            )
+            Self.logger.info("Submit package application created id=\(application.id)")
+            try await applicationService.attachOptimized(
+                applicationId: application.id,
+                optimizedResumeId: package.optimizationId,
+                token: token
+            )
+
+            _ = try await expertService.apply(
+                runId: package.coverLetterRunId,
+                workflowType: .coverLetterArchitect,
+                token: token,
+                selectionIndex: package.coverLetterSelectionIndex,
+                screeningSelectedIndices: nil,
+                selectedFields: nil
+            )
+            _ = try await applicationService.saveExpertReport(
+                applicationId: application.id,
+                runId: package.coverLetterRunId,
+                token: token
+            )
+            Self.logger.info("Submit package cover letter saved")
+
+            if let screeningRunId = package.screeningRunId, !package.screeningAnswers.isEmpty {
+                do {
+                    _ = try await expertService.apply(
+                        runId: screeningRunId,
+                        workflowType: .screeningAnswerStudio,
+                        token: token,
+                        selectionIndex: nil,
+                        screeningSelectedIndices: package.screeningAnswers.map(\.id),
+                        selectedFields: nil
+                    )
+                    _ = try await applicationService.saveExpertReport(
+                        applicationId: application.id,
+                        runId: screeningRunId,
+                        token: token
+                    )
+                } catch {
+                    // Screening persistence is useful, but the package is still valid with
+                    // the optimized resume, job link, and cover letter.
+                }
+            }
+
+            package.application = packageApplication(from: application, package: package)
+            self.package = package
+            Self.logger.info("Submit package saved to Me")
+        } catch let apiError as APIClientError {
+            errorMessage = apiError.userFacingMessage
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyProviderContextIfNeeded() {
+        guard let resumeProvider else { return }
+        if jobTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let providerJobTitle = resumeProvider.jobTitle?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !providerJobTitle.isEmpty {
+            jobTitle = providerJobTitle
+        }
+        if companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let providerCompany = resumeProvider.company?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !providerCompany.isEmpty {
+            companyName = providerCompany
+        }
+        if sourceURLString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+           let providerURL = resumeProvider.jobURLString?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !providerURL.isEmpty {
+            sourceURLString = providerURL
+        }
+    }
+
+    private func packageApplication(from application: ApplicationItem, package: SubmitApplicationPackage) -> ApplicationItem {
+        ApplicationItem(
+            id: application.id,
+            jobTitle: application.jobTitle ?? package.jobTitle,
+            companyName: application.companyName ?? package.companyName,
+            appliedDate: application.appliedDate,
+            status: application.status ?? "saved",
+            applyClickedAt: application.applyClickedAt,
+            atsScore: application.atsScore,
+            optimizationId: application.optimizationId ?? package.optimizationId,
+            optimizedResumeURL: application.optimizedResumeURL,
+            optimizedResumeId: application.optimizedResumeId ?? package.optimizationId,
+            sourceURL: application.sourceURL ?? package.sourceURLString,
+            jobExtraction: application.jobExtraction,
+            contact: application.contact
+        )
     }
 
     private var normalizedSourceURLString: String? {

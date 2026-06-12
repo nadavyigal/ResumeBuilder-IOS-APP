@@ -259,7 +259,7 @@ struct ApplicationDetailView: View {
                     Button {
                         UIApplication.shared.open(url)
                     } label: {
-                        Label("Open Job Link", systemImage: "link")
+                        Label("Submit at Job Link", systemImage: "link")
                     }
                 }
             }

@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "--" : {
+
+    },
     "—" : {
 
     },
@@ -118,6 +121,9 @@
         }
       }
     },
+    "%lld pts" : {
+
+    },
     "%lld saved report%@" : {
       "localizations" : {
         "en" : {
@@ -151,6 +157,9 @@
 
     },
     "+%lld" : {
+
+    },
+    "+%lld pts" : {
 
     },
     "+%lldpts" : {
@@ -264,6 +273,9 @@
 
     },
     "ATS breakdown" : {
+
+    },
+    "ATS insights" : {
 
     },
     "ATS keywords" : {
@@ -582,10 +594,13 @@
     "Impact metrics" : {
 
     },
-    "Import PDF or DOCX" : {
+    "Import PDF" : {
 
     },
     "Import Resume" : {
+
+    },
+    "Improve ATS" : {
 
     },
     "Improve further" : {
@@ -607,6 +622,9 @@
           }
         }
       }
+    },
+    "Improving ATS..." : {
+
     },
     "Include" : {
 
@@ -666,9 +684,6 @@
 
     },
     "Master Resume" : {
-
-    },
-    "Me" : {
 
     },
     "Missing Keywords" : {
@@ -740,9 +755,6 @@
     "OK" : {
 
     },
-    "Open Job Link" : {
-
-    },
     "Open Resume Link" : {
 
     },
@@ -806,7 +818,7 @@
     "PDF generated and ready" : {
 
     },
-    "PDF or DOCX" : {
+    "PDF only" : {
 
     },
     "PDF Ready" : {
@@ -936,6 +948,9 @@
     "Review changes before approving" : {
 
     },
+    "Review the resume, cover letter, and job link. Save this package to Me when it is ready." : {
+
+    },
     "Role" : {
 
     },
@@ -981,6 +996,9 @@
     "Saved resumes unavailable" : {
 
     },
+    "Saved to Me" : {
+
+    },
     "Saving" : {
 
     },
@@ -1021,6 +1039,9 @@
         }
       }
     },
+    "Score signals" : {
+
+    },
     "Scores are still loading." : {
 
     },
@@ -1031,6 +1052,9 @@
 
     },
     "Search title or company" : {
+
+    },
+    "See what's blocking this resume" : {
 
     },
     "See your score before signing in" : {
@@ -1091,6 +1115,9 @@
 
     },
     "Submission Package" : {
+
+    },
+    "Submit at Job Link" : {
 
     },
     "Submit Package" : {
@@ -1190,9 +1217,6 @@
         }
       }
     },
-    "Tailor" : {
-
-    },
     "Tailor a resume to start tracking applications." : {
 
     },
@@ -1212,6 +1236,9 @@
 
     },
     "Tip %lld" : {
+
+    },
+    "Top blockers" : {
 
     },
     "Top Fixes" : {
@@ -1269,6 +1296,9 @@
 
     },
     "Worked on dashboard redesigns and collaborated with engineers to improve user flows." : {
+
+    },
+    "You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link." : {
 
     },
     "Your data stays private. We never share your resume." : {

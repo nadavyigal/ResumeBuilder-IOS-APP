@@ -1,20 +1,20 @@
 # Project Progress
 
-**Code review remediation plan (2026-06-12):** Phases 0–5 implemented on `fix/code-review-remediation`; unresolved PR #56 review threads remediated for Swift 6 sendability, PDF download status validation, PDF-only scan handling, shared StoreKit product IDs, Keychain save/update safety, and actor-isolated optimization detail caching. iPhone 17 simulator **TEST SUCCEEDED** (2026-06-12). `isMonetizationEnabled` remains `false`. Plan: `docs/superpowers/plans/2026-06-11-code-review-remediation-plan.md`
+**Submit Package + resubmission prep (2026-06-12):** PR #57 merged to `main`. Build bumped to **1.0 (4)** for ASC resubmission. String catalog synced. App Review notes and screenshot upload paths documented in `docs/qa/app-store-readiness-checklist.md`. Ready to archive from `main`.
 
 Project: ResumeBuilder iOS
-Status: In Progress
-Current Phase: App Store submission readiness
-Active Story: Real-device smoke fix — Submit Package missing company context + ATS insight alignment
-Last Completed Story: Investigated rerun smoke logs showing Submit Package never reached PDF/application/expert API calls. Root cause: Create Package was disabled when live optimization detail omitted company. Added safe role/company fallbacks, visible missing-context copy, submit-stage logs, an ATS/screenshot alignment plan, and a live Optimized-tab ATS insight panel with score signals, blockers, before/after delta, Improve ATS, and low-score explanation. Focused OptimizedResumeViewModel tests and iPhone 17 simulator launch smoke passed on 2026-06-11.
-Next Recommended Story: Publish/merge this PR, then founder pulls latest, rebuilds/runs on real device, signs in, smokes optimize→Improve ATS→Preview & Export PDF→Submit Package, and captures logs showing `Submit package ready`.
-Estimated Completion: 90%
-Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
+Status: Ready to Archive
+Current Phase: App Store resubmission
+Active Story: Archive v1.0 (4) and resubmit to App Store review
+Last Completed Story: Cleared four archive gates — merged submit-package fix, build 4, review notes, screenshot handoff docs.
+Next Recommended Story: Archive in Xcode → upload to ASC → paste review notes → select build 1.0 (4) → Submit for Review.
+Estimated Completion: 95%
+Blockers: ASC upload + review submission require founder in Xcode/ASC; confirm demo account on clean install before submit
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: PR #56 review remediation (2026-06-12): `git diff --check` passed. Clean iPhone 17 simulator run `rm -rf /tmp/resumebuilder-pr56-review-derived && xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pr56-review-derived` succeeded: 75 XCTest tests + 5 Swift Testing tests passed.
+Last Validation: Submit Package save-to-Me fix (2026-06-12): `git diff --check` passed. Focused iPhone 17 run `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:"ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests" -derivedDataPath /tmp/resumebuilder-submit-package-derived` succeeded: 21 tests passed. Simulator launch smoke on iPhone 17 succeeded and screenshot saved to `/tmp/resumebuilder-submit-package-smoke.png`.
 Last Updated: 2026-06-12
-Current Branch: codex/fix-submit-package-missing-company
-Latest Base Commit: 2338ea4 — Merge pull request #54 from nadavyigal/codex/fix-pdf-export-submit-package
+Current Branch: main
+Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
@@ -46,7 +46,7 @@ Latest QA Report: —
 - rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
 - Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
 - Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
-- Optimized resume now supports an assisted Submit Package flow. It downloads the optimized resume PDF, creates an application via `/api/v1/applications`, attaches the optimized resume, marks the application applied, runs Cover Letter Architect, saves the expert report to the application, and presents share/copy/open-link actions without attempting third-party auto-submit.
+- Optimized resume now supports an assisted Submit Package flow. It refreshes optimization detail before package generation, downloads the optimized resume PDF, runs Cover Letter Architect and Screening Answer Studio, previews a draft package, then saves it to Me only after user confirmation. Saving creates a saved application, attaches the optimized resume, saves Expert reports, and presents share/copy/submit-at-link actions without attempting third-party auto-submit.
 - Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
 - Optimized resume now has a normal in-app ATS insight panel that maps App Store screenshot claims to a reachable product surface: headline score, before/after delta, score signals, top blockers/actions, Improve ATS, and an explicit low-score explanation when the optimized score remains below 55.
 - iOS optimize requests now ask for `optimization_mode: strong_faithful` with a substantial-but-factual quality profile. The Optimized tab surfaces ATS status/blockers when returned by optimization detail, offers an Improve ATS action through the existing Expert ATS workflow/apply path, and uses a focused section-editor sheet with empty-section validation and dirty-state discard protection for manual amendments.
@@ -63,4 +63,4 @@ Latest QA Report: —
 - `Features/V2/Profile/ProfileViewV2.swift`
 - `Features/Track/ApplicationsListView.swift`
 
-Notes: App is pre-release v1.0 build 1. V2 folder is active target for all new screens. Dark mode only. No App Store submission yet.
+Notes: App is v1.0 build 4 (resubmission). Archive from `main`. V2 folder is active target for all new screens. Dark mode only.

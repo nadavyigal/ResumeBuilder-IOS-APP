@@ -216,6 +216,15 @@ final class OptimizedResumeViewModel {
         return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
     }
 
+    func refreshSubmitPackageContext(token: String?) async {
+        guard let optId = optimizationId, let token else { return }
+        do {
+            try await loadSections(with: token, optimizationId: optId, useCache: false)
+        } catch {
+            // Package generation can still proceed with the currently loaded sections.
+        }
+    }
+
     private func downloadPDF(with token: String) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
         return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)

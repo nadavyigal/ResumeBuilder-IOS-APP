@@ -7,8 +7,9 @@ Status: Ready for App Store Connect upload; upload blocked locally by missing Ap
 
 ## Output Folders
 
-- `iphone-6.7/` - 5 PNGs, 1290 x 2796
-- `iphone-6.5/` - 5 PNGs, 1242 x 2688
+- `iphone-6.7/` - 5 PNGs, 1290 x 2796 — upload to ASC **6.9" iPhone** screenshot section
+- `ipad-13/` - 5 PNGs, 2048 x 2732 — upload to ASC **13" iPad** screenshot section (required: `TARGETED_DEVICE_FAMILY = 1,2`)
+- `iphone-6.5/` - 5 PNGs, 1242 x 2688 — alternate size only; do not duplicate in the same ASC iPhone section
 - `source-iphone-17-pro-max/` - source simulator PNG captures, 1320 x 2868
 
 ## Upload Order
