@@ -26,7 +26,7 @@ final class TailorViewModel {
     /// Cleared after the user responds.
     var pendingSaveResumeId: String?
 
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
     init(

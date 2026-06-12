@@ -11,7 +11,7 @@ final class ModificationHistoryViewModel {
     var errorMessage: String?
     var infoMessage: String?
 
-    private let api = APIClient()
+    private let api = RuntimeServices.sharedAPIClient
 
     init(optimizationId: String) {
         self.optimizationId = optimizationId

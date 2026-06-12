@@ -1,5 +1,7 @@
 # Project Progress
 
+**Code review remediation plan (2026-06-12):** Phases 0–5 implemented on `fix/code-review-remediation`; unresolved PR #56 review threads remediated for Swift 6 sendability, PDF download status validation, PDF-only scan handling, shared StoreKit product IDs, Keychain save/update safety, and actor-isolated optimization detail caching. iPhone 17 simulator **TEST SUCCEEDED** (2026-06-12). `isMonetizationEnabled` remains `false`. Plan: `docs/superpowers/plans/2026-06-11-code-review-remediation-plan.md`
+
 Project: ResumeBuilder iOS
 Status: In Progress
 Current Phase: App Store submission readiness
@@ -9,8 +11,8 @@ Next Recommended Story: Publish/merge this PR, then founder pulls latest, rebuil
 Estimated Completion: 90%
 Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
-Last Validation: Submit Package + ATS insights (2026-06-11): `git diff --check` passed. Focused `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-ats-insights-derived -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` succeeded: 20 XCTest tests passed, including missing-company package coverage and low-score ATS insight coverage. Installed/launched the built app on iPhone 17 simulator and captured `/tmp/resumebuilder-ats-insights-smoke-2.png`; normal Home screen rendered.
-Last Updated: 2026-06-11
+Last Validation: PR #56 review remediation (2026-06-12): `git diff --check` passed. Clean iPhone 17 simulator run `rm -rf /tmp/resumebuilder-pr56-review-derived && xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pr56-review-derived` succeeded: 75 XCTest tests + 5 Swift Testing tests passed.
+Last Updated: 2026-06-12
 Current Branch: codex/fix-submit-package-missing-company
 Latest Base Commit: 2338ea4 — Merge pull request #54 from nadavyigal/codex/fix-pdf-export-submit-package
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md

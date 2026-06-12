@@ -15,7 +15,7 @@ final class OptimizationReviewViewModel {
     /// True after the apply endpoint returns 500 due to a missing DB column — disables Apply until the server is migrated.
     var serverRequiresMigration = false
 
-    private let api = APIClient()
+    private let api = RuntimeServices.sharedAPIClient
 
     init(reviewId: String) {
         self.reviewId = reviewId

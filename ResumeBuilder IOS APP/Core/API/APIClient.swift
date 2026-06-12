@@ -50,7 +50,12 @@ private extension String {
     }
 }
 
-struct APIClient {
+struct HTTPDataResponse: Sendable {
+    let data: Data
+    let statusCode: Int
+}
+
+struct APIClient: Sendable {
     var baseURL: URL = BackendConfig.apiBaseURL
     var session: URLSession = .shared
     var requestTimeout: TimeInterval = 30
@@ -136,6 +141,10 @@ struct APIClient {
     }
 
     func getData(endpoint: Endpoint, token: String?) async throws -> Data {
+        try await getDataResponse(endpoint: endpoint, token: token).data
+    }
+
+    func getDataResponse(endpoint: Endpoint, token: String?) async throws -> HTTPDataResponse {
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
         request.httpMethod = "GET"
         if let token {
@@ -149,7 +158,7 @@ struct APIClient {
             let message = String(data: data, encoding: .utf8) ?? "Unknown error"
             throw APIClientError.serverError(status: httpResponse.statusCode, message: message)
         }
-        return data
+        return HTTPDataResponse(data: data, statusCode: httpResponse.statusCode)
     }
 
     func deleteJSON<T: Decodable>(

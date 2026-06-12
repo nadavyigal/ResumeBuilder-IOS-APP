@@ -6,7 +6,7 @@ protocol ResumeExportServiceProtocol: Sendable {
 }
 
 struct ResumeExportService: ResumeExportServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func exportPDF(optimizationId: String, token: String) async throws -> ExportResponse {
         let body: [String: Any] = ["optimization_id": optimizationId]

@@ -21,6 +21,19 @@ enum AuthServiceError: Error, LocalizedError {
     }
 }
 
+extension AuthServiceError {
+    /// True when GoTrue rejected the refresh token or returned an auth failure (not a transport error).
+    var isAuthFailure: Bool {
+        guard case .serverError(let message) = self else { return false }
+        let lower = message.lowercased()
+        return lower.contains("invalid_grant")
+            || lower.contains("invalid refresh")
+            || lower.contains("refresh token")
+            || lower.contains("token is expired")
+            || lower.contains("invalid jwt")
+    }
+}
+
 final class AuthService: @unchecked Sendable {
     static let shared = AuthService()
 
@@ -43,7 +56,7 @@ final class AuthService: @unchecked Sendable {
 
     private func persist(_ session: AuthSession) {
         if let data = try? JSONEncoder().encode(session) {
-            keychain.save(data, service: service, account: account)
+            try? keychain.save(data, service: service, account: account)
         }
     }
 
@@ -91,10 +104,13 @@ final class AuthService: @unchecked Sendable {
         guard let token = decoded.access_token, let user = decoded.user else {
             throw AuthServiceError.emailConfirmationRequired
         }
+        guard let refresh = decoded.refresh_token else {
+            throw AuthServiceError.invalidResponse
+        }
 
         let session = AuthSession(
             accessToken: token,
-            refreshToken: decoded.refresh_token,
+            refreshToken: refresh,
             userId: user.id,
             email: user.email
         )
@@ -196,9 +212,12 @@ final class AuthService: @unchecked Sendable {
             let user: GoTrueUser
         }
         let decoded = try JSONDecoder().decode(GoTrueResponse.self, from: data)
+        guard let refresh = decoded.refresh_token else {
+            throw AuthServiceError.invalidResponse
+        }
         return AuthSession(
             accessToken: decoded.access_token,
-            refreshToken: decoded.refresh_token,
+            refreshToken: refresh,
             userId: decoded.user.id,
             email: decoded.user.email
         )

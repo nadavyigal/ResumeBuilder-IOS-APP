@@ -38,24 +38,42 @@ final class ChatViewModel {
     var errorMessage: String?
     var showPendingReview = false
 
+    static let maxMessageLength = 4_000
+
     let optimizationId: String
     let resumeId: String?
 
-    private let chatService: ChatService
+    private let chatService: any ChatMessaging
 
     init(
         optimizationId: String,
         resumeId: String? = nil,
-        chatService: ChatService = ChatService()
+        chatService: any ChatMessaging = ChatService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
         self.chatService = chatService
     }
 
+    func bootstrapSession(token: String?) async {
+        guard let token else { return }
+        do {
+            if let active = try await chatService.fetchActiveSession(optimizationId: optimizationId, token: token) {
+                sessionId = active.id
+            }
+            await refreshHistory(token: token)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func sendMessage(text: String, token: String?) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        guard trimmed.count <= Self.maxMessageLength else {
+            errorMessage = "Message is too long (max \(Self.maxMessageLength) characters)."
+            return
+        }
         guard token != nil else {
             errorMessage = ChatServiceError.missingToken.localizedDescription
             return

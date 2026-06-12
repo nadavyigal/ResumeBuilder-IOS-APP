@@ -13,6 +13,7 @@ struct StreamingClient {
                 let size = max(1, chunkSize)
                 var i = trimmed.startIndex
                 while i < trimmed.endIndex {
+                    try Task.checkCancellation()
                     let next = trimmed.index(i, offsetBy: size, limitedBy: trimmed.endIndex) ?? trimmed.endIndex
                     continuation.yield(String(trimmed[i..<next]))
                     i = next

@@ -20,7 +20,7 @@ final class DesignViewModel {
 
     private(set) var optimizationId: String?
     private let designService: any ResumeDesignServiceProtocol
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
     private var templatesByCategory: [String: [DesignTemplate]] = [:]
     private var loadingCategories: Set<String> = []
     private var didLoadInitialAssignment = false

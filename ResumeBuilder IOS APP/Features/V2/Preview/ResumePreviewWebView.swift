@@ -216,22 +216,12 @@ struct ResumePreviewWebView: View {
             }
         }
         do {
-            var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
-            components.path = "/api/download/\(optimizationId)"
-            components.queryItems = [URLQueryItem(name: "fmt", value: "pdf")]
-            guard let url = components.url else { return }
-            var request = URLRequest(url: url, timeoutInterval: 60)
-            request.httpMethod = "GET"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-                return
-            }
+            let data = try await PDFExporter.downloadPDFData(optimizationId: optimizationId, token: token)
             let dest = try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
             pdfURL = dest
             showSharePDF = true
         } catch {
-            // Non-fatal — user can still use the share from OptimizedResumeView
+            errorMessage = error.localizedDescription
         }
     }
 

@@ -30,8 +30,10 @@ final class HomeViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            recentExports = try await exportsService.list(token: token)
-            let optimizations = try await historyService.list(token: token)
+            async let exportsTask = exportsService.list(token: token)
+            async let historyTask = historyService.list(token: token)
+            recentExports = try await exportsTask
+            let optimizations = try await historyTask
             if let latest = optimizations.first {
                 currentResumeFilename = latest.filename
                 overallScore = latest.matchScorePercent

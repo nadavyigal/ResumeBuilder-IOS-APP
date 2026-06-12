@@ -33,11 +33,6 @@ struct ImproveView: View {
                         metricsGrid(analysis: analysis)
                     }
 
-                    // Top fixes
-                    if !viewModel.improvements.isEmpty {
-                        topFixesList
-                    }
-
                     // Optimize CTA
                     if viewModel.optimizationId != nil {
                         Button {
