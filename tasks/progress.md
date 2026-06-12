@@ -1,20 +1,20 @@
 # Project Progress
 
-**Submit Package save-to-Me fix (2026-06-12):** Submit Package now refreshes optimization context before generation, creates a reviewable draft with optimized resume PDF, job link, cover letter, and screening answers, then persists the package to Me only after the user taps "Save Package to Me." Focused iPhone 17 `OptimizedResumeViewModelTests` passed, simulator launch smoke succeeded, and PR #57 is open.
+**Submit Package + resubmission prep (2026-06-12):** PR #57 merged to `main`. Build bumped to **1.0 (4)** for ASC resubmission. String catalog synced. App Review notes and screenshot upload paths documented in `docs/qa/app-store-readiness-checklist.md`. Ready to archive from `main`.
 
 Project: ResumeBuilder iOS
-Status: In Progress
-Current Phase: App Store submission readiness
-Active Story: Submit Package save-to-Me package confirmation
-Last Completed Story: Fixed Submit Package so Create Package does not immediately create/mark an application. The generated draft includes the optimized resume PDF, job link from optimization detail, Expert cover letter, and screening answers. The sheet now asks the user to save the package to Me; saving creates a saved application, attaches the optimized resume, saves Expert reports, refreshes Me, and exposes share/copy/submit-at-link actions.
-Next Recommended Story: Rebuild on real device, sign in, smoke optimize → Improve ATS → Preview & Export PDF → Submit Package → Save Package to Me → open package in Me → share resume PDF/copy cover letter/tap Submit at Job Link.
-Estimated Completion: 90%
-Blockers: Device smoke and PostHog live-event verification require founder to run on real authenticated device; ASC export requires local Keychain unlock for Apple Distribution key (71915959D76E14CED4D4153118972F034D338A50); `/api/v1/resumes` returns Next.js 404 HTML (Resume Library stays disabled)
+Status: Ready to Archive
+Current Phase: App Store resubmission
+Active Story: Archive v1.0 (4) and resubmit to App Store review
+Last Completed Story: Cleared four archive gates — merged submit-package fix, build 4, review notes, screenshot handoff docs.
+Next Recommended Story: Archive in Xcode → upload to ASC → paste review notes → select build 1.0 (4) → Submit for Review.
+Estimated Completion: 95%
+Blockers: ASC upload + review submission require founder in Xcode/ASC; confirm demo account on clean install before submit
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend)
 Last Validation: Submit Package save-to-Me fix (2026-06-12): `git diff --check` passed. Focused iPhone 17 run `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:"ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests" -derivedDataPath /tmp/resumebuilder-submit-package-derived` succeeded: 21 tests passed. Simulator launch smoke on iPhone 17 succeeded and screenshot saved to `/tmp/resumebuilder-submit-package-smoke.png`.
 Last Updated: 2026-06-12
-Current Branch: codex/fix-submit-package-save-package
-Latest Base Commit: 2338ea4 — Merge pull request #54 from nadavyigal/codex/fix-pdf-export-submit-package
+Current Branch: main
+Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep
 Active Spec: docs/specs/resumely-pre-submission-ux-ui-transformation.md
 Latest QA Report: —
 
@@ -63,4 +63,4 @@ Latest QA Report: —
 - `Features/V2/Profile/ProfileViewV2.swift`
 - `Features/Track/ApplicationsListView.swift`
 
-Notes: App is pre-release v1.0 build 1. V2 folder is active target for all new screens. Dark mode only. No App Store submission yet.
+Notes: App is v1.0 build 4 (resubmission). Archive from `main`. V2 folder is active target for all new screens. Dark mode only.
