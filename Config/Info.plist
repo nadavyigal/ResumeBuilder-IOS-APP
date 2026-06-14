@@ -99,6 +99,10 @@
 		</dict>
 	</dict>
 
+	<!-- App Store export compliance: app uses only standard HTTPS/TLS (exempt) -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- Runtime config — values from build settings / Secrets.xcconfig -->
 	<key>API_BASE_URL</key>
 	<string>$(API_BASE_URL)</string>
