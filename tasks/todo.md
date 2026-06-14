@@ -1,8 +1,8 @@
 # Current Task
 
 **Objective:** Implement Resume Aha Moments so users see grounded diagnosis, recruiter-style feedback, before/after rewrite, and confidence cues in the first resume/job flow.
-**Status:** Implemented
-**Branch:** `main`
+**Status:** PR #58 review remediated; waiting on live device/simulator smoke
+**Branch:** `codex/resume-aha-moments`
 **Spec:** `docs/specs/resume-aha-moments.md`
 
 ## Files Planned
@@ -31,7 +31,8 @@
 
 ## Verification
 - [x] `git diff --check`
-- [x] Focused diagnosis tests
-- [x] Xcode build on iPhone 17 simulator
-- [x] Relevant test suite on iPhone 17 simulator
-- [x] Simulator smoke test for changed UI
+- [x] Focused diagnosis tests on iPhone 17 simulator (`ResumeDiagnosisViewModelTests`, 7 tests)
+- [x] Full test suite on iPhone 17 simulator (83 XCTest tests + 5 Swift Testing tests)
+- [x] Release archive for generic iOS (`/tmp/ResumeBuilder-PR58.xcarchive`)
+- [x] Source review of account deletion and registration paths
+- [ ] Live simulator/device smoke test for changed UI, including delete account and register again (blocked by CoreSimulator install/screenshot/container hangs)

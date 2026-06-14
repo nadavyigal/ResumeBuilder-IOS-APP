@@ -11,6 +11,7 @@ struct HomeTabView: View {
     @State private var shouldNavigate = false
     @State private var showDiagnosis = false
     @State private var pendingDiagnosisOptimizationId: String? = nil
+    @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
     @State private var saveDisplayName = ""
@@ -200,22 +201,29 @@ struct HomeTabView: View {
                             appState.latestOptimizationId = optId
                             shouldNavigate = false
                             pendingDiagnosisOptimizationId = optId
+                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
                             showDiagnosis = true
                         }
                     )
                 }
             }
             .navigationDestination(isPresented: $showDiagnosis) {
-                ResumeDiagnosisView(
-                    viewModel: ResumeDiagnosisViewModel(optimizationId: pendingDiagnosisOptimizationId),
-                    onImprove: {
-                        showDiagnosis = false
-                        onSwitchTab(.optimized)
-                    },
-                    onEditTargetJob: {
-                        showDiagnosis = false
-                    }
-                )
+                if let diagnosisViewModel {
+                    ResumeDiagnosisView(
+                        viewModel: diagnosisViewModel,
+                        onImprove: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
+                            onSwitchTab(.optimized)
+                        },
+                        onEditTargetJob: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
+                        }
+                    )
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct ResumeConfidenceChecklist: View {
     let items: [ConfidenceItem]
 

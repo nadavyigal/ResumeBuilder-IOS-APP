@@ -90,47 +90,50 @@ final class ResumeDiagnosisViewModelTests: XCTestCase {
     func testBackendDiagnosisDecodesSnakeCaseWithoutIds() throws {
         let json = """
         {
-          "match_score": 54,
-          "potential_score": 82,
-          "score_note": "Estimated guidance only.",
-          "top_gaps": [
-            {
-              "title": "Missing analytics keywords",
-              "explanation": "The job asks for analytics ownership.",
-              "severity": "critical"
-            }
-          ],
-          "missing_keywords": [
-            {
-              "keyword": "Product analytics",
-              "importance": "required",
-              "reason": "Repeated in the target job."
-            }
-          ],
-          "recruiter_review": {
-            "impression": "Strong operations background, but product ownership is unclear.",
-            "strengths": ["Operations"],
-            "concerns": ["Missing metrics"],
-            "next_fix": "Rewrite the summary around the target job."
-          },
-          "before_after": [
-            {
-              "original_bullet": "Responsible for reports",
-              "improved_bullet": "Built reporting workflows that helped leaders prioritize renewal actions.",
-              "explanation": "Adds action, context, and impact."
-            }
-          ],
-          "confidence_checklist": [
-            {
-              "title": "Includes priority keywords",
-              "is_complete": true,
-              "explanation": "More aligned with the target role."
-            }
-          ]
+          "diagnosis": {
+            "match_score": 54,
+            "potential_score": 82,
+            "score_note": "Estimated guidance only.",
+            "top_gaps": [
+              {
+                "title": "Missing analytics keywords",
+                "explanation": "The job asks for analytics ownership.",
+                "severity": "critical"
+              }
+            ],
+            "missing_keywords": [
+              {
+                "keyword": "Product analytics",
+                "importance": "required",
+                "reason": "Repeated in the target job."
+              }
+            ],
+            "recruiter_review": {
+              "impression": "Strong operations background, but product ownership is unclear.",
+              "strengths": ["Operations"],
+              "concerns": ["Missing metrics"],
+              "next_fix": "Rewrite the summary around the target job."
+            },
+            "before_after": [
+              {
+                "original_bullet": "Responsible for reports",
+                "improved_bullet": "Built reporting workflows that helped leaders prioritize renewal actions.",
+                "explanation": "Adds action, context, and impact."
+              }
+            ],
+            "confidence_checklist": [
+              {
+                "title": "Includes priority keywords",
+                "is_complete": true,
+                "explanation": "More aligned with the target role."
+              }
+            ]
+          }
         }
         """.data(using: .utf8)!
 
-        let diagnosis = try JSONDecoder().decode(ResumeDiagnosis.self, from: json)
+        let detail = try JSONDecoder().decode(OptimizationDetailDTO.self, from: json)
+        let diagnosis = try XCTUnwrap(detail.diagnosis)
 
         XCTAssertEqual(diagnosis.matchScore, 54)
         XCTAssertEqual(diagnosis.potentialScore, 82)
@@ -140,6 +143,59 @@ final class ResumeDiagnosisViewModelTests: XCTestCase {
         XCTAssertEqual(diagnosis.beforeAfter.first?.before, "Responsible for reports")
         XCTAssertEqual(diagnosis.beforeAfter.first?.after, "Built reporting workflows that helped leaders prioritize renewal actions.")
         XCTAssertEqual(diagnosis.confidenceChecklist.first?.isComplete, true)
+    }
+
+    func testMapperMergesBackendDiagnosisWithLiveATSContext() {
+        let backend = ResumeDiagnosis(
+            matchScore: 44,
+            potentialScore: 70,
+            scoreNote: "Backend guidance.",
+            topGaps: [
+                ResumeGap(title: "Old gap", explanation: "Old detail.", severity: .low)
+            ],
+            missingKeywords: [],
+            recruiterReview: RecruiterReview(
+                impression: "Old impression.",
+                strengths: [],
+                concerns: [],
+                nextFix: "Old fix."
+            ),
+            beforeAfter: [],
+            confidenceChecklist: []
+        )
+
+        let diagnosis = ResumeDiagnosisMapper.make(
+            backendDiagnosis: backend,
+            matchScore: 61,
+            potentialScore: 84,
+            blockers: [
+                ATSOptimizationBlocker(
+                    id: "keyword",
+                    category: "keywords",
+                    title: "Missing product strategy keyword",
+                    suggestedAction: "Add truthful product strategy evidence.",
+                    severity: "high"
+                )
+            ],
+            sections: [
+                OptimizedResumeSection(
+                    id: "summary",
+                    type: .summary,
+                    body: "Led product strategy planning for a retention initiative.",
+                    status: "optimized"
+                )
+            ],
+            jobTitle: "Product Manager",
+            company: "Acme"
+        )
+
+        XCTAssertEqual(diagnosis.id, backend.id)
+        XCTAssertEqual(diagnosis.matchScore, 61)
+        XCTAssertEqual(diagnosis.potentialScore, 84)
+        XCTAssertEqual(diagnosis.topGaps.first?.title, "Missing product strategy keyword")
+        XCTAssertEqual(diagnosis.missingKeywords.first?.importance, .high)
+        XCTAssertTrue(diagnosis.recruiterReview.impression.contains("Product Manager"))
+        XCTAssertFalse(diagnosis.confidenceChecklist.isEmpty)
     }
 
     func testMapperFallsBackWhenDataIsSparse() {

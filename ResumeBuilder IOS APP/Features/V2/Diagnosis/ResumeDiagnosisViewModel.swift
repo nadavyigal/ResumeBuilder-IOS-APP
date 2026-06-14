@@ -4,7 +4,7 @@ import Observation
 @Observable
 @MainActor
 final class ResumeDiagnosisViewModel {
-    let optimizationId: String?
+    var optimizationId: String?
     var diagnosis: ResumeDiagnosis?
     var isLoading = false
     var errorMessage: String?

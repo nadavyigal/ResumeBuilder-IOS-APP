@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct RecruiterEyeViewCard: View {
     let review: RecruiterReview
 
@@ -38,7 +39,7 @@ struct RecruiterEyeViewCard: View {
                 .foregroundStyle(color)
 
             FlowLayout(spacing: AppSpacing.xs) {
-                ForEach(values.prefix(4), id: \.self) { value in
+                ForEach(Array(values.prefix(4).enumerated()), id: \.offset) { _, value in
                     Text(value)
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textPrimary)
@@ -52,7 +53,7 @@ struct RecruiterEyeViewCard: View {
     }
 }
 
-struct FlowLayout: Layout {
+struct FlowLayout: Layout, Sendable {
     var spacing: CGFloat
 
     init(spacing: CGFloat = 8) {

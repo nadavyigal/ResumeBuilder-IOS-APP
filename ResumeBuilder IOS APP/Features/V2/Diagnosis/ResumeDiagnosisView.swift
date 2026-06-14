@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct ResumeDiagnosisView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: ResumeDiagnosisViewModel
@@ -214,8 +215,10 @@ struct ResumeDiagnosisView: View {
 
     private var bottomActions: some View {
         VStack(spacing: AppSpacing.sm) {
-            GradientButton(title: "Improve my resume", icon: "wand.and.stars") {
-                onImprove()
+            if viewModel.optimizationId?.isEmpty == false {
+                GradientButton(title: "Improve my resume", icon: "wand.and.stars") {
+                    onImprove()
+                }
             }
             Button {
                 onEditTargetJob()

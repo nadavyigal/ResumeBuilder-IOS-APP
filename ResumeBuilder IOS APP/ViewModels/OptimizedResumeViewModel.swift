@@ -445,6 +445,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
+                backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
@@ -490,6 +491,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
+                backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
@@ -527,6 +529,7 @@ final class OptimizedResumeViewModel {
             if let optimized = response.optimizedScore {
                 atsScoreAfter = optimized
             }
+            backendDiagnosis = nil
         } catch {
             errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
         }
@@ -609,13 +612,17 @@ final class OptimizedResumeViewModel {
                         patchSection(type: section.type, body: section.body)
                     }
                 }
+                backendDiagnosis = nil
             }
         case .achievementQuantifier:
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
+            backendDiagnosis = nil
         case .professionalSummaryLab:
             ExpertResumeSectionMapping.patchSummaryLab(into: &sections, output: output)
+            backendDiagnosis = nil
         case .atsOptimizationReport:
             ExpertResumeSectionMapping.patchSkillsFromAtsReport(into: &sections, output: output)
+            backendDiagnosis = nil
         case .coverLetterArchitect, .screeningAnswerStudio:
             break
         }
@@ -645,6 +652,7 @@ final class OptimizedResumeViewModel {
         guard let idx = sections.firstIndex(where: { $0.type == type }) else { return }
         sections[idx].body = newBody
         sections[idx].status = "improved"
+        backendDiagnosis = nil
     }
 
     private func fieldName(for type: ResumeSectionType) -> String {

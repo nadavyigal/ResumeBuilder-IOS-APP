@@ -423,10 +423,30 @@ enum ResumeDiagnosisMapper {
         jobTitle: String?,
         company: String?
     ) -> ResumeDiagnosis {
+        let derived = Self.derived(
+            matchScore: matchScore,
+            potentialScore: potentialScore,
+            blockers: blockers,
+            sections: sections,
+            jobTitle: jobTitle,
+            company: company
+        )
+
         if let backendDiagnosis {
-            return backendDiagnosis
+            return Self.merge(backendDiagnosis, with: derived, hasLiveBlockers: !blockers.isEmpty, hasLiveSections: !sections.isEmpty)
         }
 
+        return derived
+    }
+
+    private static func derived(
+        matchScore: Int?,
+        potentialScore: Int?,
+        blockers: [ATSOptimizationBlocker],
+        sections: [OptimizedResumeSection],
+        jobTitle: String?,
+        company: String?
+    ) -> ResumeDiagnosis {
         let currentScore = matchScore ?? potentialScore ?? 0
         let optimizedScore = potentialScore
         let gaps = Self.gaps(from: blockers)
@@ -452,6 +472,34 @@ enum ResumeDiagnosisMapper {
                 matchScore: optimizedScore ?? currentScore,
                 hasKeywords: !keywords.isEmpty,
                 hasRewrite: rewrite != nil
+            )
+        )
+    }
+
+    private static func merge(
+        _ backend: ResumeDiagnosis,
+        with derived: ResumeDiagnosis,
+        hasLiveBlockers: Bool,
+        hasLiveSections: Bool
+    ) -> ResumeDiagnosis {
+        let mergedKeywords = hasLiveBlockers && !derived.missingKeywords.isEmpty ? derived.missingKeywords : backend.missingKeywords
+        let mergedRewrite = hasLiveSections && !derived.beforeAfter.isEmpty ? derived.beforeAfter : backend.beforeAfter
+        let mergedScore = derived.matchScore > 0 ? derived.matchScore : backend.matchScore
+        let mergedPotential = derived.potentialScore ?? backend.potentialScore
+
+        return ResumeDiagnosis(
+            id: backend.id,
+            matchScore: mergedScore,
+            potentialScore: mergedPotential,
+            scoreNote: backend.scoreNote.isEmpty ? derived.scoreNote : backend.scoreNote,
+            topGaps: hasLiveBlockers ? derived.topGaps : backend.topGaps,
+            missingKeywords: mergedKeywords,
+            recruiterReview: hasLiveBlockers || hasLiveSections ? derived.recruiterReview : backend.recruiterReview,
+            beforeAfter: mergedRewrite,
+            confidenceChecklist: ConfidenceItem.defaultChecklist(
+                matchScore: mergedPotential ?? mergedScore,
+                hasKeywords: !mergedKeywords.isEmpty,
+                hasRewrite: !mergedRewrite.isEmpty
             )
         )
     }

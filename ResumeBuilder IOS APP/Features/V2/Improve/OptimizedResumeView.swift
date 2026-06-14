@@ -49,7 +49,7 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
-                if viewModel.optimizationIdentifier != nil {
+                if shouldShowDiagnosisPanels {
                     diagnosisSnapshotPanel
                         .padding(.horizontal, AppSpacing.lg)
                 }
@@ -85,8 +85,10 @@ struct OptimizedResumeView: View {
                     atsUpliftPanel
                         .padding(.horizontal, AppSpacing.lg)
 
-                    ResumeConfidenceChecklist(items: viewModel.resumeDiagnosis.confidenceChecklist)
-                        .padding(.horizontal, AppSpacing.lg)
+                    if shouldShowDiagnosisPanels {
+                        ResumeConfidenceChecklist(items: viewModel.resumeDiagnosis.confidenceChecklist)
+                            .padding(.horizontal, AppSpacing.lg)
+                    }
                 }
 
                 if let error = viewModel.errorMessage {
@@ -217,6 +219,12 @@ struct OptimizedResumeView: View {
     private var shouldShowATSInsightPanel: Bool {
         viewModel.optimizationIdentifier != nil
             && (viewModel.atsScoreBefore != nil || viewModel.atsScoreAfter != nil || !viewModel.atsBlockers.isEmpty)
+    }
+
+    private var shouldShowDiagnosisPanels: Bool {
+        viewModel.optimizationIdentifier != nil
+            && !viewModel.isAwaitingInitialSections
+            && !viewModel.isLoadingSections
     }
 
     private var atsScoreCard: some View {

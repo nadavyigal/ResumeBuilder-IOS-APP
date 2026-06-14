@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-14
+**Category:** Test
+**Rule:** If `xcodebuild test` reaches "Testing started" then hangs at "waiting for workers to materialize", restart the target simulator and rerun with a fresh derived-data path before treating it as an app test failure.
+**Why:** A focused ResumeDiagnosis test build compiled successfully, but the simulator test host wedged during worker launch and had to be interrupted.
+
 ### 2026-06-12
 **Category:** Build
 **Rule:** When adding flexible Swift `Codable` decoders with multiple possible keys, decode each throwing candidate into local optionals before nil-coalescing and keep custom decoding-key enums separate from synthesized encode keys.
