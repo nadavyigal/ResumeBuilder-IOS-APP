@@ -31,6 +31,7 @@ final class OptimizedResumeViewModel {
     var company: String?
     var contact: ResumeContact?
     var atsBlockers: [ATSOptimizationBlocker] = []
+    var backendDiagnosis: ResumeDiagnosis?
     var jobURLString: String?
     var applicationId: String?
     var isImprovingATS = false
@@ -179,6 +180,18 @@ final class OptimizedResumeViewModel {
             "Run Improve ATS for a focused keyword and metrics pass.",
             "Review every edit for factual accuracy before submitting.",
         ]
+    }
+
+    var resumeDiagnosis: ResumeDiagnosis {
+        ResumeDiagnosisMapper.make(
+            backendDiagnosis: backendDiagnosis,
+            matchScore: atsScoreBefore,
+            potentialScore: atsScoreAfter,
+            blockers: atsBlockers,
+            sections: sections,
+            jobTitle: jobTitle,
+            company: company
+        )
     }
 
     /// Plain text of all sections joined for clipboard copy.
@@ -368,6 +381,7 @@ final class OptimizedResumeViewModel {
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
         atsBlockers = detail.atsBlockers
+        backendDiagnosis = detail.diagnosis
         if jobURLString == nil { jobURLString = detail.jobUrl }
         if applicationId == nil { applicationId = detail.applicationId }
     }
@@ -431,6 +445,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
+                backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
@@ -476,6 +491,7 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
+                backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
@@ -513,6 +529,7 @@ final class OptimizedResumeViewModel {
             if let optimized = response.optimizedScore {
                 atsScoreAfter = optimized
             }
+            backendDiagnosis = nil
         } catch {
             errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
         }
@@ -595,13 +612,17 @@ final class OptimizedResumeViewModel {
                         patchSection(type: section.type, body: section.body)
                     }
                 }
+                backendDiagnosis = nil
             }
         case .achievementQuantifier:
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
+            backendDiagnosis = nil
         case .professionalSummaryLab:
             ExpertResumeSectionMapping.patchSummaryLab(into: &sections, output: output)
+            backendDiagnosis = nil
         case .atsOptimizationReport:
             ExpertResumeSectionMapping.patchSkillsFromAtsReport(into: &sections, output: output)
+            backendDiagnosis = nil
         case .coverLetterArchitect, .screeningAnswerStudio:
             break
         }
@@ -631,6 +652,7 @@ final class OptimizedResumeViewModel {
         guard let idx = sections.firstIndex(where: { $0.type == type }) else { return }
         sections[idx].body = newBody
         sections[idx].status = "improved"
+        backendDiagnosis = nil
     }
 
     private func fieldName(for type: ResumeSectionType) -> String {

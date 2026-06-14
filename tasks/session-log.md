@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-06-14
+**Task:** Review PR #58 Resume Aha Moments before merge and prepare archive readiness
+**Files Changed:**
+- `Features/Tailor/TailorView.swift` and `Features/V2/Home/HomeTabView.swift` — keep diagnosis view models stable across navigation.
+- `Features/V2/Diagnosis/*` — add main-actor isolation, duplicate-safe chip IDs, and hide Improve CTA when no optimization id exists.
+- `Features/V2/Improve/OptimizedResumeView.swift` — gate diagnosis panels until optimization details finish loading.
+- `Models/ResumeDiagnosis.swift` and `ViewModels/OptimizedResumeViewModel.swift` — merge backend diagnosis with live ATS/section context and clear stale backend diagnosis after local mutations.
+- `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift` — cover nested DTO decoding and backend/live-context merge behavior.
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `docs/qa/reports/ios-qa-pr58-2026-06-14.md` — record validation and remaining blocker.
+**Validation:** `git diff --check` passed. Focused iPhone 17 diagnosis tests passed 7/7. Full iPhone 17 suite passed: 83 XCTest tests plus 5 Swift Testing tests, 0 failures. Release archive succeeded at `/tmp/ResumeBuilder-PR58.xcarchive`.
+**Decisions Made:** Treat the archive as proof the project is archiveable, but keep App Store submission blocked until a live smoke passes because CoreSimulator hung on install/screenshot/container commands. Source-reviewed account deletion/register wiring, but did not claim live compliance verification without a working simulator/device.
+**Next Recommended Action:** Run the authenticated smoke on a real device or reset Simulator/CoreSimulator, then validate/distribute the archive from Xcode Organizer with App Store distribution signing.
+
+### 2026-06-12
+**Task:** Implement Resume Aha Moments diagnosis-first flow
+**Files Changed:** `Models/ResumeDiagnosis.swift`, `Features/V2/Diagnosis/*`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/HomeActivationState.swift`, `Features/V2/Home/ResumeOptimizationLoadingView.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `ViewModels/OptimizedResumeViewModel.swift`, `Core/API/Models/DomainModels.swift`, `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift`, `project.pbxproj`, `docs/specs/resume-aha-moments.md`, `docs/specs/README.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`
+**Decisions Made:** Kept the first aha after real resume/job optimization, not a tutorial. Added backend diagnosis as an optional decode hook, but used a conservative local mapper from ATS scores/blockers/sections when backend data is absent. Avoided fabricating original bullets: before/after cards gracefully show the improved bullet when original text is unavailable. Routed Home and Tailor optimize success to Diagnosis before Improve, then reused confidence cues inside Improve before export/payment.
+**Validation:** `git diff --check` passed. Focused diagnosis tests passed 6/6 on iPhone 17, including snake_case backend diagnosis decoding. Debug build succeeded on iPhone 17. Full test suite passed before the decoder hardening: 81 XCTest tests plus 5 Swift Testing tests, 0 failures. Simulator install/launch smoke succeeded on iPhone 17; Home aha copy rendered at `/tmp/resumebuilder-aha-smoke-iphone17-late.png`.
+**Next Recommended Action:** Run an authenticated live smoke on device or signed-in simulator: upload/paste resume, paste job description, complete optimization, verify Diagnosis copy and CTAs with real backend data, then adjust backend diagnosis decoding if the API ships a different payload shape.
+
 ### 2026-06-12
 **Task:** Clear four App Store archive gates (branch hygiene, build number, review notes, screenshot handoff)
 **Files Changed:** `project.pbxproj`, `Localizable.xcstrings`, `docs/qa/app-store-readiness-checklist.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `tasks/todo.md`, `tasks/progress.md`

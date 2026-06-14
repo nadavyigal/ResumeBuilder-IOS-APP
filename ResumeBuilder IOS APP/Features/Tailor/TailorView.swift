@@ -18,6 +18,9 @@ struct TailorView: View {
     @State private var navigateTo: TailorDestination?
     @State private var appeared = false
     @State private var shouldNavigate = false
+    @State private var showDiagnosis = false
+    @State private var pendingDiagnosisOptimizationId: String? = nil
+    @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
     @State private var showSavePrompt = false
@@ -186,7 +189,27 @@ struct TailorView: View {
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
                             shouldNavigate = false
+                            pendingDiagnosisOptimizationId = optId
+                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+                            showDiagnosis = true
+                        }
+                    )
+                }
+            }
+            .navigationDestination(isPresented: $showDiagnosis) {
+                if let diagnosisViewModel {
+                    ResumeDiagnosisView(
+                        viewModel: diagnosisViewModel,
+                        onImprove: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
                             onSwitchTab(.optimized)
+                        },
+                        onEditTargetJob: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
                         }
                     )
                 }
@@ -270,7 +293,7 @@ struct TailorView: View {
                     )
                 )
 
-            Text("AI rewrites your resume to beat ATS filters for any job.")
+            Text("Get a diagnosis, then improve your resume for this specific job.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
                 .lineSpacing(2)
@@ -487,10 +510,10 @@ struct TailorView: View {
                         .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 }
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Optimize")
+                    Text("Analyze")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
-                    Text("AI rewrites for this specific job")
+                    Text("Diagnose gaps and improve this resume")
                         .font(.caption)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -512,10 +535,11 @@ struct TailorView: View {
                         #endif
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
                             #if DEBUG
-                            print("➡️ [TAILOR VIEW] switching to .optimized tab with id=\(optId)")
+                            print("➡️ [TAILOR VIEW] showing diagnosis for id=\(optId)")
                             #endif
                             appState.latestOptimizationId = optId
-                            onSwitchTab(.optimized)
+                            pendingDiagnosisOptimizationId = optId
+                            showDiagnosis = true
                         } else if viewModel.reviewId != nil {
                             #if DEBUG
                             print("➡️ [TAILOR VIEW] navigating to review screen")
@@ -538,7 +562,7 @@ struct TailorView: View {
                         HStack(spacing: 8) {
                             Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Optimize Resume" : "Run Free ATS Check")
+                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check")
                                 .fontWeight(.bold)
                         }
                     }
