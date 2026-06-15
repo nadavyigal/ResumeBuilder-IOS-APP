@@ -13,6 +13,9 @@
     "/ 100" : {
 
     },
+    "% match" : {
+
+    },
     "%@ → %@" : {
       "localizations" : {
         "en" : {
@@ -183,6 +186,9 @@
     "2500 credits" : {
 
     },
+    "A compact diagnosis of fit, gaps, missing signals, and the next best fix." : {
+
+    },
     "Accent Color" : {
 
     },
@@ -219,16 +225,13 @@
     "AI POWERED" : {
 
     },
-    "AI rewrites for this job" : {
-
-    },
-    "AI rewrites for this specific job" : {
-
-    },
-    "AI rewrites your resume to beat ATS filters for any job." : {
-
-    },
     "Already have an account?" : {
+
+    },
+    "Analyze" : {
+
+    },
+    "Analyze my resume" : {
 
     },
     "Analyzing…" : {
@@ -311,6 +314,9 @@
     "Before" : {
 
     },
+    "Before / after rewrite" : {
+
+    },
     "Before %@" : {
 
     },
@@ -351,6 +357,9 @@
 
     },
     "Compare" : {
+
+    },
+    "Confidence checklist" : {
 
     },
     "Continue Editing" : {
@@ -427,6 +436,12 @@
         }
       }
     },
+    "Diagnose gaps and improve this resume" : {
+
+    },
+    "Diagnosis unavailable" : {
+
+    },
     "Discard" : {
 
     },
@@ -452,6 +467,9 @@
 
     },
     "Edit Resume" : {
+
+    },
+    "Edit target job" : {
 
     },
     "Edits from refine, chat, and expert tools will appear here." : {
@@ -504,6 +522,9 @@
         }
       }
     },
+    "FIRST READ" : {
+
+    },
     "Font Style" : {
 
     },
@@ -513,6 +534,9 @@
     "Free ATS Preview" : {
 
     },
+    "Get a diagnosis, then improve your resume for this specific job." : {
+
+    },
     "Get Credits" : {
 
     },
@@ -520,6 +544,9 @@
 
     },
     "Go to Home" : {
+
+    },
+    "Here is what the job sees" : {
 
     },
     "Hi %@ 👋" : {
@@ -686,6 +713,9 @@
     "Master Resume" : {
 
     },
+    "Missing keywords" : {
+
+    },
     "Missing Keywords" : {
 
     },
@@ -717,6 +747,9 @@
 
     },
     "No matching optimizations" : {
+
+    },
+    "No missing keyword list was returned yet. Review the top gaps and use the job description as the source of truth." : {
 
     },
     "No modifications yet" : {
@@ -773,12 +806,6 @@
     "Optimization Review" : {
 
     },
-    "Optimize" : {
-
-    },
-    "Optimize Resume" : {
-
-    },
     "Optimized Resume" : {
 
     },
@@ -825,6 +852,9 @@
 
     },
     "Placement suggestions" : {
+
+    },
+    "Potential after optimization: about %lld%%" : {
 
     },
     "Preparing…" : {
@@ -900,6 +930,9 @@
     "Recommended" : {
 
     },
+    "Recruiter 7-second view" : {
+
+    },
     "Refine Resume" : {
 
     },
@@ -918,10 +951,19 @@
     "Resume Builder" : {
 
     },
+    "Resume diagnosis" : {
+
+    },
+    "Resume Diagnosis" : {
+
+    },
     "Resume Health Score" : {
 
     },
     "Resume Library is not available yet." : {
+
+    },
+    "Resume Match Score" : {
 
     },
     "Resume PDF" : {
@@ -1108,6 +1150,9 @@
     "Spacing" : {
 
     },
+    "Start with resume + job" : {
+
+    },
     "Status" : {
 
     },
@@ -1238,6 +1283,9 @@
     "Tip %lld" : {
 
     },
+    "Top 3 gaps" : {
+
+    },
     "Top blockers" : {
 
     },
@@ -1271,10 +1319,13 @@
     "Upload and optimize on Home to see your resume here." : {
 
     },
+    "Upload your resume and paste a job description to see what a recruiter may notice in 7 seconds." : {
+
+    },
     "Upload your resume and run Optimize on Home to style your PDF." : {
 
     },
-    "Upload, match to a job, and optimize your resume." : {
+    "Upload, match to a job, and get your first diagnosis in under 2 minutes." : {
 
     },
     "URL or paste description" : {
@@ -1295,10 +1346,16 @@
     "View Optimized Resume" : {
 
     },
+    "Why this version is more aligned before export." : {
+
+    },
     "Worked on dashboard redesigns and collaborated with engineers to improve user flows." : {
 
     },
     "You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link." : {
+
+    },
+    "You can still open the optimized resume and continue improving it." : {
 
     },
     "Your data stays private. We never share your resume." : {
@@ -1320,6 +1377,9 @@
 
     },
     "Your resume is well-optimized for this role." : {
+
+    },
+    "Your resume matches about %lld%% of this job" : {
 
     }
   },
