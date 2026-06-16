@@ -1,18 +1,20 @@
 # Project Progress
 
+**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 open.
+
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: PR #58 review remediated; archive build succeeds; live simulator smoke blocked
-Current Phase: Product experience polish
-Active Story: Resume Aha Moments PR #58 validation and handoff
-Last Completed Story: Added diagnosis screen/components and routed Home/Tailor optimization completion through recruiter-style diagnosis before Improve.
-Next Recommended Story: Complete an authenticated real-device smoke with delete-account/re-register, upload a real resume/job, optimize through diagnosis, export/share PDF, then validate/upload the archive from Xcode Organizer with App Store distribution signing.
-Estimated Completion: 94%
-Blockers: CoreSimulator is currently hanging on app install/screenshot/container commands, so interactive simulator smoke and live delete-account/re-register verification could not be completed in this session.
-Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors; ExpertSavedReportDetailView's run-id mapping depends on backend returning run IDs in /expert-reports (not yet verified against live backend); App Store export still needs distribution signing because the CLI archive used an Apple Development team provisioning profile.
-Last Validation: PR #58 review remediation (2026-06-14): `git diff --check` passed. Focused iPhone 17 diagnosis tests passed 7/7. Full iPhone 17 test suite passed with 83 XCTest tests plus 5 Swift Testing tests, 0 failures. Release archive to `/tmp/ResumeBuilder-PR58.xcarchive` succeeded. Account deletion/register paths were source-reviewed, but live simulator smoke was blocked by CoreSimulator hangs on install/screenshot/container operations.
-Last Updated: 2026-06-14
+Status: Analytics wired (PR #60 open); Gate A (paywall) data collection now active
+Current Phase: Product experience polish + analytics
+Active Story: P2 analytics + Resume Library backend route
+Last Completed Story: PostHog core funnel events wired — build succeeds, 88 tests pass.
+Next Recommended Story: Merge PR #60, verify Live Events in PostHog, then fix /api/v1/resumes 404 in the web repo and re-enable isResumeLibraryEnabled = true.
+Estimated Completion: 95%
+Blockers: /api/v1/resumes backend route returns 404 (Resume Library disabled in iOS). Gate A paywall requires D7 data — deadline 2026-06-21.
+Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.
+Last Validation: PR #60 analytics (2026-06-16): BUILD SUCCEEDED. TEST SUCCEEDED — 83 XCTest tests plus 5 Swift Testing tests, 0 failures.
+Last Updated: 2026-06-16
 Current Branch: codex/resume-aha-moments
 Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep
 Active Spec: docs/specs/resume-aha-moments.md
