@@ -42,7 +42,7 @@ final class AnalyticsServiceTests: XCTestCase {
         let events: [AnalyticsEvent] = [
             .appLaunched(isAuthenticated: true),
             .guestModeStarted,
-            .resumeUploaded,
+            .resumeUploaded(fileType: "pdf"),
             .jobAdded(hasURL: true, hasPaste: false),
             .freeATSCompleted(scoreBucket: "61-80"),
             .signInCompleted,
@@ -51,6 +51,10 @@ final class AnalyticsServiceTests: XCTestCase {
             .exportStarted,
             .exportSuccess,
             .exportFailed(errorCode: "unauthorized"),
+            .diagnosisViewed(matchScore: 72),
+            .atsImproveTapped(currentScore: 55),
+            .exportPdfTapped,
+            .submitPackageSaved(hasCoverLetter: true),
         ]
         for event in events {
             for key in event.properties.keys {
@@ -66,10 +70,12 @@ final class AnalyticsServiceTests: XCTestCase {
 
     func testAllEventNamesAreNonEmpty() async {
         let events: [AnalyticsEvent] = [
-            .appLaunched(isAuthenticated: false), .guestModeStarted, .resumeUploaded,
+            .appLaunched(isAuthenticated: false), .guestModeStarted, .resumeUploaded(fileType: "pdf"),
             .jobAdded(hasURL: false, hasPaste: true), .freeATSCompleted(scoreBucket: "0-40"),
             .signInCompleted, .optimizationStarted, .optimizationCompleted,
             .exportStarted, .exportSuccess, .exportFailed(errorCode: "unknown"),
+            .diagnosisViewed(matchScore: 60), .atsImproveTapped(currentScore: 40),
+            .exportPdfTapped, .submitPackageSaved(hasCoverLetter: false),
         ]
         for event in events {
             XCTAssertFalse(event.name.isEmpty, "Event name must not be empty")
@@ -81,7 +87,7 @@ final class AnalyticsServiceTests: XCTestCase {
     func testServiceIsEnabledWhenTransportIsProvided() async {
         let service = AnalyticsService(transport: SpyTransport())
         XCTAssertTrue(service.isEnabled)
-        service.track(.resumeUploaded) // must not crash
+        service.track(.resumeUploaded(fileType: "pdf")) // must not crash
     }
 
     // MARK: Score buckets

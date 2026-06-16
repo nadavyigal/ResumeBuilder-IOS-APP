@@ -251,6 +251,7 @@ final class SubmitApplicationViewModel {
             package.application = packageApplication(from: application, package: package)
             self.package = package
             Self.logger.info("Submit package saved to Me")
+            AnalyticsService.shared.track(.submitPackageSaved(hasCoverLetter: !package.coverLetterText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {

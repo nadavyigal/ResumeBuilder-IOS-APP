@@ -32,7 +32,10 @@ struct ResumeDiagnosisView: View {
         .screenBackground(showRadialGlow: true)
         .navigationTitle("Resume Diagnosis")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await viewModel.load(appState: appState) }
+        .task {
+            await viewModel.load(appState: appState)
+            AnalyticsService.shared.track(.diagnosisViewed(matchScore: viewModel.diagnosis?.matchScore ?? 0))
+        }
         .safeAreaInset(edge: .bottom) {
             bottomActions
         }

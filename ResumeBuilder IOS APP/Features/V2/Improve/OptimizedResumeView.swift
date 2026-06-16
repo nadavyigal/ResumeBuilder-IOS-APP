@@ -362,6 +362,7 @@ struct OptimizedResumeView: View {
             }
 
             Button {
+                AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
                 Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
             } label: {
                 HStack(spacing: AppSpacing.sm) {
@@ -589,6 +590,7 @@ struct OptimizedResumeView: View {
                 }
                 Spacer()
                 Button {
+                    AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
                     Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
                 } label: {
                     if viewModel.isImprovingATS {
@@ -887,6 +889,7 @@ struct OptimizedResumeView: View {
     @MainActor
     private func performExport() async {
         guard !isDownloadingPDF else { return }
+        AnalyticsService.shared.track(.exportPdfTapped)
         isDownloadingPDF = true
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
