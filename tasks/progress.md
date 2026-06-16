@@ -5,11 +5,11 @@
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: Analytics wired (PR #60 open); Gate A (paywall) data collection now active
-Current Phase: Product experience polish + analytics
+Status: In App Store review (build 4 submitted 2026-06-14); analytics wired (PR #60 merged)
+Current Phase: App Store review pending + product polish
 Active Story: P2 analytics + Resume Library backend route
-Last Completed Story: PostHog core funnel events wired — build succeeds, 88 tests pass.
-Next Recommended Story: Merge PR #60, verify Live Events in PostHog, then fix /api/v1/resumes 404 in the web repo and re-enable isResumeLibraryEnabled = true.
+Last Completed Story: PostHog core funnel events wired — build succeeds, 88 tests pass. ITSAppUsesNonExemptEncryption=false fix applied (PR #59).
+Next Recommended Story: Verify Live Events in PostHog, then fix /api/v1/resumes 404 in the web repo and re-enable isResumeLibraryEnabled = true.
 Estimated Completion: 95%
 Blockers: /api/v1/resumes backend route returns 404 (Resume Library disabled in iOS). Gate A paywall requires D7 data — deadline 2026-06-21.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.

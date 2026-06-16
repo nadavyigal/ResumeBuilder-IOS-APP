@@ -15,6 +15,20 @@
 
 ## Sessions
 
+### 2026-06-14 (resubmission)
+**Task:** App Store resubmission — resolve compliance, fill reviewer info, reply to rejection, submit build 4
+**Files Changed:**
+- `Config/Info.plist` — added `ITSAppUsesNonExemptEncryption = false` (future builds auto-pass compliance)
+**Decisions Made:**
+- Missing Compliance answered: "None of the algorithms mentioned above" (app uses only Apple URLSession/Keychain — no custom crypto)
+- Apple Sign In correctly disabled via `BackendConfig.isAppleSignInEnabled = false` — this was the root cause of the Jun 5 rejection
+- Delete Account confirmed present: Me tab → Account section → Delete Account (calls Supabase delete_account edge function)
+- Register confirmed present: Onboarding → "Don't have an account? Sign Up"
+- Demo credentials set in ASC: nadav.yigal@gmail.com / test123456
+- Replied to Jun 5 "Unresolved Issues" rejection explaining the Apple Sign In fix
+- Clicked "Update Review" — build 4 is now in Apple review
+**Next Recommended Action:** Wait for Apple review result (1-3 days). If approved: publish. If rejected: open new session with Apple's feedback. Merge open PR (branch claude/gracious-curie-fcd112) to main before building v5.
+
 ### 2026-06-14
 **Task:** Review PR #58 Resume Aha Moments before merge and prepare archive readiness
 **Files Changed:**
