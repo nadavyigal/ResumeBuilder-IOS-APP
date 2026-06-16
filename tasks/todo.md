@@ -47,11 +47,19 @@
   English résumé never forced RTL. Full backend-auth Hebrew-resume device QA still
   recommended on real hardware per strategy doc.
 
-## Story 5 — Hebrew App Store metadata
-- [ ] Prepare he listing (name/subtitle/description/keywords) + Hebrew screenshots
-- [ ] (fastlane deliver only with explicit approval)
+## Story 5 — Hebrew App Store metadata ✅ (prep — ASC submission is manual)
+- [x] Mirror canonical Hebrew listing into `docs/app-store/he-metadata.md`
+      (name/subtitle/keywords/promo/description) + iOS submission checklist
+- [x] Document Hebrew screenshot generation (launch with -AppleLanguages he)
+- [x] No fastlane added (kept dependency-free per rules)
+- [ ] USER ACTION: paste into App Store Connect Hebrew localization + submit
 
 ## Verification
-- [ ] Build + unit tests in `ResumeBuilder IOS APPTests`
-- [ ] Update affected tests (LiveEndpointStabilizationTests, PDFDownloadValidatorTests)
-- [ ] QA matrix: each tab × {English LTR, Hebrew RTL}; PDF on real device
+- [x] Build SUCCEEDED (app target) after every story
+- [x] Full test suite: all 88 tests pass, 0 failures (the `TEST FAILED` is a
+      pre-existing host-teardown malloc crash — identical on the base commit)
+- [x] No test edits needed (locale field is optional/defaulted; mock unchanged)
+- [x] QA: Home/Profile each rendered in Hebrew RTL + English LTR on simulator;
+      Hebrew résumé HTML renders correct RTL in WKWebView
+- [ ] USER ACTION (per strategy doc): real-device QA of a backend-authenticated
+      Hebrew résumé → preview + PDF

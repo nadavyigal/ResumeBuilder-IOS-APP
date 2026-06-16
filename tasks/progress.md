@@ -1,5 +1,7 @@
 # Project Progress
 
+**Hebrew / RTL (2026-06-16):** Shipped full Hebrew support (Phase 2). Language infrastructure (he region, CFBundleLocalizations, runtime bundle override + LocalizationManager), 360 catalog keys translated + 134 core-flow component labels converted to LocalizedStringKey and translated, language picker in Me tab (auto-detect device Hebrew, manual override, persists), and RTL résumé preview + PDF (content-based detection, client-side `dir=rtl` injection + Hebrew font, local fallback + direct-draw PDF). Hebrew App Store metadata prepared in `docs/app-store/he-metadata.md`. Branch `claude/relaxed-northcutt-cb6240`. Remaining: real-device Hebrew résumé QA + ASC submission (manual).
+
 **PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 open.
 
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.

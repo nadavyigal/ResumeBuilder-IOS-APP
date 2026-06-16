@@ -13,6 +13,27 @@
 
 ---
 
+**Date:** 2026-06-16
+**Task:** Hebrew version of Resumely iOS — full 5-story plan (native UI strings + language picker + RTL résumé preview/PDF + App Store metadata).
+**Files Changed:**
+- Story 1: `project.pbxproj` (he region), `Config/Info.plist` (CFBundleLocalizations), `Core/Localization/LocalizationManager.swift`, `Core/Localization/Bundle+Localization.swift`, `ResumeBuilder_IOS_APPApp.swift`
+- Story 2: `Resources/Localizable.xcstrings` (360 keys → Hebrew + 134 new sweep keys)
+- Story 2.5 sweep: `ResumlyTabBar.swift`, `HomeActivationState.swift`, `HomeTabView.swift`, `GradientButton.swift`, `ExportActionCard.swift`, `MetricCard.swift`, `FixItemRow.swift`, `GreetingHeader.swift`, `ExpertModesView.swift`, `ExpertReportView.swift`
+- Story 3: `Features/Profile/ProfileView.swift` (language picker + chrome localization)
+- Story 4: `Core/Localization/ResumeRTL.swift` (new), `Services/ResumeDesignService.swift` (locale field), `Features/V2/Preview/ResumePreviewWebView.swift`, `Core/Export/HTMLPDFExporter.swift`
+- Story 5: `docs/app-store/he-metadata.md` (new)
+- Tracking: `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`
+**Decisions Made:**
+- UI strings live in two populations: catalog `Text("literal")` (translated) AND plain-`String` component/VM labels (don't localize). User chose a bounded "core-flow sweep" → converted static-label params to `LocalizedStringKey`; dynamic/server data kept as `String`.
+- RTL direction derived from résumé CONTENT (Hebrew chars), not UI language, so English résumés are never forced RTL.
+- Client-side RTL HTML post-processing is the robust path (works regardless of backend locale support); `locale` still sent so backend can do it natively later.
+- Runtime language switch via bundle override (`nonisolated` for Swift 6) + `.environment(\.locale/\.layoutDirection)`.
+- No fastlane added (Story 5 ASC submission is a manual user action).
+**Verification:** Build SUCCEEDED every story. App launches Hebrew RTL (Home/Profile verified on sim). Picker persists choice across relaunch (en→LTR, he→RTL). RTL résumé HTML renders correctly in WKWebView. 10/10 RTL-logic unit checks pass. Full suite: 88 tests pass (the `TEST FAILED` is a pre-existing host-teardown malloc crash, identical on base commit).
+**Next Recommended Action:** Real-device QA of a backend-authenticated Hebrew résumé (preview + PDF) per strategy doc; paste `docs/app-store/he-metadata.md` into App Store Connect Hebrew localization + capture Hebrew screenshots; optionally extend the LocalizedStringKey sweep to remaining secondary surfaces (account header strings, profileMessage fallbacks) for 100% coverage.
+
+---
+
 ## Sessions
 
 ### 2026-06-14 (resubmission)
