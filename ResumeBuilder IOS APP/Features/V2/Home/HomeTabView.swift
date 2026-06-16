@@ -175,7 +175,7 @@ struct HomeTabView: View {
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
-                    AnalyticsService.shared.track(.resumeUploaded)
+                    AnalyticsService.shared.track(.resumeUploaded(fileType: "pdf"))
                 }
             }
             .onChange(of: viewModel.jobDescription) { _, _ in trackJobAddedIfNeeded() }
