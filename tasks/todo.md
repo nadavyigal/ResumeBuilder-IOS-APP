@@ -33,12 +33,19 @@
 - [x] Verified: picker renders both options + reflects current selection; persisted
       choice drives language+direction across relaunch (en→LTR English, he→RTL Hebrew)
 
-## Story 4 — RTL resume preview + PDF (device QA)
-- [ ] Add optional `locale` to `RenderPreviewRequest`; send `he` when app is Hebrew
-- [ ] Verify backend honors locale; else inject `dir="rtl"` + RTL CSS client-side
-- [ ] Local fallback template: `<html dir="rtl">`, RTL CSS, Hebrew-capable font
-- [ ] PDF export inherits RTL; verify A4 layout/margins
-- [ ] Device QA: Hebrew resume → preview RTL → PDF RTL
+## Story 4 — RTL resume preview + PDF ✅
+- [x] Add optional `locale` to `RenderPreviewRequest`; send app language (he/en)
+- [x] Client-side RTL post-processing (`ResumeHTMLDirection.applyRTL`) injects
+      `dir="rtl"` + RTL CSS on backend HTML when résumé content is Hebrew (robust
+      regardless of backend locale support)
+- [x] Local fallback template emits `<html dir="rtl">`, RTL CSS, Hebrew font stack
+- [x] `LocalResumePDFExporter` direct-draw path: right alignment + RTL writing dir
+- [x] PDF export inherits the RTL HTML via WKWebView.createPDF
+- [x] Verified: 10/10 RTL-logic unit checks; Hebrew résumé HTML renders correct
+      RTL in WKWebView (headers right-aligned, bullets on right, Hebrew font, bidi)
+- Note: direction derived from résumé CONTENT (Hebrew chars), not UI language, so
+  English résumé never forced RTL. Full backend-auth Hebrew-resume device QA still
+  recommended on real hardware per strategy doc.
 
 ## Story 5 — Hebrew App Store metadata
 - [ ] Prepare he listing (name/subtitle/description/keywords) + Hebrew screenshots

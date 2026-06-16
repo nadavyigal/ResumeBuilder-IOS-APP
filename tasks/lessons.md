@@ -15,6 +15,21 @@
 
 ## Lessons
 
+### 2026-06-16
+**Category:** Test
+**Rule:** `xcodebuild test` ending in `** TEST FAILED **` with an empty "Failing tests:" list and `malloc: *** error for object 0x...: pointer being freed was not allocated` + "Restarting after unexpected exit" is a PRE-EXISTING test-host teardown crash (the @Observable @MainActor pattern from 2026-06-01), not a code regression. Confirm by checking every suite reports "0 failures" and the total test count matches baseline; if so, the run is green. Verified by running the base commit, which crashes identically (same malloc address).
+**Why:** During the Hebrew localization work, the full suite reported all 88 tests passing (0 failures) yet `TEST FAILED`. Running the unmodified base commit produced the identical crash/address, proving the changes introduced no regression.
+
+### 2026-06-16
+**Category:** SwiftUI
+**Rule:** To localize UI text that reaches a `Text` via a reusable component parameter or a view-model/enum computed property, change the parameter/return type from `String` to `LocalizedStringKey` (call-site string literals coerce automatically and resolve through the String Catalog). `Text(someStringVariable)` does NOT localize — only `Text("literal")` and `Text(LocalizedStringKey)` do. Keep dynamic/server data (file names, API content) as `String`.
+**Why:** Translating only `Localizable.xcstrings` left the tab bar, home hero, and component labels in English because they were plain `String` rendered via `Text(variable)`.
+
+### 2026-06-16
+**Category:** Build
+**Rule:** Under Swift 6 default MainActor isolation, a `Bundle` subclass used for runtime language override must be declared `nonisolated final class` (so its implicit initializers match `Bundle`'s nonisolated designated inits) and any file-scope `var` it uses via `objc_*AssociatedObject` must be `nonisolated(unsafe)`.
+**Why:** The LocalizedBundle override first failed to build with "main actor-isolated initializer 'init(path:)' has different actor isolation from nonisolated overridden declaration" until the class and the associated-object key were marked nonisolated.
+
 ### 2026-06-14
 **Category:** Test
 **Rule:** If `xcodebuild test` reaches "Testing started" then hangs at "waiting for workers to materialize", restart the target simulator and rerun with a fresh derived-data path before treating it as an app test failure.

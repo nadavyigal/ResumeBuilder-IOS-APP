@@ -160,7 +160,8 @@ struct ResumePreviewWebView: View {
                 optimizationId: optimizationId,
                 templateId: templateId ?? "ats-clean",
                 customization: customization ?? .default,
-                resumeData: nil
+                resumeData: nil,
+                locale: LocalizationManager.shared.language.rawValue
             )
             let response = try await designService.renderPreview(request, token: token)
             #if DEBUG
@@ -170,9 +171,15 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("✅ [PREVIEW] using rendered HTML")
                 #endif
-                html = previewHTML
-                renderedHTML.wrappedValue = previewHTML
-                PreviewHTMLCache.store(previewHTML, for: key)
+                // Ensure RTL output for Hebrew résumés even if the backend ignored
+                // the locale hint. Direction is decided from the résumé content so
+                // an English résumé is never forced RTL.
+                let rtl = ResumeTextDirection.isRTL(sections: sections, contact: contact)
+                    || (sections.isEmpty && ResumeTextDirection.isRTLText(previewHTML))
+                let finalHTML = ResumeHTMLDirection.applyRTLIfNeeded(to: previewHTML, isRTL: rtl)
+                html = finalHTML
+                renderedHTML.wrappedValue = finalHTML
+                PreviewHTMLCache.store(finalHTML, for: key)
                 didRender = true
             } else if !sections.isEmpty {
                 #if DEBUG
@@ -360,15 +367,23 @@ enum ResumeHTMLBuilder {
             """
         }
 
+        // RTL résumés (Hebrew content) need a flipped document direction, a
+        // Hebrew-capable font, and logical list indentation on the right.
+        let isRTL = ResumeTextDirection.isRTL(sections: sections, contact: contact)
+        let dirAttr = isRTL ? " dir=\"rtl\"" : ""
+        let bodyDirection = isRTL ? "direction: rtl; text-align: right; " : ""
+        let fontFamily = isRTL ? ResumeHTMLDirection.hebrewFontStack : "Georgia, serif"
+        let listIndent = isRTL ? "margin-right: 16px;" : "margin-left: 16px;"
+
         return """
         <!DOCTYPE html>
-        <html>
+        <html\(dirAttr)>
         <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Georgia, serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.5; }
+          body { \(bodyDirection)font-family: \(fontFamily); font-size: 10pt; color: #1a1a1a; background: #fff; padding: 36px 44px; line-height: 1.5; }
           .resume-header { text-align: center; padding-bottom: 10px; }
           .resume-name { font-size: 18pt; font-weight: bold; color: #1a1a1a; letter-spacing: 0.5px; }
           .resume-title { font-size: 10pt; color: #333; margin-top: 3px; }
@@ -376,7 +391,7 @@ enum ResumeHTMLBuilder {
           .divider { border: none; border-top: 1.5px solid #\(accent); margin: 12px 0 8px; }
           h2 { font-size: 9pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #\(accent); margin-bottom: 6px; }
           .section p { margin-bottom: 4px; font-size: 9.5pt; }
-          .section ul { margin-left: 16px; }
+          .section ul { \(listIndent) }
           .section li { margin-bottom: 3px; font-size: 9.5pt; }
           .section br { display: block; margin: 2px 0; }
         </style>

@@ -124,6 +124,8 @@ enum LocalResumePDFExporter {
             throw APIClientError.invalidResponse
         }
 
+        // Hebrew résumés render right-to-left with right alignment.
+        let isRTL = ResumeTextDirection.isRTL(sections: sections, contact: contact)
         let pageBounds = CGRect(x: 0, y: 0, width: 595, height: 842)
         let margin: CGFloat = 48
         let contentWidth = pageBounds.width - margin * 2
@@ -136,6 +138,10 @@ enum LocalResumePDFExporter {
                 let paragraph = NSMutableParagraphStyle()
                 paragraph.lineBreakMode = .byWordWrapping
                 paragraph.lineSpacing = 2
+                if isRTL {
+                    paragraph.alignment = .right
+                    paragraph.baseWritingDirection = .rightToLeft
+                }
                 let attributes: [NSAttributedString.Key: Any] = [
                     .font: font,
                     .foregroundColor: color,
