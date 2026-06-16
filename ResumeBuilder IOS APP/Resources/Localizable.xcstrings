@@ -5118,6 +5118,16 @@
           }
         }
       }
+    },
+    "Language" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שפה"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

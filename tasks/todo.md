@@ -20,14 +20,18 @@
 - [x] Wire `.environment(\.locale)` + `.environment(\.layoutDirection)` at root in `ResumeBuilder_IOS_APPApp.swift`
 - [x] BUILD SUCCEEDED; he.lproj compiled; app launches in Hebrew without crash
 
-## Story 2 — Translate natural-language keys to Hebrew
-- [ ] Author Hebrew for all UI keys (terminology aligned to web `he.json`)
-- [ ] Preserve format specifiers (%@, %lld) exactly; same count/order
-- [ ] Leave brand tokens (Resumely, Stripe, ATS) untranslated where web does
+## Story 2 — Translate natural-language keys to Hebrew ✅
+- [x] Author Hebrew for all 360 catalog keys (terminology aligned to web `he.json`)
+- [x] Preserve positional format specifiers (%1$@, %2$lld) exactly; same count/order
+- [x] Leave brand tokens (Resumely, ATS, PDF, LinkedIn) untranslated
+- [x] Core-flow sweep (Story 2.5): converted plain-String component/VM labels to
+      LocalizedStringKey + added Hebrew for 133 newly-exposed labels. Home fully Hebrew.
 
-## Story 3 — Language picker in Me tab
-- [ ] Add English / עברית control in `Features/Profile/ProfileView.swift` calling LocalizationManager
-- [ ] Switch live + persist across relaunch
+## Story 3 — Language picker in Me tab ✅
+- [x] Add English / עברית segmented Picker in `Features/Profile/ProfileView.swift` bound to LocalizationManager
+- [x] Localize Profile chrome (section titles, stat labels, row labels) to LocalizedStringKey
+- [x] Verified: picker renders both options + reflects current selection; persisted
+      choice drives language+direction across relaunch (en→LTR English, he→RTL Hebrew)
 
 ## Story 4 — RTL resume preview + PDF (device QA)
 - [ ] Add optional `locale` to `RenderPreviewRequest`; send `he` when app is Hebrew
