@@ -1,38 +1,46 @@
 # Current Task
 
-**Objective:** Implement Resume Aha Moments so users see grounded diagnosis, recruiter-style feedback, before/after rewrite, and confidence cues in the first resume/job flow.
-**Status:** PR #58 review remediated; waiting on live device/simulator smoke
-**Branch:** `codex/resume-aha-moments`
-**Spec:** `docs/specs/resume-aha-moments.md`
+**Objective:** Ship a full Hebrew version of the Resumely iOS app (native UI strings + language picker + RTL resume preview/PDF + Hebrew App Store metadata).
+**Status:** Story 1 in progress
+**Branch:** `claude/relaxed-northcutt-cb6240`
+**Plan:** Hebrew Version of Resumely (5 stories)
 
-## Files Planned
-- [x] `ResumeBuilder IOS APP/Models/ResumeDiagnosis.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeDiagnosisView.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeDiagnosisViewModel.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/BeforeAfterRewriteCard.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/RecruiterEyeViewCard.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Diagnosis/ResumeConfidenceChecklist.swift`
-- [x] `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift`
-- [x] `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Home/HomeActivationState.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Home/HomeTabView.swift`
-- [x] `ResumeBuilder IOS APP/Features/Tailor/TailorView.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Home/ResumeOptimizationLoadingView.swift`
-- [x] `ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift`
-- [x] `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift`
+## Verified current state
+- App target uses fileSystemSynchronizedGroups → new Swift files auto-compile.
+- App uses explicit `Config/Info.plist` (GENERATE_INFOPLIST_FILE = NO).
+- `knownRegions = (en, Base)`; `developmentRegion = en`. No `he`.
+- Catalog `Localizable.xcstrings`: 360 keys; UI uses natural-language `Text("...")` literals resolved through the catalog. Only 16 *symbolic* keys (tab_home, app_name…) have Hebrew, and those symbolic keys are NOT referenced in code. Real translation work = the natural-language keys.
+- No `String(localized:)` / no existing localization helper anywhere.
 
-## Implementation Checklist
-- [x] Add diagnosis models, optional backend decode, and conservative fallback mapper.
-- [x] Build reusable before/after, recruiter-eye, and confidence checklist cards.
-- [x] Add `ResumeDiagnosisView` and `ResumeDiagnosisViewModel` with loading, success, empty, and error states.
-- [x] Route Home/Tailor optimization completion to Diagnosis before Optimized.
-- [x] Add smart empty/loading copy and a compact confidence checklist in Optimized.
-- [x] Add focused tests for mapper/fallback behavior.
+## Story 1 — Hebrew + language infrastructure ✅
+- [x] Add `he` to `knownRegions` in project.pbxproj
+- [x] Add `CFBundleLocalizations` (en, he) to `Config/Info.plist`
+- [x] Create `Core/Localization/LocalizationManager.swift` (@Observable @MainActor singleton; auto-detect device Hebrew on first launch; persist explicit choice in UserDefaults)
+- [x] Create `Core/Localization/Bundle+Localization.swift` (bundle-override pattern, nonisolated class for Swift 6)
+- [x] Wire `.environment(\.locale)` + `.environment(\.layoutDirection)` at root in `ResumeBuilder_IOS_APPApp.swift`
+- [x] BUILD SUCCEEDED; he.lproj compiled; app launches in Hebrew without crash
+
+## Story 2 — Translate natural-language keys to Hebrew
+- [ ] Author Hebrew for all UI keys (terminology aligned to web `he.json`)
+- [ ] Preserve format specifiers (%@, %lld) exactly; same count/order
+- [ ] Leave brand tokens (Resumely, Stripe, ATS) untranslated where web does
+
+## Story 3 — Language picker in Me tab
+- [ ] Add English / עברית control in `Features/Profile/ProfileView.swift` calling LocalizationManager
+- [ ] Switch live + persist across relaunch
+
+## Story 4 — RTL resume preview + PDF (device QA)
+- [ ] Add optional `locale` to `RenderPreviewRequest`; send `he` when app is Hebrew
+- [ ] Verify backend honors locale; else inject `dir="rtl"` + RTL CSS client-side
+- [ ] Local fallback template: `<html dir="rtl">`, RTL CSS, Hebrew-capable font
+- [ ] PDF export inherits RTL; verify A4 layout/margins
+- [ ] Device QA: Hebrew resume → preview RTL → PDF RTL
+
+## Story 5 — Hebrew App Store metadata
+- [ ] Prepare he listing (name/subtitle/description/keywords) + Hebrew screenshots
+- [ ] (fastlane deliver only with explicit approval)
 
 ## Verification
-- [x] `git diff --check`
-- [x] Focused diagnosis tests on iPhone 17 simulator (`ResumeDiagnosisViewModelTests`, 7 tests)
-- [x] Full test suite on iPhone 17 simulator (83 XCTest tests + 5 Swift Testing tests)
-- [x] Release archive for generic iOS (`/tmp/ResumeBuilder-PR58.xcarchive`)
-- [x] Source review of account deletion and registration paths
-- [ ] Live simulator/device smoke test for changed UI, including delete account and register again (blocked by CoreSimulator install/screenshot/container hangs)
+- [ ] Build + unit tests in `ResumeBuilder IOS APPTests`
+- [ ] Update affected tests (LiveEndpointStabilizationTests, PDFDownloadValidatorTests)
+- [ ] QA matrix: each tab × {English LTR, Hebrew RTL}; PDF on real device
