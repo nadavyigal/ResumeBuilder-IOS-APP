@@ -1,10 +1,7 @@
 import Foundation
 
 enum RuntimeFeatures {
-    /// `/api/v1/resumes` is not available on the production backend yet.
-    /// Keep runtime live-only, but do not expose a broken saved-resume flow.
-    /// TODO(Stage2-RES-RESUMES): remove flag when `/api/v1/resumes` ships.
-    static let isResumeLibraryEnabled = false
+    static let isResumeLibraryEnabled = true
 }
 
 enum RuntimeServices {
