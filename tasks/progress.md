@@ -1,21 +1,21 @@
 # Project Progress
 
-**Hebrew / RTL (2026-06-16):** Shipped full Hebrew support (Phase 2). Language infrastructure (he region, CFBundleLocalizations, runtime bundle override + LocalizationManager), 360 catalog keys translated + 134 core-flow component labels converted to LocalizedStringKey and translated, language picker in Me tab (auto-detect device Hebrew, manual override, persists), and RTL résumé preview + PDF (content-based detection, client-side `dir=rtl` injection + Hebrew font, local fallback + direct-draw PDF). Hebrew App Store metadata prepared in `docs/app-store/he-metadata.md`. Branch `claude/relaxed-northcutt-cb6240`. Remaining: real-device Hebrew résumé QA + ASC submission (manual).
+**PostHog Analytics (2026-06-16):** Custom transport verified end-to-end. 30-day audit: 213 iOS events (`$lib=resumely-ios-urlsession`). Release build has non-empty `POSTHOG_API_KEY`. D7 dashboard live: [ResumeBuilder iOS — D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819). Identity fix: `resetDistinctId()` on sign-out; `platform`/`$os` on all captures. Audit: `docs/qa/posthog-analytics-audit-2026-06-16.md`.
 
-**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 open.
+**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 merged.
 
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: In App Store review (build 4 submitted 2026-06-14); analytics wired (PR #60 merged)
-Current Phase: App Store review pending + product polish
-Active Story: P2 analytics + Resume Library backend route
-Last Completed Story: PostHog core funnel events wired — build succeeds, 88 tests pass. ITSAppUsesNonExemptEncryption=false fix applied (PR #59).
-Next Recommended Story: Verify Live Events in PostHog, then fix /api/v1/resumes 404 in the web repo and re-enable isResumeLibraryEnabled = true.
+Status: In App Store review (build 4 submitted 2026-06-14); PostHog verified + D7 dashboard live
+Current Phase: App Store review pending + Gate A analytics (deadline 2026-06-21)
+Active Story: Resume Library backend route; optional full-device PostHog smoke before next TestFlight
+Last Completed Story: PostHog full coverage — MCP audit, D7 dashboard, identity/platform fixes, AnalyticsServiceTests 8/8 pass
+Next Recommended Story: Ship build with PR #60 events to App Store; fix /api/v1/resumes 404 in web repo and re-enable isResumeLibraryEnabled
 Estimated Completion: 95%
 Blockers: /api/v1/resumes backend route returns 404 (Resume Library disabled in iOS). Gate A paywall requires D7 data — deadline 2026-06-21.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.
-Last Validation: PR #60 analytics (2026-06-16): BUILD SUCCEEDED. TEST SUCCEEDED — 83 XCTest tests plus 5 Swift Testing tests, 0 failures.
+Last Validation: PostHog coverage (2026-06-16): Release BUILD SUCCEEDED; AnalyticsServiceTests 8/8; capture API HTTP 200; dashboard https://us.posthog.com/project/270848/dashboard/1720819
 Last Updated: 2026-06-16
 Current Branch: codex/resume-aha-moments
 Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep

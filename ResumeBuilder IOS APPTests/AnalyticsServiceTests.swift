@@ -34,6 +34,8 @@ final class AnalyticsServiceTests: XCTestCase {
         let props = payload["properties"] as? [String: String]
         XCTAssertEqual(props?["is_authenticated"], "false")
         XCTAssertEqual(props?["$lib"], "resumely-ios-urlsession")
+        XCTAssertEqual(props?["platform"], "ios")
+        XCTAssertEqual(props?["$os"], "iOS")
     }
 
     // MARK: PII guard — all 11 events
@@ -97,6 +99,15 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(AnalyticsEvent.scoreBucket(for: 55), "41-60")
         XCTAssertEqual(AnalyticsEvent.scoreBucket(for: 72), "61-80")
         XCTAssertEqual(AnalyticsEvent.scoreBucket(for: 90), "81-100")
+    }
+
+    func testResetDistinctIdClearsStoredID() async {
+        let key = AnalyticsService.distinctIdKey
+        UserDefaults.standard.set("user-123", forKey: key)
+        let service = AnalyticsService(transport: SpyTransport())
+        service.resetDistinctId()
+        XCTAssertNil(UserDefaults.standard.string(forKey: key))
+        _ = service.isEnabled
     }
 
     // MARK: Export action analytics
