@@ -2,7 +2,7 @@ import SwiftUI
 
 struct GreetingHeader: View {
     let name: String
-    let screenTitle: String
+    let screenTitle: LocalizedStringKey
 
     var body: some View {
         HStack(alignment: .top) {

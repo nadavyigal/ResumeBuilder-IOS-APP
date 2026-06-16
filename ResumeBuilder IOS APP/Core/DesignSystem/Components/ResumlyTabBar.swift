@@ -19,7 +19,7 @@ enum ResumlyTab: Int, CaseIterable {
         }
     }
 
-    var label: String {
+    var label: LocalizedStringKey {
         switch self {
         case .tailor:    return "Home"
         case .optimized: return "Optimized"
@@ -29,9 +29,7 @@ enum ResumlyTab: Int, CaseIterable {
         }
     }
 
-    var accessibilityLabel: String { label }
-
-    var accessibilityValue: String {
+    var accessibilityValue: LocalizedStringKey {
         switch self {
         case .tailor: return "Activation home tab"
         case .optimized: return "Optimized resume tab"
@@ -104,7 +102,7 @@ struct ResumlyTabBar: View {
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: selection)
-        .accessibilityLabel(tab.accessibilityLabel)
+        .accessibilityLabel(Text(tab.label))
         .accessibilityValue(tab.accessibilityValue)
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }

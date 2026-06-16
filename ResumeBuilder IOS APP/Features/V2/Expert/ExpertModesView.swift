@@ -280,7 +280,7 @@ private struct ExpertModeTile: View {
         .glassCard(cornerRadius: AppRadii.lg)
     }
 
-    private var primaryButtonTitle: String {
+    private var primaryButtonTitle: LocalizedStringKey {
         switch phase {
         case .idle:
             return "Run"
@@ -381,7 +381,7 @@ private struct ExpertModeTileOutputView: View {
     }
 
     @ViewBuilder
-    private func fallbackReportView(state: ExpertRunUIState, buttonTitle: String) -> some View {
+    private func fallbackReportView(state: ExpertRunUIState, buttonTitle: LocalizedStringKey) -> some View {
         let report = state.report
             ?? ExpertReportDisplayModel(
                 headline: mode.displayTitle,

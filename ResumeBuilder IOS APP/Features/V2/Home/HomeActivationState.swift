@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 /// Guest-first activation states derived from existing Tailor/AppState inputs.
 enum HomeActivationState: Equatable, Sendable {
@@ -33,7 +33,7 @@ enum HomeActivationState: Equatable, Sendable {
         return .noResume
     }
 
-    var headline: String {
+    var headline: LocalizedStringKey {
         switch self {
         case .noResume: return "Upload your resume for a recruiter-style read"
         case .resumeNoJob: return "Paste a job to reveal missing keywords"
@@ -46,7 +46,7 @@ enum HomeActivationState: Equatable, Sendable {
         }
     }
 
-    var subheadline: String {
+    var subheadline: LocalizedStringKey {
         switch self {
         case .noResume:
             return "See what a recruiter may notice in 7 seconds, then get the next fix."

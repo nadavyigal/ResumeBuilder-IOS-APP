@@ -62,7 +62,7 @@ struct HomeTabView: View {
                             stepCard(
                                 step: 1,
                                 title: "Upload Resume",
-                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? viewModel.selectedResumeName! : "PDF, up to 5 MB",
+                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? LocalizedStringKey(viewModel.selectedResumeName!) : "PDF, up to 5 MB",
                                 icon: "doc.fill",
                                 isFilled: viewModel.selectedResumeName?.isEmpty == false,
                                 action: { isImporterPresented = true }
@@ -296,7 +296,6 @@ struct HomeTabView: View {
                 .strokeBorder(Theme.accent.opacity(0.25), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(activationState.headline). \(activationState.subheadline)")
     }
 
     private var optimizedReadyCard: some View {
@@ -363,8 +362,8 @@ struct HomeTabView: View {
 
     private func stepCard(
         step: Int,
-        title: String,
-        subtitle: String,
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
         icon: String,
         isFilled: Bool,
         action: @escaping () -> Void
