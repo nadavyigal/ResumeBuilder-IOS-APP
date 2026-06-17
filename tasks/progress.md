@@ -2,25 +2,27 @@
 
 **App Store Live + Launch Analytics (2026-06-17):** Founder reported Resumely iOS is live in the App Store. Live PostHog QA for project 270848 verified iOS analytics are healthy: `$lib=resumely-ios-urlsession`, 190 events / 18 users in the last 7 days, last event 2026-06-17. D7 dashboard is the iOS north-star dashboard: [ResumeBuilder iOS - D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819).
 
+**Post-Live D7 Readout Pre-Read (2026-06-17):** Connected PostHog plugin source access is verified for project 270848 and dashboard 1720819. Live HogQL read: `$lib=resumely-ios-urlsession`, 188 events / 18 users over the trailing 7 days, last event 2026-06-17T03:06:44.021Z. Since the App Store-live anchor of 2026-06-17T00:00:00Z, PostHog shows 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users. This is a Day 0 / D7-pre-read; the first complete D7 window from the 2026-06-17 launch anchor ends on 2026-06-24. Report: `docs/qa/reports/post-live-d7-readout-2026-06-17.md`.
+
 **PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 merged.
 
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
 Status: App Store live; launch analytics verified in PostHog
-Current Phase: Post-live QA + D7 activation readout
-Active Story: Post-live analytics reconciliation and dashboard hygiene
+Current Phase: Post-live QA + D7 activation readout pending complete D7 window
+Active Story: Post-live D7 readout pre-read
 Last Completed Story: Resume Library enabled on `main` after `/api/v1/resumes` was confirmed live; PostHog iOS launch events verified.
-Next Recommended Story: Read D7 Activation dashboard 1720819 after the first full 7-day live window; decide whether Week 1 Launch Metrics (1285341) and My App Dashboard (932305) should be archived as stale web/legacy dashboards.
+Next Recommended Story: Re-run D7 readout through the connected PostHog plugin on or after 2026-06-24; then decide whether Week 1 Launch Metrics (1285341), Activation Funnel (1345375), and My App Dashboard (932305) should be archived.
 Estimated Completion: 100% for launch gate; post-live optimization continues.
 Blockers: No launch-gate blocker. App Store metrics/revenue are unknown until App Store Connect or RevenueCat is reviewed.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.
-Last Validation: Live PostHog QA (2026-06-17): iOS `$lib=resumely-ios-urlsession` 190 events / 18 users (7d), last event 2026-06-17; D7 dashboard 1720819 live. Web production Vercel env includes `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`; `$lib=web` showed 24 events / 1 user (7d), so web is firing but low-traffic.
+Last Validation: Post-live D7 pre-read (2026-06-17): connected PostHog plugin resolved dashboard 1720819 and live HogQL confirmed iOS `$lib=resumely-ios-urlsession` 188 events / 18 users over 7 days, last event 2026-06-17T03:06:44.021Z. Dashboard 1720819 is pinned and remains the iOS north star; no dashboards were edited or deleted.
 Last Updated: 2026-06-17
-Current Branch: codex/resumely-release-qa
-Latest Base Commit: 92a645c - Resume Library enabled after `/api/v1/resumes` was confirmed live on production
+Current Branch: codex/post-live-d7-readout
+Latest Base Commit: d4fdee6 - Merge PR #65 post-live analytics reconciliation
 Active Spec: docs/specs/resume-aha-moments.md
-Latest QA Report: PostHog D7 dashboard 1720819 + live QA packet 2026-06-17
+Latest QA Report: docs/qa/reports/post-live-d7-readout-2026-06-17.md
 
 ## Tab Structure (as of 2026-05-20)
 | Tab | Index | View | VM |
