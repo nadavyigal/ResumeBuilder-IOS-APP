@@ -539,6 +539,16 @@
         }
       }
     },
+    "A recruiter may need clearer evidence for the target role." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מגייס עשוי להזדקק לראיות ברורות יותר לתפקיד היעד."
+          }
+        }
+      }
+    },
     "A recruiter may see a reasonably strong fit for %@, with a few details still worth tightening." : {
       "localizations" : {
         "he" : {
@@ -1084,6 +1094,16 @@
         }
       }
     },
+    "Apply failed." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההחלה נכשלה."
+          }
+        }
+      }
+    },
     "Apply Full Rewrite" : {
       "localizations" : {
         "he" : {
@@ -1190,6 +1210,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "דוח ATS מעמיק"
+          }
+        }
+      }
+    },
+    "ATS improvements applied. Review the resume before submitting." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שיפורי ATS הוחלו. סקור את קורות החיים לפני ההגשה."
           }
         }
       }
@@ -3404,6 +3434,16 @@
         }
       }
     },
+    "Missing metrics" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חסרים מדדים"
+          }
+        }
+      }
+    },
     "Missing product analytics keywords" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4275,6 +4315,16 @@
         }
       }
     },
+    "Premium subscription required to run expert modes." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נדרש מנוי פרימיום כדי להריץ מצבי מומחה."
+          }
+        }
+      }
+    },
     "Preparing your diagnosis" : {
       "localizations" : {
         "he" : {
@@ -4718,6 +4768,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "החלף פעלים סבילים בתוצאות שסופקו"
+          }
+        }
+      }
+    },
+    "Report loaded — full fidelity may require re-run." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדוח נטען — נאמנות מלאה עשויה לדרוש הרצה מחדש."
           }
         }
       }
@@ -6386,6 +6446,16 @@
         }
       }
     },
+    "Target Role" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תפקיד יעד"
+          }
+        }
+      }
+    },
     "Target role alignment needs review" : {
       "localizations" : {
         "he" : {
@@ -6643,6 +6713,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "לא ניתן לקרוא את הקובץ שנבחר. בחר קובץ PDF מקומי."
+          }
+        }
+      }
+    },
+    "Unauthorized" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא מורשה"
           }
         }
       }

@@ -65,8 +65,8 @@ struct ExpertSavedReportDetailView: View {
     private func reportContent(_ snap: ExpertWorkflowRunSnapshot) -> some View {
         let report = ExpertReportParsing.displayModel(from: snap.output)
             ?? ExpertReportDisplayModel(
-                headline: workflowTypeRaw ?? NSLocalizedString("Saved Report", comment: ""),
-                executiveSummary: "Report loaded — full fidelity may require re-run.",
+                headline: workflowType?.displayTitle ?? NSLocalizedString("Saved Report", comment: ""),
+                executiveSummary: NSLocalizedString("Report loaded — full fidelity may require re-run.", comment: ""),
                 priorityActions: [],
                 evidenceGaps: snap.missingEvidence,
                 atsImpact: nil

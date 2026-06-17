@@ -11,7 +11,7 @@ enum APIClientError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unauthorized:
-            return "Unauthorized"
+            return NSLocalizedString("Unauthorized", comment: "")
         case .paymentRequired:
             return NSLocalizedString("You've used all your optimization credits. Upgrade your plan to continue.", comment: "")
         case .serverError(let status, let message):

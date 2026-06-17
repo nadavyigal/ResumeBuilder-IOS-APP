@@ -190,7 +190,7 @@ struct ApplicationDetailView: View {
         let name: String
         if let urlStr = link, let url = URL(string: urlStr) {
             let last = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
-            name = last.isEmpty ? "Optimized Resume" : last
+            name = last.isEmpty ? NSLocalizedString("Optimized Resume", comment: "") : last
         } else {
             name = id.map { "Optimization \($0.prefix(8))…" } ?? NSLocalizedString("Optimized Resume", comment: "")
         }

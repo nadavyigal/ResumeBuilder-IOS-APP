@@ -101,8 +101,8 @@ final class SubmitApplicationViewModel {
 
         let trimmedJobTitle = jobTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let packageJobTitle = trimmedJobTitle.isEmpty ? "Target Role" : trimmedJobTitle
-        let packageCompany = trimmedCompany.isEmpty ? "Company not specified" : trimmedCompany
+        let packageJobTitle = trimmedJobTitle.isEmpty ? NSLocalizedString("Target Role", comment: "") : trimmedJobTitle
+        let packageCompany = trimmedCompany.isEmpty ? NSLocalizedString("Company not specified", comment: "") : trimmedCompany
 
         isSubmitting = true
         errorMessage = nil

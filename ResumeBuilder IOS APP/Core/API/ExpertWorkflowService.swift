@@ -109,7 +109,7 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
             timeout: 120
         )
         guard dto.success != false else {
-            throw ExpertWorkflowServiceError.applyFailed(dto.error ?? "Apply failed.")
+            throw ExpertWorkflowServiceError.applyFailed(dto.error ?? NSLocalizedString("Apply failed.", comment: ""))
         }
         return dto
     }
@@ -161,7 +161,7 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
         }
     }
 
-    private static let fallbackPremiumHint = "Premium subscription required to run expert modes."
+    private static let fallbackPremiumHint = NSLocalizedString("Premium subscription required to run expert modes.", comment: "")
 
     private static func extractLockedPreview(fromJSONString raw: String) -> String? {
         guard let data = raw.data(using: .utf8),

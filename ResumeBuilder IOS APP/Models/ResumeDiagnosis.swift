@@ -279,7 +279,7 @@ struct RecruiterReview: Codable, Equatable, Sendable {
             ?? c.decodeIfPresent(String.self, forKey: .nextFixSnake)
             ?? NSLocalizedString("Rewrite the summary around the target job.", comment: "")
         self.init(
-            impression: try c.decodeIfPresent(String.self, forKey: .impression) ?? "A recruiter may need clearer evidence for the target role.",
+            impression: try c.decodeIfPresent(String.self, forKey: .impression) ?? NSLocalizedString("A recruiter may need clearer evidence for the target role.", comment: ""),
             strengths: try c.decodeIfPresent([String].self, forKey: .strengths) ?? [],
             concerns: try c.decodeIfPresent([String].self, forKey: .concerns) ?? [],
             nextFix: nextFix
@@ -607,7 +607,7 @@ enum ResumeDiagnosisMapper {
                 hasSkills ? NSLocalizedString("Skills section is present", comment: "") : nil,
                 currentScore >= 60 ? NSLocalizedString("Some role alignment is visible", comment: "") : nil,
             ].compactMap { $0 }.ifEmpty([NSLocalizedString("Relevant background", comment: ""), NSLocalizedString("Transferable experience", comment: "")]),
-            concerns: concernTitles.ifEmpty(["Missing metrics", NSLocalizedString("Role targeting needs sharpening", comment: "")]),
+            concerns: concernTitles.ifEmpty([NSLocalizedString("Missing metrics", comment: ""), NSLocalizedString("Role targeting needs sharpening", comment: "")]),
             nextFix: blockers.first?.suggestedAction?.nilIfBlank ?? NSLocalizedString("Rewrite the summary and strongest bullets around the target job.", comment: "")
         )
     }

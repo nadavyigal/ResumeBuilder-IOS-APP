@@ -10,7 +10,7 @@
 
 import Foundation
 
-enum ResumeTextDirection {
+enum ResumeTextDirection: Sendable {
     /// True when the combined resume content is predominantly right-to-left (Hebrew).
     static func isRTL(sections: [OptimizedResumeSection], contact: ResumeContact?) -> Bool {
         var text = ""
@@ -41,7 +41,7 @@ enum ResumeTextDirection {
     }
 }
 
-enum ResumeHTMLDirection {
+enum ResumeHTMLDirection: Sendable {
     /// Hebrew-capable font stack used for RTL résumés (system Hebrew faces first).
     static let hebrewFontStack = "-apple-system, 'Heebo', 'Arial Hebrew', 'Arial', sans-serif"
 

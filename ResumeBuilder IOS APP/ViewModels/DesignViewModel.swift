@@ -203,7 +203,7 @@ final class DesignViewModel {
                     body: body,
                     token: token
                 )
-                if res.success == false, res.error != nil {
+                if res.success == false {
                     throw APIClientError.serverError(status: 400, message: res.error ?? NSLocalizedString("Revert failed", comment: ""))
                 }
             } else {

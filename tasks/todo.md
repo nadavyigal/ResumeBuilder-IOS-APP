@@ -1,7 +1,7 @@
 # Current Task
 
 **Objective:** Ship a full Hebrew version of the Resumely iOS app (native UI strings + language picker + RTL resume preview/PDF + Hebrew App Store metadata).
-**Status:** Story 1 in progress
+**Status:** Stories 1-6 complete; user actions pending (ASC submission, real-device QA)
 **Branch:** `claude/relaxed-northcutt-cb6240`
 **Plan:** Hebrew Version of Resumely (5 stories)
 

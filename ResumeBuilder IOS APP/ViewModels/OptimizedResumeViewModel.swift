@@ -308,7 +308,7 @@ final class OptimizedResumeViewModel {
             .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return stripped.isEmpty ? "Download failed" : String(stripped.prefix(240))
+        return stripped.isEmpty ? NSLocalizedString("Download failed", comment: "") : String(stripped.prefix(240))
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
@@ -578,7 +578,7 @@ final class OptimizedResumeViewModel {
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = nil
-            atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
+            atsUpliftMessage = NSLocalizedString("ATS improvements applied. Review the resume before submitting.", comment: "")
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {
