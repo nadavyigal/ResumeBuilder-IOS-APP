@@ -15,6 +15,25 @@
 
 ## Sessions
 
+### 2026-06-17 (PostHog real-device QA)
+**Task:** Verify PostHog analytics coverage and run real-device QA
+**Files Changed:**
+- `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — added exact PostHog event-name/property contract coverage for all 16 app-defined analytics events.
+- `docs/qa/reports/posthog-real-device-qa-2026-06-17.md` — documented PostHog plugin context, live coverage, real-device build/install/launch, device test result, and remaining live-observation gap.
+- `tasks/progress.md` — recorded PostHog/device QA status and latest validation.
+- `tasks/session-log.md` — recorded this session.
+**Decisions Made:**
+- Treated project 270848 as authoritative after detecting the PostHog plugin had drifted to project 171597.
+- Classified five events as wired/test-covered but not production-observed: `free_ats_completed`, `diagnosis_viewed`, `ats_improve_tapped`, `export_pdf_tapped`, and `submit_package_saved`.
+- Did not mutate PostHog dashboards, App Store Connect, Vercel, or backend state.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Physical iPhone 13 Debug build, install, and launch passed.
+- Built app Info.plist had `API_BASE_URL`, `POSTHOG_API_KEY`, and `POSTHOG_HOST` set.
+- Focused physical-device test run passed: `AnalyticsServiceTests` 8/8, 0 failures.
+- PostHog query after `2026-06-17T12:25:25Z` showed fresh iOS events for `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`.
+**Next Recommended Action:** Run an authenticated manual device smoke through Diagnosis, Improve ATS, Export PDF, and Submit Package to make the five remaining wired events appear in live PostHog data.
+
 ### 2026-06-17 (post-live D7 plugin pre-read)
 **Task:** Post-Live D7 Readout
 **Files Changed:**
