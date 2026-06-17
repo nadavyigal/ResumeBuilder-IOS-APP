@@ -1,24 +1,26 @@
 # Project Progress
 
-**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 open.
+**App Store Live + Launch Analytics (2026-06-17):** Founder reported Resumely iOS is live in the App Store. Live PostHog QA for project 270848 verified iOS analytics are healthy: `$lib=resumely-ios-urlsession`, 190 events / 18 users in the last 7 days, last event 2026-06-17. D7 dashboard is the iOS north-star dashboard: [ResumeBuilder iOS - D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819).
+
+**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 merged.
 
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: In App Store review (build 4 submitted 2026-06-14); analytics wired (PR #60 merged)
-Current Phase: App Store review pending + product polish
-Active Story: P2 analytics + Resume Library backend route
-Last Completed Story: PostHog core funnel events wired — build succeeds, 88 tests pass. ITSAppUsesNonExemptEncryption=false fix applied (PR #59).
-Next Recommended Story: Verify Live Events in PostHog, then fix /api/v1/resumes 404 in the web repo and re-enable isResumeLibraryEnabled = true.
-Estimated Completion: 95%
-Blockers: /api/v1/resumes backend route returns 404 (Resume Library disabled in iOS). Gate A paywall requires D7 data — deadline 2026-06-21.
+Status: App Store live; launch analytics verified in PostHog
+Current Phase: Post-live QA + D7 activation readout
+Active Story: Post-live analytics reconciliation and dashboard hygiene
+Last Completed Story: Resume Library enabled on `main` after `/api/v1/resumes` was confirmed live; PostHog iOS launch events verified.
+Next Recommended Story: Read D7 Activation dashboard 1720819 after the first full 7-day live window; decide whether Week 1 Launch Metrics (1285341) and My App Dashboard (932305) should be archived as stale web/legacy dashboards.
+Estimated Completion: 100% for launch gate; post-live optimization continues.
+Blockers: No launch-gate blocker. App Store metrics/revenue are unknown until App Store Connect or RevenueCat is reviewed.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.
-Last Validation: PR #60 analytics (2026-06-16): BUILD SUCCEEDED. TEST SUCCEEDED — 83 XCTest tests plus 5 Swift Testing tests, 0 failures.
-Last Updated: 2026-06-16
-Current Branch: codex/resume-aha-moments
-Latest Base Commit: PR #57 merge — Submit Package save-to-Me + build 4 resubmission prep
+Last Validation: Live PostHog QA (2026-06-17): iOS `$lib=resumely-ios-urlsession` 190 events / 18 users (7d), last event 2026-06-17; D7 dashboard 1720819 live. Web production Vercel env includes `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`; `$lib=web` showed 24 events / 1 user (7d), so web is firing but low-traffic.
+Last Updated: 2026-06-17
+Current Branch: codex/resumely-release-qa
+Latest Base Commit: 92a645c - Resume Library enabled after `/api/v1/resumes` was confirmed live on production
 Active Spec: docs/specs/resume-aha-moments.md
-Latest QA Report: docs/qa/reports/ios-qa-pr58-2026-06-14.md
+Latest QA Report: PostHog D7 dashboard 1720819 + live QA packet 2026-06-17
 
 ## Tab Structure (as of 2026-05-20)
 | Tab | Index | View | VM |
@@ -33,7 +35,7 @@ Latest QA Report: docs/qa/reports/ios-qa-pr58-2026-06-14.md
 - `AppState.latestOptimizationId: String?` — persisted via UserDefaults; set on optimize success AND when opening Latest Resume from Me tab or View Optimized Resume from Application Detail; drives Optimized+Expert+Design tabs
 - `AppState.bootstrap()` clears stale persisted `mock-` optimization IDs so old local state cannot call live endpoints with mock identifiers
 - Runtime service defaults are live-only via `RuntimeServices`; mocks remain available only through explicit tests/previews
-- `RuntimeFeatures.isResumeLibraryEnabled = false` until the backend ships `/api/v1/resumes`; app shows saved resumes as unavailable instead of surfacing HTML 404s
+- `RuntimeFeatures.isResumeLibraryEnabled = true` on current `main` because `/api/v1/resumes` was confirmed live; saved-resume UI is available again.
 - Design history is not loaded automatically because `/api/v1/styles/history` currently returns 500; Apply/Undo use the stable design endpoints without blocking normal preview/design navigation
 - Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
 - Optimization detail now carries `contact`; iOS preview/copy uses real candidate identity and local fallback no longer fabricates placeholder contact values

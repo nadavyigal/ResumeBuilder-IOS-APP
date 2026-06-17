@@ -15,6 +15,23 @@
 
 ## Sessions
 
+### 2026-06-17
+**Task:** Resumely post-live analytics and release-state reconciliation
+**Files Changed:**
+- `tasks/progress.md` — changed launch status from App Store review to App Store live, recorded live PostHog iOS evidence, pinned D7 Activation dashboard 1720819 as the iOS north star, and corrected Resume Library status on current `main`.
+- `tasks/session-log.md` — recorded this reconciliation session and evidence sources.
+- `tasks/todo.md` — replaced stale Resume Aha task tracker with the post-live reconciliation checklist.
+**Decisions Made:**
+- Treated the founder/App Store-live statement and 2026-06-17 live PostHog QA packet as trusted evidence for launch-gate reconciliation; did not invent App Store downloads, revenue, conversion, or retention numbers.
+- Closed the launch gate on iOS health: `$lib=resumely-ios-urlsession` showed 190 events / 18 users over 7 days, with the last event on 2026-06-17.
+- Web analytics configuration is not broken: Vercel production has `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, the code reads those names, and live PostHog saw `$lib=web` events. The current web issue is low traffic, not missing env.
+- D7 Activation dashboard 1720819 is the iOS north star. Week 1 Launch Metrics 1285341 is web/legacy-oriented based on local config event names; My App Dashboard 932305 was last refreshed 2026-02-18 per the QA packet, so both should be reviewed for archive, not deleted.
+**Validation:**
+- `git diff --check` passed for the reconciliation branch.
+- Targeted reads of `tasks/progress.md`, `tasks/session-log.md`, and `tasks/todo.md` confirmed the updated status/evidence.
+- Vercel CLI read-only check confirmed production env vars: `NEXT_PUBLIC_POSTHOG_HOST` scoped to Production and `NEXT_PUBLIC_POSTHOG_KEY` scoped to Development, Preview, Production.
+**Next Recommended Action:** Run the first post-live packet after the D7 window: read dashboard 1720819, summarize activation/retention honestly, review archive candidates 1285341 and 932305 in PostHog, and only then decide on monetization/paywall timing.
+
 ### 2026-06-14 (resubmission)
 **Task:** App Store resubmission — resolve compliance, fill reviewer info, reply to rejection, submit build 4
 **Files Changed:**
