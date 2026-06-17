@@ -20,7 +20,7 @@ final class ApplicationDetailViewModel {
 
     func refresh(token: String?) async {
         guard let token else {
-            actionError = "Please sign in first."
+            actionError = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
 
@@ -56,7 +56,7 @@ final class ApplicationDetailViewModel {
 
     func markApplied(token: String?) async {
         guard let token else {
-            actionError = "Please sign in first."
+            actionError = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
         isMarkingApplied = true
@@ -73,7 +73,7 @@ final class ApplicationDetailViewModel {
 
     func attachOptimizedResume(optimizationHistoryId: String, token: String?) async {
         guard let token else {
-            actionError = "Please sign in first."
+            actionError = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
         isAttaching = true

@@ -213,18 +213,17 @@ final class ExpertModesViewModel {
             })
             let savedToApplication = await saveAppliedRunToApplicationIfPossible(runId: state.runId, token: token)
             if resumeViewModel == nil, dto.success != false, savedToApplication {
-                toastMessage = "\(type.displayTitle): applied and saved to this application."
+                toastMessage = String(format: NSLocalizedString("%@: applied and saved to this application.", comment: ""), type.displayTitle)
             } else if resumeViewModel == nil, dto.success != false {
-                toastMessage = "\(type.displayTitle): applied on server. Open Optimize to refresh resume text."
+                toastMessage = String(format: NSLocalizedString("%@: applied on server. Open Optimize to refresh resume text.", comment: ""), type.displayTitle)
             } else if !touchedResume, dto.success != false, savedToApplication {
-                toastMessage = "\(type.displayTitle): saved to Me → application assets."
+                toastMessage = String(format: NSLocalizedString("%@: saved to Me → application assets.", comment: ""), type.displayTitle)
             } else if !touchedResume, dto.success != false {
-                toastMessage =
-                    "\(type.displayTitle): saved to this expert run. Open Expert from an application in Me to attach it there."
+                toastMessage = String(format: NSLocalizedString("%@: saved to this expert run. Open Expert from an application in Me to attach it there.", comment: ""), type.displayTitle)
             } else if dto.success != false, savedToApplication {
-                toastMessage = "\(type.displayTitle): changes applied and saved to this application."
+                toastMessage = String(format: NSLocalizedString("%@: changes applied and saved to this application.", comment: ""), type.displayTitle)
             } else if dto.success != false {
-                toastMessage = "\(type.displayTitle): changes applied."
+                toastMessage = String(format: NSLocalizedString("%@: changes applied.", comment: ""), type.displayTitle)
             }
         } catch {
             toastMessage = error.localizedDescription
@@ -261,34 +260,34 @@ extension ExpertWorkflowType {
     var displayTitle: String {
         switch self {
         case .fullResumeRewrite:
-            return "Resume Rewrite"
+            return NSLocalizedString("Resume Rewrite", comment: "")
         case .achievementQuantifier:
-            return "Achievement Quantifier"
+            return NSLocalizedString("Achievement Quantifier", comment: "")
         case .atsOptimizationReport:
-            return "ATS Deep Report"
+            return NSLocalizedString("ATS Deep Report", comment: "")
         case .professionalSummaryLab:
-            return "Summary Lab"
+            return NSLocalizedString("Summary Lab", comment: "")
         case .coverLetterArchitect:
-            return "Cover Letter"
+            return NSLocalizedString("Cover Letter", comment: "")
         case .screeningAnswerStudio:
-            return "Screening Answers"
+            return NSLocalizedString("Screening Answers", comment: "")
         }
     }
 
     var cardDescription: String {
         switch self {
         case .fullResumeRewrite:
-            return "Role-fit rewrite with ATS-safe structure."
+            return NSLocalizedString("Role-fit rewrite with ATS-safe structure.", comment: "")
         case .achievementQuantifier:
-            return "Upgrade bullets with measurable outcomes."
+            return NSLocalizedString("Upgrade bullets with measurable outcomes.", comment: "")
         case .atsOptimizationReport:
-            return "Keyword coverage, compliance, formatting tips."
+            return NSLocalizedString("Keyword coverage, compliance, formatting tips.", comment: "")
         case .professionalSummaryLab:
-            return "Five summary angles with recommendations."
+            return NSLocalizedString("Five summary angles with recommendations.", comment: "")
         case .coverLetterArchitect:
-            return "Tailored variants for this role."
+            return NSLocalizedString("Tailored variants for this role.", comment: "")
         case .screeningAnswerStudio:
-            return "Interview-style answers grounded in wins."
+            return NSLocalizedString("Interview-style answers grounded in wins.", comment: "")
         }
     }
 
@@ -312,17 +311,17 @@ extension ExpertWorkflowType {
     var purposeText: String {
         switch self {
         case .fullResumeRewrite:
-            return "Rewrites the entire resume to match the job description with ATS-safe structure and role-fit language."
+            return NSLocalizedString("Rewrites the entire resume to match the job description with ATS-safe structure and role-fit language.", comment: "")
         case .achievementQuantifier:
-            return "Upgrades experience bullets with measurable outcomes. Add concrete metrics in Expert Input for better rewrites."
+            return NSLocalizedString("Upgrades experience bullets with measurable outcomes. Add concrete metrics in Expert Input for better rewrites.", comment: "")
         case .atsOptimizationReport:
-            return "Analyzes keyword coverage against the job description. Applying adds missing keywords to your Skills section."
+            return NSLocalizedString("Analyzes keyword coverage against the job description. Applying adds missing keywords to your Skills section.", comment: "")
         case .professionalSummaryLab:
-            return "Generates five summary options in different tones. Choose one below, then apply to set it as your resume summary."
+            return NSLocalizedString("Generates five summary options in different tones. Choose one below, then apply to set it as your resume summary.", comment: "")
         case .coverLetterArchitect:
-            return "Creates tailored cover letter variants. These are saved as application assets and do not change your resume."
+            return NSLocalizedString("Creates tailored cover letter variants. These are saved as application assets and do not change your resume.", comment: "")
         case .screeningAnswerStudio:
-            return "Generates interview-style answers grounded in your resume. Saved as application assets, not resume text."
+            return NSLocalizedString("Generates interview-style answers grounded in your resume. Saved as application assets, not resume text.", comment: "")
         }
     }
 
@@ -338,9 +337,9 @@ extension ExpertWorkflowType {
     var requiredInputHint: String? {
         switch self {
         case .achievementQuantifier:
-            return "Add concrete metrics for stronger rewrites: e.g. \"grew revenue 40%, managed 12 engineers, shipped in 6 weeks\""
+            return NSLocalizedString("Add concrete metrics for stronger rewrites: e.g. \"grew revenue 40%, managed 12 engineers, shipped in 6 weeks\"", comment: "")
         case .coverLetterArchitect:
-            return "Optional: add tone preference, specific points, or unique selling points to include"
+            return NSLocalizedString("Optional: add tone preference, specific points, or unique selling points to include", comment: "")
         default:
             return nil
         }

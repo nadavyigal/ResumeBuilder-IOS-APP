@@ -356,10 +356,10 @@ struct OptimizationDesignSheet: View {
 
     private func categoryLabel(for slug: String) -> String {
         switch slug.lowercased() {
-        case "traditional", "ats_safe", "ats-safe": return "Traditional · ATS-Safe"
-        case "modern":    return "Modern"
-        case "creative":  return "Creative"
-        case "corporate": return "Corporate"
+        case "traditional", "ats_safe", "ats-safe": return NSLocalizedString("Traditional · ATS-Safe", comment: "")
+        case "modern":    return NSLocalizedString("Modern", comment: "")
+        case "creative":  return NSLocalizedString("Creative", comment: "")
+        case "corporate": return NSLocalizedString("Corporate", comment: "")
         default:          return slug.capitalized
         }
     }

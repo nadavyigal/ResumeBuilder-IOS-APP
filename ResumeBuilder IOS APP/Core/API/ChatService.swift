@@ -9,13 +9,13 @@ enum ChatServiceError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .missingToken:
-            return "Sign in required to chat."
+            return NSLocalizedString("Sign in required to chat.", comment: "")
         case .missingOptimizationId:
-            return "Optimization is not ready yet."
+            return NSLocalizedString("Optimization is not ready yet.", comment: "")
         case .noSessionYet:
-            return "Chat session begins after your first message."
+            return NSLocalizedString("Chat session begins after your first message.", comment: "")
         case .encodePayloadFailed:
-            return "Could not serialize change fields."
+            return NSLocalizedString("Could not serialize change fields.", comment: "")
         }
     }
 }

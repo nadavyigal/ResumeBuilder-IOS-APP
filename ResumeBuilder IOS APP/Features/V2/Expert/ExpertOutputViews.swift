@@ -425,7 +425,7 @@ private struct KeywordMatchRow: View {
 }
 
 private struct GuidanceListView: View {
-    let title: String
+    let title: LocalizedStringKey
     let rows: [String]
 
     var body: some View {

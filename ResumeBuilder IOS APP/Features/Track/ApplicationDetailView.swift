@@ -192,7 +192,7 @@ struct ApplicationDetailView: View {
             let last = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
             name = last.isEmpty ? "Optimized Resume" : last
         } else {
-            name = id.map { "Optimization \($0.prefix(8))…" } ?? "Optimized Resume"
+            name = id.map { "Optimization \($0.prefix(8))…" } ?? NSLocalizedString("Optimized Resume", comment: "")
         }
 
         let urlParsed = link.flatMap { URL(string: $0) }
@@ -293,11 +293,11 @@ struct ApplicationDetailView: View {
             return
         }
         guard let oid = vm.item.optimizationId ?? vm.item.optimizedResumeId else {
-            vm.actionError = "Attach an optimized resume before sharing."
+            vm.actionError = NSLocalizedString("Attach an optimized resume before sharing.", comment: "")
             return
         }
         guard let token else {
-            vm.actionError = "Please sign in first."
+            vm.actionError = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
         isDownloadingResume = true
@@ -333,7 +333,7 @@ struct ApplicationDetailView: View {
                 let fmt = DateFormatter()
                 fmt.dateStyle = .long
                 fmt.timeStyle = .none
-                return "Applied on \(fmt.string(from: d))"
+                return String(format: NSLocalizedString("Applied on %@", comment: ""), fmt.string(from: d))
             }
         }
         return "Applied"

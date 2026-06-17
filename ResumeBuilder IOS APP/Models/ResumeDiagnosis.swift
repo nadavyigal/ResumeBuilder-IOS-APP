@@ -45,7 +45,7 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
         let scoreNote =
             try c.decodeIfPresent(String.self, forKey: .scoreNote)
             ?? c.decodeIfPresent(String.self, forKey: .scoreNoteSnake)
-            ?? "Estimated match guidance based on the target job, not a hiring guarantee."
+            ?? NSLocalizedString("Estimated match guidance based on the target job, not a hiring guarantee.", comment: "")
         let topGaps =
             try c.decodeIfPresent([ResumeGap].self, forKey: .topGaps)
             ?? c.decodeIfPresent([ResumeGap].self, forKey: .topGapsSnake)
@@ -58,10 +58,10 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
             try c.decodeIfPresent(RecruiterReview.self, forKey: .recruiterReview)
             ?? c.decodeIfPresent(RecruiterReview.self, forKey: .recruiterReviewSnake)
             ?? RecruiterReview(
-                impression: "A recruiter may see relevant experience, but the resume needs sharper targeting.",
+                impression: NSLocalizedString("A recruiter may see relevant experience, but the resume needs sharper targeting.", comment: ""),
                 strengths: [],
                 concerns: [],
-                nextFix: "Review the target job and tighten the summary."
+                nextFix: NSLocalizedString("Review the target job and tighten the summary.", comment: "")
             )
         let beforeAfter =
             try c.decodeIfPresent([BulletRewrite].self, forKey: .beforeAfter)
@@ -106,7 +106,7 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
     }
 
     var matchScoreLabel: String {
-        "Estimated match guidance, not a guarantee."
+        NSLocalizedString("Estimated match guidance, not a guarantee.", comment: "")
     }
 
     var groupedKeywords: [(importance: KeywordImportance, keywords: [ResumeKeyword])] {
@@ -120,7 +120,7 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
         ResumeDiagnosis(
             matchScore: 54,
             potentialScore: 82,
-            scoreNote: "Estimated match guidance based on the target job, not a hiring guarantee.",
+            scoreNote: NSLocalizedString("Estimated match guidance based on the target job, not a hiring guarantee.", comment: ""),
             topGaps: [
                 ResumeGap(title: "Missing product analytics keywords", explanation: "The job emphasizes analytics ownership, but the resume mostly describes reporting.", severity: .high),
                 ResumeGap(title: "Achievements are too generic", explanation: "Several bullets describe responsibilities without business outcomes.", severity: .medium),
@@ -135,7 +135,7 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
                 impression: "Strong operations background, but the resume does not yet prove product ownership.",
                 strengths: ["Finance", "Stakeholder work", "Process improvement"],
                 concerns: ["Missing metrics", "Weak role targeting"],
-                nextFix: "Rewrite the summary around the target job."
+                nextFix: NSLocalizedString("Rewrite the summary around the target job.", comment: "")
             ),
             beforeAfter: [
                 BulletRewrite(
@@ -170,8 +170,8 @@ struct ResumeGap: Identifiable, Codable, Equatable, Sendable {
         let c = try decoder.container(keyedBy: DecodingKeys.self)
         self.init(
             id: try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID(),
-            title: try c.decodeIfPresent(String.self, forKey: .title) ?? "Resume gap",
-            explanation: try c.decodeIfPresent(String.self, forKey: .explanation) ?? "Review this area before submitting.",
+            title: try c.decodeIfPresent(String.self, forKey: .title) ?? NSLocalizedString("Resume gap", comment: ""),
+            explanation: try c.decodeIfPresent(String.self, forKey: .explanation) ?? NSLocalizedString("Review this area before submitting.", comment: ""),
             severity: GapSeverity(rawValueOrDefault: try c.decodeIfPresent(String.self, forKey: .severity))
         )
     }
@@ -199,9 +199,9 @@ enum GapSeverity: String, Codable, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .high: return "High"
-        case .medium: return "Medium"
-        case .low: return "Low"
+        case .high: return NSLocalizedString("High", comment: "")
+        case .medium: return NSLocalizedString("Medium", comment: "")
+        case .low: return NSLocalizedString("Low", comment: "")
         }
     }
 }
@@ -252,9 +252,9 @@ enum KeywordImportance: String, Codable, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .high: return "High priority"
-        case .medium: return "Medium priority"
-        case .low: return "Nice to have"
+        case .high: return NSLocalizedString("High priority", comment: "")
+        case .medium: return NSLocalizedString("Medium priority", comment: "")
+        case .low: return NSLocalizedString("Nice to have", comment: "")
         }
     }
 }
@@ -277,7 +277,7 @@ struct RecruiterReview: Codable, Equatable, Sendable {
         let nextFix =
             try c.decodeIfPresent(String.self, forKey: .nextFix)
             ?? c.decodeIfPresent(String.self, forKey: .nextFixSnake)
-            ?? "Rewrite the summary around the target job."
+            ?? NSLocalizedString("Rewrite the summary around the target job.", comment: "")
         self.init(
             impression: try c.decodeIfPresent(String.self, forKey: .impression) ?? "A recruiter may need clearer evidence for the target role.",
             strengths: try c.decodeIfPresent([String].self, forKey: .strengths) ?? [],
@@ -385,29 +385,29 @@ struct ConfidenceItem: Identifiable, Codable, Equatable, Sendable {
     static func defaultChecklist(matchScore: Int, hasKeywords: Bool, hasRewrite: Bool) -> [ConfidenceItem] {
         [
             ConfidenceItem(
-                title: "Includes priority keywords",
+                title: NSLocalizedString("Includes priority keywords", comment: ""),
                 isComplete: hasKeywords,
-                explanation: hasKeywords ? "More aligned with the target role wording." : "Add truthful priority terms from the job post."
+                explanation: hasKeywords ? NSLocalizedString("More aligned with the target role wording.", comment: "") : NSLocalizedString("Add truthful priority terms from the job post.", comment: "")
             ),
             ConfidenceItem(
-                title: "Clearer summary",
+                title: NSLocalizedString("Clearer summary", comment: ""),
                 isComplete: matchScore >= 60,
-                explanation: "Positioning is easier to scan in the first few seconds."
+                explanation: NSLocalizedString("Positioning is easier to scan in the first few seconds.", comment: "")
             ),
             ConfidenceItem(
-                title: "More measurable achievements",
+                title: NSLocalizedString("More measurable achievements", comment: ""),
                 isComplete: hasRewrite,
-                explanation: "Stronger bullets connect actions to context and impact."
+                explanation: NSLocalizedString("Stronger bullets connect actions to context and impact.", comment: "")
             ),
             ConfidenceItem(
-                title: "Better ATS formatting",
+                title: NSLocalizedString("Better ATS formatting", comment: ""),
                 isComplete: true,
-                explanation: "Uses parseable sections and direct role language."
+                explanation: NSLocalizedString("Uses parseable sections and direct role language.", comment: "")
             ),
             ConfidenceItem(
-                title: "Tailored to target role",
+                title: NSLocalizedString("Tailored to target role", comment: ""),
                 isComplete: matchScore >= 55,
-                explanation: "More aligned, not guaranteed to pass any ATS."
+                explanation: NSLocalizedString("More aligned, not guaranteed to pass any ATS.", comment: "")
             ),
         ]
     }
@@ -463,7 +463,7 @@ enum ResumeDiagnosisMapper {
         return ResumeDiagnosis(
             matchScore: currentScore,
             potentialScore: optimizedScore,
-            scoreNote: "Estimated match guidance based on the target job, not a hiring guarantee.",
+            scoreNote: NSLocalizedString("Estimated match guidance based on the target job, not a hiring guarantee.", comment: ""),
             topGaps: gaps,
             missingKeywords: keywords,
             recruiterReview: review,
@@ -520,25 +520,25 @@ enum ResumeDiagnosisMapper {
         let mapped = blockers.prefix(3).map { blocker in
             ResumeGap(
                 title: blocker.title,
-                explanation: blocker.suggestedAction?.nilIfBlank ?? blocker.detail?.nilIfBlank ?? "Review this area before submitting.",
+                explanation: blocker.suggestedAction?.nilIfBlank ?? blocker.detail?.nilIfBlank ?? NSLocalizedString("Review this area before submitting.", comment: ""),
                 severity: GapSeverity(rawValueOrDefault: blocker.severity)
             )
         }
         if !mapped.isEmpty { return mapped }
         return [
             ResumeGap(
-                title: "Target role alignment needs review",
-                explanation: "Compare the summary, skills, and strongest bullets against the job description.",
+                title: NSLocalizedString("Target role alignment needs review", comment: ""),
+                explanation: NSLocalizedString("Compare the summary, skills, and strongest bullets against the job description.", comment: ""),
                 severity: .medium
             ),
             ResumeGap(
-                title: "Measurable outcomes may be light",
-                explanation: "Recruiters scan for scope, numbers, and business context.",
+                title: NSLocalizedString("Measurable outcomes may be light", comment: ""),
+                explanation: NSLocalizedString("Recruiters scan for scope, numbers, and business context.", comment: ""),
                 severity: .medium
             ),
             ResumeGap(
-                title: "Keyword coverage is not confirmed",
-                explanation: "Add only truthful terms that appear in the target job.",
+                title: NSLocalizedString("Keyword coverage is not confirmed", comment: ""),
+                explanation: NSLocalizedString("Add only truthful terms that appear in the target job.", comment: ""),
                 severity: .low
             ),
         ]
@@ -587,28 +587,28 @@ enum ResumeDiagnosisMapper {
         jobTitle: String?,
         company: String?
     ) -> RecruiterReview {
-        let target = jobTitle?.nilIfBlank ?? "the target role"
+        let target = jobTitle?.nilIfBlank ?? NSLocalizedString("the target role", comment: "")
         let concernTitles = blockers.prefix(2).map(\.title)
         let hasExperience = sections.contains { $0.type == .experience && !$0.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         let hasSkills = sections.contains { $0.type == .skills && !$0.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        let companyText = company?.nilIfBlank.map { " at \($0)" } ?? ""
+        let companyText = company?.nilIfBlank.map { String(format: NSLocalizedString(" at %@", comment: ""), $0) } ?? ""
 
         let impression: String
         if currentScore >= 75 {
-            impression = "A recruiter may see a reasonably strong fit for \(target)\(companyText), with a few details still worth tightening."
+            impression = String(format: NSLocalizedString("A recruiter may see a reasonably strong fit for %@, with a few details still worth tightening.", comment: ""), target + companyText)
         } else {
-            impression = "A recruiter may see relevant experience, but the resume needs sharper proof for \(target)\(companyText)."
+            impression = String(format: NSLocalizedString("A recruiter may see relevant experience, but the resume needs sharper proof for %@.", comment: ""), target + companyText)
         }
 
         return RecruiterReview(
             impression: impression,
             strengths: [
-                hasExperience ? "Experience section is present" : nil,
-                hasSkills ? "Skills section is present" : nil,
-                currentScore >= 60 ? "Some role alignment is visible" : nil,
-            ].compactMap { $0 }.ifEmpty(["Relevant background", "Transferable experience"]),
-            concerns: concernTitles.ifEmpty(["Missing metrics", "Role targeting needs sharpening"]),
-            nextFix: blockers.first?.suggestedAction?.nilIfBlank ?? "Rewrite the summary and strongest bullets around the target job."
+                hasExperience ? NSLocalizedString("Experience section is present", comment: "") : nil,
+                hasSkills ? NSLocalizedString("Skills section is present", comment: "") : nil,
+                currentScore >= 60 ? NSLocalizedString("Some role alignment is visible", comment: "") : nil,
+            ].compactMap { $0 }.ifEmpty([NSLocalizedString("Relevant background", comment: ""), NSLocalizedString("Transferable experience", comment: "")]),
+            concerns: concernTitles.ifEmpty(["Missing metrics", NSLocalizedString("Role targeting needs sharpening", comment: "")]),
+            nextFix: blockers.first?.suggestedAction?.nilIfBlank ?? NSLocalizedString("Rewrite the summary and strongest bullets around the target job.", comment: "")
         )
     }
 
@@ -624,7 +624,7 @@ enum ResumeDiagnosisMapper {
         return BulletRewrite(
             before: nil,
             after: line,
-            explanation: "Stronger because it uses target-role language already present in the optimized resume. Review every fact before submitting."
+            explanation: NSLocalizedString("Stronger because it uses target-role language already present in the optimized resume. Review every fact before submitting.", comment: "")
         )
     }
 }

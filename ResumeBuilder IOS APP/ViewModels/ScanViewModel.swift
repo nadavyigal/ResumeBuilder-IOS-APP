@@ -72,7 +72,7 @@ final class ScanViewModel {
         }.value
 
         guard readable else {
-            errorMessage = "Unable to read the selected file. Please choose a local PDF file."
+            errorMessage = NSLocalizedString("Unable to read the selected file. Please choose a local PDF file.", comment: "")
             selectedFileURL = nil
             detectedFilename = nil
             return
@@ -114,7 +114,7 @@ final class ScanViewModel {
 
     func runFreeATS(appState: AppState) async {
         guard let fileURL = selectedFileURL, hasJobInput else {
-            errorMessage = "Add a resume and a LinkedIn/job link or job description."
+            errorMessage = NSLocalizedString("Add a resume and a LinkedIn/job link or job description.", comment: "")
             return
         }
 
@@ -141,27 +141,27 @@ final class ScanViewModel {
                 try await self.uploadForOptimization(with: token)
             }
         } catch {
-            errorMessage = "Upload failed: \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("Upload failed: %@", comment: ""), error.localizedDescription)
             return nil
         }
     }
 
     func uploadForOptimization(token: String?) async -> ResumeJobInput? {
         guard let token else {
-            errorMessage = "Sign in to unlock full resume optimization."
+            errorMessage = NSLocalizedString("Sign in to unlock full resume optimization.", comment: "")
             return nil
         }
         do {
             return try await uploadForOptimization(with: token)
         } catch {
-            errorMessage = "Upload failed: \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("Upload failed: %@", comment: ""), error.localizedDescription)
             return nil
         }
     }
 
     private func uploadForOptimization(with token: String) async throws -> ResumeJobInput? {
         guard let fileURL = selectedFileURL, hasJobInput else {
-            errorMessage = "Add a resume and a LinkedIn/job link or job description."
+            errorMessage = NSLocalizedString("Add a resume and a LinkedIn/job link or job description.", comment: "")
             return nil
         }
 
@@ -177,7 +177,7 @@ final class ScanViewModel {
         guard response.success == true,
               let resumeId = response.resumeId,
               let jobDescriptionId = response.jobDescriptionId else {
-            errorMessage = response.error ?? "Upload failed"
+            errorMessage = response.error ?? NSLocalizedString("Upload failed", comment: "")
             return nil
         }
         uploadedResumeId = resumeId

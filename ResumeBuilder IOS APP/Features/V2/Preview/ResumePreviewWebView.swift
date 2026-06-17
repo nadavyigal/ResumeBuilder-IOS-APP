@@ -51,7 +51,7 @@ struct ResumePreviewWebView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 36))
                         .foregroundStyle(AppColors.textSecondary)
-                    Text(errorMessage ?? "Preview unavailable")
+                    Text(errorMessage ?? NSLocalizedString("Preview unavailable", comment: ""))
                         .font(.appBody)
                         .foregroundStyle(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -147,7 +147,7 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("❌ [PREVIEW] no token — cannot render")
                 #endif
-                errorMessage = "Sign in to preview your resume."
+                errorMessage = NSLocalizedString("Sign in to preview your resume.", comment: "")
             }
             isLoading = false
             return
@@ -190,7 +190,7 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("❌ [PREVIEW] no html and no sections available")
                 #endif
-                errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
+                errorMessage = response.error ?? NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
             }
         } catch where PreviewRenderErrorPolicy.isBenignCancellation(error) {
             // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.

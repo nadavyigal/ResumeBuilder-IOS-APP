@@ -19,9 +19,9 @@ private enum IssueImpact: Comparable {
 
     var label: String {
         switch self {
-        case .high: return "High impact"
-        case .medium: return "Moderate"
-        case .low: return "Polish"
+        case .high: return NSLocalizedString("High impact", comment: "")
+        case .medium: return NSLocalizedString("Moderate", comment: "")
+        case .low: return NSLocalizedString("Polish", comment: "")
         }
     }
 
@@ -54,8 +54,8 @@ struct IssuesSummaryView: View {
     private struct IssuePanel: Identifiable {
         let kind: IssuePanelKind
         var id: IssuePanelKind { kind }
-        let title: String
-        let subtitle: String
+        let title: LocalizedStringKey
+        let subtitle: LocalizedStringKey
         let tint: Color
         let suggestions: [ATSAuthSuggestion]
     }
@@ -158,13 +158,13 @@ struct IssuesSummaryView: View {
 
     private func headline(for suggestion: ATSAuthSuggestion) -> String {
         if let gain = suggestion.estimatedGain, gain > 0 {
-            return "Up to \(gain) pts • \(friendlyCategory(from: suggestion.category))"
+            return String(format: NSLocalizedString("Up to %lld pts • %@", comment: ""), gain, friendlyCategory(from: suggestion.category))
         }
         return friendlyCategory(from: suggestion.category)
     }
 
     private func friendlyCategory(from raw: String?) -> String {
-        guard let raw, !raw.isEmpty else { return "Recommendation" }
+        guard let raw, !raw.isEmpty else { return NSLocalizedString("Recommendation", comment: "") }
         return raw.replacingOccurrences(of: "_", with: " ").capitalized
     }
 }

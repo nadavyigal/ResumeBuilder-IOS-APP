@@ -19,13 +19,13 @@ enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .missingFile:
-            return "Selected resume file could not be found. Please choose it again from Files."
+            return NSLocalizedString("Selected resume file could not be found. Please choose it again from Files.", comment: "")
         case .emptyFile:
-            return "Selected resume file is empty. Please choose a freshly exported PDF."
+            return NSLocalizedString("Selected resume file is empty. Please choose a freshly exported PDF.", comment: "")
         case .unsupportedFileType:
-            return "Choose a PDF resume exported from your word processor, not a scanned image or shortcut file."
+            return NSLocalizedString("Choose a PDF resume exported from your word processor, not a scanned image or shortcut file.", comment: "")
         case .unreadablePDF:
-            return "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot."
+            return NSLocalizedString("This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot.", comment: "")
         }
     }
 }

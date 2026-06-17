@@ -240,11 +240,11 @@ struct ProfileView: View {
                                 .foregroundStyle(Theme.accent)
                         }
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(opt.jobTitle ?? "Optimized resume")
+                            Text(opt.jobTitle ?? NSLocalizedString("Optimized resume", comment: ""))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Theme.textPrimary)
                                 .lineLimit(1)
-                            Text(opt.company ?? "Tap to preview")
+                            Text(opt.company ?? NSLocalizedString("Tap to preview", comment: ""))
                                 .font(.caption)
                                 .foregroundStyle(Theme.textSecondary)
                                 .lineLimit(1)
@@ -263,7 +263,7 @@ struct ProfileView: View {
                     Image(systemName: "doc.text")
                         .font(.title3)
                         .foregroundStyle(Theme.textTertiary)
-                    Text(profileMessage ?? "No optimized resume yet.")
+                    Text(profileMessage ?? NSLocalizedString("No optimized resume yet.", comment: ""))
                         .font(.subheadline)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -371,7 +371,7 @@ struct ProfileView: View {
                     .foregroundStyle(Theme.accentBlue)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(app.jobTitle ?? "Untitled Role")
+                Text(app.jobTitle ?? NSLocalizedString("Untitled Role", comment: ""))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
@@ -510,7 +510,7 @@ struct ProfileView: View {
                 )) {
                     Button("OK", role: .cancel) { deleteAccountError = nil }
                 } message: {
-                    Text(deleteAccountError ?? "Please try again.")
+                    Text(deleteAccountError ?? NSLocalizedString("Please try again.", comment: ""))
                 }
             }
         }
@@ -565,7 +565,7 @@ struct ProfileView: View {
     @MainActor
     private func loadLatestOptimization() async {
         guard appState.session?.accessToken != nil else {
-            profileMessage = "Sign in and optimize a resume to see it here."
+            profileMessage = NSLocalizedString("Sign in and optimize a resume to see it here.", comment: "")
             return
         }
         do {
@@ -577,7 +577,7 @@ struct ProfileView: View {
             }
             latestOptimization = response.allItems.first
             if latestOptimization == nil {
-                profileMessage = "Tailor a resume to a job to see it here."
+                profileMessage = NSLocalizedString("Tailor a resume to a job to see it here.", comment: "")
             }
         } catch {
             profileMessage = error.localizedDescription

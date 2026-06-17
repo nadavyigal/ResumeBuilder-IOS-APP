@@ -100,7 +100,7 @@ struct ExpertModesView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(report.reportTitle ?? report.workflowType ?? "Saved Report")
+                            Text(report.reportTitle ?? report.workflowType ?? NSLocalizedString("Saved Report", comment: ""))
                                 .font(.appSubheadline)
                                 .foregroundStyle(AppColors.textPrimary)
                             if let savedAt = report.savedAt {
@@ -147,7 +147,7 @@ struct ExpertModesView: View {
                 Text(mode.displayTitle)
                     .font(.appHeadline)
                     .foregroundStyle(AppColors.textPrimary)
-                Text(mode.requiredInputHint ?? "Add concrete achievements, metrics, constraints, or preferences for this expert pass.")
+                Text(mode.requiredInputHint ?? NSLocalizedString("Add concrete achievements, metrics, constraints, or preferences for this expert pass.", comment: ""))
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
                 TextEditor(

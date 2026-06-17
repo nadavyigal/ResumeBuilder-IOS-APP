@@ -146,12 +146,12 @@ private struct HistoryRow: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack(alignment: .top, spacing: AppSpacing.md) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(item.jobTitle ?? "Optimized Resume")
+                    Text(item.jobTitle ?? NSLocalizedString("Optimized Resume", comment: ""))
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .lineLimit(2)
 
-                    Text(item.company ?? "Company not specified")
+                    Text(item.company ?? NSLocalizedString("Company not specified", comment: ""))
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                 }

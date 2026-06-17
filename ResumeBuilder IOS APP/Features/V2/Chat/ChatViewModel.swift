@@ -71,7 +71,7 @@ final class ChatViewModel {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         guard trimmed.count <= Self.maxMessageLength else {
-            errorMessage = "Message is too long (max \(Self.maxMessageLength) characters)."
+            errorMessage = String(format: NSLocalizedString("Message is too long (max %lld characters).", comment: ""), Self.maxMessageLength)
             return
         }
         guard token != nil else {

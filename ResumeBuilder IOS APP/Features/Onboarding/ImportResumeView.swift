@@ -53,7 +53,7 @@ struct ImportResumeView: View {
                         if response.success == true {
                             uploadStatus = "Resume uploaded."
                         } else {
-                            uploadStatus = response.error ?? "Upload failed"
+                            uploadStatus = response.error ?? NSLocalizedString("Upload failed", comment: "")
                         }
                     } catch {
                         uploadStatus = "Upload failed: \(error.localizedDescription)"

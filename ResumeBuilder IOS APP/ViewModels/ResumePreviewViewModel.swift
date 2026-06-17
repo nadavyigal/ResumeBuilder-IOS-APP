@@ -33,11 +33,11 @@ final class ResumePreviewViewModel {
     /// Plain-text blurb for `ShareLink` message and copy button.
     var shareScoreLine: String? {
         guard let s = atsScorePercent else { return nil }
-        return "My resume scored \(s)% on ATS — try ResumeBuilder AI: \(Self.shareAppURL)"
+        return String(format: NSLocalizedString("My resume scored %lld%% on ATS — try ResumeBuilder AI: %@", comment: ""), s, Self.shareAppURL)
     }
 
     var shareScoreMessage: String {
-        shareScoreLine ?? "Resume export — try ResumeBuilder AI: \(Self.shareAppURL)"
+        shareScoreLine ?? String(format: NSLocalizedString("Resume export — try ResumeBuilder AI: %@", comment: ""), Self.shareAppURL)
     }
 
     func downloadPDF(token: String?) async {

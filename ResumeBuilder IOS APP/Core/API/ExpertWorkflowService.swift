@@ -10,11 +10,11 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .missingToken:
-            return "Sign in required."
+            return NSLocalizedString("Sign in required.", comment: "")
         case .missingOptimizationId:
-            return "Optimization is not ready yet."
+            return NSLocalizedString("Optimization is not ready yet.", comment: "")
         case .emptyRunId:
-            return "Expert run id missing from server response."
+            return NSLocalizedString("Expert run id missing from server response.", comment: "")
         case .premiumRequired(let message):
             return message
         case .applyFailed(let message):

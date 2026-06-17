@@ -10,13 +10,13 @@ enum AuthServiceError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
-            return "Invalid auth response."
+            return NSLocalizedString("Invalid auth response.", comment: "")
         case .missingSupabaseKey:
-            return "Supabase configuration is missing."
+            return NSLocalizedString("Supabase configuration is missing.", comment: "")
         case .serverError(let message):
             return message
         case .emailConfirmationRequired:
-            return "Check your email to confirm your account, then sign in."
+            return NSLocalizedString("Check your email to confirm your account, then sign in.", comment: "")
         }
     }
 }

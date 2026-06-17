@@ -158,11 +158,11 @@ final class DesignViewModel {
     func applyDesign(token: String?) async -> Bool {
         guard let token, let optId = optimizationId else { return false }
         guard !isLoading else {
-            errorMessage = "Design templates are still loading. Try again in a moment."
+            errorMessage = NSLocalizedString("Design templates are still loading. Try again in a moment.", comment: "")
             return false
         }
         guard let templateId = selectedTemplateId else {
-            errorMessage = "Choose a design template first."
+            errorMessage = NSLocalizedString("Choose a design template first.", comment: "")
             return false
         }
         isApplying = true
@@ -204,7 +204,7 @@ final class DesignViewModel {
                     token: token
                 )
                 if res.success == false, res.error != nil {
-                    throw APIClientError.serverError(status: 400, message: res.error ?? "Revert failed")
+                    throw APIClientError.serverError(status: 400, message: res.error ?? NSLocalizedString("Revert failed", comment: ""))
                 }
             } else {
                 let res: DesignUndoResponseDTO = try await apiClient.postJSON(

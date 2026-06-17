@@ -54,6 +54,18 @@
 - [x] No fastlane added (kept dependency-free per rules)
 - [ ] USER ACTION: paste into App Store Connect Hebrew localization + submit
 
+## Story 6 — 100% Hebrew coverage sweep ✅ (on branch version-2)
+- [x] Convert ALL remaining plain-String UI surfaces: model/VM/enum computed
+      labels, error messages, empty states, loading text, ATS insight content,
+      diagnosis fallbacks, expert metadata, purchase/auth errors → NSLocalizedString
+      (works in Text + HTML + PDF via the Bundle.main swizzle)
+- [x] Convert remaining String-param components → LocalizedStringKey
+      (GuidanceListView, IssuesSummaryView pillars)
+- [x] Authoritative coverage check via `xcodebuild -exportLocalizations`:
+      688/688 user-facing strings now have Hebrew (the only untranslated item is
+      the auto-generated InfoPlist bundle name "Resumely", identical in both langs)
+- [x] BUILD SUCCEEDED; preview-only sample()/#Preview demo data intentionally skipped
+
 ## Verification
 - [x] Build SUCCEEDED (app target) after every story
 - [x] Full test suite: all 88 tests pass, 0 failures (the `TEST FAILED` is a

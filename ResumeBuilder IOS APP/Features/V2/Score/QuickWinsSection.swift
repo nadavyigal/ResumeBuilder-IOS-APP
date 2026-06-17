@@ -11,7 +11,7 @@ struct QuickWinsSection: View {
             items.append(.init(
                 id: "auth-\(index)-\(win.id)",
                 title: (win.rationale ?? win.originalText)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
-                    ?? "Quick improvement",
+                    ?? NSLocalizedString("Quick improvement", comment: ""),
                 detail: previewDetail(for: win),
                 effort: ImpactLevel.from(estimatedImpactOrGain: win.estimatedImpact ?? 5),
                 symbolName: "bolt.fill",

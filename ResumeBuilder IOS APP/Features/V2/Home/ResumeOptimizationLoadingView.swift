@@ -10,22 +10,22 @@ struct ResumeOptimizationLoadingView: View {
         var title: String {
             switch self {
             case .optimization:
-                return "Optimizing your resume"
+                return NSLocalizedString("Optimizing your resume", comment: "")
             case .atsCheck:
-                return "Scanning your resume"
+                return NSLocalizedString("Scanning your resume", comment: "")
             case .diagnosis:
-                return "Preparing your diagnosis"
+                return NSLocalizedString("Preparing your diagnosis", comment: "")
             }
         }
 
         var subtitle: String {
             switch self {
             case .optimization:
-                return "Matching your experience to this role."
+                return NSLocalizedString("Matching your experience to this role.", comment: "")
             case .atsCheck:
-                return "Checking ATS signals before you sign in."
+                return NSLocalizedString("Checking ATS signals before you sign in.", comment: "")
             case .diagnosis:
-                return "Turning resume and job signals into recruiter-style feedback."
+                return NSLocalizedString("Turning resume and job signals into recruiter-style feedback.", comment: "")
             }
         }
 

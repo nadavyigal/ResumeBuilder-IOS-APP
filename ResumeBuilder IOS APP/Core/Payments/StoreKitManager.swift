@@ -68,17 +68,17 @@ enum StoreKitManagerError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidProductID:
-            return "Unknown product."
+            return NSLocalizedString("Unknown product.", comment: "")
         case .productUnavailable:
-            return "Product is not available."
+            return NSLocalizedString("Product is not available.", comment: "")
         case .unverifiedTransaction:
-            return "Purchase could not be verified."
+            return NSLocalizedString("Purchase could not be verified.", comment: "")
         case .userCancelled:
-            return "Purchase cancelled."
+            return NSLocalizedString("Purchase cancelled.", comment: "")
         case .pending:
-            return "Purchase is pending approval."
+            return NSLocalizedString("Purchase is pending approval.", comment: "")
         case .purchaseFailed:
-            return "Purchase failed."
+            return NSLocalizedString("Purchase failed.", comment: "")
         }
     }
 }

@@ -150,7 +150,7 @@ struct TailorView: View {
                 Button("Save") {
                     if let id = viewModel.pendingSaveResumeId,
                        let token = appState.session?.accessToken {
-                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? "My Resume") : saveDisplayName
+                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? NSLocalizedString("My Resume", comment: "")) : saveDisplayName
                         Task { await libraryViewModel.save(id: id, displayName: name, token: token) }
                     }
                     viewModel.pendingSaveResumeId = nil
@@ -222,7 +222,7 @@ struct TailorView: View {
     private var libraryButton: some View {
         Button {
             guard RuntimeFeatures.isResumeLibraryEnabled else {
-                libraryViewModel.errorMessage = "Resume Library is not available yet."
+                libraryViewModel.errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
                 return
             }
             if let token = appState.session?.accessToken {
@@ -239,7 +239,7 @@ struct TailorView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Theme.textPrimary)
                     if !RuntimeFeatures.isResumeLibraryEnabled {
-                        Text("Resume Library is not available yet.")
+                        Text(NSLocalizedString("Resume Library is not available yet.", comment: ""))
                             .font(.caption)
                             .foregroundStyle(Theme.textTertiary)
                     }
