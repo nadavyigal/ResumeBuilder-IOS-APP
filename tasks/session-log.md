@@ -36,6 +36,42 @@
 
 ## Sessions
 
+### 2026-06-17 (post-live D7 plugin pre-read)
+**Task:** Post-Live D7 Readout
+**Files Changed:**
+- `docs/qa/reports/post-live-d7-readout-2026-06-17.md` — updated the D7 readout from source-blocked to PostHog-plugin verified, with live 7-day event counts, launch-anchor traffic, dashboard health, timing gate, dashboard hygiene, and monetization implication.
+- `tasks/progress.md` — recorded that PostHog source access is verified and D7 readout is now pending only a complete 7-day live window.
+- `tasks/session-log.md` — recorded this packet.
+- `tasks/todo.md` — updated current task to the D7 plugin pre-read and its remaining D7-window validation status.
+**Decisions Made:**
+- Did not report mature D7 activation, retention, App Store downloads, conversion, or revenue because the App Store-live anchor is 2026-06-17 and the first complete D7 window is 2026-06-24.
+- Kept D7 Activation dashboard 1720819 as the iOS north star.
+- Classified Activation Funnel 1345375, Week 1 Launch Metrics 1285341, and My App Dashboard 932305 as archive-review candidates only using live PostHog dashboard metadata; no dashboard edits or deletions were made.
+- Kept monetization/paywall decisions blocked until dashboard 1720819 is read after the first complete D7 window.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Live HogQL confirmed iOS `$lib=resumely-ios-urlsession`: 188 events / 18 users over 7 days, last event 2026-06-17T03:06:44.021Z.
+- Launch-anchor read from 2026-06-17T00:00:00Z showed 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users.
+- `git diff --check` passed on the D7 readout branch.
+**Next Recommended Action:** Re-run D7 source read through the connected PostHog plugin on or after 2026-06-24, or replace the launch anchor if App Store Connect provides a more precise Ready-for-Sale timestamp.
+
+### 2026-06-17
+**Task:** Resumely post-live analytics and release-state reconciliation
+**Files Changed:**
+- `tasks/progress.md` — changed launch status from App Store review to App Store live, recorded live PostHog iOS evidence, pinned D7 Activation dashboard 1720819 as the iOS north star, and corrected Resume Library status on current `main`.
+- `tasks/session-log.md` — recorded this reconciliation session and evidence sources.
+- `tasks/todo.md` — replaced stale Resume Aha task tracker with the post-live reconciliation checklist.
+**Decisions Made:**
+- Treated the founder/App Store-live statement and 2026-06-17 live PostHog QA packet as trusted evidence for launch-gate reconciliation; did not invent App Store downloads, revenue, conversion, or retention numbers.
+- Closed the launch gate on iOS health: `$lib=resumely-ios-urlsession` showed 190 events / 18 users over 7 days, with the last event on 2026-06-17.
+- Web analytics configuration is not broken: Vercel production has `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, the code reads those names, and live PostHog saw `$lib=web` events. The current web issue is low traffic, not missing env.
+- D7 Activation dashboard 1720819 is the iOS north star. Week 1 Launch Metrics 1285341 is web/legacy-oriented based on local config event names; My App Dashboard 932305 was last refreshed 2026-02-18 per the QA packet, so both should be reviewed for archive, not deleted.
+**Validation:**
+- `git diff --check` passed for the reconciliation branch.
+- Targeted reads of `tasks/progress.md`, `tasks/session-log.md`, and `tasks/todo.md` confirmed the updated status/evidence.
+- Vercel CLI read-only check confirmed production env vars: `NEXT_PUBLIC_POSTHOG_HOST` scoped to Production and `NEXT_PUBLIC_POSTHOG_KEY` scoped to Development, Preview, Production.
+**Next Recommended Action:** Run the first post-live packet after the D7 window: read dashboard 1720819, summarize activation/retention honestly, review archive candidates 1285341 and 932305 in PostHog, and only then decide on monetization/paywall timing.
+
 ### 2026-06-14 (resubmission)
 **Task:** App Store resubmission — resolve compliance, fill reviewer info, reply to rejection, submit build 4
 **Files Changed:**
