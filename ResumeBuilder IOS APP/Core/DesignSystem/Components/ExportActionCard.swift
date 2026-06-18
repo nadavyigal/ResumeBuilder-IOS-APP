@@ -2,8 +2,8 @@ import SwiftUI
 
 struct ExportActionCard: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     var accentColor: Color = AppColors.accentSky
     var isLoading: Bool = false
     let action: () -> Void

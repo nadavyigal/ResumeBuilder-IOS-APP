@@ -8,7 +8,7 @@ struct ExpertReportView: View {
     let needsUserInput: Bool
     var showApplyButton: Bool
     var isApplying: Bool
-    var applyButtonTitle: String = "Apply Changes"
+    var applyButtonTitle: LocalizedStringKey = "Apply Changes"
     var onApply: () -> Void
 
     @State private var evidenceExpanded = false

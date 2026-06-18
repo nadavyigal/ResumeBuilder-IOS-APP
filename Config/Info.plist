@@ -23,6 +23,11 @@
 	<!-- Localization -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>he</string>
+	</array>
 
 	<!-- iOS -->
 	<key>LSRequiresIPhoneOS</key>

@@ -5,6 +5,14 @@ enum ImpactLevel: String {
     case medium = "Medium"
     case low = "Low"
 
+    var label: LocalizedStringKey {
+        switch self {
+        case .high:   return "High"
+        case .medium: return "Medium"
+        case .low:    return "Low"
+        }
+    }
+
     var color: Color {
         switch self {
         case .high:   return AppColors.accentTeal
@@ -40,7 +48,7 @@ struct FixItemRow: View {
 
             Spacer()
 
-            Text(impact.rawValue)
+            Text(impact.label)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(impact.color)
                 .padding(.horizontal, AppSpacing.sm)
