@@ -13,28 +13,62 @@
 
 ---
 
-**Date:** 2026-06-16
-**Task:** Hebrew version of Resumely iOS — full 5-story plan (native UI strings + language picker + RTL résumé preview/PDF + App Store metadata).
-**Files Changed:**
-- Story 1: `project.pbxproj` (he region), `Config/Info.plist` (CFBundleLocalizations), `Core/Localization/LocalizationManager.swift`, `Core/Localization/Bundle+Localization.swift`, `ResumeBuilder_IOS_APPApp.swift`
-- Story 2: `Resources/Localizable.xcstrings` (360 keys → Hebrew + 134 new sweep keys)
-- Story 2.5 sweep: `ResumlyTabBar.swift`, `HomeActivationState.swift`, `HomeTabView.swift`, `GradientButton.swift`, `ExportActionCard.swift`, `MetricCard.swift`, `FixItemRow.swift`, `GreetingHeader.swift`, `ExpertModesView.swift`, `ExpertReportView.swift`
-- Story 3: `Features/Profile/ProfileView.swift` (language picker + chrome localization)
-- Story 4: `Core/Localization/ResumeRTL.swift` (new), `Services/ResumeDesignService.swift` (locale field), `Features/V2/Preview/ResumePreviewWebView.swift`, `Core/Export/HTMLPDFExporter.swift`
-- Story 5: `docs/app-store/he-metadata.md` (new)
-- Tracking: `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`
-**Decisions Made:**
-- UI strings live in two populations: catalog `Text("literal")` (translated) AND plain-`String` component/VM labels (don't localize). User chose a bounded "core-flow sweep" → converted static-label params to `LocalizedStringKey`; dynamic/server data kept as `String`.
-- RTL direction derived from résumé CONTENT (Hebrew chars), not UI language, so English résumés are never forced RTL.
-- Client-side RTL HTML post-processing is the robust path (works regardless of backend locale support); `locale` still sent so backend can do it natively later.
-- Runtime language switch via bundle override (`nonisolated` for Swift 6) + `.environment(\.locale/\.layoutDirection)`.
-- No fastlane added (Story 5 ASC submission is a manual user action).
-**Verification:** Build SUCCEEDED every story. App launches Hebrew RTL (Home/Profile verified on sim). Picker persists choice across relaunch (en→LTR, he→RTL). RTL résumé HTML renders correctly in WKWebView. 10/10 RTL-logic unit checks pass. Full suite: 88 tests pass (the `TEST FAILED` is a pre-existing host-teardown malloc crash, identical on base commit).
-**Next Recommended Action:** Real-device QA of a backend-authenticated Hebrew résumé (preview + PDF) per strategy doc; paste `docs/app-store/he-metadata.md` into App Store Connect Hebrew localization + capture Hebrew screenshots; optionally extend the LocalizedStringKey sweep to remaining secondary surfaces (account header strings, profileMessage fallbacks) for 100% coverage.
-
----
-
 ## Sessions
+
+### 2026-06-17 (PostHog real-device QA)
+**Task:** Verify PostHog analytics coverage and run real-device QA
+**Files Changed:**
+- `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — added exact PostHog event-name/property contract coverage for all 16 app-defined analytics events.
+- `docs/qa/reports/posthog-real-device-qa-2026-06-17.md` — documented PostHog plugin context, live coverage, real-device build/install/launch, device test result, and remaining live-observation gap.
+- `tasks/progress.md` — recorded PostHog/device QA status and latest validation.
+- `tasks/session-log.md` — recorded this session.
+**Decisions Made:**
+- Treated project 270848 as authoritative after detecting the PostHog plugin had drifted to project 171597.
+- Classified five events as wired/test-covered but not production-observed: `free_ats_completed`, `diagnosis_viewed`, `ats_improve_tapped`, `export_pdf_tapped`, and `submit_package_saved`.
+- Did not mutate PostHog dashboards, App Store Connect, Vercel, or backend state.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Physical iPhone 13 Debug build, install, and launch passed.
+- Built app Info.plist had `API_BASE_URL`, `POSTHOG_API_KEY`, and `POSTHOG_HOST` set.
+- Focused physical-device test run passed: `AnalyticsServiceTests` 8/8, 0 failures.
+- PostHog query after `2026-06-17T12:25:25Z` showed fresh iOS events for `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`.
+**Next Recommended Action:** Run an authenticated manual device smoke through Diagnosis, Improve ATS, Export PDF, and Submit Package to make the five remaining wired events appear in live PostHog data.
+
+### 2026-06-17 (post-live D7 plugin pre-read)
+**Task:** Post-Live D7 Readout
+**Files Changed:**
+- `docs/qa/reports/post-live-d7-readout-2026-06-17.md` — updated the D7 readout from source-blocked to PostHog-plugin verified, with live 7-day event counts, launch-anchor traffic, dashboard health, timing gate, dashboard hygiene, and monetization implication.
+- `tasks/progress.md` — recorded that PostHog source access is verified and D7 readout is now pending only a complete 7-day live window.
+- `tasks/session-log.md` — recorded this packet.
+- `tasks/todo.md` — updated current task to the D7 plugin pre-read and its remaining D7-window validation status.
+**Decisions Made:**
+- Did not report mature D7 activation, retention, App Store downloads, conversion, or revenue because the App Store-live anchor is 2026-06-17 and the first complete D7 window is 2026-06-24.
+- Kept D7 Activation dashboard 1720819 as the iOS north star.
+- Classified Activation Funnel 1345375, Week 1 Launch Metrics 1285341, and My App Dashboard 932305 as archive-review candidates only using live PostHog dashboard metadata; no dashboard edits or deletions were made.
+- Kept monetization/paywall decisions blocked until dashboard 1720819 is read after the first complete D7 window.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Live HogQL confirmed iOS `$lib=resumely-ios-urlsession`: 188 events / 18 users over 7 days, last event 2026-06-17T03:06:44.021Z.
+- Launch-anchor read from 2026-06-17T00:00:00Z showed 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users.
+- `git diff --check` passed on the D7 readout branch.
+**Next Recommended Action:** Re-run D7 source read through the connected PostHog plugin on or after 2026-06-24, or replace the launch anchor if App Store Connect provides a more precise Ready-for-Sale timestamp.
+
+### 2026-06-17
+**Task:** Resumely post-live analytics and release-state reconciliation
+**Files Changed:**
+- `tasks/progress.md` — changed launch status from App Store review to App Store live, recorded live PostHog iOS evidence, pinned D7 Activation dashboard 1720819 as the iOS north star, and corrected Resume Library status on current `main`.
+- `tasks/session-log.md` — recorded this reconciliation session and evidence sources.
+- `tasks/todo.md` — replaced stale Resume Aha task tracker with the post-live reconciliation checklist.
+**Decisions Made:**
+- Treated the founder/App Store-live statement and 2026-06-17 live PostHog QA packet as trusted evidence for launch-gate reconciliation; did not invent App Store downloads, revenue, conversion, or retention numbers.
+- Closed the launch gate on iOS health: `$lib=resumely-ios-urlsession` showed 190 events / 18 users over 7 days, with the last event on 2026-06-17.
+- Web analytics configuration is not broken: Vercel production has `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, the code reads those names, and live PostHog saw `$lib=web` events. The current web issue is low traffic, not missing env.
+- D7 Activation dashboard 1720819 is the iOS north star. Week 1 Launch Metrics 1285341 is web/legacy-oriented based on local config event names; My App Dashboard 932305 was last refreshed 2026-02-18 per the QA packet, so both should be reviewed for archive, not deleted.
+**Validation:**
+- `git diff --check` passed for the reconciliation branch.
+- Targeted reads of `tasks/progress.md`, `tasks/session-log.md`, and `tasks/todo.md` confirmed the updated status/evidence.
+- Vercel CLI read-only check confirmed production env vars: `NEXT_PUBLIC_POSTHOG_HOST` scoped to Production and `NEXT_PUBLIC_POSTHOG_KEY` scoped to Development, Preview, Production.
+**Next Recommended Action:** Run the first post-live packet after the D7 window: read dashboard 1720819, summarize activation/retention honestly, review archive candidates 1285341 and 932305 in PostHog, and only then decide on monetization/paywall timing.
 
 ### 2026-06-14 (resubmission)
 **Task:** App Store resubmission — resolve compliance, fill reviewer info, reply to rejection, submit build 4

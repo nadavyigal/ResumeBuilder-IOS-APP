@@ -78,6 +78,7 @@ final class AppState {
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         refreshTask?.cancel()
         refreshTask = nil
+        AnalyticsService.shared.resetDistinctId()
     }
 
     /// Deletes the account server-side, then clears all local state.

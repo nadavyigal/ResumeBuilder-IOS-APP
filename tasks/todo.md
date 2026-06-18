@@ -1,65 +1,43 @@
 # Current Task
 
-**Objective:** Ship a full Hebrew version of the Resumely iOS app (native UI strings + language picker + RTL resume preview/PDF + Hebrew App Store metadata).
-**Status:** Story 1 in progress
-**Branch:** `claude/relaxed-northcutt-cb6240`
-**Plan:** Hebrew Version of Resumely (5 stories)
+**Objective:** Execute D7 Gate A deadline closeout work pack before the 2026-06-21 analytics deadline.
+**Status:** Repo sync, commits, archive/export, PostHog baseline, branch cleanup, and agent worktree cleanup completed; App Store review submission and Live Events UI screenshot still need external UI/API access.
+**Branch:** `main`
+**Spec:** `tasks/work-pack-2026-06-18-d7-deadline-close.md`
 
-## Verified current state
-- App target uses fileSystemSynchronizedGroups → new Swift files auto-compile.
-- App uses explicit `Config/Info.plist` (GENERATE_INFOPLIST_FILE = NO).
-- `knownRegions = (en, Base)`; `developmentRegion = en`. No `he`.
-- Catalog `Localizable.xcstrings`: 360 keys; UI uses natural-language `Text("...")` literals resolved through the catalog. Only 16 *symbolic* keys (tab_home, app_name…) have Hebrew, and those symbolic keys are NOT referenced in code. Real translation work = the natural-language keys.
-- No `String(localized:)` / no existing localization helper anywhere.
+## Files Updated
+- [x] `tasks/work-pack-2026-06-18-d7-deadline-close.md`
+- [x] `tasks/progress.md`
+- [x] `tasks/lessons.md`
+- [x] `tasks/todo.md`
+- [x] `docs/qa/posthog-gate-a-baseline-2026-06-18.md`
+- [x] `docs/qa/posthog-analytics-audit-2026-06-16.md`
+- [x] `audit/product-design-resumebuilder-ios-2026-06-16/`
 
-## Story 1 — Hebrew + language infrastructure ✅
-- [x] Add `he` to `knownRegions` in project.pbxproj
-- [x] Add `CFBundleLocalizations` (en, he) to `Config/Info.plist`
-- [x] Create `Core/Localization/LocalizationManager.swift` (@Observable @MainActor singleton; auto-detect device Hebrew on first launch; persist explicit choice in UserDefaults)
-- [x] Create `Core/Localization/Bundle+Localization.swift` (bundle-override pattern, nonisolated class for Swift 6)
-- [x] Wire `.environment(\.locale)` + `.environment(\.layoutDirection)` at root in `ResumeBuilder_IOS_APPApp.swift`
-- [x] BUILD SUCCEEDED; he.lproj compiled; app launches in Hebrew without crash
-
-## Story 2 — Translate natural-language keys to Hebrew ✅
-- [x] Author Hebrew for all 360 catalog keys (terminology aligned to web `he.json`)
-- [x] Preserve positional format specifiers (%1$@, %2$lld) exactly; same count/order
-- [x] Leave brand tokens (Resumely, ATS, PDF, LinkedIn) untranslated
-- [x] Core-flow sweep (Story 2.5): converted plain-String component/VM labels to
-      LocalizedStringKey + added Hebrew for 133 newly-exposed labels. Home fully Hebrew.
-
-## Story 3 — Language picker in Me tab ✅
-- [x] Add English / עברית segmented Picker in `Features/Profile/ProfileView.swift` bound to LocalizationManager
-- [x] Localize Profile chrome (section titles, stat labels, row labels) to LocalizedStringKey
-- [x] Verified: picker renders both options + reflects current selection; persisted
-      choice drives language+direction across relaunch (en→LTR English, he→RTL Hebrew)
-
-## Story 4 — RTL resume preview + PDF ✅
-- [x] Add optional `locale` to `RenderPreviewRequest`; send app language (he/en)
-- [x] Client-side RTL post-processing (`ResumeHTMLDirection.applyRTL`) injects
-      `dir="rtl"` + RTL CSS on backend HTML when résumé content is Hebrew (robust
-      regardless of backend locale support)
-- [x] Local fallback template emits `<html dir="rtl">`, RTL CSS, Hebrew font stack
-- [x] `LocalResumePDFExporter` direct-draw path: right alignment + RTL writing dir
-- [x] PDF export inherits the RTL HTML via WKWebView.createPDF
-- [x] Verified: 10/10 RTL-logic unit checks; Hebrew résumé HTML renders correct
-      RTL in WKWebView (headers right-aligned, bullets on right, Hebrew font, bidi)
-- Note: direction derived from résumé CONTENT (Hebrew chars), not UI language, so
-  English résumé never forced RTL. Full backend-auth Hebrew-resume device QA still
-  recommended on real hardware per strategy doc.
-
-## Story 5 — Hebrew App Store metadata ✅ (prep — ASC submission is manual)
-- [x] Mirror canonical Hebrew listing into `docs/app-store/he-metadata.md`
-      (name/subtitle/keywords/promo/description) + iOS submission checklist
-- [x] Document Hebrew screenshot generation (launch with -AppleLanguages he)
-- [x] No fastlane added (kept dependency-free per rules)
-- [ ] USER ACTION: paste into App Store Connect Hebrew localization + submit
+## Checklist
+- [x] Sync `main` with `origin/main`.
+- [x] Commit analytics hardening and QA updates.
+- [x] Remove Finder duplicate untracked files.
+- [x] Commit audit screenshots, PostHog audit, plan docs, and D7 work pack.
+- [x] Push `main`.
+- [x] Confirm version 1.0 build 4 in Xcode build settings.
+- [x] Create local Release archive for build 4.
+- [x] Export App Store package for build 4.
+- [x] Attempt App Store Connect upload.
+- [ ] Confirm App Store Connect review submission in UI/API. Blocked: CLI upload reports build 4 already exists, but review submission state is not available locally.
+- [x] Build Debug app for iPhone 17 simulator.
+- [ ] Capture PostHog Live Events UI screenshot. Blocked: simulator install/launch hung and PostHog UI screenshot access was not available from this environment.
+- [x] Record PostHog Gate A baseline from connected PostHog queries.
+- [x] Resolve `claude/relaxed-northcutt-cb6240` by reopening draft PR #63 and deleting the local branch.
+- [x] Resolve `monitization` by reopening draft PR #61 and deleting the local branch.
+- [x] Delete superseded docs-only `feat/localization-updates` local branch.
+- [x] Run Agentic OS janitor preview.
+- [x] Apply Agentic OS janitor cleanup for agent worktrees.
 
 ## Verification
-- [x] Build SUCCEEDED (app target) after every story
-- [x] Full test suite: all 88 tests pass, 0 failures (the `TEST FAILED` is a
-      pre-existing host-teardown malloc crash — identical on the base commit)
-- [x] No test edits needed (locale field is optional/defaulted; mock unchanged)
-- [x] QA: Home/Profile each rendered in Hebrew RTL + English LTR on simulator;
-      Hebrew résumé HTML renders correct RTL in WKWebView
-- [ ] USER ACTION (per strategy doc): real-device QA of a backend-authenticated
-      Hebrew résumé → preview + PDF
+- [x] `xcodebuild archive` succeeded for Release iPhoneOS.
+- [x] `xcodebuild -exportArchive` succeeded for App Store export.
+- [x] `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build` succeeded.
+- [x] PostHog query confirmed 2026-06-18 iOS events: `app_launched`, `resume_uploaded`, `job_added`, `optimization_started`, `optimization_completed`, `diagnosis_viewed`.
+- [x] `git worktree list` confirms Resumely agent worktrees are removed; only primary `main` and non-agent `version-2` worktree remain.
+- [x] `git status --short --branch` clean before final session-end checks.

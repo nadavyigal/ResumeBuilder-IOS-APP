@@ -17,18 +17,23 @@
 
 ### 2026-06-16
 **Category:** Test
-**Rule:** `xcodebuild test` ending in `** TEST FAILED **` with an empty "Failing tests:" list and `malloc: *** error for object 0x...: pointer being freed was not allocated` + "Restarting after unexpected exit" is a PRE-EXISTING test-host teardown crash (the @Observable @MainActor pattern from 2026-06-01), not a code regression. Confirm by checking every suite reports "0 failures" and the total test count matches baseline; if so, the run is green. Verified by running the base commit, which crashes identically (same malloc address).
-**Why:** During the Hebrew localization work, the full suite reported all 88 tests passing (0 failures) yet `TEST FAILED`. Running the unmodified base commit produced the identical crash/address, proving the changes introduced no regression.
+**Rule:** `xcodebuild test` ending in `** TEST FAILED **` with an empty "Failing tests:" list and `malloc: *** error for object 0x...: pointer being freed was not allocated` plus "Restarting after unexpected exit" can be the pre-existing test-host teardown crash; confirm every suite reports 0 failures and the total test count matches baseline before treating it as a regression.
+**Why:** During Hebrew localization work, the full suite reported all 88 tests passing with 0 failures yet still ended in the known teardown crash, and the unmodified base commit crashed identically.
 
 ### 2026-06-16
 **Category:** SwiftUI
-**Rule:** To localize UI text that reaches a `Text` via a reusable component parameter or a view-model/enum computed property, change the parameter/return type from `String` to `LocalizedStringKey` (call-site string literals coerce automatically and resolve through the String Catalog). `Text(someStringVariable)` does NOT localize — only `Text("literal")` and `Text(LocalizedStringKey)` do. Keep dynamic/server data (file names, API content) as `String`.
-**Why:** Translating only `Localizable.xcstrings` left the tab bar, home hero, and component labels in English because they were plain `String` rendered via `Text(variable)`.
+**Rule:** To localize UI text that reaches `Text` through a reusable component parameter or enum/view-model computed property, use `LocalizedStringKey` for static UI labels and keep dynamic/server data as `String`.
+**Why:** Translating `Localizable.xcstrings` alone left tab bar, home hero, and component labels in English because plain `String` values rendered by `Text(variable)` do not resolve through the String Catalog.
 
 ### 2026-06-16
 **Category:** Build
-**Rule:** Under Swift 6 default MainActor isolation, a `Bundle` subclass used for runtime language override must be declared `nonisolated final class` (so its implicit initializers match `Bundle`'s nonisolated designated inits) and any file-scope `var` it uses via `objc_*AssociatedObject` must be `nonisolated(unsafe)`.
-**Why:** The LocalizedBundle override first failed to build with "main actor-isolated initializer 'init(path:)' has different actor isolation from nonisolated overridden declaration" until the class and the associated-object key were marked nonisolated.
+**Rule:** Under Swift 6 default MainActor isolation, a `Bundle` subclass used for runtime language override must be `nonisolated final class`, and associated-object storage it uses should be `nonisolated(unsafe)`.
+**Why:** The localized bundle override first failed to build because its implicit initializer isolation did not match `Bundle`'s nonisolated designated initializers.
+
+### 2026-06-18
+**Category:** Test
+**Rule:** If `simctl bootstatus` reaches a terminal failure or `simctl install/launch` hangs during deadline smoke testing, switch to a fresh simulator or erase the runtime before continuing the smoke.
+**Why:** A D7 Gate A iPhone 17 simulator boot reached a failed terminal bootstatus and subsequent install/launch hung, blocking manual analytics flow verification.
 
 ### 2026-06-14
 **Category:** Test
