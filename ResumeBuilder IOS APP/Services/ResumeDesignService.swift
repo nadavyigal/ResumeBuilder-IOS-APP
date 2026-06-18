@@ -9,12 +9,16 @@ struct RenderPreviewRequest: Codable, Sendable {
     let templateId: String
     let customization: DesignCustomization
     let resumeData: [String: JSONValue]?
+    /// BCP-47 language hint (e.g. "he") so the backend can render RTL/localized
+    /// output when supported. Omitted from the payload when nil.
+    var locale: String? = nil
 
     private enum CodingKeys: String, CodingKey {
         case optimizationId = "optimization_id"
         case templateId     = "template_id"
         case customization
         case resumeData
+        case locale
     }
 }
 

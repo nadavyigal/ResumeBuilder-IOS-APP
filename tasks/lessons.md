@@ -15,6 +15,21 @@
 
 ## Lessons
 
+### 2026-06-16
+**Category:** Test
+**Rule:** `xcodebuild test` ending in `** TEST FAILED **` with an empty "Failing tests:" list and `malloc: *** error for object 0x...: pointer being freed was not allocated` plus "Restarting after unexpected exit" can be the pre-existing test-host teardown crash; confirm every suite reports 0 failures and the total test count matches baseline before treating it as a regression.
+**Why:** During Hebrew localization work, the full suite reported all 88 tests passing with 0 failures yet still ended in the known teardown crash, and the unmodified base commit crashed identically.
+
+### 2026-06-16
+**Category:** SwiftUI
+**Rule:** To localize UI text that reaches `Text` through a reusable component parameter or enum/view-model computed property, use `LocalizedStringKey` for static UI labels and keep dynamic/server data as `String`.
+**Why:** Translating `Localizable.xcstrings` alone left tab bar, home hero, and component labels in English because plain `String` values rendered by `Text(variable)` do not resolve through the String Catalog.
+
+### 2026-06-16
+**Category:** Build
+**Rule:** Under Swift 6 default MainActor isolation, a `Bundle` subclass used for runtime language override must be `nonisolated final class`, and associated-object storage it uses should be `nonisolated(unsafe)`.
+**Why:** The localized bundle override first failed to build because its implicit initializer isolation did not match `Bundle`'s nonisolated designated initializers.
+
 ### 2026-06-18
 **Category:** Test
 **Rule:** If `simctl bootstatus` reaches a terminal failure or `simctl install/launch` hangs during deadline smoke testing, switch to a fresh simulator or erase the runtime before continuing the smoke.

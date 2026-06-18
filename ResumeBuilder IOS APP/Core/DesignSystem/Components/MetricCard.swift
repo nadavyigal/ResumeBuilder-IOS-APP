@@ -2,9 +2,9 @@ import SwiftUI
 
 struct MetricCard: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     let value: String
-    let subtitle: String
+    let subtitle: LocalizedStringKey
     var accentColor: Color = AppColors.accentViolet
 
     var body: some View {

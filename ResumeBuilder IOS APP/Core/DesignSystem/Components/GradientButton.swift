@@ -9,7 +9,7 @@ struct GradientButtonStyle: ButtonStyle {
 }
 
 struct GradientButton: View {
-    let title: String
+    let title: LocalizedStringKey
     var icon: String? = nil
     var isLoading: Bool = false
     let action: () -> Void

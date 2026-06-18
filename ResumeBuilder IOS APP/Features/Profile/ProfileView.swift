@@ -11,6 +11,7 @@ struct ProfileView: View {
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     @Environment(AppState.self) private var appState
+    @Environment(LocalizationManager.self) private var localization
     @State private var showPaywall = false
     @State private var showOnboarding = false
     @State private var latestOptimization: OptimizationHistoryItem?
@@ -59,6 +60,7 @@ struct ProfileView: View {
                             if BackendConfig.isMonetizationEnabled {
                                 creditsSection
                             }
+                            languageSection
                             accountSection
                         }
                         .padding(.horizontal, 20)
@@ -198,7 +200,7 @@ struct ProfileView: View {
         }
     }
 
-    private func statCell(value: String, label: String, icon: String, color: Color) -> some View {
+    private func statCell(value: String, label: LocalizedStringKey, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
@@ -413,6 +415,26 @@ struct ProfileView: View {
         }
     }
 
+    // MARK: - Section: Language
+
+    private var languageSection: some View {
+        ProfileSection(title: "Language", icon: "globe", iconColor: Theme.accentCyan) {
+            Picker(
+                "Language",
+                selection: Binding(
+                    get: { localization.language },
+                    set: { localization.setLanguage($0) }
+                )
+            ) {
+                ForEach(LocalizationManager.AppLanguage.allCases) { lang in
+                    Text(lang.displayName).tag(lang)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(14)
+        }
+    }
+
     // MARK: - Section: Account
 
     private var accountSection: some View {
@@ -511,7 +533,7 @@ struct ProfileView: View {
 
     private func profileRow(
         icon: String,
-        label: String,
+        label: LocalizedStringKey,
         color: Color,
         isAction: Bool = false,
         isDestructive: Bool = false
@@ -588,7 +610,7 @@ private struct ATSScorePill: View {
 // MARK: - Profile Section Container
 
 private struct ProfileSection<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let iconColor: Color
     @ViewBuilder let content: () -> Content
@@ -599,7 +621,8 @@ private struct ProfileSection<Content: View>: View {
                 Image(systemName: icon)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(iconColor)
-                Text(title.uppercased())
+                Text(title)
+                    .textCase(.uppercase)
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(Theme.textTertiary)
                     .kerning(0.8)
