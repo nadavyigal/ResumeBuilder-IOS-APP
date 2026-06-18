@@ -28,7 +28,7 @@ Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real
 Last Validation: D7 Gate A closeout (2026-06-18): Release archive succeeded, App Store export succeeded, Debug iPhone 17 simulator build succeeded, PostHog showed fresh deadline-day iOS funnel events, and Agentic OS janitor removed Resumely agent worktrees.
 Last Updated: 2026-06-18
 Current Branch: main
-Latest Base Commit: 59a104f - qa: record PostHog Gate A baseline 2026-06-18
+Latest Base Commit: current `main` after D7 Gate A closeout cleanup
 Active Spec: docs/specs/resume-aha-moments.md
 Latest QA Report: docs/qa/posthog-gate-a-baseline-2026-06-18.md
 
