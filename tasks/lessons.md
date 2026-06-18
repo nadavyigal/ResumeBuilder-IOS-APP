@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-18
+**Category:** Test
+**Rule:** If `simctl bootstatus` reaches a terminal failure or `simctl install/launch` hangs during deadline smoke testing, switch to a fresh simulator or erase the runtime before continuing the smoke.
+**Why:** A D7 Gate A iPhone 17 simulator boot reached a failed terminal bootstatus and subsequent install/launch hung, blocking manual analytics flow verification.
+
 ### 2026-06-17
 **Category:** General
 **Rule:** To verify localization coverage authoritatively, run `xcodebuild -exportLocalizations -project X -localizationPath /tmp/loc -exportLanguage he`, then parse `/tmp/loc/he.xcloc/Localized Contents/he.xliff`: every `trans-unit` is a localizable string the build extracts (Text literals, LocalizedStringKey, String(localized:), NSLocalizedString). Units with an empty `<target>` are untranslated. This is the ground truth — far more reliable than grepping. Note: multi-argument format keys appear in the xliff `<source>` in POSITIONAL form (`%1$lld…%2$@`) but the catalog KEY is the literal as written in code (`%lld…%@`); translate under the literal key, give the value positional specifiers.

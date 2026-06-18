@@ -2,6 +2,12 @@
 
 **PostHog Real-Device QA (2026-06-17):** Connected PostHog plugin was switched to project 270848 ("ResumeBuilder AI") and dashboard 1720819 resolved. `AnalyticsEvent` contract tests now cover all 16 app-defined event names/properties, including `account_deleted`. Physical iPhone 13 Debug build/install/launch passed, focused `AnalyticsServiceTests` passed 8/8 on device, and PostHog showed fresh device-QA events after `2026-06-17T12:25:25Z`: `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`. Remaining live-observation gap: `free_ats_completed`, `diagnosis_viewed`, `ats_improve_tapped`, `export_pdf_tapped`, `submit_package_saved` are wired/test-covered but still need an authenticated manual smoke to appear in production data. Report: `docs/qa/reports/posthog-real-device-qa-2026-06-17.md`.
 
+**D7 Gate A Build 4 Check (2026-06-18):** `main` was synced and analytics/QA work was committed/pushed. Release archive and App Store export for version 1.0 build 4 succeeded locally. CLI upload reached App Store Connect but was rejected because bundle version `4` had already been uploaded, indicating build 4 is already present in App Store Connect. App Store Connect review submission still needs UI/API confirmation.
+
+**D7 Gate A PostHog Baseline (2026-06-18):** PostHog project 270848 shows fresh iOS `$lib = resumely-ios-urlsession` activity since 2026-06-18T00:00:00Z, including `app_launched`, `resume_uploaded`, `job_added`, `optimization_started`, `optimization_completed`, and `diagnosis_viewed`. Seven-day counts also include `ats_improve_tapped`. Remaining gaps: `export_pdf_tapped`, `submit_package_saved`, and `free_ats_completed` are not yet in PostHog taxonomy; local iPhone 17 simulator launch screenshot was blocked by a wedged simulator install/launch. Report: `docs/qa/posthog-gate-a-baseline-2026-06-18.md`.
+
+**D7 Gate A Stranded Work Cleanup (2026-06-18):** Reopened draft PR #63 for the Hebrew/RTL localization branch and draft PR #61 for the monetization/Ambassador/StoreKit branch before deleting their local branches. Deleted superseded docs-only `feat/localization-updates` after confirming its work-pack file matches `main`. Agentic OS janitor removed all Resumely agent worktrees; non-agent `version-2` worktree remains intentionally untouched.
+
 **App Store Live + Launch Analytics (2026-06-17):** Founder reported Resumely iOS is live in the App Store. Live PostHog QA for project 270848 verified iOS analytics are healthy: `$lib=resumely-ios-urlsession`, 190 events / 18 users in the last 7 days, last event 2026-06-17. D7 dashboard is the iOS north-star dashboard: [ResumeBuilder iOS - D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819).
 
 **Post-Live D7 Readout Pre-Read (2026-06-17):** Connected PostHog plugin source access is verified for project 270848 and dashboard 1720819. Live HogQL read: `$lib=resumely-ios-urlsession`, 188 events / 18 users over the trailing 7 days, last event 2026-06-17T03:06:44.021Z. Since the App Store-live anchor of 2026-06-17T00:00:00Z, PostHog shows 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users. This is a Day 0 / D7-pre-read; the first complete D7 window from the 2026-06-17 launch anchor ends on 2026-06-24. Report: `docs/qa/reports/post-live-d7-readout-2026-06-17.md`.
@@ -12,19 +18,19 @@
 
 Project: ResumeBuilder iOS
 Status: App Store live; launch analytics verified in PostHog
-Current Phase: Post-live QA + D7 activation readout pending complete D7 window
-Active Story: PostHog real-device QA and analytics coverage
-Last Completed Story: Resume Library enabled on `main` after `/api/v1/resumes` was confirmed live; PostHog iOS launch events verified.
+Current Phase: D7 Gate A closeout complete except App Store Connect review-state confirmation
+Active Story: D7 Gate A deadline closeout
+Last Completed Story: D7 Gate A repo sync, analytics baseline, archive/export, and stranded work cleanup
 Next Recommended Story: Re-run D7 readout through the connected PostHog plugin on or after 2026-06-24; then decide whether Week 1 Launch Metrics (1285341), Activation Funnel (1345375), and My App Dashboard (932305) should be archived.
 Estimated Completion: 100% for launch gate; post-live optimization continues.
 Blockers: No launch-gate blocker. App Store metrics/revenue are unknown until App Store Connect or RevenueCat is reviewed.
 Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); full Hebrew/RTL added on branch `version-2` (PR #64, pending merge); live backend endpoint gaps now surface real user-visible errors.
-Last Validation: PostHog real-device QA (2026-06-17): physical iPhone 13 build/install/launch passed; focused `AnalyticsServiceTests` passed 8/8 on device; live PostHog query after the QA window showed fresh iOS events for `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`.
-Last Updated: 2026-06-17
-Current Branch: codex/posthog-device-qa
-Latest Base Commit: d4ef574 - Merge PR #66 post-live D7 readout
+Last Validation: D7 Gate A closeout (2026-06-18): Release archive succeeded, App Store export succeeded, Debug iPhone 17 simulator build succeeded, PostHog showed fresh deadline-day iOS funnel events, and Agentic OS janitor removed Resumely agent worktrees.
+Last Updated: 2026-06-18
+Current Branch: main
+Latest Base Commit: current `main` after D7 Gate A closeout cleanup
 Active Spec: docs/specs/resume-aha-moments.md
-Latest QA Report: docs/qa/reports/posthog-real-device-qa-2026-06-17.md
+Latest QA Report: docs/qa/posthog-gate-a-baseline-2026-06-18.md
 
 ## Tab Structure (as of 2026-05-20)
 | Tab | Index | View | VM |
