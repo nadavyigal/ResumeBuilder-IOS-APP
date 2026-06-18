@@ -1717,6 +1717,9 @@
         }
       }
     },
+    "Congrats! 🎉 One step closer to the job." : {
+
+    },
     "Content" : {
       "localizations" : {
         "he" : {
@@ -2114,6 +2117,9 @@
           }
         }
       }
+    },
+    "Did you land the interview? 🎯" : {
+
     },
     "Discard" : {
       "localizations" : {
@@ -2652,6 +2658,9 @@
         }
       }
     },
+    "Here's a free export for your next application" : {
+
+    },
     "Hi %@ 👋" : {
       "localizations" : {
         "he" : {
@@ -3180,6 +3189,9 @@
           }
         }
       }
+    },
+    "Leave a review" : {
+
     },
     "Led mobile dashboard redesign that cut onboarding drop-off by 18%, partnering with engineering to ship ATS-tracked workflow improvements." : {
       "localizations" : {
@@ -3844,6 +3856,9 @@
         }
       }
     },
+    "Not yet" : {
+
+    },
     "Not yet exported" : {
       "localizations" : {
         "he" : {
@@ -4183,6 +4198,9 @@
           }
         }
       }
+    },
+    "Paywall — coming soon" : {
+
     },
     "PDF export" : {
       "extractionState" : "stale",
@@ -5746,6 +5764,9 @@
         }
       }
     },
+    "Share on LinkedIn" : {
+
+    },
     "Share PDF" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7053,6 +7074,9 @@
           }
         }
       }
+    },
+    "Yes!" : {
+
     },
     "You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link." : {
       "localizations" : {
