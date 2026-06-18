@@ -1,4 +1,4 @@
-// ResumeBuilder IOS APP/Payments/PaywallView.swift
+// ResumeBuilder IOS APP/Payments/StoreKitPaywallDraftView.swift
 // Plan 3: StoreKit Paywall — purchase sheet presented at export
 //
 // SKELETON — implement when gate opens (EXD-009).

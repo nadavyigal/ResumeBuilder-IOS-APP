@@ -16,6 +16,7 @@
 //   - On restore: re-verify all unfinished transactions
 
 import Foundation
+import Observation
 import StoreKit
 
 @MainActor
@@ -25,7 +26,8 @@ final class StoreManager {
     var purchaseError: String?
     var isPurchasing: Bool = false
 
-    private var transactionListenerTask: Task<Void, Never>?
+    @ObservationIgnored
+    private nonisolated(unsafe) var transactionListenerTask: Task<Void, Never>?
 
     init() {
         transactionListenerTask = listenForTransactions()
@@ -55,7 +57,7 @@ final class StoreManager {
 
     private func listenForTransactions() -> Task<Void, Never> {
         Task.detached {
-            for await result in Transaction.updates {
+            for await _ in Transaction.updates {
                 // TODO: Implement
                 // Verify transaction, call storekit-verify edge function, finish transaction
             }
