@@ -1,5 +1,16 @@
 # Project Progress
 
+**v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
+
+Status: v1.1 (5) in Apple review
+Current Phase: D7 Gate A — awaiting Apple approval
+Active Story: None
+Last Completed Story: v5 build-and-ship — submitted 2026-06-18
+Next Recommended Story: (1) Confirm Apple approval + monitor for rejection notes. (2) D7 readout on or after 2026-06-24 via connected PostHog plugin — pull 7-day activation funnel from dashboard 1720819. (3) Close PR #68 after merge.
+Blockers: None. Waiting on Apple review.
+Last Validation: PostHog live events confirmed firing on real device during session; build 1.1 (5) uploaded successfully.
+Last Updated: 2026-06-18
+
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
 **Monetization/Ambassador Scaffolding (reviewed 2026-06-18):** PR #61 adds parked StoreKit purchase-tier, credit-cache, paywall-draft, and ambassador-flow scaffolding for future monetization work. It is not live-gated into export or Profile flows; existing `BackendConfig.isMonetizationEnabled = false` remains the release guard. During review, the draft StoreKit paywall view and file were renamed to avoid colliding with the existing gated Profile `PaywallView`.

@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-06-18 (v5 build-and-ship)
+**Task:** Build and submit version 1.1 (5) for App Store review before D7 Gate A deadline (2026-06-21)
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — bumped CURRENT_PROJECT_VERSION 4→5 and MARKETING_VERSION 1.0→1.1 (version 1.0 was locked after approval; Apple requires higher CFBundleShortVersionString for new submissions)
+- `docs/superpowers/specs/2026-06-18-v5-build-ship-design.md` — v5 design spec (Approach B: bump → archive → smoke → submit)
+- `docs/superpowers/plans/2026-06-18-v5-build-ship.md` — 4-task implementation plan
+- `tasks/progress.md` — updated with v5 submission record
+- `tasks/session-log.md` — this entry
+**Decisions Made:**
+- MARKETING_VERSION bumped to 1.1 (not 2.0) — minor version is appropriate for analytics, localization, and library updates with no major new user-facing feature.
+- Used Xcode Organizer for archive/upload (no ExportOptions.plist exists in the project).
+- Promotional Text set to: "Land more interviews. AI-powered ATS optimization, expert resume tools, and your full Resume Library — now with Hebrew support."
+- PostHog analytics verified live via MCP query during session — all core funnel events firing.
+**Validation:**
+- `project.pbxproj` diff shows exactly 4 changed lines (2× CURRENT_PROJECT_VERSION, 2× MARKETING_VERSION).
+- Xcode Organizer confirmed "Uploaded to Apple" for 1.1 (5) at 12:30.
+- PostHog trends query (last 24h, hourly) shows app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing today.
+- ASC version 1.1 shows "Prepare for Submission" → user confirmed submitted for review.
+**Next Recommended Action:** Monitor Apple review (expected ~48h). If rejected, check rejection notes in ASC and address. On or after 2026-06-24, run D7 readout via PostHog plugin against dashboard 1720819.
+
 ### 2026-06-17 (PostHog real-device QA)
 **Task:** Verify PostHog analytics coverage and run real-device QA
 **Files Changed:**
