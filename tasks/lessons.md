@@ -31,6 +31,16 @@
 **Why:** The localized bundle override first failed to build because its implicit initializer isolation did not match `Bundle`'s nonisolated designated initializers.
 
 ### 2026-06-18
+**Category:** Build
+**Rule:** In `@MainActor @Observable` reference types, private task handles cancelled from `deinit` should be `@ObservationIgnored` and `nonisolated(unsafe)` when they are only cancellation tokens.
+**Why:** PR #61's `StoreManager` build failed under Swift 6 because `deinit` tried to read a main actor-isolated `transactionListenerTask`; plain `nonisolated` then failed under the Observation macro for a mutable stored property.
+
+### 2026-06-18
+**Category:** Build
+**Rule:** In file-system-synchronized Xcode targets, avoid adding a Swift file with the same basename as an existing Swift file even if the type name differs, because Swift localized strings extraction can emit duplicate `*.stringsdata` outputs.
+**Why:** PR #61 renamed the draft StoreKit paywall type but left the file as `Payments/PaywallView.swift`, causing a duplicate `PaywallView.stringsdata` build output alongside `Features/Profile/PaywallView.swift`.
+
+### 2026-06-18
 **Category:** Test
 **Rule:** If `simctl bootstatus` reaches a terminal failure or `simctl install/launch` hangs during deadline smoke testing, switch to a fresh simulator or erase the runtime before continuing the smoke.
 **Why:** A D7 Gate A iPhone 17 simulator boot reached a failed terminal bootstatus and subsequent install/launch hung, blocking manual analytics flow verification.
