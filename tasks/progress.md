@@ -34,15 +34,15 @@ Last Updated: 2026-06-18
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: App Store live; launch analytics verified in PostHog
-Current Phase: D7 Gate A closeout complete except App Store Connect review-state confirmation
-Active Story: D7 Gate A deadline closeout
-Last Completed Story: D7 Gate A repo sync, analytics baseline, archive/export, and stranded work cleanup
-Next Recommended Story: Re-run D7 readout through the connected PostHog plugin on or after 2026-06-24; then decide whether Week 1 Launch Metrics (1285341), Activation Funnel (1345375), and My App Dashboard (932305) should be archived.
-Estimated Completion: 100% for launch gate; post-live optimization continues.
-Blockers: No launch-gate blocker. App Store metrics/revenue are unknown until App Store Connect or RevenueCat is reviewed.
-Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); Hebrew/RTL still needs real-device resume/PDF QA; live backend endpoint gaps now surface real user-visible errors.
-Last Validation: D7 Gate A PR merge closeout (2026-06-18): PR #63 and PR #61 merged into `main`, and Debug iPhone 17 simulator build succeeded after both merges.
+Status: v1.1 (5) in Apple review (submitted 2026-06-18). v1.0 (4) live.
+Current Phase: Awaiting Apple review — passive monitoring only (EXD-011). D7 readout scheduled 2026-06-24.
+Active Story: None — no code or ASC changes during review per EXD-011.
+Last Completed Story: v1.1 (5) submitted 2026-06-18 — Hebrew localization, monetization scaffolding, analytics events wired.
+Next Recommended Story: D7 readout on or after 2026-06-24 via PostHog plugin (dashboard 1720819). Then decide on post-D7 ASO packet.
+Estimated Completion: Awaiting Apple approval (~48h from 2026-06-18).
+Blockers: None. Waiting on Apple review. Do not touch ASC or build during review.
+Risks: Apple rejection resets D7 metrics window. Hebrew/RTL real-device PDF QA still pending.
+Last Validation: v1.1 (5) uploaded and submitted via Xcode Organizer 2026-06-18. PostHog events confirmed firing.
 Last Updated: 2026-06-18
 Current Branch: main
 Latest Base Commit: current `main` after D7 Gate A closeout cleanup
