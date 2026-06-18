@@ -1,5 +1,7 @@
 # Project Progress
 
+**D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
+
 **Monetization/Ambassador Scaffolding (reviewed 2026-06-18):** PR #61 adds parked StoreKit purchase-tier, credit-cache, paywall-draft, and ambassador-flow scaffolding for future monetization work. It is not live-gated into export or Profile flows; existing `BackendConfig.isMonetizationEnabled = false` remains the release guard. During review, the draft StoreKit paywall view and file were renamed to avoid colliding with the existing gated Profile `PaywallView`.
 
 **Hebrew / RTL (2026-06-16, reviewed 2026-06-18):** PR #63 adds Hebrew app localization support: `he` region and `CFBundleLocalizations`, runtime language selection via `LocalizationManager`, localized bundle override, app-root locale/layout-direction injection, Hebrew String Catalog coverage, a Me-tab language picker, RTL resume preview/PDF handling based on resume content, and Hebrew App Store metadata in `docs/app-store/he-metadata.md`. Remaining after merge: real-device Hebrew resume preview/PDF QA and manual App Store Connect Hebrew metadata submission.
@@ -28,8 +30,8 @@ Last Completed Story: D7 Gate A repo sync, analytics baseline, archive/export, a
 Next Recommended Story: Re-run D7 readout through the connected PostHog plugin on or after 2026-06-24; then decide whether Week 1 Launch Metrics (1285341), Activation Funnel (1345375), and My App Dashboard (932305) should be archived.
 Estimated Completion: 100% for launch gate; post-live optimization continues.
 Blockers: No launch-gate blocker. App Store metrics/revenue are unknown until App Store Connect or RevenueCat is reviewed.
-Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); no Hebrew/RTL support; live backend endpoint gaps now surface real user-visible errors.
-Last Validation: D7 Gate A closeout (2026-06-18): Release archive succeeded, App Store export succeeded, Debug iPhone 17 simulator build succeeded, PostHog showed fresh deadline-day iOS funnel events, and Agentic OS janitor removed Resumely agent worktrees.
+Risks: Swift 6 concurrency strictness; PDF render via WKWebView (fragile on real device); Hebrew/RTL still needs real-device resume/PDF QA; live backend endpoint gaps now surface real user-visible errors.
+Last Validation: D7 Gate A PR merge closeout (2026-06-18): PR #63 and PR #61 merged into `main`, and Debug iPhone 17 simulator build succeeded after both merges.
 Last Updated: 2026-06-18
 Current Branch: main
 Latest Base Commit: current `main` after D7 Gate A closeout cleanup
