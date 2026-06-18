@@ -69,19 +69,19 @@ final class TailorViewModel {
 
     func optimize(appState: AppState) async {
         guard let selectedResumeURL else {
-            errorMessage = "Choose a PDF resume first."
+            errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return
         }
 
         let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
-            errorMessage = "Paste a job description or add a job link."
+            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
             return
         }
 
         guard appState.session?.accessToken != nil else {
-            errorMessage = "Please sign in first."
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
 
@@ -127,7 +127,7 @@ final class TailorViewModel {
 
             guard let resumeId = upload.resumeId, !resumeId.isEmpty,
                   let jobDescriptionId = upload.jobDescriptionId, !jobDescriptionId.isEmpty else {
-                errorMessage = upload.error ?? "Upload did not return resume or job description ids."
+                errorMessage = upload.error ?? NSLocalizedString("Upload did not return resume or job description ids.", comment: "")
                 return
             }
 
@@ -158,7 +158,7 @@ final class TailorViewModel {
                 #if DEBUG
                 print("❌ [TAILOR] → no valid id in response")
                 #endif
-                errorMessage = optimize.error ?? "Optimization did not return a result. Try again."
+                errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
             }
         } catch let apiError as APIClientError {
             if case .serverError(_, let message) = apiError {
@@ -173,13 +173,13 @@ final class TailorViewModel {
 
     func runFreeATS(appState: AppState) async {
         guard let selectedResumeURL else {
-            errorMessage = "Choose a PDF resume first."
+            errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return
         }
         let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
-            errorMessage = "Paste a job description or add a job link."
+            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
             return
         }
         isRunningFreeATS = true
@@ -209,9 +209,9 @@ final class TailorViewModel {
     private func enhancedError(_ message: String) -> String {
         let lower = message.lowercased()
         if lower.contains("function_invocation_timeout") || lower.contains("timed out") || lower.contains("timeout") {
-            return "The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again."
+            return NSLocalizedString("The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again.", comment: "")
         }
         guard lower.contains("read") && lower.contains("pdf") else { return message }
-        return message + "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer."
+        return message + NSLocalizedString("\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer.", comment: "")
     }
 }

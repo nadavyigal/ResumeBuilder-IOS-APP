@@ -65,8 +65,8 @@ struct ExpertSavedReportDetailView: View {
     private func reportContent(_ snap: ExpertWorkflowRunSnapshot) -> some View {
         let report = ExpertReportParsing.displayModel(from: snap.output)
             ?? ExpertReportDisplayModel(
-                headline: workflowTypeRaw ?? "Saved Report",
-                executiveSummary: "Report loaded — full fidelity may require re-run.",
+                headline: workflowType?.displayTitle ?? NSLocalizedString("Saved Report", comment: ""),
+                executiveSummary: NSLocalizedString("Report loaded — full fidelity may require re-run.", comment: ""),
                 priorityActions: [],
                 evidenceGaps: snap.missingEvidence,
                 atsImpact: nil
@@ -101,7 +101,7 @@ struct ExpertSavedReportDetailView: View {
                 vm.seedReadyPhase(workflowType: type, snapshot: snap)
             }
         } catch {
-            errorMessage = "Could not load saved report: \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("Could not load saved report: %@", comment: ""), error.localizedDescription)
         }
     }
 }

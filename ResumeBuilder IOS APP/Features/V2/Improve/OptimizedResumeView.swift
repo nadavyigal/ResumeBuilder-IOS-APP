@@ -906,7 +906,7 @@ struct OptimizedResumeView: View {
             if case .serverError(_, let message)? = error as? APIClientError {
                 viewModel.errorMessage = message
             } else {
-                viewModel.errorMessage = "PDF export failed: \(error.localizedDescription)"
+                viewModel.errorMessage = String(format: NSLocalizedString("PDF export failed: %@", comment: ""), error.localizedDescription)
             }
         }
     }

@@ -41,7 +41,7 @@ struct ScoreResultView: View {
                                 .fill(Theme.accentCyan)
                                 .frame(width: 6, height: 6)
                                 .padding(.top, 6)
-                            Text(win.title ?? win.action ?? win.keyword ?? "Improve keyword alignment")
+                            Text(win.title ?? win.action ?? win.keyword ?? NSLocalizedString("Improve keyword alignment", comment: ""))
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.textSecondary)
                         }
@@ -64,7 +64,7 @@ struct ScoreResultView: View {
                                 .fill(Theme.accent)
                                 .frame(width: 6, height: 6)
                                 .padding(.top, 6)
-                            Text(issue.message ?? issue.text ?? issue.suggestion ?? "ATS issue found")
+                            Text(issue.message ?? issue.text ?? issue.suggestion ?? NSLocalizedString("ATS issue found", comment: ""))
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.textSecondary)
                         }

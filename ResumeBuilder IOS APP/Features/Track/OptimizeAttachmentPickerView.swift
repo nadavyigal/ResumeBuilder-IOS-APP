@@ -27,7 +27,7 @@ struct OptimizeAttachmentPickerView: View {
                             dismiss()
                         } label: {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(row.jobTitle ?? "Optimized Resume")
+                                Text(row.jobTitle ?? NSLocalizedString("Optimized Resume", comment: ""))
                                     .font(.headline)
                                     .foregroundStyle(AppColors.textPrimary)
                                 HStack {

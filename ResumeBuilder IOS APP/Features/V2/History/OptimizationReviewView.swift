@@ -28,7 +28,7 @@ final class OptimizationReviewViewModel {
 
     func load(token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to load this review."
+            errorMessage = NSLocalizedString("Sign in to load this review.", comment: "")
             return
         }
         isLoading = true
@@ -64,11 +64,11 @@ final class OptimizationReviewViewModel {
 
     func apply(token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to apply changes."
+            errorMessage = NSLocalizedString("Sign in to apply changes.", comment: "")
             return
         }
         guard !includedGroupIds.isEmpty else {
-            errorMessage = "Select at least one change to apply."
+            errorMessage = NSLocalizedString("Select at least one change to apply.", comment: "")
             return
         }
         isSubmitting = true
@@ -81,9 +81,9 @@ final class OptimizationReviewViewModel {
             case .serverError(let status, let message) where status >= 500:
                 if message.contains("operation_type") {
                     serverRequiresMigration = true
-                    errorMessage = "The server needs a database update before changes can be applied. Please try again later or contact support."
+                    errorMessage = NSLocalizedString("The server needs a database update before changes can be applied. Please try again later or contact support.", comment: "")
                 } else {
-                    errorMessage = "Server error (\(status)). Please try again later."
+                    errorMessage = String(format: NSLocalizedString("Server error (%lld). Please try again later.", comment: ""), status)
                 }
             default:
                 errorMessage = apiError.localizedDescription
@@ -95,7 +95,7 @@ final class OptimizationReviewViewModel {
 
     func apply(appState: AppState) async {
         guard !includedGroupIds.isEmpty else {
-            errorMessage = "Select at least one change to apply."
+            errorMessage = NSLocalizedString("Select at least one change to apply.", comment: "")
             return
         }
         isSubmitting = true
@@ -110,9 +110,9 @@ final class OptimizationReviewViewModel {
             case .serverError(let status, let message) where status >= 500:
                 if message.contains("operation_type") {
                     serverRequiresMigration = true
-                    errorMessage = "The server needs a database update before changes can be applied. Please try again later or contact support."
+                    errorMessage = NSLocalizedString("The server needs a database update before changes can be applied. Please try again later or contact support.", comment: "")
                 } else {
-                    errorMessage = "Server error (\(status)). Please try again later."
+                    errorMessage = String(format: NSLocalizedString("Server error (%lld). Please try again later.", comment: ""), status)
                 }
             default:
                 errorMessage = apiError.localizedDescription

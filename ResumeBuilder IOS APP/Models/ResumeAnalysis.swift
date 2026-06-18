@@ -161,32 +161,32 @@ struct ATSFourPillarSnapshot: Sendable {
         return [
             Row(
                 id: "keyword_alignment",
-                title: "Keyword Alignment",
-                subtitle: "Exact phrases, wording & semantic match to the JD",
+                title: NSLocalizedString("Keyword Alignment", comment: ""),
+                subtitle: NSLocalizedString("Exact phrases, wording & semantic match to the JD", comment: ""),
                 value: keyword,
                 deltaFromOriginal: d0,
                 iconName: "key.horizontal.fill"
             ),
             Row(
                 id: "content_quality",
-                title: "Content Quality",
-                subtitle: "Title fit, accomplishments & measurable impact",
+                title: NSLocalizedString("Content Quality", comment: ""),
+                subtitle: NSLocalizedString("Title fit, accomplishments & measurable impact", comment: ""),
                 value: content,
                 deltaFromOriginal: d1,
                 iconName: "text.quote"
             ),
             Row(
                 id: "format_structure",
-                title: "Format & Structure",
-                subtitle: "Section coverage & ATS-parseable layout",
+                title: NSLocalizedString("Format & Structure", comment: ""),
+                subtitle: NSLocalizedString("Section coverage & ATS-parseable layout", comment: ""),
                 value: format,
                 deltaFromOriginal: d2,
                 iconName: "rectangle.split.3x3.fill"
             ),
             Row(
                 id: "design_signal",
-                title: "Design",
-                subtitle: "Recency & professional timeline alignment",
+                title: NSLocalizedString("Design", comment: ""),
+                subtitle: NSLocalizedString("Recency & professional timeline alignment", comment: ""),
                 value: design,
                 deltaFromOriginal: d3,
                 iconName: "timeline.selection"

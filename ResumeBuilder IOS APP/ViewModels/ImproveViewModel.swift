@@ -107,7 +107,7 @@ final class ImproveViewModel {
             return
         }
         guard optimizationId != nil else {
-            errorMessage = "Run Optimize first to create an optimization, then rescan."
+            errorMessage = NSLocalizedString("Run Optimize first to create an optimization, then rescan.", comment: "")
             return
         }
         isRescanning = true
@@ -122,7 +122,7 @@ final class ImproveViewModel {
 
     func rescanATS(appState: AppState) async {
         guard let optimizationId else {
-            errorMessage = "Run Optimize first to create an optimization, then rescan."
+            errorMessage = NSLocalizedString("Run Optimize first to create an optimization, then rescan.", comment: "")
             return
         }
         isRescanning = true
@@ -144,7 +144,7 @@ final class ImproveViewModel {
             return nil
         }
         guard let jobDescriptionId, !jobDescriptionId.isEmpty else {
-            errorMessage = "Job description is required. Please scan your resume first."
+            errorMessage = NSLocalizedString("Job description is required. Please scan your resume first.", comment: "")
             return nil
         }
         isOptimizing = true
@@ -171,7 +171,7 @@ final class ImproveViewModel {
             return nil
         }
         guard let jobDescriptionId, !jobDescriptionId.isEmpty else {
-            errorMessage = "Job description is required. Please scan your resume first."
+            errorMessage = NSLocalizedString("Job description is required. Please scan your resume first.", comment: "")
             return nil
         }
         isOptimizing = true
@@ -191,8 +191,8 @@ final class ImproveViewModel {
         improvements = analysis?.authQuickWins.prefix(4).map { quickWin in
             ResumeImprovement(
                 id: quickWin.id,
-                title: quickWin.improvementType ?? "Improve ATS match",
-                description: quickWin.rationale ?? quickWin.optimizedText ?? "Apply a focused ATS improvement.",
+                title: quickWin.improvementType ?? NSLocalizedString("Improve ATS match", comment: ""),
+                description: quickWin.rationale ?? quickWin.optimizedText ?? NSLocalizedString("Apply a focused ATS improvement.", comment: ""),
                 impact: (quickWin.estimatedImpact ?? 0) >= 5 ? "high" : "medium"
             )
         } ?? []
@@ -200,7 +200,7 @@ final class ImproveViewModel {
 
     private func rescanATS(with token: String) async throws {
         guard let optimizationId else {
-            throw ResumeOptimizationError.invalidResponse("Run Optimize first to create an optimization, then rescan.")
+            throw ResumeOptimizationError.invalidResponse(NSLocalizedString("Run Optimize first to create an optimization, then rescan.", comment: ""))
         }
         try await rescanATS(with: token, optimizationId: optimizationId)
     }

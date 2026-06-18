@@ -8,13 +8,13 @@ enum AccountDisplayInfo: Equatable, Sendable {
     static func resolve(isAuthenticated: Bool, email: String?) -> AccountDisplayInfo {
         guard isAuthenticated else { return .guest }
         let resolvedEmail = email?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let displayEmail = resolvedEmail.isEmpty ? "Account" : resolvedEmail
+        let displayEmail = resolvedEmail.isEmpty ? NSLocalizedString("Account", comment: "") : resolvedEmail
         return .authenticated(email: displayEmail, initials: initials(from: displayEmail))
     }
 
     var title: String {
         switch self {
-        case .guest: return "Guest mode"
+        case .guest: return NSLocalizedString("Guest mode", comment: "")
         case .authenticated(let email, _): return email
         }
     }
@@ -22,9 +22,9 @@ enum AccountDisplayInfo: Equatable, Sendable {
     var subtitle: String {
         switch self {
         case .guest:
-            return "Sign in to save optimizations and export PDFs"
+            return NSLocalizedString("Sign in to save optimizations and export PDFs", comment: "")
         case .authenticated:
-            return "Active account"
+            return NSLocalizedString("Active account", comment: "")
         }
     }
 

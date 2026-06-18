@@ -66,7 +66,7 @@ final class ResumeManagementViewModel {
 
     func upload(fileURL: URL, token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to upload your resume."
+            errorMessage = NSLocalizedString("Sign in to upload your resume.", comment: "")
             return
         }
 
@@ -78,7 +78,7 @@ final class ResumeManagementViewModel {
         do {
             let response = try await apiClient.uploadResume(fileURL: fileURL, token: token)
             guard response.success == true, let resumeId = response.resumeId else {
-                errorMessage = response.error ?? "Upload failed"
+                errorMessage = response.error ?? NSLocalizedString("Upload failed", comment: "")
                 return
             }
 

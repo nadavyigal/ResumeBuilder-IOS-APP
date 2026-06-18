@@ -47,11 +47,11 @@ final class OnboardingViewModel {
 
     private func validate() -> Bool {
         guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Email and password are required."
+            errorMessage = NSLocalizedString("Email and password are required.", comment: "")
             return false
         }
         if isSignUp && password.count < 6 {
-            errorMessage = "Password must be at least 6 characters."
+            errorMessage = NSLocalizedString("Password must be at least 6 characters.", comment: "")
             return false
         }
         return true

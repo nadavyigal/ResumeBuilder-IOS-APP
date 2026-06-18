@@ -10,11 +10,11 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .missingToken:
-            return "Sign in required."
+            return NSLocalizedString("Sign in required.", comment: "")
         case .missingOptimizationId:
-            return "Optimization is not ready yet."
+            return NSLocalizedString("Optimization is not ready yet.", comment: "")
         case .emptyRunId:
-            return "Expert run id missing from server response."
+            return NSLocalizedString("Expert run id missing from server response.", comment: "")
         case .premiumRequired(let message):
             return message
         case .applyFailed(let message):
@@ -109,7 +109,7 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
             timeout: 120
         )
         guard dto.success != false else {
-            throw ExpertWorkflowServiceError.applyFailed(dto.error ?? "Apply failed.")
+            throw ExpertWorkflowServiceError.applyFailed(dto.error ?? NSLocalizedString("Apply failed.", comment: ""))
         }
         return dto
     }
@@ -161,7 +161,7 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
         }
     }
 
-    private static let fallbackPremiumHint = "Premium subscription required to run expert modes."
+    private static let fallbackPremiumHint = NSLocalizedString("Premium subscription required to run expert modes.", comment: "")
 
     private static func extractLockedPreview(fromJSONString raw: String) -> String? {
         guard let data = raw.data(using: .utf8),

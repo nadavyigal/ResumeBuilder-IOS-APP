@@ -108,7 +108,7 @@ private struct DiffPreview {
             self.after = combined
             return
         }
-        let label = Self.trim(first.sectionId.nilIfBlank ?? "Resume section", maxLen: 80)
+        let label = Self.trim(first.sectionId.nilIfBlank ?? NSLocalizedString("Resume section", comment: ""), maxLen: 80)
         let beforeTxt = Self.jsonSnippet(first.originalValue, maxLen: maxLen)
         let afterTxt = Self.jsonSnippet(first.newValue ?? first.originalValue, maxLen: maxLen)
         guard !beforeTxt.isEmpty || !afterTxt.isEmpty else { return nil }

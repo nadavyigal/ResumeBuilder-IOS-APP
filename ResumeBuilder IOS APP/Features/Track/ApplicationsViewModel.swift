@@ -12,7 +12,7 @@ final class ApplicationsViewModel {
 
     func load(token: String?) async {
         guard let token else {
-            errorMessage = "Please sign in first."
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
 

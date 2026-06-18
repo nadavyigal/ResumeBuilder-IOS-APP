@@ -62,7 +62,7 @@ struct HomeTabView: View {
                             stepCard(
                                 step: 1,
                                 title: "Upload Resume",
-                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? LocalizedStringKey(viewModel.selectedResumeName!) : "PDF, up to 5 MB",
+                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? viewModel.selectedResumeName! : NSLocalizedString("PDF, up to 5 MB", comment: ""),
                                 icon: "doc.fill",
                                 isFilled: viewModel.selectedResumeName?.isEmpty == false,
                                 action: { isImporterPresented = true }
@@ -154,7 +154,7 @@ struct HomeTabView: View {
                 Button("Save") {
                     if let id = viewModel.pendingSaveResumeId,
                        let token = appState.session?.accessToken {
-                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? "My Resume") : saveDisplayName
+                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? NSLocalizedString("My Resume", comment: "")) : saveDisplayName
                         Task { await libraryViewModel.save(id: id, displayName: name, token: token) }
                     }
                     viewModel.pendingSaveResumeId = nil
@@ -363,7 +363,7 @@ struct HomeTabView: View {
     private func stepCard(
         step: Int,
         title: LocalizedStringKey,
-        subtitle: LocalizedStringKey,
+        subtitle: String,
         icon: String,
         isFilled: Bool,
         action: @escaping () -> Void
@@ -389,7 +389,7 @@ struct HomeTabView: View {
                     Text(title)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
-                    Text(subtitle)
+                    Text(verbatim: subtitle)
                         .font(.caption)
                         .foregroundStyle(isFilled ? Theme.accentBlue : Theme.textTertiary)
                         .lineLimit(1)

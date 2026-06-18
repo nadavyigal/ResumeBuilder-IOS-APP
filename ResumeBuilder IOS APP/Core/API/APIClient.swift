@@ -11,15 +11,15 @@ enum APIClientError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unauthorized:
-            return "Unauthorized"
+            return NSLocalizedString("Unauthorized", comment: "")
         case .paymentRequired:
-            return "You've used all your optimization credits. Upgrade your plan to continue."
+            return NSLocalizedString("You've used all your optimization credits. Upgrade your plan to continue.", comment: "")
         case .serverError(let status, let message):
-            return "Server error (\(status)): \(message)"
+            return String(format: NSLocalizedString("Server error (%lld): %@", comment: ""), status, message)
         case .invalidResponse:
-            return "Invalid server response"
+            return NSLocalizedString("Invalid server response", comment: "")
         case .invalidURL(let path):
-            return "Invalid URL for endpoint: \(path)"
+            return String(format: NSLocalizedString("Invalid URL for endpoint: %@", comment: ""), path)
         }
     }
 }

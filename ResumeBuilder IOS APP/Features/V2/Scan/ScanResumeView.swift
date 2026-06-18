@@ -252,8 +252,8 @@ struct ScanResumeView: View {
                         .foregroundStyle(AppColors.textPrimary)
                     ForEach(wins.prefix(3)) { win in
                         FixItemRow(
-                            title: win.title ?? win.keyword ?? "Improve resume match",
-                            description: win.action ?? win.reason ?? "Add the missing signal to your resume.",
+                            title: win.title ?? win.keyword ?? NSLocalizedString("Improve resume match", comment: ""),
+                            description: win.action ?? win.reason ?? NSLocalizedString("Add the missing signal to your resume.", comment: ""),
                             impact: .medium
                         )
                     }

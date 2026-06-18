@@ -13,7 +13,7 @@ struct BeforeAfterRewriteCard: View {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 bulletBlock(
                     label: "Before",
-                    text: rewrite.before ?? "Original bullet unavailable",
+                    text: rewrite.before ?? NSLocalizedString("Original bullet unavailable", comment: ""),
                     icon: rewrite.hasOriginalBullet ? "minus.circle.fill" : "questionmark.circle.fill",
                     color: AppColors.textTertiary,
                     isPlaceholder: !rewrite.hasOriginalBullet

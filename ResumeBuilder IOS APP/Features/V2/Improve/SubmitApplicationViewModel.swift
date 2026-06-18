@@ -72,11 +72,11 @@ final class SubmitApplicationViewModel {
         let missingCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         switch (missingRole, missingCompany) {
         case (true, true):
-            return "Role and company were not detected. You can edit them, or the package will use safe placeholders."
+            return NSLocalizedString("Role and company were not detected. You can edit them, or the package will use safe placeholders.", comment: "")
         case (true, false):
-            return "Role was not detected. You can edit it, or the package will use Target Role."
+            return NSLocalizedString("Role was not detected. You can edit it, or the package will use Target Role.", comment: "")
         case (false, true):
-            return "Company was not detected. You can edit it, or the package will use Company not specified."
+            return NSLocalizedString("Company was not detected. You can edit it, or the package will use Company not specified.", comment: "")
         case (false, false):
             return nil
         }
@@ -88,11 +88,11 @@ final class SubmitApplicationViewModel {
 
     func submit(token: String?) async {
         guard let token else {
-            errorMessage = "Please sign in first."
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
         guard let resumeProvider, let optimizationId = resumeProvider.optimizationIdentifier else {
-            errorMessage = "Optimization is not ready yet."
+            errorMessage = NSLocalizedString("Optimization is not ready yet.", comment: "")
             return
         }
 
@@ -101,8 +101,8 @@ final class SubmitApplicationViewModel {
 
         let trimmedJobTitle = jobTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCompany = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let packageJobTitle = trimmedJobTitle.isEmpty ? "Target Role" : trimmedJobTitle
-        let packageCompany = trimmedCompany.isEmpty ? "Company not specified" : trimmedCompany
+        let packageJobTitle = trimmedJobTitle.isEmpty ? NSLocalizedString("Target Role", comment: "") : trimmedJobTitle
+        let packageCompany = trimmedCompany.isEmpty ? NSLocalizedString("Company not specified", comment: "") : trimmedCompany
 
         isSubmitting = true
         errorMessage = nil
@@ -179,11 +179,11 @@ final class SubmitApplicationViewModel {
 
     func savePackageToMe(token: String?) async {
         guard let token else {
-            errorMessage = "Please sign in first."
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
         guard var package else {
-            errorMessage = "Create the package before saving it to Me."
+            errorMessage = NSLocalizedString("Create the package before saving it to Me.", comment: "")
             return
         }
         guard package.application == nil else { return }
@@ -369,7 +369,7 @@ enum SubmitApplicationError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .emptyCoverLetter:
-            return "The cover letter response was empty. Please try again."
+            return NSLocalizedString("The cover letter response was empty. Please try again.", comment: "")
         }
     }
 }

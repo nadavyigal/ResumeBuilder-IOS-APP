@@ -24,12 +24,13 @@ struct ResumePreviewWebView: View {
 
     private let designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
     private var previewRequestKey: String {
+        let localeKey = LocalizationManager.shared.language.rawValue
         let sectionKey = sections
             .map { "\($0.id):\($0.type.rawValue):\($0.status):\($0.body)" }
             .joined(separator: "|")
         let customizationKey = customization.map { "\($0.spacing):\($0.accentColor):\($0.fontStyle)" } ?? "default"
         let contactKey = contact.map { "\($0.name ?? ""):\($0.email ?? ""):\($0.phone ?? ""):\($0.location ?? ""):\($0.linkedin ?? "")" } ?? "no-contact"
-        return "\(optimizationId)|\(templateId ?? "ats-clean")|\(customizationKey)|\(contactKey)|\(sectionKey.hashValue)"
+        return "\(optimizationId)|\(templateId ?? "ats-clean")|\(customizationKey)|\(contactKey)|\(sectionKey.hashValue)|\(localeKey)"
     }
 
     var body: some View {
@@ -51,7 +52,7 @@ struct ResumePreviewWebView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 36))
                         .foregroundStyle(AppColors.textSecondary)
-                    Text(errorMessage ?? "Preview unavailable")
+                    Text(errorMessage ?? NSLocalizedString("Preview unavailable", comment: ""))
                         .font(.appBody)
                         .foregroundStyle(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -147,7 +148,7 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("❌ [PREVIEW] no token — cannot render")
                 #endif
-                errorMessage = "Sign in to preview your resume."
+                errorMessage = NSLocalizedString("Sign in to preview your resume.", comment: "")
             }
             isLoading = false
             return
@@ -174,8 +175,13 @@ struct ResumePreviewWebView: View {
                 // Ensure RTL output for Hebrew résumés even if the backend ignored
                 // the locale hint. Direction is decided from the résumé content so
                 // an English résumé is never forced RTL.
+                // When sections are empty, detect direction from the rendered text
+                // only — strip tags first so Latin tag/attribute names don't skew it.
+                let plainPreviewText = previewHTML.replacingOccurrences(
+                    of: "<[^>]+>", with: " ", options: .regularExpression
+                )
                 let rtl = ResumeTextDirection.isRTL(sections: sections, contact: contact)
-                    || (sections.isEmpty && ResumeTextDirection.isRTLText(previewHTML))
+                    || (sections.isEmpty && ResumeTextDirection.isRTLText(plainPreviewText))
                 let finalHTML = ResumeHTMLDirection.applyRTLIfNeeded(to: previewHTML, isRTL: rtl)
                 html = finalHTML
                 renderedHTML.wrappedValue = finalHTML
@@ -190,7 +196,7 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("❌ [PREVIEW] no html and no sections available")
                 #endif
-                errorMessage = response.error ?? "Preview unavailable. Try downloading the PDF instead."
+                errorMessage = response.error ?? NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
             }
         } catch where PreviewRenderErrorPolicy.isBenignCancellation(error) {
             // SwiftUI cancels preview tasks during view refreshes; that is not a render failure.

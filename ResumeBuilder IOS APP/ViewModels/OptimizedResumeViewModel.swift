@@ -89,13 +89,13 @@ final class OptimizedResumeViewModel {
     var atsStatusDescription: String {
         switch atsStatusLabel {
         case "High":
-            return "Strong match for this role. Keep edits truthful before applying."
+            return NSLocalizedString("Strong match for this role. Keep edits truthful before applying.", comment: "")
         case "Strong":
-            return "Close to high. A focused keyword and metrics pass may lift it further."
+            return NSLocalizedString("Close to high. A focused keyword and metrics pass may lift it further.", comment: "")
         case "Medium":
-            return "Useful foundation, but ATS blockers still need attention."
+            return NSLocalizedString("Useful foundation, but ATS blockers still need attention.", comment: "")
         default:
-            return "Low match. Improve role keywords, title fit, metrics, and section coverage before submitting."
+            return NSLocalizedString("Low match. Improve role keywords, title fit, metrics, and section coverage before submitting.", comment: "")
         }
     }
 
@@ -117,9 +117,10 @@ final class OptimizedResumeViewModel {
             .filter { !$0.isEmpty }
 
         if blockerTitles.isEmpty {
-            return "Still low because the resume needs stronger role alignment, measurable outcomes, keywords, and section coverage for this job."
+            return NSLocalizedString("Still low because the resume needs stronger role alignment, measurable outcomes, keywords, and section coverage for this job.", comment: "")
         }
-        return "Still low because \(blockerTitles.joined(separator: " and ")). Improve these before submitting."
+        let joined = blockerTitles.joined(separator: NSLocalizedString(" and ", comment: "list separator"))
+        return String(format: NSLocalizedString("Still low because %@. Improve these before submitting.", comment: ""), joined)
     }
 
     var atsInsightRows: [ATSInsightRow] {
@@ -127,35 +128,35 @@ final class OptimizedResumeViewModel {
         return [
             ATSInsightRow(
                 id: "summary",
-                title: "Summary",
+                title: NSLocalizedString("Summary", comment: ""),
                 score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"]) ? 14 : -8),
                 reason: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"])
-                    ? "Needs tighter role positioning"
-                    : "Role positioning looks serviceable"
+                    ? NSLocalizedString("Needs tighter role positioning", comment: "")
+                    : NSLocalizedString("Role positioning looks serviceable", comment: "")
             ),
             ATSInsightRow(
                 id: "experience",
-                title: "Experience",
+                title: NSLocalizedString("Experience", comment: ""),
                 score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"]) ? 10 : -14),
                 reason: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"])
-                    ? "Add clearer outcomes and scope"
-                    : "Experience signals are carrying the match"
+                    ? NSLocalizedString("Add clearer outcomes and scope", comment: "")
+                    : NSLocalizedString("Experience signals are carrying the match", comment: "")
             ),
             ATSInsightRow(
                 id: "skills",
-                title: "Skills",
+                title: NSLocalizedString("Skills", comment: ""),
                 score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"]) ? 18 : -6),
                 reason: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"])
-                    ? "Missing role-specific keywords"
-                    : "Skill coverage is reasonably aligned"
+                    ? NSLocalizedString("Missing role-specific keywords", comment: "")
+                    : NSLocalizedString("Skill coverage is reasonably aligned", comment: "")
             ),
             ATSInsightRow(
                 id: "keywords",
-                title: "Keywords",
+                title: NSLocalizedString("Keywords", comment: ""),
                 score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["keyword", "ats", "required", "term"]) ? 20 : 0),
                 reason: hasATSBlocker(matching: ["keyword", "ats", "required", "term"])
-                    ? "Target terms from the job post are underused"
-                    : "Keyword coverage is not the main blocker"
+                    ? NSLocalizedString("Target terms from the job post are underused", comment: "")
+                    : NSLocalizedString("Keyword coverage is not the main blocker", comment: "")
             ),
         ]
     }
@@ -171,14 +172,14 @@ final class OptimizedResumeViewModel {
         if !blockerActions.isEmpty { return blockerActions }
         if currentATSScore < 55 {
             return [
-                "Add missing role keywords where they are truthful.",
-                "Rewrite the summary around the exact target role.",
-                "Add measurable outcomes to the strongest experience bullets.",
+                NSLocalizedString("Add missing role keywords where they are truthful.", comment: ""),
+                NSLocalizedString("Rewrite the summary around the exact target role.", comment: ""),
+                NSLocalizedString("Add measurable outcomes to the strongest experience bullets.", comment: ""),
             ]
         }
         return [
-            "Run Improve ATS for a focused keyword and metrics pass.",
-            "Review every edit for factual accuracy before submitting.",
+            NSLocalizedString("Run Improve ATS for a focused keyword and metrics pass.", comment: ""),
+            NSLocalizedString("Review every edit for factual accuracy before submitting.", comment: ""),
         ]
     }
 
@@ -288,7 +289,7 @@ final class OptimizedResumeViewModel {
             if sections.isEmpty {
                 try? await loadSections(with: token, optimizationId: optId, useCache: false)
             }
-            errorMessage = "Server PDF unavailable — generated a local copy from your resume sections."
+            errorMessage = NSLocalizedString("Server PDF unavailable — generated a local copy from your resume sections.", comment: "")
             return try LocalResumePDFExporter.exportPDF(
                 sections: sections,
                 contact: contact,
@@ -302,12 +303,12 @@ final class OptimizedResumeViewModel {
            let error = json["error"] as? String {
             return error
         }
-        let text = String(data: data, encoding: .utf8) ?? "Download failed"
+        let text = String(data: data, encoding: .utf8) ?? NSLocalizedString("Download failed", comment: "")
         let stripped = text
             .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return stripped.isEmpty ? "Download failed" : String(stripped.prefix(240))
+        return stripped.isEmpty ? NSLocalizedString("Download failed", comment: "") : String(stripped.prefix(240))
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
@@ -413,7 +414,7 @@ final class OptimizedResumeViewModel {
             if response.success == true {
                 pendingRefine = (original: response.original ?? "", suggested: response.suggested ?? "")
             } else {
-                errorMessage = response.error ?? "Refine failed"
+                errorMessage = response.error ?? NSLocalizedString("Refine failed", comment: "")
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -448,14 +449,14 @@ final class OptimizedResumeViewModel {
                 backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
-                errorMessage = "We couldn't save that edit. Please try again."
+                errorMessage = NSLocalizedString("We couldn't save that edit. Please try again.", comment: "")
             }
             pendingRefine = nil
             activeSectionId = nil
         } catch let apiError as APIClientError {
             switch apiError {
             case .serverError(let status, _) where status >= 500:
-                errorMessage = "The server encountered an issue saving this change (\(status)). Please try again later."
+                errorMessage = String(format: NSLocalizedString("The server encountered an issue saving this change (%lld). Please try again later.", comment: ""), status)
             default:
                 errorMessage = apiError.localizedDescription
             }
@@ -494,12 +495,12 @@ final class OptimizedResumeViewModel {
                 backendDiagnosis = nil
                 await Self.detailCache.remove(optId)
             } else if !ok {
-                errorMessage = "We couldn't save that edit. Please try again."
+                errorMessage = NSLocalizedString("We couldn't save that edit. Please try again.", comment: "")
             }
         } catch let apiError as APIClientError {
             switch apiError {
             case .serverError(let status, _) where status >= 500:
-                errorMessage = "The server encountered an issue saving this change (\(status)). Please try again later."
+                errorMessage = String(format: NSLocalizedString("The server encountered an issue saving this change (%lld). Please try again later.", comment: ""), status)
             default:
                 errorMessage = apiError.localizedDescription
             }
@@ -531,7 +532,7 @@ final class OptimizedResumeViewModel {
             }
             backendDiagnosis = nil
         } catch {
-            errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
+            errorMessage = String(format: NSLocalizedString("Couldn't refresh the ATS score: %@", comment: ""), error.localizedDescription)
         }
     }
 
@@ -577,7 +578,7 @@ final class OptimizedResumeViewModel {
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = nil
-            atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
+            atsUpliftMessage = NSLocalizedString("ATS improvements applied. Review the resume before submitting.", comment: "")
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {

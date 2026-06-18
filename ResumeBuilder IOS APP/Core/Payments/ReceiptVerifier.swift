@@ -32,9 +32,9 @@ enum ReceiptVerifierError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidPayload:
-            return "Missing purchase details."
+            return NSLocalizedString("Missing purchase details.", comment: "")
         case .invalidProductID:
-            return "Unknown product."
+            return NSLocalizedString("Unknown product.", comment: "")
         }
     }
 }

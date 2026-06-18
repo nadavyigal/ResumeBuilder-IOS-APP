@@ -19,7 +19,7 @@ final class ModificationHistoryViewModel {
 
     func load(token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to view modification history."
+            errorMessage = NSLocalizedString("Sign in to view modification history.", comment: "")
             return
         }
         isLoading = true

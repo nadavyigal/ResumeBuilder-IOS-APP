@@ -15,6 +15,16 @@
 
 ## Lessons
 
+### 2026-06-17
+**Category:** General
+**Rule:** To verify localization coverage authoritatively, run `xcodebuild -exportLocalizations -project X -localizationPath /tmp/loc -exportLanguage he`, then parse `/tmp/loc/he.xcloc/Localized Contents/he.xliff`: every `trans-unit` is a localizable string the build extracts (Text literals, LocalizedStringKey, String(localized:), NSLocalizedString). Units with an empty `<target>` are untranslated. This is the ground truth — far more reliable than grepping. Note: multi-argument format keys appear in the xliff `<source>` in POSITIONAL form (`%1$lld…%2$@`) but the catalog KEY is the literal as written in code (`%lld…%@`); translate under the literal key, give the value positional specifiers.
+**Why:** During the 100% Hebrew sweep, grep kept missing strings; exportLocalizations gave the exact 190-string gap list and a 688/688 final coverage number.
+
+### 2026-06-17
+**Category:** SwiftUI
+**Rule:** For UI strings produced in model/view-model/enum code that are consumed in MULTIPLE contexts (SwiftUI Text AND HTML/PDF/analytics/string-interpolation), localize at the String level with `NSLocalizedString(key, comment: "")` rather than `LocalizedStringKey`. NSLocalizedString routes through `Bundle.main.localizedString(forKey:)`, which the runtime language-override swizzle intercepts, so it returns the selected language everywhere. Use `LocalizedStringKey` only for params/returns consumed solely by `Text`/`Button`/`navigationTitle` (SwiftUI environment-driven). Keep dynamic/server data as plain String.
+**Why:** `ResumeSectionType.displayName` is used in both `Text(...)` and the resume HTML builder (`.uppercased()` interpolation); LocalizedStringKey would break the HTML path, so NSLocalizedString is the correct uniform fix.
+
 ### 2026-06-16
 **Category:** Test
 **Rule:** `xcodebuild test` ending in `** TEST FAILED **` with an empty "Failing tests:" list and `malloc: *** error for object 0x...: pointer being freed was not allocated` plus "Restarting after unexpected exit" can be the pre-existing test-host teardown crash; confirm every suite reports 0 failures and the total test count matches baseline before treating it as a regression.

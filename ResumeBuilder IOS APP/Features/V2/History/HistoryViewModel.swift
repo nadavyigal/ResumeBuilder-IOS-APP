@@ -56,7 +56,7 @@ final class HistoryViewModel {
 
     func deleteFilteredItems(at offsets: IndexSet, token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to delete optimization history."
+            errorMessage = NSLocalizedString("Sign in to delete optimization history.", comment: "")
             return
         }
 
@@ -68,7 +68,7 @@ final class HistoryViewModel {
             if response.success {
                 optimizations.removeAll { ids.contains($0.id) }
             } else {
-                errorMessage = response.errors?.first?.error ?? "Delete failed"
+                errorMessage = response.errors?.first?.error ?? NSLocalizedString("Delete failed", comment: "")
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -77,7 +77,7 @@ final class HistoryViewModel {
 
     func downloadPDF(for item: OptimizationHistoryItem, token: String?) async {
         guard let token else {
-            errorMessage = "Sign in to download PDFs."
+            errorMessage = NSLocalizedString("Sign in to download PDFs.", comment: "")
             return
         }
 

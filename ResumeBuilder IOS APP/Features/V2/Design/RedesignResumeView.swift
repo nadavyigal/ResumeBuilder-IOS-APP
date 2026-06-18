@@ -151,7 +151,7 @@ struct RedesignResumeView: View {
                             Image(systemName: "doc.richtext.fill")
                                 .font(.system(size: 40))
                                 .foregroundStyle(AppColors.textSecondary)
-                            Text(viewModel.selectedTemplate?.name ?? "Optimize a resume to preview")
+                            Text(viewModel.selectedTemplate?.name ?? NSLocalizedString("Optimize a resume to preview", comment: ""))
                                 .font(.appSubheadline)
                                 .foregroundStyle(AppColors.textPrimary)
                             if let desc = viewModel.selectedTemplate?.description {

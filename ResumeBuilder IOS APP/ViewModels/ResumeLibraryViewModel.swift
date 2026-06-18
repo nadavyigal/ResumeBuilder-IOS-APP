@@ -25,7 +25,7 @@ final class ResumeLibraryViewModel {
         guard isEnabled else {
             resumes = []
             isUnavailable = true
-            errorMessage = "Resume Library is not available yet."
+            errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             return
         }
         isLoading = true
@@ -38,7 +38,7 @@ final class ResumeLibraryViewModel {
             if apiError.isNotFound {
                 resumes = []
                 isUnavailable = true
-                errorMessage = "Resume Library is not available yet."
+                errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             } else {
                 errorMessage = apiError.userFacingMessage
             }
@@ -50,7 +50,7 @@ final class ResumeLibraryViewModel {
     func save(id: String, displayName: String, token: String) async {
         guard isEnabled else {
             isUnavailable = true
-            errorMessage = "Resume Library is not available yet."
+            errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             return
         }
         do {
@@ -59,7 +59,7 @@ final class ResumeLibraryViewModel {
         } catch let apiError as APIClientError {
             if apiError.isNotFound {
                 isUnavailable = true
-                errorMessage = "Resume Library is not available yet."
+                errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             } else {
                 errorMessage = apiError.userFacingMessage
             }
@@ -71,7 +71,7 @@ final class ResumeLibraryViewModel {
     func delete(id: String, token: String) async {
         guard isEnabled else {
             isUnavailable = true
-            errorMessage = "Resume Library is not available yet."
+            errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             return
         }
         do {
@@ -85,7 +85,7 @@ final class ResumeLibraryViewModel {
     func rename(id: String, displayName: String, token: String) async {
         guard isEnabled else {
             isUnavailable = true
-            errorMessage = "Resume Library is not available yet."
+            errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             return
         }
         do {
@@ -103,8 +103,8 @@ final class ResumeLibraryViewModel {
     func downloadToCache(resume: SavedResume, token: String) async throws -> URL {
         guard isEnabled else {
             isUnavailable = true
-            errorMessage = "Resume Library is not available yet."
-            throw APIClientError.serverError(status: 404, message: "Resume Library is not available yet.")
+            errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
+            throw APIClientError.serverError(status: 404, message: NSLocalizedString("Resume Library is not available yet.", comment: ""))
         }
         let remoteURL = try await service.downloadResumePDF(id: resume.id, token: token)
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
