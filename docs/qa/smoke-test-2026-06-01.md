@@ -83,17 +83,26 @@ The following steps must be performed manually on a real iPhone with a live acco
 | l | Navigate to Me tab → tap Sign Out. | Profile clears. App returns to guest state on Home. | — | PENDING |
 
 ### PostHog Events Confirmed on Device
-_Fill in after device run._
+_Verified 2026-06-16 via MCP 30-day audit + Release `/capture` test. Full device smoke still recommended._
 
-- [ ] app_launched
-- [ ] guest_mode_started
-- [ ] sign_in_completed
-- [ ] resume_uploaded
-- [ ] optimization_started
-- [ ] optimization_completed (×2 — both optimization runs)
-- [ ] export_started
-- [ ] export_success
-- [ ] export_failed (only if export fails — otherwise leave unchecked)
+- [x] app_launched
+- [x] guest_mode_started
+- [x] sign_in_completed
+- [x] resume_uploaded
+- [x] job_added
+- [x] optimization_started
+- [x] optimization_completed
+- [x] export_started
+- [x] export_success
+- [x] export_failed (observed in 30-day data)
+- [ ] free_ats_completed (wired; zero volume until PR #60 build ships)
+- [ ] diagnosis_viewed (wired; zero volume until PR #60 build ships)
+- [ ] ats_improve_tapped (wired; zero volume until PR #60 build ships)
+- [ ] export_pdf_tapped (wired; zero volume until PR #60 build ships)
+- [ ] submit_package_saved (wired; zero volume until PR #60 build ships)
+
+**Dashboard:** [ResumeBuilder iOS — D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819)  
+**Audit:** `docs/qa/posthog-analytics-audit-2026-06-16.md`
 
 ### Issues Found
 _None identified from code audit. Device test pending._

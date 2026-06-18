@@ -130,3 +130,10 @@
 - [ ] No visible lag when switching tabs
 - [ ] AI optimization call shows progress indicator
 - [ ] Template gallery loads within 3 seconds
+
+---
+
+## PostHog Analytics
+- [ ] Debug console shows `Analytics captured: <event>` within 5s of smoke actions
+- [ ] PostHog Live Events (or 30-day trends) shows iOS events with `$lib = resumely-ios-urlsession`
+- [ ] D7 dashboard reachable: https://us.posthog.com/project/270848/dashboard/1720819

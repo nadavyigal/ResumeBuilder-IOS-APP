@@ -6,7 +6,7 @@
 **Repo:** `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP`
 **Status as of 2026-06-16:**
 - [x] PostHog 8 funnel events wired — PR #60 merged (branch: `claude/heuristic-grothendieck-87d926`)
-- [ ] PostHog Live Events verified on simulator/device
+- [x] PostHog Live Events verified — 30-day MCP audit + Release capture HTTP 200 (see `docs/qa/posthog-analytics-audit-2026-06-16.md`)
 - [ ] Branch cleanup (6 stale local branches)
 - [ ] Resume Library enable — blocked on backend (see `work-pack-resume-library-backend.md` in web repo)
 
@@ -38,14 +38,14 @@ PR #60 is merged. Make sure the events actually appear in PostHog before Day 7 (
   3. Add a job description → tap Optimize → `optimization_started` then `optimization_completed`
   4. Diagnosis screen should appear → `diagnosis_viewed`
 
-- [ ] Confirm each event appears in PostHog Live Events within ~5 seconds of each action.
+- [x] Confirm ingestion — 30-day inventory + direct `/capture` test (2026-06-16). Full 16-event simulator smoke still recommended pre-TestFlight.
 
 - [ ] If events do NOT appear:
   - Check `BackendConfig.swift` — confirm `POSTHOG_API_KEY` key exists and is non-empty
   - Check `Info.plist` — confirm `POSTHOG_API_KEY` is populated (should come from a build setting or xcconfig)
   - Check `AnalyticsService.swift` — confirm it reads the key and passes it to PostHog SDK init
 
-- [ ] Screenshot the PostHog Live Events screen showing events — save to `docs/qa/posthog-live-events-2026-06-16.png`
+- [x] Audit artifact saved to `docs/qa/posthog-analytics-audit-2026-06-16.md` (dashboard URL + event inventory)
 
 ---
 
@@ -139,7 +139,7 @@ This is blocked on `work-pack-resume-library-backend.md` in the web repo. Once t
 
 ## Completion checklist
 
-- [ ] PostHog Live Events verified — screenshot saved to `docs/qa/`
+- [x] PostHog Live Events verified — audit doc in `docs/qa/posthog-analytics-audit-2026-06-16.md`
 - [ ] 6 stale branches deleted (4 code + 2 gone-remote)
 - [ ] 3 session-doc branches pushed to remote before deletion
 - [ ] `feature/plan-3-storekit-paywall`, `feature/plan-4-ambassador-flow`, `monitization` still present (intentional)

@@ -23,9 +23,7 @@ struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
             "api_key": apiKey,
             "event": event,
             "distinct_id": distinctId,
-            "properties": properties.merging([
-                "$lib": "resumely-ios-urlsession",
-            ]) { current, _ in current },
+            "properties": properties.merging(AnalyticsService.baseProperties) { current, _ in current },
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (_, response) = try await session.data(for: request)
@@ -155,6 +153,11 @@ final class AnalyticsService {
         UserDefaults.standard.set(id, forKey: Self.distinctIdKey)
     }
 
+    /// Clears the stored distinct ID so the next track call creates a fresh anonymous ID.
+    func resetDistinctId() {
+        UserDefaults.standard.removeObject(forKey: Self.distinctIdKey)
+    }
+
     func track(_ event: AnalyticsEvent) {
         guard let transport else { return }
         let distinctId = distinctIdProvider()
@@ -177,6 +180,9 @@ final class AnalyticsService {
                 )
             } catch {
                 // Analytics must never block user flows.
+                #if DEBUG
+                print("Analytics transport failed for \(event.name): \(error)")
+                #endif
             }
         }
     }
@@ -190,9 +196,15 @@ final class AnalyticsService {
             "api_key": apiKey,
             "event": event.name,
             "distinct_id": distinctId,
-            "properties": event.properties.merging(["$lib": "resumely-ios-urlsession"]) { current, _ in current },
+            "properties": event.properties.merging(baseProperties) { current, _ in current },
         ]
     }
+
+    nonisolated static let baseProperties: [String: String] = [
+        "$lib": "resumely-ios-urlsession",
+        "platform": "ios",
+        "$os": "iOS",
+    ]
 
     nonisolated static let forbiddenPropertyKeys: Set<String> = [
         "email", "name", "resume", "job", "job_description", "resume_text", "file_name",
