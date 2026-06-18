@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-18
+**Category:** Test
+**Rule:** If `simctl bootstatus` reaches a terminal failure or `simctl install/launch` hangs during deadline smoke testing, switch to a fresh simulator or erase the runtime before continuing the smoke.
+**Why:** A D7 Gate A iPhone 17 simulator boot reached a failed terminal bootstatus and subsequent install/launch hung, blocking manual analytics flow verification.
+
 ### 2026-06-14
 **Category:** Test
 **Rule:** If `xcodebuild test` reaches "Testing started" then hangs at "waiting for workers to materialize", restart the target simulator and rerun with a fresh derived-data path before treating it as an app test failure.
