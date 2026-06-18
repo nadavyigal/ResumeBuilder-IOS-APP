@@ -15,16 +15,156 @@
 
 ## Sessions
 
-### 2026-06-05
-**Task:** Resumely 1.0 build 1 submitted to App Store review
-**Files Changed:** `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`
-**Decisions Made:** Treat the founder-confirmed App Store Connect status as the
-release source of truth. Keep the Resume Library backend gap separate from the
-submission status.
-**Validation:** Founder confirmed submission on 2026-06-05. No approval,
-rejection, or live-store status is claimed.
-**Next Recommended Action:** Monitor App Store Connect and respond only to the
-review outcome before starting post-launch scope.
+### 2026-06-17 (PostHog real-device QA)
+**Task:** Verify PostHog analytics coverage and run real-device QA
+**Files Changed:**
+- `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — added exact PostHog event-name/property contract coverage for all 16 app-defined analytics events.
+- `docs/qa/reports/posthog-real-device-qa-2026-06-17.md` — documented PostHog plugin context, live coverage, real-device build/install/launch, device test result, and remaining live-observation gap.
+- `tasks/progress.md` — recorded PostHog/device QA status and latest validation.
+- `tasks/session-log.md` — recorded this session.
+**Decisions Made:**
+- Treated project 270848 as authoritative after detecting the PostHog plugin had drifted to project 171597.
+- Classified five events as wired/test-covered but not production-observed: `free_ats_completed`, `diagnosis_viewed`, `ats_improve_tapped`, `export_pdf_tapped`, and `submit_package_saved`.
+- Did not mutate PostHog dashboards, App Store Connect, Vercel, or backend state.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Physical iPhone 13 Debug build, install, and launch passed.
+- Built app Info.plist had `API_BASE_URL`, `POSTHOG_API_KEY`, and `POSTHOG_HOST` set.
+- Focused physical-device test run passed: `AnalyticsServiceTests` 8/8, 0 failures.
+- PostHog query after `2026-06-17T12:25:25Z` showed fresh iOS events for `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`.
+**Next Recommended Action:** Run an authenticated manual device smoke through Diagnosis, Improve ATS, Export PDF, and Submit Package to make the five remaining wired events appear in live PostHog data.
+
+### 2026-06-17 (post-live D7 plugin pre-read)
+**Task:** Post-Live D7 Readout
+**Files Changed:**
+- `docs/qa/reports/post-live-d7-readout-2026-06-17.md` — updated the D7 readout from source-blocked to PostHog-plugin verified, with live 7-day event counts, launch-anchor traffic, dashboard health, timing gate, dashboard hygiene, and monetization implication.
+- `tasks/progress.md` — recorded that PostHog source access is verified and D7 readout is now pending only a complete 7-day live window.
+- `tasks/session-log.md` — recorded this packet.
+- `tasks/todo.md` — updated current task to the D7 plugin pre-read and its remaining D7-window validation status.
+**Decisions Made:**
+- Did not report mature D7 activation, retention, App Store downloads, conversion, or revenue because the App Store-live anchor is 2026-06-17 and the first complete D7 window is 2026-06-24.
+- Kept D7 Activation dashboard 1720819 as the iOS north star.
+- Classified Activation Funnel 1345375, Week 1 Launch Metrics 1285341, and My App Dashboard 932305 as archive-review candidates only using live PostHog dashboard metadata; no dashboard edits or deletions were made.
+- Kept monetization/paywall decisions blocked until dashboard 1720819 is read after the first complete D7 window.
+**Validation:**
+- Connected PostHog plugin resolved dashboard 1720819 in project 270848.
+- Live HogQL confirmed iOS `$lib=resumely-ios-urlsession`: 188 events / 18 users over 7 days, last event 2026-06-17T03:06:44.021Z.
+- Launch-anchor read from 2026-06-17T00:00:00Z showed 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users.
+- `git diff --check` passed on the D7 readout branch.
+**Next Recommended Action:** Re-run D7 source read through the connected PostHog plugin on or after 2026-06-24, or replace the launch anchor if App Store Connect provides a more precise Ready-for-Sale timestamp.
+
+### 2026-06-17
+**Task:** Resumely post-live analytics and release-state reconciliation
+**Files Changed:**
+- `tasks/progress.md` — changed launch status from App Store review to App Store live, recorded live PostHog iOS evidence, pinned D7 Activation dashboard 1720819 as the iOS north star, and corrected Resume Library status on current `main`.
+- `tasks/session-log.md` — recorded this reconciliation session and evidence sources.
+- `tasks/todo.md` — replaced stale Resume Aha task tracker with the post-live reconciliation checklist.
+**Decisions Made:**
+- Treated the founder/App Store-live statement and 2026-06-17 live PostHog QA packet as trusted evidence for launch-gate reconciliation; did not invent App Store downloads, revenue, conversion, or retention numbers.
+- Closed the launch gate on iOS health: `$lib=resumely-ios-urlsession` showed 190 events / 18 users over 7 days, with the last event on 2026-06-17.
+- Web analytics configuration is not broken: Vercel production has `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`, the code reads those names, and live PostHog saw `$lib=web` events. The current web issue is low traffic, not missing env.
+- D7 Activation dashboard 1720819 is the iOS north star. Week 1 Launch Metrics 1285341 is web/legacy-oriented based on local config event names; My App Dashboard 932305 was last refreshed 2026-02-18 per the QA packet, so both should be reviewed for archive, not deleted.
+**Validation:**
+- `git diff --check` passed for the reconciliation branch.
+- Targeted reads of `tasks/progress.md`, `tasks/session-log.md`, and `tasks/todo.md` confirmed the updated status/evidence.
+- Vercel CLI read-only check confirmed production env vars: `NEXT_PUBLIC_POSTHOG_HOST` scoped to Production and `NEXT_PUBLIC_POSTHOG_KEY` scoped to Development, Preview, Production.
+**Next Recommended Action:** Run the first post-live packet after the D7 window: read dashboard 1720819, summarize activation/retention honestly, review archive candidates 1285341 and 932305 in PostHog, and only then decide on monetization/paywall timing.
+
+### 2026-06-14 (resubmission)
+**Task:** App Store resubmission — resolve compliance, fill reviewer info, reply to rejection, submit build 4
+**Files Changed:**
+- `Config/Info.plist` — added `ITSAppUsesNonExemptEncryption = false` (future builds auto-pass compliance)
+**Decisions Made:**
+- Missing Compliance answered: "None of the algorithms mentioned above" (app uses only Apple URLSession/Keychain — no custom crypto)
+- Apple Sign In correctly disabled via `BackendConfig.isAppleSignInEnabled = false` — this was the root cause of the Jun 5 rejection
+- Delete Account confirmed present: Me tab → Account section → Delete Account (calls Supabase delete_account edge function)
+- Register confirmed present: Onboarding → "Don't have an account? Sign Up"
+- Demo credentials set in ASC: nadav.yigal@gmail.com / test123456
+- Replied to Jun 5 "Unresolved Issues" rejection explaining the Apple Sign In fix
+- Clicked "Update Review" — build 4 is now in Apple review
+**Next Recommended Action:** Wait for Apple review result (1-3 days). If approved: publish. If rejected: open new session with Apple's feedback. Merge open PR (branch claude/gracious-curie-fcd112) to main before building v5.
+
+### 2026-06-14
+**Task:** Review PR #58 Resume Aha Moments before merge and prepare archive readiness
+**Files Changed:**
+- `Features/Tailor/TailorView.swift` and `Features/V2/Home/HomeTabView.swift` — keep diagnosis view models stable across navigation.
+- `Features/V2/Diagnosis/*` — add main-actor isolation, duplicate-safe chip IDs, and hide Improve CTA when no optimization id exists.
+- `Features/V2/Improve/OptimizedResumeView.swift` — gate diagnosis panels until optimization details finish loading.
+- `Models/ResumeDiagnosis.swift` and `ViewModels/OptimizedResumeViewModel.swift` — merge backend diagnosis with live ATS/section context and clear stale backend diagnosis after local mutations.
+- `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift` — cover nested DTO decoding and backend/live-context merge behavior.
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `docs/qa/reports/ios-qa-pr58-2026-06-14.md` — record validation and remaining blocker.
+**Validation:** `git diff --check` passed. Focused iPhone 17 diagnosis tests passed 7/7. Full iPhone 17 suite passed: 83 XCTest tests plus 5 Swift Testing tests, 0 failures. Release archive succeeded at `/tmp/ResumeBuilder-PR58.xcarchive`.
+**Decisions Made:** Treat the archive as proof the project is archiveable, but keep App Store submission blocked until a live smoke passes because CoreSimulator hung on install/screenshot/container commands. Source-reviewed account deletion/register wiring, but did not claim live compliance verification without a working simulator/device.
+**Next Recommended Action:** Run the authenticated smoke on a real device or reset Simulator/CoreSimulator, then validate/distribute the archive from Xcode Organizer with App Store distribution signing.
+
+### 2026-06-12
+**Task:** Implement Resume Aha Moments diagnosis-first flow
+**Files Changed:** `Models/ResumeDiagnosis.swift`, `Features/V2/Diagnosis/*`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/HomeActivationState.swift`, `Features/V2/Home/ResumeOptimizationLoadingView.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `ViewModels/OptimizedResumeViewModel.swift`, `Core/API/Models/DomainModels.swift`, `ResumeBuilder IOS APPTests/ResumeDiagnosisViewModelTests.swift`, `project.pbxproj`, `docs/specs/resume-aha-moments.md`, `docs/specs/README.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`
+**Decisions Made:** Kept the first aha after real resume/job optimization, not a tutorial. Added backend diagnosis as an optional decode hook, but used a conservative local mapper from ATS scores/blockers/sections when backend data is absent. Avoided fabricating original bullets: before/after cards gracefully show the improved bullet when original text is unavailable. Routed Home and Tailor optimize success to Diagnosis before Improve, then reused confidence cues inside Improve before export/payment.
+**Validation:** `git diff --check` passed. Focused diagnosis tests passed 6/6 on iPhone 17, including snake_case backend diagnosis decoding. Debug build succeeded on iPhone 17. Full test suite passed before the decoder hardening: 81 XCTest tests plus 5 Swift Testing tests, 0 failures. Simulator install/launch smoke succeeded on iPhone 17; Home aha copy rendered at `/tmp/resumebuilder-aha-smoke-iphone17-late.png`.
+**Next Recommended Action:** Run an authenticated live smoke on device or signed-in simulator: upload/paste resume, paste job description, complete optimization, verify Diagnosis copy and CTAs with real backend data, then adjust backend diagnosis decoding if the API ships a different payload shape.
+
+### 2026-06-12
+**Task:** Clear four App Store archive gates (branch hygiene, build number, review notes, screenshot handoff)
+**Files Changed:** `project.pbxproj`, `Localizable.xcstrings`, `docs/qa/app-store-readiness-checklist.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `tasks/todo.md`, `tasks/progress.md`
+**Decisions Made:** Merged PR #57 to `main`. Bumped to build 4 for fresh ASC upload. Documented email-only App Review path after 2026-06-10 Apple Sign In rejection. iPad 13" screenshot paths added to upload manifest.
+**Next Recommended Action:** Archive v1.0 (4) from `main` in Xcode → upload → paste review notes from checklist → Submit for Review.
+
+### 2026-06-11
+**Task:** Fix Submit Package missing-company startup failure and implement first ATS/screenshot alignment slice
+**Files Changed:**
+- `ResumeBuilder IOS APP/Features/V2/Improve/SubmitApplicationViewModel.swift` — relaxed `canSubmit`, added safe role/company fallbacks, user-facing missing-context copy, and submit-stage OSLog markers.
+- `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift` — added ATS insight rows, before/after delta, recommended actions, and explicit low-score explanation data.
+- `ResumeBuilder IOS APP/Features/V2/Improve/OptimizedResumeView.swift` — shows missing-context guidance in the Submit Package sheet and adds a live ATS insight panel with score signals, top blockers/actions, and Improve ATS.
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added missing-company Submit Package coverage and low-score ATS insight coverage.
+- `docs/superpowers/plans/2026-06-11-smoke-test-ats-submit-and-screenshot-plan.md` — documented the ATS-score and App Store screenshot alignment plan, then marked the Submit Package fix and ATS panel MVP implemented.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, validation, implemented plan slice, and next action.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, validation, and next action.
+**Decisions Made:**
+- Root cause: rerun smoke logs had no PDF/application/expert calls after Submit Package; the package flow was blocked before it started because the live optimization detail can omit company and `canSubmit` required it.
+- Missing company/role should be a recoverable context gap, not a disabled action. The sheet now explains the fallback and submits with safe placeholders.
+- The low ATS score is treated as a product-quality/guidance issue, not a UI score bug; the App Store screenshots are launch-argument-only marketing scenes, so the matching claim needs to exist in normal `Features/V2` product UI too.
+**Validation:**
+- `git diff --check` passed.
+- Focused tests succeeded on iPhone 17: `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-ats-insights-derived -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` passed 20/20 tests.
+- Simulator launch smoke succeeded on iPhone 17; normal Home screen rendered at `/tmp/resumebuilder-ats-insights-smoke-2.png`.
+**Next Recommended Action:** Publish/merge the PR update, then founder rebuilds on real device and confirms Xcode logs show `Submit package ready`; after that add backend QA fixtures for strong/weak ATS match quality.
+
+### 2026-06-11
+**Task:** Fix real-device smoke failures for Preview & Export PDF and Submit Package
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/Export/HTMLPDFExporter.swift` — added `LocalResumePDFExporter`, which creates a valid text-layer PDF from loaded optimization sections/contact data and stores it through the existing export file store.
+- `ResumeBuilder IOS APP/ViewModels/OptimizedResumeViewModel.swift` — routes PDF downloads through a local fallback, validates backend download payloads begin with `%PDF-`, preserves auth/payment failures, and surfaces backend error bodies in logs instead of generic invalid responses.
+- `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift` — added coverage that the local PDF fallback writes real PDF data.
+- `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md` — recorded root cause, current status, and next smoke action.
+**Decisions Made:**
+- Root cause: Submit Package and Preview & Export PDF share the same PDF dependency; when WKWebView/backend download failed, Submit Package stopped before creating the application/expert package.
+- Kept the existing preferred order: styled WKWebView PDF first, backend `/api/download` second, local text-layer fallback third.
+- Treated unauthorized and payment-required as terminal so the local fallback cannot bypass account/payment gating.
+**Validation:**
+- Debug simulator build succeeded on iPhone 17: `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/resumebuilder-pdf-fix-derived build`
+- Focused tests succeeded on iPhone 17: `xcodebuild test ... -only-testing:'ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests'` passed 18/18 tests.
+**Next Recommended Action:** Founder pulls latest `main`, rebuilds/runs on real device, signs in, smokes optimize → Improve ATS → Preview & Export PDF → Submit Package, then confirms the exported/shared PDF opens and screenshots PostHog `export_success`.
+
+### 2026-06-04
+**Task:** WP-1 continuation — Apply App Store readiness changes, verify clean build with all Info.plist keys, run 72-test suite, smoke simulator, build signed device binary
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — upgraded "Inject PostHog API Key" → "Inject Runtime Config": script now injects API_BASE_URL (required, build fails if missing) + POSTHOG_API_KEY + POSTHOG_HOST; added `alwaysOutOfDate = 1`; added API_BASE_URL = https://www.resumelybuilderai.com to Debug + Release build settings; added Secrets.swift.example to PBXFileSystemSynchronizedBuildFileExceptionSet (excluded from app bundle)
+- `ResumeBuilder IOS APP/Core/API/BackendConfig.swift` — removed hardcoded production URL fallback; now uses preconditionFailure if API_BASE_URL is missing or invalid
+- `ResumeBuilder IOS APP/Features/Tailor/TailorView.swift` — fixed deprecated two-argument `.onChange(of:)` to three-argument form
+- `ResumeBuilder IOS APP/ViewModels/ImproveViewModel.swift` — fixed three `guard let` warnings to `guard ... != nil` where the unwrapped value was unused
+- `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated WP-1 status and founder action items
+**Decisions Made:**
+- Previous session's readiness changes were in the project root as uncommitted modifications; applied them via git patch to this worktree so they can be committed to a PR branch
+- Test failure on first run was caused by stale derived data (API_BASE_URL was absent from cached Info.plist); clean build resolves it
+- Device binary built at `/var/tmp/resumebuilder-device-wt/Build/Products/Debug-iphoneos/` — all three runtime keys confirmed in Info.plist
+- ASC upload path: Fastlane NOT installed, no .p8 key → manual Xcode Organizer (Distribute App → App Store Connect → Upload)
+**Validation:**
+- Clean build (INFO.plist injection): API_BASE_URL, POSTHOG_API_KEY=phc_***, POSTHOG_HOST all present in simulator and device Debug Info.plist
+- 72 XCTest tests passed (0 failures) on iPhone 17 simulator
+- Simulator smoke: app installed and launched; Home screen rendered cleanly (screenshot: /var/tmp/resumebuilder-smoke-wt/wp1-home.png)
+- Device binary (iphoneos Debug) compiled and signed successfully; all 3 Info.plist keys confirmed
+**Next Recommended Action:** Founder: install device binary → sign in → run optimize→design→expert→export on real device → screenshot PostHog Live Events for app_launched + optimization_completed + export_success → archive via Xcode Organizer (Product → Archive → Distribute App → App Store Connect)
 
 ### 2026-06-03
 **Task:** WP-1 — Pre-submission device smoke and PostHog live-event verification
@@ -366,23 +506,3 @@ review outcome before starting post-launch scope.
 **Files Changed:** 49 new markdown files created. No Swift files changed.
 **Decisions Made:** Thin router design — AGENTS.md/CLAUDE.md/CODEX.md route to detail files in .agent-os/. Task memory lives in tasks/. Product + architecture docs in docs/.
 **Next Recommended Action:** Read `tasks/lessons.md` + `tasks/progress.md`, then plan the next story from `plan-phases-3-5-6.md` using the feature-planning workflow.
-## 2026-06-05 — App Store Screenshot Generator
-
-**Task:** Replace the five duplicated App Store concepts with 10 unique upload-ready screenshots for every required device family.
-
-**Completed:**
-- Expanded marketing screenshot mode to 10 deterministic scenes.
-- Added screenshot-mode app startup that bypasses API/auth initialization.
-- Added automated generation and validation scripts.
-- Generated 10 iPhone 6.9-inch PNGs at 1320x2868.
-- Corrected the App Store upload set after portal rejection: normalized all iPhone screenshots to 1290x2796 opaque RGB PNGs and all iPad screenshots to opaque RGB PNGs, then revalidated count, dimensions, uniqueness, and alpha absence.
-- Replaced the iPhone set again after App Store Connect identified the active 6.5-inch screenshot well: captured all 10 screens natively on the dedicated iPhone 11 Pro Max simulator at 1242x2688, converted them to opaque RGB PNGs without resizing, and visually inspected screenshots 1, 6, and 10.
-- Generated 10 iPad 13-inch PNGs at 2064x2752.
-- Corrected the truncated ATS summary in slot 2.
-- Added upload manifest and drag-and-drop folder documentation.
-
-**Verification:**
-- Xcode simulator build succeeded without warnings.
-- 77 tests passed.
-- Both screenshot sets passed count, dimension, and duplicate-hash validation.
-- Final phone and tablet images were visually inspected.

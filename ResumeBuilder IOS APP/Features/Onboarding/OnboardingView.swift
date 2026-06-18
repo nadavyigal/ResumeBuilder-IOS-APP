@@ -30,32 +30,34 @@ struct OnboardingView: View {
                     }
                     .padding(.top, AppSpacing.xxxl)
 
-                    // Sign in with Apple — auth flow unchanged
-                    SignInWithAppleButton(
-                        viewModel.isSignUp ? .signUp : .signIn,
-                        onRequest: { request in
-                            request.requestedScopes = [.fullName, .email]
-                        },
-                        onCompletion: { _ in
-                            // Handled by the ViewModel via its own coordinator call.
+                    if BackendConfig.isAppleSignInEnabled {
+                        // Sign in with Apple — auth flow unchanged
+                        SignInWithAppleButton(
+                            viewModel.isSignUp ? .signUp : .signIn,
+                            onRequest: { request in
+                                request.requestedScopes = [.fullName, .email]
+                            },
+                            onCompletion: { _ in
+                                // Handled by the ViewModel via its own coordinator call.
+                            }
+                        )
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(height: 50)
+                        .onTapGesture {
+                            Task { await viewModel.signInWithApple() }
                         }
-                    )
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 50)
-                    .onTapGesture {
-                        Task { await viewModel.signInWithApple() }
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
+                        .padding(.horizontal, AppSpacing.lg)
 
-                    // Divider
-                    HStack {
-                        Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
-                        Text("or")
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.textSecondary)
-                        Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
+                        // Divider
+                        HStack {
+                            Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
+                            Text("or")
+                                .font(.appCaption)
+                                .foregroundStyle(AppColors.textSecondary)
+                            Rectangle().frame(height: 1).foregroundStyle(AppColors.glassStroke)
+                        }
+                        .padding(.horizontal, AppSpacing.lg)
                     }
-                    .padding(.horizontal, AppSpacing.lg)
 
                     // Email form
                     VStack(spacing: AppSpacing.md) {

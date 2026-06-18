@@ -3,7 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: HomeViewModel
-    var onContinueOptimize: ((AppTab) -> Void)? = nil
+    var onContinueOptimize: ((ResumlyTab) -> Void)? = nil
 
     @State private var showATSBreakdown = false
 
@@ -112,7 +112,7 @@ struct HomeView: View {
             }
 
             HStack(spacing: AppSpacing.md) {
-                GradientButton(title: "Optimize") { onContinueOptimize?(.improve) }
+                GradientButton(title: "Optimize") { onContinueOptimize?(.optimized) }
                 GradientButton(title: "Redesign") { onContinueOptimize?(.design) }
             }
         }

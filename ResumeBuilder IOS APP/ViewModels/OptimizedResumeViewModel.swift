@@ -1,5 +1,13 @@
 import Foundation
 import Observation
+import OSLog
+
+struct ATSInsightRow: Identifiable, Sendable, Equatable {
+    let id: String
+    let title: String
+    let score: Int
+    let reason: String
+}
 
 @Observable
 @MainActor
@@ -23,6 +31,7 @@ final class OptimizedResumeViewModel {
     var company: String?
     var contact: ResumeContact?
     var atsBlockers: [ATSOptimizationBlocker] = []
+    var backendDiagnosis: ResumeDiagnosis?
     var jobURLString: String?
     var applicationId: String?
     var isImprovingATS = false
@@ -33,7 +42,7 @@ final class OptimizedResumeViewModel {
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
-    private static var detailCache: [String: OptimizationDetailDTO] = [:]
+    private static let detailCache = OptimizationDetailCacheActor()
 
     init(
         optimizationId: String?,
@@ -90,6 +99,101 @@ final class OptimizedResumeViewModel {
         }
     }
 
+    var currentATSScore: Int {
+        atsScoreAfter ?? atsScoreBefore ?? 0
+    }
+
+    var atsScoreDelta: Int? {
+        guard let before = atsScoreBefore, let after = atsScoreAfter else { return nil }
+        return after - before
+    }
+
+    var atsLowScoreExplanation: String? {
+        guard currentATSScore < 55 else { return nil }
+        let blockerTitles = atsBlockers
+            .prefix(2)
+            .map(\.title)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+            .filter { !$0.isEmpty }
+
+        if blockerTitles.isEmpty {
+            return "Still low because the resume needs stronger role alignment, measurable outcomes, keywords, and section coverage for this job."
+        }
+        return "Still low because \(blockerTitles.joined(separator: " and ")). Improve these before submitting."
+    }
+
+    var atsInsightRows: [ATSInsightRow] {
+        let score = currentATSScore
+        return [
+            ATSInsightRow(
+                id: "summary",
+                title: "Summary",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"]) ? 14 : -8),
+                reason: hasATSBlocker(matching: ["summary", "headline", "title", "positioning"])
+                    ? "Needs tighter role positioning"
+                    : "Role positioning looks serviceable"
+            ),
+            ATSInsightRow(
+                id: "experience",
+                title: "Experience",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"]) ? 10 : -14),
+                reason: hasATSBlocker(matching: ["experience", "impact", "achievement", "outcome"])
+                    ? "Add clearer outcomes and scope"
+                    : "Experience signals are carrying the match"
+            ),
+            ATSInsightRow(
+                id: "skills",
+                title: "Skills",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"]) ? 18 : -6),
+                reason: hasATSBlocker(matching: ["skill", "keyword", "keywords", "term"])
+                    ? "Missing role-specific keywords"
+                    : "Skill coverage is reasonably aligned"
+            ),
+            ATSInsightRow(
+                id: "keywords",
+                title: "Keywords",
+                score: adjustedATSScore(base: score, penalty: hasATSBlocker(matching: ["keyword", "ats", "required", "term"]) ? 20 : 0),
+                reason: hasATSBlocker(matching: ["keyword", "ats", "required", "term"])
+                    ? "Target terms from the job post are underused"
+                    : "Keyword coverage is not the main blocker"
+            ),
+        ]
+    }
+
+    var atsRecommendedActions: [String] {
+        let blockerActions = atsBlockers
+            .prefix(3)
+            .compactMap { blocker -> String? in
+                let action = (blocker.suggestedAction ?? blocker.detail ?? blocker.title)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return action.isEmpty ? nil : action
+            }
+        if !blockerActions.isEmpty { return blockerActions }
+        if currentATSScore < 55 {
+            return [
+                "Add missing role keywords where they are truthful.",
+                "Rewrite the summary around the exact target role.",
+                "Add measurable outcomes to the strongest experience bullets.",
+            ]
+        }
+        return [
+            "Run Improve ATS for a focused keyword and metrics pass.",
+            "Review every edit for factual accuracy before submitting.",
+        ]
+    }
+
+    var resumeDiagnosis: ResumeDiagnosis {
+        ResumeDiagnosisMapper.make(
+            backendDiagnosis: backendDiagnosis,
+            matchScore: atsScoreBefore,
+            potentialScore: atsScoreAfter,
+            blockers: atsBlockers,
+            sections: sections,
+            jobTitle: jobTitle,
+            company: company
+        )
+    }
+
     /// Plain text of all sections joined for clipboard copy.
     var plainTextResume: String {
         var blocks: [String] = []
@@ -122,13 +226,24 @@ final class OptimizedResumeViewModel {
     func downloadPDF(token: String?) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
         guard let token else { throw APIClientError.unauthorized }
-        return try await downloadPDF(with: token, optimizationId: optId)
+        return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
+    }
+
+    func refreshSubmitPackageContext(token: String?) async {
+        guard let optId = optimizationId, let token else { return }
+        do {
+            try await loadSections(with: token, optimizationId: optId, useCache: false)
+        } catch {
+            // Package generation can still proceed with the currently loaded sections.
+        }
     }
 
     private func downloadPDF(with token: String) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
-        return try await downloadPDF(with: token, optimizationId: optId)
+        return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
     }
+
+    private static let downloadLogger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
 
     private func downloadPDF(with token: String, optimizationId optId: String) async throws -> URL {
         var components = URLComponents(url: BackendConfig.apiBaseURL, resolvingAgainstBaseURL: false)!
@@ -138,14 +253,61 @@ final class OptimizedResumeViewModel {
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        Self.downloadLogger.info("HTTP start GET \(url.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
+            Self.downloadLogger.error("HTTP invalid response for \(url.absoluteString)")
             throw APIClientError.invalidResponse
         }
+        Self.downloadLogger.info("HTTP response status=\(http.statusCode) bytes=\(data.count)")
         if http.statusCode == 401 { throw APIClientError.unauthorized }
         if http.statusCode == 402 { throw APIClientError.paymentRequired }
-        guard (200...299).contains(http.statusCode) else { throw APIClientError.invalidResponse }
+        guard (200...299).contains(http.statusCode) else {
+            let message = Self.downloadErrorMessage(from: data)
+            Self.downloadLogger.error("HTTP failure status=\(http.statusCode) message=\(message)")
+            throw APIClientError.serverError(status: http.statusCode, message: message)
+        }
+        guard PDFDownloadValidator.looksLikePDF(data) else {
+            let message = Self.downloadErrorMessage(from: data)
+            Self.downloadLogger.error("HTTP download returned non-PDF data: \(message)")
+            throw APIClientError.serverError(status: http.statusCode, message: message)
+        }
         return try ExportFileStore.writePDFData(data, optimizationId: optId)
+    }
+
+    private func downloadPDFWithLocalFallback(with token: String, optimizationId optId: String) async throws -> URL {
+        do {
+            return try await downloadPDF(with: token, optimizationId: optId)
+        } catch APIClientError.unauthorized {
+            throw APIClientError.unauthorized
+        } catch APIClientError.paymentRequired {
+            throw APIClientError.paymentRequired
+        } catch APIClientError.serverError(let status, let message) where (400...499).contains(status) {
+            throw APIClientError.serverError(status: status, message: message)
+        } catch {
+            if sections.isEmpty {
+                try? await loadSections(with: token, optimizationId: optId, useCache: false)
+            }
+            errorMessage = "Server PDF unavailable — generated a local copy from your resume sections."
+            return try LocalResumePDFExporter.exportPDF(
+                sections: sections,
+                contact: contact,
+                optimizationId: optId
+            )
+        }
+    }
+
+    private static func downloadErrorMessage(from data: Data) -> String {
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let error = json["error"] as? String {
+            return error
+        }
+        let text = String(data: data, encoding: .utf8) ?? "Download failed"
+        let stripped = text
+            .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return stripped.isEmpty ? "Download failed" : String(stripped.prefix(240))
     }
 
     /// Fetches sections + job context from the backend when sections are empty (e.g. navigated
@@ -196,16 +358,16 @@ final class OptimizedResumeViewModel {
     }
 
     private func loadSections(with token: String, optimizationId optId: String, useCache: Bool = true) async throws {
-        if useCache, let cached = Self.detailCache[optId] {
+        if useCache, let cached = await Self.detailCache.value(for: optId) {
             apply(detail: cached)
             return
         }
 
-        let detail: OptimizationDetailDTO = try await APIClient().get(
+        let detail: OptimizationDetailDTO = try await RuntimeServices.sharedAPIClient.get(
             endpoint: .optimizationDetail(id: optId),
             token: token
         )
-        Self.detailCache[optId] = detail
+        await Self.detailCache.store(detail, for: optId)
         apply(detail: detail)
     }
 
@@ -219,6 +381,7 @@ final class OptimizedResumeViewModel {
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
         if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
         atsBlockers = detail.atsBlockers
+        backendDiagnosis = detail.diagnosis
         if jobURLString == nil { jobURLString = detail.jobUrl }
         if applicationId == nil { applicationId = detail.applicationId }
     }
@@ -282,7 +445,8 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = acceptedText
                 sections[idx].status = "improved"
-                Self.detailCache.removeValue(forKey: optId)
+                backendDiagnosis = nil
+                await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -327,7 +491,8 @@ final class OptimizedResumeViewModel {
             if ok, let idx = sections.firstIndex(where: { $0.id == sectionId }) {
                 sections[idx].body = newText
                 sections[idx].status = "edited"
-                Self.detailCache.removeValue(forKey: optId)
+                backendDiagnosis = nil
+                await Self.detailCache.remove(optId)
             } else if !ok {
                 errorMessage = "We couldn't save that edit. Please try again."
             }
@@ -364,8 +529,9 @@ final class OptimizedResumeViewModel {
             if let optimized = response.optimizedScore {
                 atsScoreAfter = optimized
             }
+            backendDiagnosis = nil
         } catch {
-            errorMessage = "Saved your edit, but couldn't refresh the ATS score: \(error.localizedDescription)"
+            errorMessage = "Couldn't refresh the ATS score: \(error.localizedDescription)"
         }
     }
 
@@ -404,10 +570,13 @@ final class OptimizedResumeViewModel {
             )
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
             applyExpertATSResult(apply)
-            Self.detailCache.removeValue(forKey: optId)
+            await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
             await rescanATS(token: token)
+            // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
+            // Clear any error rescanATS set so it doesn't mislead the user.
+            errorMessage = nil
             atsUpliftMessage = "ATS improvements applied. Review the resume before submitting."
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
@@ -443,13 +612,17 @@ final class OptimizedResumeViewModel {
                         patchSection(type: section.type, body: section.body)
                     }
                 }
+                backendDiagnosis = nil
             }
         case .achievementQuantifier:
             ExpertResumeSectionMapping.patchQuantifierBullets(into: &sections, output: output)
+            backendDiagnosis = nil
         case .professionalSummaryLab:
             ExpertResumeSectionMapping.patchSummaryLab(into: &sections, output: output)
+            backendDiagnosis = nil
         case .atsOptimizationReport:
             ExpertResumeSectionMapping.patchSkillsFromAtsReport(into: &sections, output: output)
+            backendDiagnosis = nil
         case .coverLetterArchitect, .screeningAnswerStudio:
             break
         }
@@ -479,6 +652,7 @@ final class OptimizedResumeViewModel {
         guard let idx = sections.firstIndex(where: { $0.type == type }) else { return }
         sections[idx].body = newBody
         sections[idx].status = "improved"
+        backendDiagnosis = nil
     }
 
     private func fieldName(for type: ResumeSectionType) -> String {
@@ -494,6 +668,25 @@ final class OptimizedResumeViewModel {
         case .additional:
             return "certifications"
         }
+    }
+
+    private func hasATSBlocker(matching keywords: [String]) -> Bool {
+        atsBlockers.contains { blocker in
+            let haystack = [
+                blocker.category,
+                blocker.title,
+                blocker.detail,
+                blocker.suggestedAction,
+            ]
+            .compactMap { $0 }
+            .joined(separator: " ")
+            .lowercased()
+            return keywords.contains { haystack.contains($0.lowercased()) }
+        }
+    }
+
+    private func adjustedATSScore(base: Int, penalty: Int) -> Int {
+        min(100, max(0, base - penalty))
     }
 }
 
@@ -593,5 +786,55 @@ private extension String {
     var nilIfEmpty: String? {
         let t = trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? nil : t
+    }
+}
+
+struct OptimizationDetailCache {
+    private var storage: [String: OptimizationDetailDTO] = [:]
+    private var order: [String] = []
+    private let limit = 10
+
+    func value(for key: String) -> OptimizationDetailDTO? {
+        storage[key]
+    }
+
+    mutating func store(_ detail: OptimizationDetailDTO, for key: String) {
+        storage[key] = detail
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit, let oldest = order.first {
+            order.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
+
+    mutating func remove(_ key: String) {
+        storage.removeValue(forKey: key)
+        order.removeAll { $0 == key }
+    }
+}
+
+actor OptimizationDetailCacheActor {
+    private var storage: [String: OptimizationDetailDTO] = [:]
+    private var order: [String] = []
+    private let limit = 10
+
+    func value(for key: String) -> OptimizationDetailDTO? {
+        storage[key]
+    }
+
+    func store(_ detail: OptimizationDetailDTO, for key: String) {
+        storage[key] = detail
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit, let oldest = order.first {
+            order.removeFirst()
+            storage.removeValue(forKey: oldest)
+        }
+    }
+
+    func remove(_ key: String) {
+        storage.removeValue(forKey: key)
+        order.removeAll { $0 == key }
     }
 }

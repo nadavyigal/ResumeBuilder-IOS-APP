@@ -1,36 +1,43 @@
 # Current Task
 
-**Objective:** Monitor Resumely 1.0 build 1 after App Store submission.
-**Status:** Submitted for Review on 2026-06-05; awaiting Apple.
+**Objective:** Execute D7 Gate A deadline closeout work pack before the 2026-06-21 analytics deadline.
+**Status:** Repo sync, commits, archive/export, PostHog baseline, branch cleanup, and agent worktree cleanup completed; App Store review submission and Live Events UI screenshot still need external UI/API access.
 **Branch:** `main`
+**Spec:** `tasks/work-pack-2026-06-18-d7-deadline-close.md`
 
-## Scope
-- Expand launch-argument screenshot mode from 5 to 10 unique scenes.
-- Render separate upload-ready iPhone 6.9-inch and iPad 13-inch sets.
-- Automate capture, file naming, dimension checks, uniqueness checks, and manifest generation.
+## Files Updated
+- [x] `tasks/work-pack-2026-06-18-d7-deadline-close.md`
+- [x] `tasks/progress.md`
+- [x] `tasks/lessons.md`
+- [x] `tasks/todo.md`
+- [x] `docs/qa/posthog-gate-a-baseline-2026-06-18.md`
+- [x] `docs/qa/posthog-analytics-audit-2026-06-16.md`
+- [x] `audit/product-design-resumebuilder-ios-2026-06-16/`
 
 ## Checklist
-- [x] Read lessons, progress, feature-planning workflow, product state, architecture, and technical risks.
-- [x] Audit the existing 5-slot renderer and current product features.
-- [x] Define the 10-scene product story.
-- [x] Define required iPhone and iPad outputs.
-- [x] Write product brief.
-- [x] Write feature spec with acceptance criteria and technical design.
-- [x] Break implementation into five independently testable stories.
-- [x] Approve the draft spec.
-- [x] Implement the 10 responsive screenshot scenes.
-- [x] Add automated capture and validation scripts.
-- [x] Build and run tests.
-- [x] Generate 10 iPhone and 10 iPad screenshots.
-- [x] Validate and visually inspect all final files.
-- [x] Strip alpha channels, normalize iPhone output to 1290x2796, and revalidate all upload files after App Store Connect rejected the first encoding.
-- [x] Replace the rejected set with 10 native iPhone 11 Pro Max captures at the portal-requested 1242x2688 dimensions.
-- [x] Upload the final screenshots and build to App Store Connect.
-- [x] Select Resumely 1.0 build 1 and submit for review.
+- [x] Sync `main` with `origin/main`.
+- [x] Commit analytics hardening and QA updates.
+- [x] Remove Finder duplicate untracked files.
+- [x] Commit audit screenshots, PostHog audit, plan docs, and D7 work pack.
+- [x] Push `main`.
+- [x] Confirm version 1.0 build 4 in Xcode build settings.
+- [x] Create local Release archive for build 4.
+- [x] Export App Store package for build 4.
+- [x] Attempt App Store Connect upload.
+- [ ] Confirm App Store Connect review submission in UI/API. Blocked: CLI upload reports build 4 already exists, but review submission state is not available locally.
+- [x] Build Debug app for iPhone 17 simulator.
+- [ ] Capture PostHog Live Events UI screenshot. Blocked: simulator install/launch hung and PostHog UI screenshot access was not available from this environment.
+- [x] Record PostHog Gate A baseline from connected PostHog queries.
+- [x] Resolve `claude/relaxed-northcutt-cb6240` by reopening draft PR #63 and deleting the local branch.
+- [x] Resolve `monitization` by reopening draft PR #61 and deleting the local branch.
+- [x] Delete superseded docs-only `feat/localization-updates` local branch.
+- [x] Run Agentic OS janitor preview.
+- [x] Apply Agentic OS janitor cleanup for agent worktrees.
 
-## Next
-
-- Monitor App Store Connect for the review outcome.
-- Do not claim approval or live-store availability until Apple confirms it.
-- Keep the `/api/v1/resumes` backend gap tracked separately; it no longer blocks
-  the already completed submission.
+## Verification
+- [x] `xcodebuild archive` succeeded for Release iPhoneOS.
+- [x] `xcodebuild -exportArchive` succeeded for App Store export.
+- [x] `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build` succeeded.
+- [x] PostHog query confirmed 2026-06-18 iOS events: `app_launched`, `resume_uploaded`, `job_added`, `optimization_started`, `optimization_completed`, `diagnosis_viewed`.
+- [x] `git worktree list` confirms Resumely agent worktrees are removed; only primary `main` and non-agent `version-2` worktree remain.
+- [x] `git status --short --branch` clean before final session-end checks.

@@ -790,6 +790,7 @@ enum ApplicationCreateRequestBody {
         ]
         if let sourceURL, !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["source_url"] = sourceURL
+            body["job_url"] = sourceURL
         }
         if let optimizationId, !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             body["optimization_id"] = optimizationId
@@ -1649,6 +1650,7 @@ struct OptimizationDetailDTO: Decodable, Sendable {
     let atsScoreBefore: Int?
     let atsScoreAfter: Int?
     let atsBlockers: [ATSOptimizationBlocker]
+    let diagnosis: ResumeDiagnosis?
     let jobUrl: String?
     let applicationId: String?
 
@@ -1664,6 +1666,7 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         case atsScoreAfter  = "ats_score_after"
         case atsBlockersCamel = "atsBlockers"
         case atsBlockers = "ats_blockers"
+        case diagnosis
         case jobUrlCamel = "jobUrl"
         case jobUrl = "job_url"
         case applicationIdCamel = "applicationId"
@@ -1688,6 +1691,7 @@ struct OptimizationDetailDTO: Decodable, Sendable {
             try c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockers)
             ?? c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockersCamel)
             ?? []
+        diagnosis = try? c.decodeIfPresent(ResumeDiagnosis.self, forKey: .diagnosis)
         jobUrl =
             try c.decodeIfPresent(String.self, forKey: .jobUrl)
             ?? c.decodeIfPresent(String.self, forKey: .jobUrlCamel)

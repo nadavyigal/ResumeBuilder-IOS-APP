@@ -34,7 +34,7 @@ final class ResumeManagementViewModel {
 
     init(
         historyService: any OptimizationHistoryServiceProtocol = RuntimeServices.optimizationHistoryService(),
-        apiClient: APIClient = APIClient()
+        apiClient: APIClient = RuntimeServices.sharedAPIClient
     ) {
         self.historyService = historyService
         self.apiClient = apiClient

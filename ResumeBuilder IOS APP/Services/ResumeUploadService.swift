@@ -6,7 +6,7 @@ protocol ResumeUploadServiceProtocol: Sendable {
 }
 
 struct ResumeUploadService: ResumeUploadServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func upload(fileURL: URL, jobDescription: String?, jobDescriptionURL: String?, token: String) async throws -> ResumeUploadResponse {
         try await apiClient.uploadResume(

@@ -26,7 +26,7 @@ final class TailorViewModel {
     /// Cleared after the user responds.
     var pendingSaveResumeId: String?
 
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationService: any ResumeOptimizationServiceProtocol
 
     init(
@@ -109,6 +109,10 @@ final class TailorViewModel {
             #if DEBUG
             print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
             #endif
+
+            let fileExt = selectedResumeURL.pathExtension.lowercased()
+            let fileType = fileExt.isEmpty ? "unknown" : fileExt
+            AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
 
             // Offer to save the uploaded resume to the library (prompt shown in TailorView).
             if let resumeId = upload.resumeId, !resumeId.isEmpty {

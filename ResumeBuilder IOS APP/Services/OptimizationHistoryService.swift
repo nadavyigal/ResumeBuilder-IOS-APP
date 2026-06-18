@@ -6,7 +6,7 @@ protocol OptimizationHistoryServiceProtocol: Sendable {
 }
 
 struct OptimizationHistoryService: OptimizationHistoryServiceProtocol {
-    private let apiClient = APIClient()
+    private let apiClient = RuntimeServices.sharedAPIClient
 
     func list(token: String) async throws -> [OptimizationHistoryItem] {
         let response: OptimizationHistoryResponse = try await apiClient.get(endpoint: .optimizations, token: token)

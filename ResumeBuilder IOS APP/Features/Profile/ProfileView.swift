@@ -22,6 +22,9 @@ struct ProfileView: View {
     @State private var appSelectionMode = false
     @State private var appSelectedIds = Set<String>()
     @State private var comparePair: ApplicationComparePair?
+    @State private var showDeleteConfirmation = false
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
 
     private var accountInfo: AccountDisplayInfo {
         AccountDisplayInfo.resolve(
@@ -445,7 +448,62 @@ struct ProfileView: View {
                     )
                 }
                 .buttonStyle(.plain)
+
+                Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    if isDeletingAccount {
+                        HStack(spacing: 12) {
+                            ProgressView().tint(.red)
+                            Text("Deleting account…")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.red)
+                            Spacer()
+                        }
+                        .padding(14)
+                    } else {
+                        profileRow(
+                            icon: "trash",
+                            label: "Delete Account",
+                            color: .red,
+                            isDestructive: true
+                        )
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isDeletingAccount)
+                .alert("Delete your account?", isPresented: $showDeleteConfirmation) {
+                    Button("Delete Account", role: .destructive) {
+                        deleteAccount()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This permanently deletes your account, resumes, optimizations, and all personal data. This action cannot be undone.")
+                }
+                .alert("Could not delete account", isPresented: Binding(
+                    get: { deleteAccountError != nil },
+                    set: { if !$0 { deleteAccountError = nil } }
+                )) {
+                    Button("OK", role: .cancel) { deleteAccountError = nil }
+                } message: {
+                    Text(deleteAccountError ?? "Please try again.")
+                }
             }
+        }
+    }
+
+    private func deleteAccount() {
+        isDeletingAccount = true
+        Task {
+            do {
+                try await appState.deleteAccount()
+                // Success: session cleared; profile returns to signed-out state.
+            } catch {
+                deleteAccountError = error.localizedDescription
+            }
+            isDeletingAccount = false
         }
     }
 

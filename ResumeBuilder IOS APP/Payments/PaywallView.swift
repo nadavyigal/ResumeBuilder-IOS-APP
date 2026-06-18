@@ -15,7 +15,7 @@
 import SwiftUI
 import StoreKit
 
-struct PaywallView: View {
+struct StoreKitPaywallDraftView: View {
     @Environment(StoreManager.self) private var storeManager
     var onPurchaseComplete: () -> Void
     @Environment(\.dismiss) private var dismiss

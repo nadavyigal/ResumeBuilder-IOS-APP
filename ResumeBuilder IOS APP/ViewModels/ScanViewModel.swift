@@ -61,8 +61,10 @@ final class ScanViewModel {
             let didAccess = fileURL.startAccessingSecurityScopedResource()
             defer { if didAccess { fileURL.stopAccessingSecurityScopedResource() } }
             guard FileManager.default.isReadableFile(atPath: fileURL.path) else { return (false, nil) }
+            let ext = fileURL.pathExtension.lowercased()
+            guard ext == "pdf" else { return (false, nil) }
             let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let dest = docs.appendingPathComponent("cached_resume.pdf")
+            let dest = docs.appendingPathComponent("cached_resume.\(ext)")
             try? FileManager.default.removeItem(at: dest)
             try? FileManager.default.copyItem(at: fileURL, to: dest)
             let copied = FileManager.default.fileExists(atPath: dest.path)
@@ -70,7 +72,7 @@ final class ScanViewModel {
         }.value
 
         guard readable else {
-            errorMessage = "Unable to read the selected file. Please choose a local PDF or DOCX file."
+            errorMessage = "Unable to read the selected file. Please choose a local PDF file."
             selectedFileURL = nil
             detectedFilename = nil
             return

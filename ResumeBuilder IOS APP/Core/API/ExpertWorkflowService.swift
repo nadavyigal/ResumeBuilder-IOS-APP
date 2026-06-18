@@ -39,7 +39,7 @@ protocol ExpertWorkflowServiceProtocol: Sendable {
 
 /// Client for `/api/v1/expert-workflows/*`.
 struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
-    var apiClient: APIClient = APIClient()
+    var apiClient: APIClient = RuntimeServices.sharedAPIClient
 
     /// Begins a surfaced expert workflow for the given optimization.
     func run(

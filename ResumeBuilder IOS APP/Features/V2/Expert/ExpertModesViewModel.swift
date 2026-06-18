@@ -46,6 +46,9 @@ final class ExpertModesViewModel {
     var applicationId: String? = nil
 
     private let trackingService = ApplicationTrackingService()
+    private var savedReportsLoadedAt: Date?
+    private var savedReportsInFlight: Task<Void, Never>?
+    private static let savedReportsTTL: TimeInterval = 30
 
     init(
         optimizationId: String,
@@ -68,11 +71,25 @@ final class ExpertModesViewModel {
 
     func loadSavedReports(token: String?) async {
         guard let appId = applicationId else { return }
-        do {
-            savedReports = try await trackingService.fetchExpertReports(applicationId: appId, token: token)
-        } catch {
-            // silently ignore — count already shown by ApplicationDetailViewModel
+        if let loadedAt = savedReportsLoadedAt,
+           Date().timeIntervalSince(loadedAt) < Self.savedReportsTTL {
+            return
         }
+        if let savedReportsInFlight {
+            await savedReportsInFlight.value
+            return
+        }
+        let task = Task {
+            do {
+                savedReports = try await trackingService.fetchExpertReports(applicationId: appId, token: token)
+                savedReportsLoadedAt = Date()
+            } catch {
+                // silently ignore — count already shown by ApplicationDetailViewModel
+            }
+        }
+        savedReportsInFlight = task
+        await task.value
+        savedReportsInFlight = nil
     }
 
     func seedReadyPhase(workflowType: ExpertWorkflowType, snapshot: ExpertWorkflowRunSnapshot) {

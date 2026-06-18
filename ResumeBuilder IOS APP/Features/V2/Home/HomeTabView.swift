@@ -9,6 +9,9 @@ struct HomeTabView: View {
 
     @State private var isImporterPresented = false
     @State private var shouldNavigate = false
+    @State private var showDiagnosis = false
+    @State private var pendingDiagnosisOptimizationId: String? = nil
+    @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
     @State private var saveDisplayName = ""
@@ -172,7 +175,7 @@ struct HomeTabView: View {
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
-                    AnalyticsService.shared.track(.resumeUploaded)
+                    AnalyticsService.shared.track(.resumeUploaded(fileType: "pdf"))
                 }
             }
             .onChange(of: viewModel.jobDescription) { _, _ in trackJobAddedIfNeeded() }
@@ -197,7 +200,27 @@ struct HomeTabView: View {
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
                             shouldNavigate = false
+                            pendingDiagnosisOptimizationId = optId
+                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+                            showDiagnosis = true
+                        }
+                    )
+                }
+            }
+            .navigationDestination(isPresented: $showDiagnosis) {
+                if let diagnosisViewModel {
+                    ResumeDiagnosisView(
+                        viewModel: diagnosisViewModel,
+                        onImprove: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
                             onSwitchTab(.optimized)
+                        },
+                        onEditTargetJob: {
+                            showDiagnosis = false
+                            pendingDiagnosisOptimizationId = nil
+                            self.diagnosisViewModel = nil
                         }
                     )
                 }
@@ -248,7 +271,7 @@ struct HomeTabView: View {
                     )
                 )
 
-            Text("Upload, match to a job, and optimize your resume.")
+            Text("Upload, match to a job, and get your first diagnosis in under 2 minutes.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
                 .lineSpacing(2)
@@ -481,10 +504,10 @@ struct HomeTabView: View {
                         .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 }
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(appState.isAuthenticated ? "Optimize" : "Free ATS Check")
+                    Text(appState.isAuthenticated ? "Analyze" : "Free ATS Check")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
-                    Text(appState.isAuthenticated ? "AI rewrites for this job" : "See your score before signing in")
+                    Text(appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your score before signing in")
                         .font(.caption)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -503,7 +526,8 @@ struct HomeTabView: View {
                         await viewModel.optimize(appState: appState)
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
                             appState.latestOptimizationId = optId
-                            onSwitchTab(.optimized)
+                            pendingDiagnosisOptimizationId = optId
+                            showDiagnosis = true
                         } else if viewModel.reviewId != nil {
                             shouldNavigate = true
                         }
@@ -524,7 +548,7 @@ struct HomeTabView: View {
                     } else {
                         HStack(spacing: 8) {
                             Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
-                            Text(appState.isAuthenticated ? "Optimize Resume" : "Run Free ATS Check")
+                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check")
                                 .fontWeight(.bold)
                         }
                     }

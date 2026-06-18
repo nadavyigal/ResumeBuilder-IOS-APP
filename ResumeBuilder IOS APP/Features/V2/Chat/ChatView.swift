@@ -103,6 +103,9 @@ struct ChatView: View {
             )
             .padding(.bottom, AppSpacing.sm)
         }
+        .task {
+            await vm.bootstrapSession(token: appState.session?.accessToken)
+        }
         .sheet(isPresented: $vm.showPendingReview) {
             NavigationStack {
                 ScrollView {
@@ -257,6 +260,11 @@ private struct ChatInputBar: View {
                 .font(.appBody)
                 .foregroundStyle(AppColors.textPrimary)
                 .lineLimit(1...8)
+                .onChange(of: text) { _, newValue in
+                    if newValue.count > ChatViewModel.maxMessageLength {
+                        text = String(newValue.prefix(ChatViewModel.maxMessageLength))
+                    }
+                }
                 .padding(AppSpacing.md)
                 .glassCard(cornerRadius: AppRadii.md)
 
