@@ -15,6 +15,24 @@
 
 ## Sessions
 
+### 2026-06-19 (PostHog findings remediation)
+**Task:** Resolve actionable PostHog/error-sweep findings for silent preview and PDF export failures
+**Files Changed:**
+- `ResumeBuilder IOS APP/Features/V2/Preview/ResumePreviewWebView.swift` — added `WKNavigationDelegate` to the HTML preview wrapper, surfaced non-cancelled WebKit load failures, logged preview/PDF fallback failures, and tracked preview-toolbar export events.
+- `ResumeBuilder IOS APP/Core/Export/HTMLPDFExporter.swift` — added OSLog breadcrumbs for timeout, navigation, provisional navigation, `createPDF`, and file-write failures.
+- `ResumeBuilder IOS APP/Core/Export/ResumeExportAction.swift` — added shared export failure-code mapping and preserved styled-HTML failure context when backend fallback also fails.
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md` — updated project memory.
+**Decisions Made:**
+- Kept the fix scoped to observability and existing fallback behavior; styled HTML export failures still fall through to backend download before surfacing failure.
+- Used OSLog for local failure diagnostics and existing PostHog `export_failed.error_code` for analytics, avoiding new event names during App Store review.
+- Today's connected PostHog context did not show `$lib=resumely-ios-urlsession`; it showed only `$lib=posthog-ios` in the last 7 days, so production counts remain based on the 2026-06-18 baseline.
+**Validation:**
+- `xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build` — passed.
+- `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug -only-testing:"ResumeBuilder IOS APPTests/AnalyticsServiceTests"` — passed 9/9.
+- iPhone 17 Pro simulator install/launch smoke — passed; app launched as process 41533.
+- `git diff --check` — passed.
+**Next Recommended Action:** After Apple approval, switch/confirm PostHog project 270848 and rerun the D7 dashboard 1720819 funnel readout for `$lib=resumely-ios-urlsession`.
+
 ### 2026-06-18 (v5 build-and-ship)
 **Task:** Build and submit version 1.1 (5) for App Store review before D7 Gate A deadline (2026-06-21)
 **Files Changed:**
