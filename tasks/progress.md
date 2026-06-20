@@ -13,7 +13,7 @@ Last Completed Story: v5 build-and-ship — submitted 2026-06-18
 Next Recommended Story: (1) Confirm Apple approval + monitor for rejection notes. (2) D7 readout on or after 2026-06-24 via connected PostHog plugin — pull 7-day activation funnel from dashboard 1720819. (3) Close PR #68 after merge.
 Blockers: None. Waiting on Apple review.
 Last Validation: PostHog live events confirmed firing on real device during session; build 1.1 (5) uploaded successfully.
-Last Updated: 2026-06-19
+Last Updated: 2026-06-20
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -47,7 +47,7 @@ Estimated Completion: Awaiting Apple approval (~48h from 2026-06-18).
 Blockers: None. Waiting on Apple review. Do not touch ASC or build during review.
 Risks: Apple rejection resets D7 metrics window. Hebrew/RTL real-device PDF QA still pending.
 Last Validation: 2026-06-19 observability fix passed Debug iPhone 17 simulator build, focused AnalyticsServiceTests 9/9, and iPhone 17 Pro simulator install/launch smoke. v1.1 (5) remains in Apple review from 2026-06-18.
-Last Updated: 2026-06-19
+Last Updated: 2026-06-20
 Current Branch: main
 Latest Base Commit: current `main` after D7 Gate A closeout cleanup
 Active Spec: docs/specs/resume-aha-moments.md
