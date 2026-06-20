@@ -38,7 +38,7 @@ enum LinkedInShareComposer {
             שמח לשתף שנקראתי לראיון\(jobTitle.map { " ב-\($0)" } ?? "") 🎉
 
             השתמשתי ב-Resumely כדי להתאים את קורות החיים שלי למשרה —
-            הציון ATS קפץ מ-\(atsScoreBefore) ל-\(atsScoreAfter). לקח 5 דקות בנייד.
+            ציון ההתאמה ב-Resumely קפץ מ-\(atsScoreBefore) ל-\(atsScoreAfter). לקח 5 דקות בנייד.
 
             למי שמחפש עבודה, שווה לנסות 👇
             \(appStoreURL)
@@ -49,7 +49,7 @@ enum LinkedInShareComposer {
             return """
             Excited to share that I just landed an interview\(jobTitle.map { " at \($0)" } ?? "") 🎉
 
-            Used Resumely to tailor my resume to the job description — ATS score jumped
+            Used Resumely to tailor my resume to the job description — my Resumely match score jumped
             from \(atsScoreBefore) → \(atsScoreAfter). The optimisation took 5 minutes on my phone.
 
             If you're job hunting, give it a try 👇

@@ -275,6 +275,10 @@ struct OptimizedResumeView: View {
                 }
                 Spacer()
             }
+            Text("Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor.")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
@@ -747,7 +751,7 @@ struct OptimizedResumeView: View {
                 Text(section.type.displayName)
                     .font(.appHeadline)
                     .foregroundStyle(AppColors.textPrimary)
-                Text("Edit only facts you can verify. Save refreshes the preview and ATS score.")
+                Text("Edit only facts you can verify. Save refreshes the preview and Match Score.")
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textTertiary)
             }

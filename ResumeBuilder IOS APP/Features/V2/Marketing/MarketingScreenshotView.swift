@@ -29,7 +29,7 @@ enum MarketingScreenshotSlot: Int, CaseIterable, Identifiable {
         case .tailor: return "Your resume, tailored for any job"
         case .blockers: return "See exactly what's blocking you"
         case .aiEdits: return "AI edits that actually fit the role"
-        case .templates: return "Templates that pass ATS and impress recruiters"
+        case .templates: return "ATS-friendly templates that impress recruiters"
         case .expert: return "Expert analysis for every section"
         }
     }
@@ -37,7 +37,7 @@ enum MarketingScreenshotSlot: Int, CaseIterable, Identifiable {
     var subline: String {
         switch self {
         case .tailor: return "Paste a posting. See what's blocking you."
-        case .blockers: return "ATS scores every section of your resume"
+        case .blockers: return "Scores every section of your resume"
         case .aiEdits: return "Applied section by section, in one tap"
         case .templates: return "Export a polished PDF from your phone"
         case .expert: return "Targeted rewrites at hiring-manager level"
@@ -188,7 +188,7 @@ private struct BlockersScreenshotPanel: View {
             MarketingCard {
                 HStack {
                     VStack(alignment: .leading, spacing: 6) {
-                        MarketingLabel("ATS score")
+                        MarketingLabel("Match Score")
                         Text("58")
                             .font(.system(size: 80, weight: .bold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)

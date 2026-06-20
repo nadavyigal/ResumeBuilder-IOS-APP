@@ -10,7 +10,7 @@ struct ScoreResultView: View {
             // ── Score header ──────────────────────────────────────────────────
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("ATS Score")
+                    Text("Resumely Match Score")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.textTertiary)
                     Text("\(result.score?.overall ?? 0)")
@@ -27,6 +27,11 @@ struct ScoreResultView: View {
                 ATSDial(score: result.score?.overall ?? 0)
                     .frame(width: 90, height: 90)
             }
+
+            Text("Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor.")
+                .font(.caption2)
+                .foregroundStyle(Theme.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
 
             // ── Quick wins ────────────────────────────────────────────────────
             if let quickWins = result.quickWins, !quickWins.isEmpty {

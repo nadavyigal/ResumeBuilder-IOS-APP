@@ -39,7 +39,7 @@ enum HomeActivationState: Equatable, Sendable {
         case .resumeNoJob: return "Paste a job to reveal missing keywords"
         case .readyForFreeATS: return "Ready for a free ATS check"
         case .readyToOptimize: return "Ready for your resume diagnosis"
-        case .atsComplete: return "Your free ATS score is in"
+        case .atsComplete: return "Your free Resumely Match Score is in"
         case .optimizing: return "Finding the aha moments…"
         case .optimizedReady: return "Your optimized resume is ready"
         case .exportComplete: return "Resume exported successfully"

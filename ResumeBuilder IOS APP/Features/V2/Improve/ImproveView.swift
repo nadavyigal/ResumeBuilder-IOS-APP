@@ -192,7 +192,7 @@ struct ImproveView: View {
 
     private func metricsGrid(analysis: ResumeAnalysis) -> some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.md) {
-            MetricCard(icon: "doc.text.magnifyingglass", label: "ATS Score", value: "\(analysis.ats)", subtitle: "Keyword alignment", accentColor: AppColors.accentTeal)
+            MetricCard(icon: "doc.text.magnifyingglass", label: "Match Score", value: "\(analysis.ats)", subtitle: "Keyword alignment", accentColor: AppColors.accentTeal)
             MetricCard(icon: "pencil.and.list.clipboard", label: "Content", value: "\(analysis.content)", subtitle: "Clarity & impact", accentColor: AppColors.accentViolet)
             MetricCard(icon: "paintbrush.pointed", label: "Design", value: "\(analysis.design)", subtitle: "Visual layout", accentColor: AppColors.accentSky)
             MetricCard(icon: "key.fill", label: "Keywords", value: "\(analysis.missingKeywords.count)", subtitle: "Missing terms", accentColor: AppColors.accentTeal)

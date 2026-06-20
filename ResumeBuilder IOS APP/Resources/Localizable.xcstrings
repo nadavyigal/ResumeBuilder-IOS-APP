@@ -1295,32 +1295,52 @@
         }
       }
     },
-    "ATS score" : {
+    "Match Score" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון ATS"
+            "value" : "ציון התאמה"
           }
         }
       }
     },
-    "ATS Score" : {
+    "Resumely Match Score" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון ATS"
+            "value" : "ציון ההתאמה של Resumely"
           }
         }
       }
     },
-    "ATS score %lld percent" : {
+    "Match Score %lld percent" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון ATS %1$lld אחוז"
+            "value" : "ציון התאמה %1$lld אחוז"
+          }
+        }
+      }
+    },
+    "Match" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה"
+          }
+        }
+      }
+    },
+    "Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבוסס על עיצוב והתאמת מילות מפתח למשרה שהדבקת. לא מזוהה עם אף ספק ATS."
           }
         }
       }
@@ -1860,12 +1880,12 @@
         }
       }
     },
-    "Couldn't refresh the ATS score: %@" : {
+    "Couldn't refresh the Match Score: %@" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "לא ניתן לרענן את ציון ה-ATS: %@"
+            "value" : "לא ניתן לרענן את ציון ההתאמה: %@"
           }
         }
       }
@@ -2201,12 +2221,12 @@
         }
       }
     },
-    "Edit only facts you can verify. Save refreshes the preview and ATS score." : {
+    "Edit only facts you can verify. Save refreshes the preview and Match Score." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ערוך רק עובדות שאתה יכול לאמת. שמירה מרעננת את התצוגה ואת ציון ה-ATS."
+            "value" : "ערוך רק עובדות שאתה יכול לאמת. שמירה מרעננת את התצוגה ואת ציון ההתאמה."
           }
         }
       }
@@ -7128,12 +7148,12 @@
         }
       }
     },
-    "Your free ATS score is in" : {
+    "Your free Resumely Match Score is in" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון ה-ATS החינמי שלך מוכן"
+            "value" : "ציון ההתאמה החינמי שלך ב-Resumely מוכן"
           }
         }
       }

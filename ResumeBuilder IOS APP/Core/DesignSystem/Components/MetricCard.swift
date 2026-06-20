@@ -41,7 +41,7 @@ struct MetricCard: View {
 
 #Preview {
     HStack {
-        MetricCard(icon: "doc.text", label: "ATS Score", value: "82", subtitle: "Above average", accentColor: AppColors.accentTeal)
+        MetricCard(icon: "doc.text", label: "Match Score", value: "82", subtitle: "Above average", accentColor: AppColors.accentTeal)
         MetricCard(icon: "star.fill", label: "Content", value: "74", subtitle: "Needs work", accentColor: AppColors.accentViolet)
     }
     .padding()

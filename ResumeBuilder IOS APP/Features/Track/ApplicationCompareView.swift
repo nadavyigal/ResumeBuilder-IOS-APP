@@ -111,10 +111,10 @@ private struct ATSCompareRing: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(AppColors.textPrimary)
             }
-            Text("ATS")
+            Text("Match")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
-        .accessibilityLabel("ATS score \(score ?? 0) percent")
+        .accessibilityLabel("Match Score \(score ?? 0) percent")
     }
 }

@@ -91,7 +91,7 @@ struct ApplicationDetailView: View {
                     LabeledContent("Company", value: vm.item.companyName ?? "—")
                     LabeledContent("Applied", value: vm.item.appliedDate.map { formattedListDate(from: $0) } ?? "—")
                     if let score = vm.item.atsScore {
-                        LabeledContent("ATS score", value: "\(score)%")
+                        LabeledContent("Match Score", value: "\(score)%")
                     }
                     LabeledContent("Status", value: vm.item.status ?? "applied")
                 }
