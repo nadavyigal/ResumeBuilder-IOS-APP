@@ -6,6 +6,7 @@
 
 **v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
 
+<<<<<<< Updated upstream
 Status: v1.1 (5) live on App Store. ATS claim defensibility copy fix (PR #70) merged to `main` but not yet shipped — pending next build.
 Current Phase: D7 Gate A — live, passive monitoring. Next build (1.1 (6)) pending to carry ATS copy fix.
 Active Story: None
@@ -14,6 +15,16 @@ Next Recommended Story: (1) Bump to 1.1 (6), archive, and submit to carry the AT
 Blockers: None.
 Last Validation: PR #70 build verified on iPhone 17 Pro simulator (Debug) — BUILD SUCCEEDED. Merged into `main` 2026-06-20.
 Last Updated: 2026-06-20
+=======
+Status: LIVE on the App Store — v1.1 (5), confirmed live by founder 2026-06-21. (Submitted 2026-06-18, approved between 2026-06-19 and 2026-06-21.)
+Current Phase: Post-launch — D7 Gate A monitoring. App is live; no approval pending.
+Active Story: D7 activation readout once 7 days of live data exist. (PR #68 already merged 2026-06-18 — not an open task.)
+Last Completed Story: v1.1 (5) approved and live on the App Store (founder-confirmed 2026-06-21).
+Next Recommended Story: (1) D7 readout ~7 days after the confirmed go-live date — pull 7-day activation funnel from PostHog dashboard 1720819. Exact readout date depends on the App Store live date (confirm with founder). (2) Monitor reviews + crash/error events.
+Blockers: None. App is live.
+Last Validation: 2026-06-21 founder confirmed v1.1 (5) live on the App Store. (PostHog live events confirmed firing on real device during 2026-06-18 smoke; build 1.1 (5) uploaded successfully.)
+Last Updated: 2026-06-21
+>>>>>>> Stashed changes
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
