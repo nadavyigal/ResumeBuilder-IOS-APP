@@ -1,5 +1,9 @@
 # Project Progress
 
+**Resumely ATS Claim Defensibility (2026-06-20):** Implemented the approved positioning decision — the displayed score is a self-defined "Resumely Match Score", not an external ATS vendor's score. Copy/label-only changes (no scoring logic touched). Renamed user-facing "ATS Score/score" labels to "Resumely Match Score" (primary surfaces) or "Match Score" (constrained) across ScoreResultView, OptimizedResumeView, ExpertOutputViews, ImproveView, ApplicationDetailView, ApplicationCompareView, HomeActivationState, MarketingScreenshotView, MetricCard. Added explainer microcopy ("Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor.") near the score in ScoreResultView and the OptimizedResumeView score card (EN + HE). Reframed LinkedInShareComposer EN+HE share post to "Resumely match score". Updated Localizable.xcstrings (renamed keys + Hebrew). Audited App Store metadata: fixed docs/app-store/he-metadata.md ("ראה את ציון ההתאמה שלך ב-Resumely", "ציון התאמה של Resumely", removed "תתקבל לראיונות יותר" interview-outcome promo). Removed outcome-guarantee "Templates that pass ATS" → "ATS-friendly templates". Kept "ATS" only in descriptive contexts (ATS check / ATS insights / ATS match / ATS-friendly / template ATS attribute). Build: iPhone 17 Pro simulator Debug ** BUILD SUCCEEDED **. Flagged (generated artifacts, not fixed): dist/app-store-screenshots/{rb-aso-002,app-store-v1}/upload-manifest.md still say "Templates that pass ATS". No App Store Connect submission.
+
+**PostHog Findings Remediation (2026-06-19):** Resolved the first actionable error-sweep findings in code: `ResumePreviewWebView` now installs a `WKNavigationDelegate`, surfaces non-cancelled WebKit preview load failures, and logs them via OSLog; `HTMLPDFExporter` now logs timeout, navigation, `createPDF`, and write failures; preview-toolbar export now emits `export_pdf_tapped`, `export_started`, `export_success`, and detailed `export_failed` codes when both styled HTML export and backend fallback fail. Validation passed: Debug simulator build on iPhone 17, focused `AnalyticsServiceTests` (9/9), and iPhone 17 Pro simulator install/launch smoke. PostHog connector refresh on 2026-06-19 appeared pointed at a different/current project context: last-7-day `$lib` values showed only `posthog-ios`, not the expected `$lib=resumely-ios-urlsession`, so production funnel counts were not refreshed from the 2026-06-18 baseline in this remediation session.
+
 **v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
 
 Status: v1.1 (5) in Apple review
@@ -9,7 +13,7 @@ Last Completed Story: v5 build-and-ship — submitted 2026-06-18
 Next Recommended Story: (1) Confirm Apple approval + monitor for rejection notes. (2) D7 readout on or after 2026-06-24 via connected PostHog plugin — pull 7-day activation funnel from dashboard 1720819. (3) Close PR #68 after merge.
 Blockers: None. Waiting on Apple review.
 Last Validation: PostHog live events confirmed firing on real device during session; build 1.1 (5) uploaded successfully.
-Last Updated: 2026-06-18
+Last Updated: 2026-06-20
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -42,8 +46,8 @@ Next Recommended Story: D7 readout on or after 2026-06-24 via PostHog plugin (da
 Estimated Completion: Awaiting Apple approval (~48h from 2026-06-18).
 Blockers: None. Waiting on Apple review. Do not touch ASC or build during review.
 Risks: Apple rejection resets D7 metrics window. Hebrew/RTL real-device PDF QA still pending.
-Last Validation: v1.1 (5) uploaded and submitted via Xcode Organizer 2026-06-18. PostHog events confirmed firing.
-Last Updated: 2026-06-18
+Last Validation: 2026-06-19 observability fix passed Debug iPhone 17 simulator build, focused AnalyticsServiceTests 9/9, and iPhone 17 Pro simulator install/launch smoke. v1.1 (5) remains in Apple review from 2026-06-18.
+Last Updated: 2026-06-20
 Current Branch: main
 Latest Base Commit: current `main` after D7 Gate A closeout cleanup
 Active Spec: docs/specs/resume-aha-moments.md

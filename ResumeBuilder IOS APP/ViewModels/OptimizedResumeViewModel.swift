@@ -532,7 +532,7 @@ final class OptimizedResumeViewModel {
             }
             backendDiagnosis = nil
         } catch {
-            errorMessage = String(format: NSLocalizedString("Couldn't refresh the ATS score: %@", comment: ""), error.localizedDescription)
+            errorMessage = String(format: NSLocalizedString("Couldn't refresh the Match Score: %@", comment: ""), error.localizedDescription)
         }
     }
 

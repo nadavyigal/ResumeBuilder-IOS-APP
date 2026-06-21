@@ -318,7 +318,7 @@ struct ExpertATSReportView: View {
                 }
             } else if let score = atsReport.score {
                 HStack {
-                    Text("ATS Score")
+                    Text("Match Score")
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textSecondary)
                     Spacer()

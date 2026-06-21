@@ -15,6 +15,11 @@
 
 ## Lessons
 
+### 2026-06-19
+**Category:** PDF
+**Rule:** Any `WKWebView` used for resume preview or PDF export must have a `WKNavigationDelegate` and OSLog/analytics coverage for timeout, provisional, navigation, and PDF creation failures.
+**Why:** The PostHog/error sweep found preview HTML could fail after `html` state was set, leaving a blank WebKit surface and no failure signal on the styled PDF export path.
+
 ### 2026-06-17
 **Category:** General
 **Rule:** To verify localization coverage authoritatively, run `xcodebuild -exportLocalizations -project X -localizationPath /tmp/loc -exportLanguage he`, then parse `/tmp/loc/he.xcloc/Localized Contents/he.xliff`: every `trans-unit` is a localizable string the build extracts (Text literals, LocalizedStringKey, String(localized:), NSLocalizedString). Units with an empty `<target>` are untranslated. This is the ground truth — far more reliable than grepping. Note: multi-argument format keys appear in the xliff `<source>` in POSITIONAL form (`%1$lld…%2$@`) but the catalog KEY is the literal as written in code (`%lld…%@`); translate under the literal key, give the value positional specifiers.

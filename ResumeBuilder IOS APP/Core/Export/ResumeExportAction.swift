@@ -17,6 +17,7 @@ enum ResumeExportAction {
             throw APIClientError.invalidResponse
         }
         analytics.track(.exportStarted)
+        var styledHTMLFailureCode: String?
         do {
             let url: URL
             if let html = renderedHTML {
@@ -25,6 +26,7 @@ enum ResumeExportAction {
                 do {
                     url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
                 } catch {
+                    styledHTMLFailureCode = ExportFailureCode.code(for: error)
                     url = try await viewModel.downloadPDF(appState: appState)
                 }
             } else {
@@ -34,20 +36,34 @@ enum ResumeExportAction {
             analytics.track(.exportSuccess)
             return Result(fileURL: url, optimizationId: optimizationId)
         } catch {
-            let code: String
-            if let apiError = error as? APIClientError {
-                switch apiError {
-                case .unauthorized: code = "unauthorized"
-                case .paymentRequired: code = "payment_required"
-                case .invalidResponse: code = "invalid_response"
-                case .invalidURL: code = "invalid_url"
-                case .serverError(let status, _): code = "server_\(status)"
-                }
-            } else {
-                code = "unknown"
-            }
+            let fallbackCode = ExportFailureCode.code(for: error)
+            let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
             analytics.track(.exportFailed(errorCode: code))
             throw error
         }
+    }
+}
+
+enum ExportFailureCode {
+    static func code(for error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            switch apiError {
+            case .unauthorized: return "unauthorized"
+            case .paymentRequired: return "payment_required"
+            case .invalidResponse: return "invalid_response"
+            case .invalidURL: return "invalid_url"
+            case .serverError(let status, _): return "server_\(status)"
+            }
+        }
+        if let htmlError = error as? HTMLPDFExporterError {
+            switch htmlError {
+            case .timedOut: return "html_pdf_timed_out"
+            }
+        }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            return "network_\(abs(nsError.code))"
+        }
+        return "unknown"
     }
 }

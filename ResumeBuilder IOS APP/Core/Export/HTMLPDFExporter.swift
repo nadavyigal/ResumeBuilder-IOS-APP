@@ -1,6 +1,9 @@
 import Foundation
+import OSLog
 import UIKit
 import WebKit
+
+private let htmlPDFLogger = Logger(subsystem: "ResumeBuilder", category: "HTMLPDFExporter")
 
 /// Renders styled HTML in an off-screen WKWebView and exports it as a PDF file.
 ///
@@ -42,6 +45,7 @@ enum HTMLPDFExporter {
         func startTimeout() {
             timeoutTask = Task { @MainActor in
                 try? await Task.sleep(for: .seconds(20))
+                htmlPDFLogger.error("HTML PDF export timed out for optimization \(self.optimizationId, privacy: .public)")
                 complete(.failure(HTMLPDFExporterError.timedOut))
             }
         }
@@ -54,19 +58,23 @@ enum HTMLPDFExporter {
                         let dest = try ExportFileStore.writePDFData(data, optimizationId: self.optimizationId)
                         self.complete(.success(dest))
                     } catch {
+                        htmlPDFLogger.error("HTML PDF export failed to write PDF for optimization \(self.optimizationId, privacy: .public): \(error.localizedDescription, privacy: .public)")
                         self.complete(.failure(error))
                     }
                 case .failure(let error):
+                    htmlPDFLogger.error("HTML PDF export createPDF failed for optimization \(self.optimizationId, privacy: .public): \(error.localizedDescription, privacy: .public)")
                     self.complete(.failure(error))
                 }
             }
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            htmlPDFLogger.error("HTML PDF export navigation failed for optimization \(self.optimizationId, privacy: .public): \(error.localizedDescription, privacy: .public)")
             complete(.failure(error))
         }
 
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            htmlPDFLogger.error("HTML PDF export provisional navigation failed for optimization \(self.optimizationId, privacy: .public): \(error.localizedDescription, privacy: .public)")
             complete(.failure(error))
         }
 
