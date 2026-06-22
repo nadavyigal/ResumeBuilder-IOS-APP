@@ -53,6 +53,23 @@ enum JSONValue: Codable, Hashable, Sendable {
         guard case .number(let value) = self else { return nil }
         return value
     }
+
+    var displayString: String {
+        switch self {
+        case .string(let value):
+            return value
+        case .number(let value):
+            return "\(value)"
+        case .bool(let value):
+            return "\(value)"
+        case .array(let values):
+            return values.map(\.displayString).filter { !$0.isEmpty }.joined(separator: ", ")
+        case .object:
+            return ""
+        case .null:
+            return ""
+        }
+    }
 }
 
 struct APIStatusResponse: Codable, Sendable {
@@ -1324,6 +1341,17 @@ struct ChatApproveChangeResponseDTO: Decodable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case success
         case updatedResume = "updated_resume"
+    }
+}
+
+/// POST `/api/v1/optimizations/:id/suggestions/:suggestionId/preview`
+struct KeywordSuggestionPreviewDTO: Decodable, Sendable {
+    let suggestionId: String?
+    let affectedFields: [ChatAffectedField]
+
+    private enum CodingKeys: String, CodingKey {
+        case suggestionId = "suggestion_id"
+        case affectedFields = "affected_fields"
     }
 }
 

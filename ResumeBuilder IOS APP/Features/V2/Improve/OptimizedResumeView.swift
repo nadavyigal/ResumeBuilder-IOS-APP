@@ -365,6 +365,10 @@ struct OptimizedResumeView: View {
                 }
             }
 
+            if !viewModel.keywordSuggestions.isEmpty {
+                addableKeywordsSection
+            }
+
             Button {
                 AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
                 Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
@@ -435,6 +439,114 @@ struct OptimizedResumeView: View {
                 .foregroundStyle(AppColors.textTertiary)
         }
         .padding(.vertical, 2)
+    }
+
+    private var addableKeywordsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Addable keywords")
+                .font(.appCaption.weight(.bold))
+                .foregroundStyle(AppColors.textTertiary)
+            Text("These appear in the job description but not your resume. Review the proposed wording before adding it.")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ForEach(viewModel.keywordSuggestions) { blocker in
+                keywordSuggestionRow(blocker)
+            }
+        }
+    }
+
+    private func keywordSuggestionRow(_ blocker: ATSOptimizationBlocker) -> some View {
+        let suggestionId = blocker.id
+        let isApproved = viewModel.keywordsApproved.contains(suggestionId)
+        let isPreviewing = viewModel.keywordsBeingPreviewed.contains(suggestionId)
+        let isApproving = viewModel.keywordsBeingApproved.contains(suggestionId)
+        let preview = viewModel.keywordPreviews[suggestionId]
+        let error = viewModel.keywordPreviewErrors[suggestionId]
+
+        return VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            HStack(alignment: .top, spacing: AppSpacing.sm) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(blocker.title)
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let detail = blocker.detail, detail != blocker.title {
+                        Text(detail)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                Spacer(minLength: AppSpacing.sm)
+
+                if isApproved {
+                    Label("Added", systemImage: "checkmark.circle.fill")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.accentTeal)
+                } else if preview == nil {
+                    Button {
+                        Task { await viewModel.previewKeyword(suggestionId: suggestionId, token: appState.session?.accessToken) }
+                    } label: {
+                        if isPreviewing {
+                            ProgressView()
+                        } else {
+                            Text("Preview")
+                                .font(.appCaption.weight(.semibold))
+                        }
+                    }
+                    .disabled(isPreviewing)
+                }
+            }
+
+            if let preview, !isApproved {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    ForEach(Array(preview.enumerated()), id: \.offset) { _, field in
+                        if let newValue = field.newValue {
+                            Text(describeAffectedFieldChange(field, newValue: newValue))
+                                .font(.appCaption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    HStack(spacing: AppSpacing.sm) {
+                        Button {
+                            Task { await viewModel.approveKeyword(suggestionId: suggestionId, token: appState.session?.accessToken) }
+                        } label: {
+                            if isApproving {
+                                ProgressView()
+                            } else {
+                                Text("Approve")
+                                    .font(.appCaption.weight(.bold))
+                            }
+                        }
+                        .disabled(isApproving)
+                        .buttonStyle(GradientButtonStyle())
+
+                        Button("Reject") {
+                            viewModel.rejectKeyword(suggestionId: suggestionId)
+                        }
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textTertiary)
+                    }
+                }
+                .padding(.top, AppSpacing.xs)
+            }
+
+            if let error {
+                Text(error)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.accentSky)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+
+    private func describeAffectedFieldChange(_ field: ChatAffectedField, newValue: JSONValue) -> String {
+        "Proposed: \(newValue.displayString)"
     }
 
     private var diagnosisSnapshotPanel: some View {

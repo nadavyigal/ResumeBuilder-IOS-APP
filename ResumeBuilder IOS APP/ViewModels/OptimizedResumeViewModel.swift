@@ -31,6 +31,14 @@ final class OptimizedResumeViewModel {
     var company: String?
     var contact: ResumeContact?
     var atsBlockers: [ATSOptimizationBlocker] = []
+    var keywordSuggestions: [ATSOptimizationBlocker] {
+        atsBlockers.filter { $0.category.lowercased() == "keywords" }
+    }
+    var keywordPreviews: [String: [ChatAffectedField]] = [:]
+    var keywordPreviewErrors: [String: String] = [:]
+    var keywordsBeingPreviewed: Set<String> = []
+    var keywordsBeingApproved: Set<String> = []
+    var keywordsApproved: Set<String> = []
     var backendDiagnosis: ResumeDiagnosis?
     var jobURLString: String?
     var applicationId: String?
@@ -41,6 +49,7 @@ final class OptimizedResumeViewModel {
     private let optimizationService: any ResumeOptimizationServiceProtocol
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
+    private let chatService: any ChatMessaging
     private var didAttemptInitialSectionLoad: Bool
     private static let detailCache = OptimizationDetailCacheActor()
 
@@ -55,7 +64,8 @@ final class OptimizedResumeViewModel {
         contact: ResumeContact? = nil,
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
         analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
-        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService()
+        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
+        chatService: any ChatMessaging = ChatService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -68,6 +78,7 @@ final class OptimizedResumeViewModel {
         self.optimizationService = optimizationService
         self.analysisService = analysisService
         self.expertService = expertService
+        self.chatService = chatService
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
@@ -584,6 +595,56 @@ final class OptimizedResumeViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func previewKeyword(suggestionId: String, token: String?) async {
+        guard let optId = optimizationId, let token else { return }
+        guard keywordPreviews[suggestionId] == nil else { return }
+
+        keywordsBeingPreviewed.insert(suggestionId)
+        keywordPreviewErrors[suggestionId] = nil
+        defer { keywordsBeingPreviewed.remove(suggestionId) }
+
+        do {
+            let dto = try await chatService.previewKeywordSuggestion(
+                optimizationId: optId,
+                suggestionId: suggestionId,
+                token: token
+            )
+            keywordPreviews[suggestionId] = dto.affectedFields
+        } catch let apiError as APIClientError {
+            keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+        } catch {
+            keywordPreviewErrors[suggestionId] = error.localizedDescription
+        }
+    }
+
+    func approveKeyword(suggestionId: String, token: String?) async {
+        guard let optId = optimizationId, let token else { return }
+        guard let fields = keywordPreviews[suggestionId] else { return }
+
+        keywordsBeingApproved.insert(suggestionId)
+        defer { keywordsBeingApproved.remove(suggestionId) }
+
+        do {
+            let dto = try await chatService.approveChange(
+                optimizationId: optId,
+                suggestionId: suggestionId,
+                affectedFields: fields,
+                token: token
+            )
+            mergeApproveSnapshot(dto.updatedResume)
+            keywordsApproved.insert(suggestionId)
+        } catch let apiError as APIClientError {
+            keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+        } catch {
+            keywordPreviewErrors[suggestionId] = error.localizedDescription
+        }
+    }
+
+    func rejectKeyword(suggestionId: String) {
+        keywordPreviews[suggestionId] = nil
+        keywordPreviewErrors[suggestionId] = nil
     }
 
     func rejectRefine() {
