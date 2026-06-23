@@ -64,7 +64,7 @@ This sits deliberately on the opposite side of the auto-apply volume race — wh
 ### Wedge 1 — Fit-first triage (highest leverage, builds on existing diagnosis)
 Flip the flow from "paste a JD and we optimize" to **"is this even worth your time, and what exactly is missing?"** before any optimization spend.
 - For each pasted/forwarded JD: a **Fit verdict** (Strong / Stretch / Skip) + the 3 concrete gaps that decide it, reusing the existing Diagnosis engine.
-- A lightweight **"forward a job posting" inbox** (share-sheet extension / paste) so triage is a 10-second mobile habit, not a desktop session.
+- A lightweight **"forward a job posting" inbox** (share-sheet extension / paste) so triage is a 10-second mobile habit, not a desktop session. *(v1 ships paste-only; the share-sheet extension is a post-v1 fast-follow — see the brief's Scope (Out).)*
 - Why it wins: directly serves the "right jobs > most jobs" narrative, protects the user's effort, and is a daily mobile micro-interaction. Reuses `ResumeDiagnosisView` + `/api/optimize` diagnosis output.
 
 ### Wedge 2 — "Sounds like you, not like AI" (contrarian, hardest to copy)

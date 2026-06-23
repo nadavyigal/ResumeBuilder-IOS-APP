@@ -3,7 +3,7 @@
 **Feature:** Fit-First Triage
 **Spec:** `docs/specs/drafts/fit-first-triage-spec.md`
 **Date:** 2026-06-22
-**Status:** Pending (awaiting approval + Open Question 1 backend decision)
+**Status:** Pending (awaiting founder approval + two decisions: verdict thresholds [before Story 0] and resume-input contract [before Story 1/3 live]). Endpoint approach is resolved — evolve `/api/public/ats-check`.
 
 > Ordered so each story ends on a green build and is independently testable. **Story 0 (web) lands first** so the new `fit` fields exist; iOS Stories 1–3 work against a mocked `FitCheckService` in parallel, then point at the live endpoint.
 > **Decision:** the Fit check is the evolved free ATS check `POST /api/public/ats-check` (web repo `new-ResumeBuilder-ai-`), mirrored to iOS — no new endpoint.
@@ -11,7 +11,10 @@
 ---
 
 ## Story 0 — Web: add the Fit layer to the free ATS check
-**Repo:** `new-ResumeBuilder-ai-` · **Size:** M · **Prerequisites:** none
+**Repo:** `new-ResumeBuilder-ai-` · **Size:** M
+**Prerequisites (resolve before starting):**
+- [ ] **Verdict thresholds confirmed** — ≥75 strong / 50–74 stretch / <50 skip, or alternative approved by founder/backend lead (Brief Open Question 1). Locked before implementation to avoid mid-build debate; kept server-side so they stay tunable after ship.
+- [ ] **Resume input contract decided** (Brief Open Question 2) — if iOS should pass a stored `resume_id` instead of re-uploading a PDF, that small server addition is part of this story.
 
 ### Files to Change
 | File | Action | Change |
@@ -28,6 +31,7 @@
 
 ## Story 1 — iOS: Fit verdict model + service + decoder
 **Size:** M · **Prerequisites:** Story 0 (or mock)
+**Input contract (from Brief Open Question 2):** `FitCheckService` cannot be finalized until the resume-input decision is made — stored `resume_id`/session vs PDF re-upload. Build against the mock with the chosen shape; if undecided, default the mock to the existing PDF-upload contract and flag the swap as a follow-up.
 
 ### Files to Change
 | File | Action | Change |
@@ -95,3 +99,10 @@
 - [ ] Claim-safety review: no outcome guarantees, no ATS-vendor claim (consistent with PR #70)
 - [ ] `tasks/todo.md` + `tasks/progress.md` updated; lesson added if applicable
 - [ ] Story 0 (web `fit` block) shipped before iOS Story 3 points at the live endpoint; both repos' branches pushed with open PRs
+
+## Cross-repo coordination (mock → live handoff)
+Lightweight checkpoint so iOS doesn't point at the live endpoint before the web side is ready:
+- [ ] Story 0 merged to `new-ResumeBuilder-ai-` main and deployed
+- [ ] `POST /api/public/ats-check` confirmed returning the `fit` block (correct shape) on the deployed environment
+- [ ] iOS swaps `FitCheckService` from mock to live and spot-checks the decode before Story 3 is approved
+- [ ] Only then: Story 3 enables `isFitCheckEnabled` against live data

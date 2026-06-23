@@ -41,9 +41,9 @@ As a job seeker evaluating a posting, I want an instant fit verdict and the few 
 - **Anonymous (was Open Question 3):** Yes — the endpoint is already anonymous via `x-session-id`, and `convert-session` already upgrades an anonymous result to an account. This is the activation hook; keep it.
 
 ## Open Questions
-1. Verdict thresholds — Strong/Stretch/Skip cutoffs on the existing `overall` score (recommendation: ≥75 / 50–74 / <50, owned server-side so both web and iOS render the same band).
-2. The current free check requires a **resume PDF upload + JD**. For the iOS in-app flow the resume is already on file — confirm the mirrored iOS path can pass the stored resume (by `resume_id` / `session`) instead of re-uploading a PDF, or whether v1 keeps the upload model.
-3. The web check enforces **JD ≥ 100 words**; confirm the same minimum for the iOS paste flow (recommendation: yes, keep parity).
+1. **[Blocking — resolve before Story 0]** Verdict thresholds — Strong/Stretch/Skip cutoffs on the existing `overall` score (recommendation: ≥75 / 50–74 / <50, owned server-side so both web and iOS render the same band, and tunable post-ship without an app release). Story 0 derives the band from these, so the cutoffs must be founder/backend-confirmed before that work starts.
+2. **[Blocking — resolve before iOS Story 3 points at the live endpoint]** The current free check requires a **resume PDF upload + JD**. For the iOS in-app flow the resume is already on file — confirm the mirrored iOS path can pass the stored resume (by `resume_id` / `session`) instead of re-uploading a PDF, or whether v1 keeps the upload model. If a stored-resume path is wanted, it is a small addition to Story 0 (server) and must be settled before Story 1's `FitCheckService` input contract is finalized.
+3. **[Non-blocking — can proceed in parallel]** The web check enforces **JD ≥ 100 words**; confirm the same minimum for the iOS paste flow (recommendation: yes, keep parity).
 
 ## Risks
 - **Cross-repo change:** this now spans two repos — web (`new-ResumeBuilder-ai-`: evolve `/api/public/ats-check` to return the verdict + gaps) and iOS (mirror the new fields). The web change must land first; the iOS UI can be built against a mock in the meantime.
