@@ -38,4 +38,8 @@ enum RuntimeServices {
     static func resumeDesignService() -> any ResumeDesignServiceProtocol {
         ResumeDesignService()
     }
+
+    static func fitCheckService() -> any FitCheckServiceProtocol {
+        FitCheckService()
+    }
 }

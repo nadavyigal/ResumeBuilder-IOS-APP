@@ -15,6 +15,21 @@
 
 ## Lessons
 
+### 2026-06-23
+**Category:** Build
+**Rule:** When adding a new fallback key to an existing Codable decoder, decode the primary and alias values into local optionals before nil-coalescing.
+**Why:** While adding `ResumeGap.detail` as an alias for the Fit payload, the first patch repeated the throwing-decode-inside-`??` pattern that has broken Swift builds before.
+
+### 2026-06-23
+**Category:** Build
+**Rule:** If XcodeBuildMCP times out during scheme listing, check for and stop the leftover `xcodebuild -list` process before running manual `xcodebuild`.
+**Why:** A timed-out scheme lookup left a stale Xcode project reader running, and subsequent manual builds hung before Swift compilation while coordinating project reads.
+
+### 2026-06-23
+**Category:** Test
+**Rule:** In flexible decoders that probe a key as both scalar and nested object, wrap the nested-object probe in `try?` after scalar probes so a type mismatch does not abort the whole decode.
+**Why:** `FitVerdict` decoded numeric `score` first, but the follow-up nested `score.overall` probe still threw a type mismatch and failed the snake-case payload test.
+
 ### 2026-06-19
 **Category:** PDF
 **Rule:** Any `WKWebView` used for resume preview or PDF export must have a `WKNavigationDelegate` and OSLog/analytics coverage for timeout, provisional, navigation, and PDF creation failures.

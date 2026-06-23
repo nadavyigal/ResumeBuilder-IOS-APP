@@ -545,6 +545,7 @@ struct ATSScoreResult: Codable, Sendable {
     let quickWins: [QuickWin]?
     let checksRemaining: Int?
     let sessionId: String?
+    let fit: FitVerdict?
     let error: String?
 
     struct ScorePayload: Codable, Sendable {
@@ -556,6 +557,73 @@ struct ATSScoreResult: Codable, Sendable {
         let topIssues: [ATSIssue]
         let totalIssues: Int?
         let lockedCount: Int?
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case score
+        case preview
+        case quickWins
+        case quickWinsSnake = "quick_wins"
+        case checksRemaining
+        case checksRemainingSnake = "checks_remaining"
+        case sessionId
+        case sessionIdSnake = "session_id"
+        case fit
+        case error
+    }
+
+    init(
+        success: Bool? = nil,
+        score: ScorePayload? = nil,
+        preview: PreviewPayload? = nil,
+        quickWins: [QuickWin]? = nil,
+        checksRemaining: Int? = nil,
+        sessionId: String? = nil,
+        fit: FitVerdict? = nil,
+        error: String? = nil
+    ) {
+        self.success = success
+        self.score = score
+        self.preview = preview
+        self.quickWins = quickWins
+        self.checksRemaining = checksRemaining
+        self.sessionId = sessionId
+        self.fit = fit
+        self.error = error
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let quickWinsCamel = try c.decodeIfPresent([QuickWin].self, forKey: .quickWins)
+        let quickWinsSnake = try c.decodeIfPresent([QuickWin].self, forKey: .quickWinsSnake)
+        let checksRemainingCamel = try c.decodeIfPresent(Int.self, forKey: .checksRemaining)
+        let checksRemainingSnake = try c.decodeIfPresent(Int.self, forKey: .checksRemainingSnake)
+        let sessionIdCamel = try c.decodeIfPresent(String.self, forKey: .sessionId)
+        let sessionIdSnake = try c.decodeIfPresent(String.self, forKey: .sessionIdSnake)
+
+        self.init(
+            success: try c.decodeIfPresent(Bool.self, forKey: .success),
+            score: try c.decodeIfPresent(ScorePayload.self, forKey: .score),
+            preview: try c.decodeIfPresent(PreviewPayload.self, forKey: .preview),
+            quickWins: quickWinsCamel ?? quickWinsSnake,
+            checksRemaining: checksRemainingCamel ?? checksRemainingSnake,
+            sessionId: sessionIdCamel ?? sessionIdSnake,
+            fit: try c.decodeIfPresent(FitVerdict.self, forKey: .fit),
+            error: try c.decodeIfPresent(String.self, forKey: .error)
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(success, forKey: .success)
+        try c.encodeIfPresent(score, forKey: .score)
+        try c.encodeIfPresent(preview, forKey: .preview)
+        try c.encodeIfPresent(quickWins, forKey: .quickWins)
+        try c.encodeIfPresent(checksRemaining, forKey: .checksRemaining)
+        try c.encodeIfPresent(sessionId, forKey: .sessionId)
+        try c.encodeIfPresent(fit, forKey: .fit)
+        try c.encodeIfPresent(error, forKey: .error)
     }
 }
 
