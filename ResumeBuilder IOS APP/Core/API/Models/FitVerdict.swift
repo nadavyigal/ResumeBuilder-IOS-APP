@@ -59,10 +59,12 @@ struct FitVerdict: Codable, Equatable, Sendable {
         let nestedScore = try c.decodeNestedScore(for: ["score"])
         let scoreNoteCamel = try c.decodeIfPresent(String.self, forKey: DynamicCodingKey("scoreNote"))
         let scoreNoteSnake = try c.decodeIfPresent(String.self, forKey: DynamicCodingKey("score_note"))
-        let topGapsCamel = try c.decodeIfPresent([ResumeGap].self, forKey: DynamicCodingKey("topGaps"))
-        let topGapsSnake = try c.decodeIfPresent([ResumeGap].self, forKey: DynamicCodingKey("top_gaps"))
-        let missingKeywordsCamel = try c.decodeIfPresent([ResumeKeyword].self, forKey: DynamicCodingKey("missingKeywords"))
-        let missingKeywordsSnake = try c.decodeIfPresent([ResumeKeyword].self, forKey: DynamicCodingKey("missing_keywords"))
+        // Per 2026-06-23 lesson: wrap nested-object probes in try? so a string-array payload
+        // (as returned by current prod) does not abort the whole decode.
+        let topGapsCamel = c.decodeGapsOrStrings(forKey: "topGaps")
+        let topGapsSnake = c.decodeGapsOrStrings(forKey: "top_gaps")
+        let missingKeywordsCamel = c.decodeKeywordsOrStrings(forKey: "missingKeywords")
+        let missingKeywordsSnake = c.decodeKeywordsOrStrings(forKey: "missing_keywords")
 
         let score = intScore ?? nestedScore ?? 0
         let band = verdictString.map(FitBand.init(rawValueOrDefault:)) ?? FitBand.derived(from: score)
@@ -71,8 +73,8 @@ struct FitVerdict: Codable, Equatable, Sendable {
             band: band,
             score: score,
             scoreNote: scoreNoteCamel ?? scoreNoteSnake ?? Self.defaultScoreNote,
-            topGaps: topGapsCamel ?? topGapsSnake ?? [],
-            missingKeywords: missingKeywordsCamel ?? missingKeywordsSnake ?? [],
+            topGaps: topGapsCamel.isEmpty ? topGapsSnake : topGapsCamel,
+            missingKeywords: missingKeywordsCamel.isEmpty ? missingKeywordsSnake : missingKeywordsCamel,
             bandWasDerived: verdictString == nil
         )
     }
@@ -123,6 +125,41 @@ struct FitVerdict: Codable, Equatable, Sendable {
 }
 
 private extension KeyedDecodingContainer where K == DynamicCodingKey {
+    /// Decodes either a `[ResumeGap]` object-array or a plain `[String]` (mapped to gaps).
+    /// Returns `[]` on any decode failure so callers never need to throw.
+    func decodeGapsOrStrings(forKey key: String) -> [ResumeGap] {
+        let codingKey = DynamicCodingKey(key)
+        // try? on decodeIfPresent yields Optional<Optional<T>>; flatten with ?? nil
+        if let gaps = (try? decodeIfPresent([ResumeGap].self, forKey: codingKey)) ?? nil {
+            return gaps
+        }
+        if let strings = (try? decodeIfPresent([String].self, forKey: codingKey)) ?? nil {
+            return strings.compactMap { s in
+                let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return nil }
+                return ResumeGap(title: trimmed, explanation: trimmed, severity: .medium)
+            }
+        }
+        return []
+    }
+
+    /// Decodes either a `[ResumeKeyword]` object-array or a plain `[String]` (mapped to keywords).
+    /// Returns `[]` on any decode failure so callers never need to throw.
+    func decodeKeywordsOrStrings(forKey key: String) -> [ResumeKeyword] {
+        let codingKey = DynamicCodingKey(key)
+        if let keywords = (try? decodeIfPresent([ResumeKeyword].self, forKey: codingKey)) ?? nil {
+            return keywords
+        }
+        if let strings = (try? decodeIfPresent([String].self, forKey: codingKey)) ?? nil {
+            return strings.compactMap { s in
+                let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return nil }
+                return ResumeKeyword(keyword: trimmed, importance: .medium)
+            }
+        }
+        return []
+    }
+
     func decodeString(for keys: [String]) throws -> String? {
         for key in keys {
             let codingKey = DynamicCodingKey(key)

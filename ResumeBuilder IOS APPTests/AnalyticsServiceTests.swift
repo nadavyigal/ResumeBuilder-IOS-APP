@@ -71,6 +71,10 @@ final class AnalyticsServiceTests: XCTestCase {
             "ats_improve_tapped",
             "export_pdf_tapped",
             "submit_package_saved",
+            "fit_check_started",
+            "fit_check_completed",
+            "fit_check_optimize_tapped",
+            "fit_check_skipped",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -93,6 +97,10 @@ final class AnalyticsServiceTests: XCTestCase {
             ["current_score": "55"],
             [:],
             ["has_cover_letter": "true"],
+            [:],
+            ["verdict": "stretch", "match_score": "68"],
+            [:],
+            [:],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -187,5 +195,9 @@ final class AnalyticsServiceTests: XCTestCase {
         .atsImproveTapped(currentScore: 55),
         .exportPdfTapped,
         .submitPackageSaved(hasCoverLetter: true),
+        .fitCheckStarted,
+        .fitCheckCompleted(verdict: "stretch", matchScore: 68),
+        .fitCheckOptimizeTapped,
+        .fitCheckSkipped,
     ]
 }

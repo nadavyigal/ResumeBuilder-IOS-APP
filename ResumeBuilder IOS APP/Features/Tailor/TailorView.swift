@@ -26,6 +26,9 @@ struct TailorView: View {
     @State private var showSavePrompt = false
     @State private var saveDisplayName = ""
     @State private var libraryViewModel = ResumeLibraryViewModel()
+    // Fit-First Triage — behind BackendConfig.isFitCheckEnabled
+    @State private var showFitCheck = false
+    @State private var fitCheckViewModel = FitCheckViewModel()
 
     var body: some View {
         NavigationStack {
@@ -141,6 +144,12 @@ struct TailorView: View {
                     }
                 )
                 .environment(appState)
+            }
+            .sheet(isPresented: $showFitCheck) {
+                NavigationStack {
+                    FitCheckView(viewModel: fitCheckViewModel)
+                }
+                .preferredColorScheme(.dark)
             }
             .confirmationDialog(
                 "Save this resume?",
@@ -528,7 +537,30 @@ struct TailorView: View {
 
             Button {
                 Task {
-                    if appState.isAuthenticated {
+                    if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
+                        // Fit-First: route JD + resume through the verdict screen first.
+                        // Flag OFF → original path below runs unchanged.
+                        fitCheckViewModel.resumeURL = viewModel.selectedResumeURL
+                        fitCheckViewModel.jobDescription = viewModel.jobDescription
+                        fitCheckViewModel.resetToEntry()
+                        fitCheckViewModel.onOptimize = { _ in
+                            showFitCheck = false
+                            Task {
+                                await viewModel.optimize(appState: appState)
+                                if let optId = viewModel.optimizationId, !optId.isEmpty {
+                                    appState.latestOptimizationId = optId
+                                    pendingDiagnosisOptimizationId = optId
+                                    diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+                                    showDiagnosis = true
+                                } else if viewModel.reviewId != nil {
+                                    shouldNavigate = true
+                                }
+                            }
+                        }
+                        fitCheckViewModel.onSkip = { showFitCheck = false }
+                        fitCheckViewModel.onNeedResume = { showFitCheck = false }
+                        showFitCheck = true
+                    } else if appState.isAuthenticated {
                         await viewModel.optimize(appState: appState)
                         #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
@@ -539,6 +571,7 @@ struct TailorView: View {
                             #endif
                             appState.latestOptimizationId = optId
                             pendingDiagnosisOptimizationId = optId
+                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
                             showDiagnosis = true
                         } else if viewModel.reviewId != nil {
                             #if DEBUG
