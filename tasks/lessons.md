@@ -15,6 +15,19 @@
 
 ## Lessons
 
+### 2026-06-23 (WP-12 Stories 2-4)
+**Category:** Build
+**Rule:** `try? decodeIfPresent(T.self, forKey:)` returns `Optional<Optional<T>>`; flatten with `(try? ...) ?? nil` before `if let`, not the double-binding pattern `if let x = ..., let x`.
+**Why:** Using the pattern `if let x = try? decodeIfPresent(...), let x` caused the compiler error "initializer for conditional binding must have Optional type" because the inner unwrap target was already non-Optional. The correct pattern is `if let x = (try? decodeIfPresent(...)) ?? nil`.
+
+**Category:** Build
+**Rule:** Before adding a private `FlowLayout` (or any Layout type) to a new view, search the project for existing definitions — duplicating a non-private `struct FlowLayout` causes a redeclaration error.
+**Why:** `FlowLayout` was already defined (non-private) in `RecruiterEyeViewCard.swift`. Adding `private struct FlowLayout` in `FitVerdictView.swift` caused a "invalid redeclaration" compile error.
+
+**Category:** SwiftUI
+**Rule:** `GradientButton(title:)` takes `LocalizedStringKey`, not `String`. Pass a string literal directly, not `NSLocalizedString(...)`.
+**Why:** Passing `NSLocalizedString("Check Fit", comment: "")` (which returns `String`) to `GradientButton(title:)` caused "cannot convert value of type 'String' to expected argument type 'LocalizedStringKey'".
+
 ### 2026-06-23
 **Category:** Build
 **Rule:** When adding a new fallback key to an existing Codable decoder, decode the primary and alias values into local optionals before nil-coalescing.

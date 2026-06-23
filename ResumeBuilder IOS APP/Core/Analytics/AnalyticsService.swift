@@ -55,6 +55,11 @@ enum AnalyticsEvent: Sendable {
     case atsImproveTapped(currentScore: Int)
     case exportPdfTapped
     case submitPackageSaved(hasCoverLetter: Bool)
+    // Fit-First Triage (WP-12)
+    case fitCheckStarted
+    case fitCheckCompleted(verdict: String, matchScore: Int)
+    case fitCheckOptimizeTapped
+    case fitCheckSkipped
 
     nonisolated var name: String {
         switch self {
@@ -74,6 +79,10 @@ enum AnalyticsEvent: Sendable {
         case .atsImproveTapped: return "ats_improve_tapped"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .submitPackageSaved: return "submit_package_saved"
+        case .fitCheckStarted: return "fit_check_started"
+        case .fitCheckCompleted: return "fit_check_completed"
+        case .fitCheckOptimizeTapped: return "fit_check_optimize_tapped"
+        case .fitCheckSkipped: return "fit_check_skipped"
         }
     }
 
@@ -83,7 +92,7 @@ enum AnalyticsEvent: Sendable {
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
              .optimizationStarted, .optimizationCompleted, .exportStarted, .exportSuccess,
-             .exportPdfTapped:
+             .exportPdfTapped, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]
@@ -102,6 +111,8 @@ enum AnalyticsEvent: Sendable {
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
+        case .fitCheckCompleted(let verdict, let matchScore):
+            return ["verdict": verdict, "match_score": "\(matchScore)"]
         }
     }
 

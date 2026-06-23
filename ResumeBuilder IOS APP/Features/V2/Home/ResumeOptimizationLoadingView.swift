@@ -6,6 +6,7 @@ struct ResumeOptimizationLoadingView: View {
         case optimization
         case atsCheck
         case diagnosis
+        case fitCheck
 
         var title: String {
             switch self {
@@ -15,6 +16,8 @@ struct ResumeOptimizationLoadingView: View {
                 return NSLocalizedString("Scanning your resume", comment: "")
             case .diagnosis:
                 return NSLocalizedString("Preparing your diagnosis", comment: "")
+            case .fitCheck:
+                return NSLocalizedString("Checking fit for this role", comment: "")
             }
         }
 
@@ -26,6 +29,8 @@ struct ResumeOptimizationLoadingView: View {
                 return NSLocalizedString("Checking ATS signals before you sign in.", comment: "")
             case .diagnosis:
                 return NSLocalizedString("Turning resume and job signals into recruiter-style feedback.", comment: "")
+            case .fitCheck:
+                return NSLocalizedString("Comparing your experience against the job requirements.", comment: "")
             }
         }
 
@@ -51,6 +56,13 @@ struct ResumeOptimizationLoadingView: View {
                     "Comparing against the job",
                     "Finding missing signals",
                     "Preparing recruiter-style feedback"
+                ]
+            case .fitCheck:
+                return [
+                    "Reading the job description",
+                    "Comparing resume signals",
+                    "Estimating keyword match",
+                    "Preparing your verdict"
                 ]
             }
         }
