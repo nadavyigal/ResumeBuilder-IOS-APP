@@ -15,6 +15,21 @@
 
 ## Sessions
 
+### 2026-06-23 (WP-13 Fit-First Release)
+**Task:** Ship Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — CURRENT_PROJECT_VERSION 6 (release branch)
+- `ResumeBuilder IOS APP/Core/API/BackendConfig.swift` — flag ON on internal branch only
+- `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift` — live production smoke + Hebrew RTL tests
+- `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md` — smoke evidence
+- `tasks/progress.md`, `tasks/MEMORY.md`, `tasks/session-log.md` — WP-13 status
+- Agentic OS `DECISIONS.md` — flip defer to 2026-06-24 D7 readout
+**Decisions Made:**
+- Public build 6 ships dark (`isFitCheckEnabled=false`)
+- Flip deferred to D7 readout 2026-06-24 (no percentage rollout gate exists)
+- Internal validation branch: `feat/wp-13-fit-check-internal`
+**Next Recommended Action:** Founder: Xcode Organizer → archive `release/wp-13-v1.1-build-6` → upload build 6 → submit for App Store review. After D7 readout 2026-06-24, open flip PR if Gate A stable.
+
 ### 2026-06-23 (Fit-First Triage Story 1)
 **Task:** Implement FitCheckService model/service layer for the Fit-First Triage wedge
 **Files Changed:**

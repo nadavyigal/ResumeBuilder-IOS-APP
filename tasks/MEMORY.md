@@ -1,3 +1,22 @@
+## 2026-06-23 — WP-13 Fit-First Release + Flip Decision
+
+**Worked on:** Shipping Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision gate.
+
+**Completed:**
+- Pre-flight: `origin/main` clean at `f87807a`; WP-12 MEMORY/progress committed; Finder duplicate junk deleted (`dist/app-store-screenshots/` + docs plans).
+- Build 6 bump on `release/wp-13-v1.1-build-6` (`63dcad0`) — MARKETING_VERSION 1.1, CURRENT_PROJECT_VERSION 6, `isFitCheckEnabled=false`.
+- Internal branch `feat/wp-13-fit-check-internal` (`f20f8bc`): flag ON + live smoke tests.
+- Live smoke PASS: production `/api/public/ats-check` HTTP 200, verdict + optimize handoff, 4 analytics events, Hebrew RTL. Report: `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md`.
+- Flip decision logged: **defer to D7 readout 2026-06-24** in Agentic OS `DECISIONS.md`.
+
+**Blocked (founder action):** CLI archive failed (provisioning profile doesn't include signing cert). Upload + App Store review submission require Xcode Organizer manual path (same as v1.1 build 5).
+
+**Decisions:** Do not flip flag in public build 6. No percentage rollout exists — flip is binary via `BackendConfig.isFitCheckEnabled`. Re-evaluate flip after D7 Gate A readout tomorrow.
+
+**Next session:** Upload build 6 via Organizer → submit for review (flag OFF). After D7 readout, open flip PR if gate is stable.
+
+---
+
 ## 2026-06-23 — WP-12 Fit-First Triage FULLY DONE — merged to main (#75)
 
 **Worked on:** Landing the complete Fit-First Triage wedge — E2E gate, Stories 2-4 — onto main.

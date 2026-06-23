@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import ResumeBuilder_IOS_APP
 
 @MainActor
