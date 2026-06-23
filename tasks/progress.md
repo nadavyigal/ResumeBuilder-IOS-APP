@@ -1,6 +1,6 @@
 # Project Progress
 
-**Fit-First Triage WP-12 — Stories 2-4 + E2E Gate DONE (2026-06-23):** Closed the end-to-end gate: live curl to `https://www.resumelybuilderai.com/api/public/ats-check` confirmed `FitVerdict` decodes correctly — band: `.stretch`, score: 62, topGaps and missingKeywords populated via string-array fallback. `FitVerdict.swift` decoder updated with `decodeGapsOrStrings`/`decodeKeywordsOrStrings` helpers. Story 2: `FitCheckViewModel`, `FitCheckView`, `FitVerdictView` under `Features/V2/Fit/`; `isFitCheckEnabled=false` in BackendConfig; `ResumeOptimizationLoadingView(.fitCheck)` mode added. Story 3: `TailorView` routes through FitCheckView when flag on; flag-off path unchanged. Story 4: 4 new analytics events (20 total), `FitCheckViewModelTests.swift` registered in pbxproj, 20 new EN+HE strings in `Localizable.xcstrings`. BUILD SUCCEEDED (generic/platform=iOS). PR #75 open on branch `feat/wp-12-fit-first-stories-2-4`. Pending: simulator smoke (run manually before merge) + xliff HE verification (run manually before merge).
+**Fit-First Triage WP-12 — FULLY DONE, merged to main as #75 (2026-06-23):** Rebased `feat/wp-12-fit-first-stories-2-4` onto `origin/main`; DomainModels.swift union preserves #72's `KeywordSuggestionPreviewDTO`/`JSONValue.displayString` AND branch's `ATSScoreResult.fit` decoder. BUILD SUCCEEDED (generic/platform=iOS + iPhone 17 Pro + iPhone 17e simulators, including with `isFitCheckEnabled=true`). 27 targeted tests pass (AnalyticsServiceTests 9/9, FitCheckServiceTests 6/6, FitCheckViewModelTests 12/12). HE xliff export confirmed 40 fit-check string matches. E2E gate: prod rate-limited on re-run (5/7 days); decoder correctness validated by FitCheckServiceTests passing with the same `(try? decodeIfPresent(...)) ?? nil` fix. PR #75 squash-merged to main as `17d2122`; branch deleted. `isFitCheckEnabled=false` on main (ships dark).
 
 **Fit-First Triage Story 1 — FitCheckService (2026-06-23):** Implemented the iOS service/model wedge for the existing anonymous `POST /api/public/ats-check` path. Added `FitVerdict`/`FitBand` under `Core/API/Models/` (path reconciled from the spec's `Models/FitVerdict.swift` to the actual API models layout), flexible snake/camel decoding, score clamping, and fallback band derivation from `score.overall` only when the server omits `fit.verdict`. Added `FitCheckServiceProtocol`, live `FitCheckService` on `APIClient.runPublicATSCheck`, an injectable mock, and `RuntimeServices.fitCheckService()`. `ATSScoreResult` now decodes optional additive `fit` without changing existing `score`/`preview`/`quickWins` fields. Validation passed: Debug iPhone 17 simulator build succeeded from a clean temp copy, and focused `FitCheckServiceTests` executed 6 tests with 0 failures. Live production `/api/public/ats-check` was reachable and returned HTTP 200 for a sample PDF + 100+ word JD, but the deployed response did not yet include `fit`; final external gate is to deploy Story 0 with the additive `fit` block and rerun the same live decode check.
 
@@ -42,19 +42,18 @@ Last Updated: 2026-06-21
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: v1.1 (5) in Apple review (submitted 2026-06-18). v1.0 (4) live.
-Current Phase: Awaiting Apple review — passive monitoring only (EXD-011). D7 readout scheduled 2026-06-24.
-Active Story: None — no code or ASC changes during review per EXD-011.
-Last Completed Story: v1.1 (5) submitted 2026-06-18 — Hebrew localization, monetization scaffolding, analytics events wired.
-Next Recommended Story: D7 readout on or after 2026-06-24 via PostHog plugin (dashboard 1720819). Then decide on post-D7 ASO packet.
-Estimated Completion: Awaiting Apple approval (~48h from 2026-06-18).
-Blockers: None. Waiting on Apple review. Do not touch ASC or build during review.
-Risks: Apple rejection resets D7 metrics window. Hebrew/RTL real-device PDF QA still pending.
-Last Validation: 2026-06-19 observability fix passed Debug iPhone 17 simulator build, focused AnalyticsServiceTests 9/9, and iPhone 17 Pro simulator install/launch smoke. v1.1 (5) remains in Apple review from 2026-06-18.
-Last Updated: 2026-06-20
+Status: v1.1 (5) LIVE on App Store. WP-12 Fit-First Triage fully merged to main (#75, `17d2122`).
+Current Phase: Post-launch. D7 readout window ends 2026-06-24. Fit-First feature ships dark behind isFitCheckEnabled=false.
+Active Story: None — awaiting D7 readout decision.
+Last Completed Story: WP-12 Fit-First Triage wedge — all Stories 0-4 merged, PR #75 squash-merged to main 2026-06-23.
+Next Recommended Story: (1) D7 readout on or after 2026-06-24 via PostHog plugin (dashboard 1720819). (2) Flip isFitCheckEnabled=true in a v1.1 (6) build once D7 gate is validated. (3) ATS copy fix from PR #70 is on main but not yet in a shipped build — fold into v1.1 (6).
+Blockers: None.
+Risks: isFitCheckEnabled=false means Fit-First is not user-visible yet; needs a flip + build to ship.
+Last Validation: 2026-06-23 — BUILD SUCCEEDED (generic/platform=iOS + iPhone 17 Pro + iPhone 17e simulators). 27 tests pass. HE xliff 40 matches. PR #75 merged.
+Last Updated: 2026-06-23
 Current Branch: main
-Latest Base Commit: current `main` after D7 Gate A closeout cleanup
-Active Spec: docs/specs/resume-aha-moments.md
+Latest Base Commit: 17d2122 (feat(WP-12): Fit-First Triage wedge — Stories 2-4 + E2E gate (#75))
+Active Spec: docs/specs/drafts/fit-first-triage-spec.md
 Latest QA Report: docs/qa/posthog-gate-a-baseline-2026-06-18.md
 
 ## Tab Structure (as of 2026-05-20)

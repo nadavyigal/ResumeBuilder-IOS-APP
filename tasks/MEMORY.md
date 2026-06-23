@@ -1,3 +1,22 @@
+## 2026-06-23 — WP-12 Fit-First Triage FULLY DONE — merged to main (#75)
+
+**Worked on:** Landing the complete Fit-First Triage wedge — E2E gate, Stories 2-4 — onto main.
+
+**Completed:**
+- E2E gate confirmed: prod endpoint returns `fit` block; FitVerdict decodes band=stretch, score=62, topGaps/missingKeywords via string-array fallback (`decodeGapsOrStrings`/`decodeKeywordsOrStrings` helpers).
+- DomainModels.swift union: preserves #72's `KeywordSuggestionPreviewDTO` + `JSONValue.displayString` AND branch's `ATSScoreResult.fit` + custom decoder.
+- Story 2: `FitCheckViewModel`, `FitCheckView`, `FitVerdictView` under `Features/V2/Fit/`; `BackendConfig.isFitCheckEnabled=false`.
+- Story 3: `TailorView` routes through `FitCheckView` when flag on; flag-off path unchanged.
+- Story 4: 4 analytics events (20 total), 20 EN+HE strings (HE xliff confirmed 40 matches), `FitCheckViewModelTests` registered.
+- Rebase onto main was clean (Story 1 auto-skipped as already applied). BUILD SUCCEEDED. 27 tests pass.
+- PR #75 squash-merged to main as `17d2122`. Branch deleted.
+
+**Decisions:** `isFitCheckEnabled=false` on main (ships dark). Decoder uses `(try? decodeIfPresent(...)) ?? nil` pattern to avoid double-binding error on `Optional<Optional<T>>`.
+
+**Next session:** D7 readout (first complete D7 window from 2026-06-17 launch anchor ends 2026-06-24). Then decide next priority after WP-12.
+
+---
+
 ## 2026-06-23 — Fit-First Triage Story 1 FitCheckService
 
 **Worked on:** Implementing the iOS model/service layer for the Fit-First Triage wedge without adding UI or changing the existing optimize/diagnosis flow.
