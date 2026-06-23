@@ -60,6 +60,8 @@ enum Endpoint {
 
     /// Fetch optimization sections + job context for a given optimization ID.
     case optimizationDetail(id: String)
+    /// In-context preview for a single ATS keyword suggestion before approving it.
+    case keywordSuggestionPreview(optimizationId: String, suggestionId: String)
 
     /// Resume library — saved resumes (`/api/v1/resumes`).
     case savedResumes
@@ -130,6 +132,8 @@ enum Endpoint {
 
         case .optimizationDetail(let id):
             return "/api/v1/optimizations/\(id)"
+        case .keywordSuggestionPreview(let optimizationId, let suggestionId):
+            return "/api/v1/optimizations/\(optimizationId)/suggestions/\(suggestionId)/preview"
 
         case .savedResumes:             return "/api/v1/resumes"
         case .saveResume(let id):       return "/api/v1/resumes/\(id)/save"

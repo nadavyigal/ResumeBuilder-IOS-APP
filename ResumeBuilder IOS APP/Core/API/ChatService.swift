@@ -35,6 +35,11 @@ protocol ChatMessaging: Sendable {
         affectedFields: [ChatAffectedField]?,
         token: String?
     ) async throws -> ChatApproveChangeResponseDTO
+    func previewKeywordSuggestion(
+        optimizationId: String,
+        suggestionId: String,
+        token: String?
+    ) async throws -> KeywordSuggestionPreviewDTO
     func rejectChange(sessionId: String, changeId: String, token: String?)
 }
 
@@ -128,6 +133,20 @@ struct ChatService: ChatMessaging, Sendable {
             bodyObject: body,
             token: token,
             timeout: 120
+        )
+    }
+
+    func previewKeywordSuggestion(
+        optimizationId: String,
+        suggestionId: String,
+        token: String?
+    ) async throws -> KeywordSuggestionPreviewDTO {
+        guard let token else { throw ChatServiceError.missingToken }
+        return try await apiClient.postJSONObject(
+            endpoint: .keywordSuggestionPreview(optimizationId: optimizationId, suggestionId: suggestionId),
+            bodyObject: [:],
+            token: token,
+            timeout: 60
         )
     }
 
