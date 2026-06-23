@@ -1,3 +1,32 @@
+# Story: Fit-First Triage Story 1 — FitCheckService (2026-06-23)
+
+Decision: implement only the iOS service/model story for the Fit-First Triage wedge. Verdict bands are server-owned (>=75 Strong / 50-74 Stretch / <50 Skip as fallback only), resume input stays PDF re-upload, and the endpoint is the existing `POST /api/public/ats-check`.
+
+## Files
+- [x] `ResumeBuilder IOS APP/Core/API/Models/FitVerdict.swift` — create `FitVerdict` + `FitBand` with flexible Codable decoding, score clamping, and existing `ResumeGap`/`ResumeKeyword` reuse
+- [x] `ResumeBuilder IOS APP/Core/API/FitCheckService.swift` — create protocol, live implementation on `APIClient.runPublicATSCheck`, and injectable mock
+- [x] `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift` — add additive optional `fit` decode to `ATSScoreResult`
+- [x] `ResumeBuilder IOS APP/Core/API/RuntimeServices.swift` — expose the live `FitCheckService`
+- [x] `ResumeBuilder IOS APPTests/FitCheckServiceTests.swift` — cover payload shapes, band fallback derivation, service/mock behavior, and error mapping
+- [x] `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — add the new test file to the explicit test target
+- [x] `tasks/progress.md`, `tasks/MEMORY.md`, `tasks/session-log.md` — update completion memory
+
+## Checklist
+- [x] Decode `fit.verdict` when present; derive band from `score.overall` only when verdict is absent
+- [x] Decode snake_case and camelCase response keys
+- [x] Clamp scores to `0...100`
+- [x] Follow the safe Codable pattern: decode candidates into locals before `??`
+- [x] Reuse `ResumeGap` and `ResumeKeyword`; do not duplicate gap/keyword model types
+- [x] Reuse `APIEndpoint.publicATSCheck`/`APIClient`; do not hardcode endpoint URLs
+- [x] Keep Story 1 service-only; no UI screens and no optimize/diagnosis behavior changes
+
+## Validation
+- [x] Xcode build succeeds
+- [x] Focused `FitCheckServiceTests` run with a non-zero executed test count
+- [x] Live `/api/public/ats-check` response decode attempted against reachable Story-0 endpoint; production responded with the existing ATS payload but no additive `fit` block, so the single remaining gate is: deploy Story 0 with `fit`, then rerun the same live call and confirm `FitVerdict` decoding.
+
+---
+
 # Story: Resumely ATS Claim Defensibility (2026-06-20)
 
 Decision: the displayed score is a self-defined "Resumely Match Score", NOT an external ATS vendor's score. ATS copy must be process-descriptive, never outcome-guaranteeing. Copy/labels only — no scoring logic changes.

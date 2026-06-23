@@ -1,3 +1,17 @@
+## 2026-06-23 — Fit-First Triage Story 1 FitCheckService
+
+**Worked on:** Implementing the iOS model/service layer for the Fit-First Triage wedge without adding UI or changing the existing optimize/diagnosis flow.
+
+**Completed:** Added `FitVerdict`/`FitBand` under `Core/API/Models/`, flexible snake/camel decoding with clamped scores, optional additive `fit` decoding on `ATSScoreResult`, `FitCheckServiceProtocol`, live `FitCheckService` through `APIClient.runPublicATSCheck`, `RuntimeServices.fitCheckService()`, and an injectable `MockFitCheckService`. Reused the existing `ResumeGap` and `ResumeKeyword` types and kept the endpoint on `APIEndpoint.publicATSCheck`.
+
+**Validation:** Clean temp-copy Debug build passed on iPhone 17 simulator. Focused `FitCheckServiceTests` ran 6 tests with 0 failures. Production `/api/public/ats-check` was reachable and returned HTTP 200 for a sample PDF + 100+ word JD, but the response still lacked the Story-0 additive `fit` block.
+
+**Decisions:** Reconciled the spec's `Models/FitVerdict.swift` location to the real app layout at `Core/API/Models/FitVerdict.swift`. Server verdict wins when present; the iOS fallback derives Strong/Stretch/Skip from `score.overall` only when `fit.verdict` is absent.
+
+**Next session:** Deploy or verify Story 0 on web so `/api/public/ats-check` returns `fit`, then rerun the same live call and confirm it decodes into `FitVerdict` with verdict, gaps, and missing keywords populated before enabling Story 2 UI work.
+
+---
+
 ## 2026-05-24 — Live upload parser follow-up after stale main rebuild
 
 **Worked on:** Investigating phone logs that still showed `/api/v1/styles/history` and PDF upload 422 after PR #26 was merged.

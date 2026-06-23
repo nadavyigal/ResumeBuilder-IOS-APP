@@ -15,6 +15,26 @@
 
 ## Sessions
 
+### 2026-06-23 (Fit-First Triage Story 1)
+**Task:** Implement FitCheckService model/service layer for the Fit-First Triage wedge
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/API/Models/FitVerdict.swift` — added `FitVerdict` + `FitBand` with flexible decoding, score clamping, and fallback band derivation.
+- `ResumeBuilder IOS APP/Core/API/FitCheckService.swift` — added protocol, live APIClient-backed service, mapping error, and injectable mock.
+- `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift` — added additive optional `fit` decode to `ATSScoreResult` while preserving existing public ATS fields.
+- `ResumeBuilder IOS APP/Core/API/RuntimeServices.swift` — exposed the live fit-check service factory.
+- `ResumeBuilder IOS APP/Models/ResumeDiagnosis.swift` — accepted `detail` as a backend alias for gap explanations.
+- `ResumeBuilder IOS APPTests/FitCheckServiceTests.swift`, `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — added focused test coverage and explicit test-target membership.
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/session-log.md` — recorded story status, validation, and lessons.
+**Decisions Made:**
+- Placed `FitVerdict.swift` in `Core/API/Models/` instead of the spec's generic `Models/` path to match the app's actual API model layout.
+- The server verdict wins when present; iOS derives Strong/Stretch/Skip from `score.overall` only if the additive `fit` block omits `verdict`.
+- Kept the live implementation on existing `APIEndpoint.publicATSCheck`/`APIClient.runPublicATSCheck` and did not add a parallel endpoint, URL, package, or UI.
+**Validation:**
+- Debug iPhone 17 simulator build passed from a clean temp copy.
+- Focused `FitCheckServiceTests` passed: 6 executed, 0 failures.
+- Production `/api/public/ats-check` returned HTTP 200 for a sample PDF + 100+ word JD through `x-session-id`, but the deployed payload still lacked `fit`; Story 0 deployment is the remaining external verification gate.
+**Next Recommended Action:** Deploy/verify Story 0 so `/api/public/ats-check` returns additive `fit`, rerun the live decode check, then begin Story 2 UI work behind the feature flag.
+
 ### 2026-06-19 (PostHog findings remediation)
 **Task:** Resolve actionable PostHog/error-sweep findings for silent preview and PDF export failures
 **Files Changed:**

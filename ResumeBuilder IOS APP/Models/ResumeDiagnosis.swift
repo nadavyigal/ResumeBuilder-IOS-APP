@@ -168,10 +168,12 @@ struct ResumeGap: Identifiable, Codable, Equatable, Sendable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: DecodingKeys.self)
+        let explanation = try c.decodeIfPresent(String.self, forKey: .explanation)
+        let detail = try c.decodeIfPresent(String.self, forKey: .detail)
         self.init(
             id: try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID(),
             title: try c.decodeIfPresent(String.self, forKey: .title) ?? NSLocalizedString("Resume gap", comment: ""),
-            explanation: try c.decodeIfPresent(String.self, forKey: .explanation) ?? NSLocalizedString("Review this area before submitting.", comment: ""),
+            explanation: explanation ?? detail ?? NSLocalizedString("Review this area before submitting.", comment: ""),
             severity: GapSeverity(rawValueOrDefault: try c.decodeIfPresent(String.self, forKey: .severity))
         )
     }
@@ -180,6 +182,7 @@ struct ResumeGap: Identifiable, Codable, Equatable, Sendable {
         case id
         case title
         case explanation
+        case detail
         case severity
     }
 }
