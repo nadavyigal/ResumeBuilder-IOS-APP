@@ -12,7 +12,7 @@ Job seekers waste effort optimizing and applying to roles they were never a real
 Who has it: every active job seeker using the app, especially the high-intent ones evaluating several postings a week. How big: it's the entry point to the whole funnel — it shapes activation, optimization volume, and the app's positioning.
 
 ## Solution
-Insert a fast, low-friction **Fit verdict** before optimization: paste a job description, get a **Strong / Stretch / Skip** verdict plus the 3 concrete gaps that decide it, then choose to optimize or move on. Reuses the existing diagnosis engine; the only new capability is a lightweight pre-optimize scoring path.
+Insert a fast, low-friction **Fit verdict** before optimization: paste a job description, get a **Strong / Stretch / Skip** verdict plus the 3 concrete gaps that decide it, then choose to optimize or move on. **We do not build a new endpoint — we evolve the existing free ATS check (`/api/public/ats-check`) into the Fit check on web and mirror it to iOS.** That endpoint is already anonymous, rate-limited (5 checks / 7 days per IP), and already computes the score, subscores, suggestions, quick wins, and extracted job requirements (`must_have`) we need; the verdict band + decisive gaps are a derivation on top of outputs it already produces. iOS already calls this endpoint.
 
 ## User Story
 As a job seeker evaluating a posting, I want an instant fit verdict and the few things standing between me and this job, so that I only invest effort in roles I can realistically win.
@@ -36,12 +36,17 @@ As a job seeker evaluating a posting, I want an instant fit verdict and the few 
 - **Engagement:** fit-checks per active user per week (new habit metric).
 - **For the user:** "I know in 10 seconds whether to bother with this job, and exactly what's missing."
 
+## Decisions (resolved)
+- **Endpoint (was Open Question 1):** Do **not** add a new endpoint. **Replace the existing free ATS check (`/api/public/ats-check`) with the Fit check on web, then mirror it to iOS.** It already provides the free + anonymous + rate-limited scoring path. Verdict band + decisive gaps are derived from its existing `scoreResume` / `extractJob` outputs (`must_have` requirements not matched in the resume → gaps/missing keywords).
+- **Anonymous (was Open Question 3):** Yes — the endpoint is already anonymous via `x-session-id`, and `convert-session` already upgrades an anonymous result to an account. This is the activation hook; keep it.
+
 ## Open Questions
-1. **Credit/endpoint:** does Fit verdict get a dedicated lightweight backend endpoint, or reuse the optimize/diagnosis path? (Recommendation: dedicated free `fit-check` endpoint; see spec.)
-2. Verdict thresholds — Strong/Stretch/Skip cutoffs on `matchScore` (recommendation: ≥75 / 50–74 / <50, tunable server-side).
-3. Anonymous (no-account) fit-check, like the existing public ATS check? (Recommendation: yes — strongest activation hook.)
+1. Verdict thresholds — Strong/Stretch/Skip cutoffs on the existing `overall` score (recommendation: ≥75 / 50–74 / <50, owned server-side so both web and iOS render the same band).
+2. The current free check requires a **resume PDF upload + JD**. For the iOS in-app flow the resume is already on file — confirm the mirrored iOS path can pass the stored resume (by `resume_id` / `session`) instead of re-uploading a PDF, or whether v1 keeps the upload model.
+3. The web check enforces **JD ≥ 100 words**; confirm the same minimum for the iOS paste flow (recommendation: yes, keep parity).
 
 ## Risks
-- **Backend dependency:** if no cheap scoring path exists, every verdict costs a full optimization (cost + latency). This is the make-or-break — resolve before building the iOS UI.
+- **Cross-repo change:** this now spans two repos — web (`new-ResumeBuilder-ai-`: evolve `/api/public/ats-check` to return the verdict + gaps) and iOS (mirror the new fields). The web change must land first; the iOS UI can be built against a mock in the meantime.
+- **Don't break the existing free check:** the web endpoint is live and consumed by both web and the iOS public ATS path. Added fields must be **additive** (new keys), leaving `score` / `preview` / `quickWins` / `checksRemaining` intact.
 - **Claim safety:** verdict must stay process-descriptive ("estimated fit vs this job"), never an outcome guarantee — consistent with the Resumely Match Score decision (PR #70).
 - **Cannibalization:** a free verdict could reduce paid optimizations. Mitigation: the verdict creates *demand* for optimization on Strong/Stretch roles; monetize the optimize/pack step, not the check.

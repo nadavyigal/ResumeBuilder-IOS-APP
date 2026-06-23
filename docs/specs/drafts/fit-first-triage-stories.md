@@ -5,22 +5,39 @@
 **Date:** 2026-06-22
 **Status:** Pending (awaiting approval + Open Question 1 backend decision)
 
-> Ordered so each story ends on a green build and is independently testable. Stories 1–3 work against a mocked `FitCheckService` until `/api/v1/fit-check` is live, so iOS is not blocked on backend.
+> Ordered so each story ends on a green build and is independently testable. **Story 0 (web) lands first** so the new `fit` fields exist; iOS Stories 1–3 work against a mocked `FitCheckService` in parallel, then point at the live endpoint.
+> **Decision:** the Fit check is the evolved free ATS check `POST /api/public/ats-check` (web repo `new-ResumeBuilder-ai-`), mirrored to iOS — no new endpoint.
 
 ---
 
-## Story 1 — Fit verdict model + service + decoder
-**Size:** M · **Prerequisites:** none (mockable)
+## Story 0 — Web: add the Fit layer to the free ATS check
+**Repo:** `new-ResumeBuilder-ai-` · **Size:** M · **Prerequisites:** none
+
+### Files to Change
+| File | Action | Change |
+|------|--------|--------|
+| `src/app/api/public/ats-check/route.ts` | Modify | In `formatResponse`, add an **additive** `fit` block: `verdict` (band from `score.overall`), `scoreNote`, `topGaps`, `missingKeywords` (derived from `extractJob` `must_have` not matched in `resumeText`). Do not change existing `score`/`preview`/`quickWins`/`checksRemaining`. |
+| Free ATS check web page (the page that calls `/api/public/ats-check`) | Modify | Render the verdict band (Strong/Stretch/Skip) above the existing score + quick wins |
+| `tests/api/...ats-check...` | Modify/Create | Assert the `fit` block shape + that existing fields are unchanged |
+
+### Acceptance Criteria
+- [ ] Response includes `fit.{verdict, scoreNote, topGaps, missingKeywords}`; all pre-existing fields byte-for-byte unchanged in shape.
+- [ ] Verdict band is server-owned and derived from `score.overall` (≥75/50–74/<50, easily tunable).
+- [ ] `npm run lint && npx tsc --noEmit && npm run build` pass; rate-limiting on the route unchanged.
+- [ ] No Supabase schema/RLS change required (reuses `anonymous_ats_scores`); if a column is added it goes through a reviewed migration (do not change RLS silently).
+
+## Story 1 — iOS: Fit verdict model + service + decoder
+**Size:** M · **Prerequisites:** Story 0 (or mock)
 
 ### Files to Change
 | File | Action | Change |
 |------|--------|--------|
 | `Models/FitVerdict.swift` | Create | `FitVerdict` struct + `FitBand` enum (`strong/stretch/skip`); flexible Codable decoder (snake + camel), score clamping, reuse `ResumeGap`/`ResumeKeyword` |
-| `Core/API/FitCheckService.swift` | Create | Protocol + live impl `POST /api/v1/fit-check` via `APIClient`/`Endpoint`; injectable mock |
+| `Core/API/FitCheckService.swift` | Create | Protocol + live impl calling `POST /api/public/ats-check` (anonymous via `x-session-id`), decoding the `fit` block; injectable mock |
 | `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift` | Create | Decode across payload shapes; band derivation; error mapping. Add file to the Xcode test target in `project.pbxproj` (per 2026-06-12 lesson) |
 
 ### Acceptance Criteria
-- [ ] Decodes server `verdict` when present; derives band from `match_score` only as fallback.
+- [ ] Decodes server `fit.verdict` when present; derives band from `score.overall` only as fallback.
 - [ ] Decoder follows the safe pattern (decode candidates into locals before `??`) per the 2026-06-12 Codable lesson.
 - [ ] Build succeeds; new tests run and pass (verify non-zero executed test count).
 
@@ -77,4 +94,4 @@
 - [ ] Simulator smoke on iPhone 17 and iPhone SE; verdict + optimize handoff verified
 - [ ] Claim-safety review: no outcome guarantees, no ATS-vendor claim (consistent with PR #70)
 - [ ] `tasks/todo.md` + `tasks/progress.md` updated; lesson added if applicable
-- [ ] Backend Open Question 1 resolved before Story 3 ships against live data
+- [ ] Story 0 (web `fit` block) shipped before iOS Story 3 points at the live endpoint; both repos' branches pushed with open PRs
