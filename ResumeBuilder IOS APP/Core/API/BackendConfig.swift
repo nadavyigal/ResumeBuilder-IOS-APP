@@ -4,7 +4,7 @@ enum BackendConfig {
     /// Fit-First Triage — paste a JD before optimizing, get a Strong/Stretch/Skip verdict.
     /// Default OFF; flip in a future build once QA passes on both iPhone 17 and SE.
     /// TODO(WP-12-FIT): enable after simulator smoke + A/B gate decision.
-    static let isFitCheckEnabled = false
+    static let isFitCheckEnabled = true
 
     /// Stage 1 ships without monetization. Flip to `true` once the backend
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
