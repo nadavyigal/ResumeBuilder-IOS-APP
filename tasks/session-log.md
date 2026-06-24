@@ -15,6 +15,12 @@
 
 ## Sessions
 
+**Date:** 2026-06-24
+**Task:** WP-18 — diagnose + instrument Resumely upload/import friction (the WP-16 guest→resume_uploaded leak); widen file picker to DOCX.
+**Files Changed:** `Core/Analytics/AnalyticsService.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`.
+**Decisions Made:** Instrumented the shared `TailorViewModel` (Home + Tailor share it) so both surfaces are covered; placed file_selected/preflight in `cachePickedFile`, upload started/succeeded/failed in `optimize()`. Widened both `.fileImporter`s to PDF+DOCX+DOC since preflight/backend already accept docx. Deferred the separate Scan flow. Error events kept precise (picker-level only) to avoid misattributing non-upload errorMessage changes.
+**Next Recommended Action:** Open PR + merge; after a clean cohort, read `guest_mode_started → resume_upload_cta_tapped → resume_file_selected → resume_upload_succeeded → job_added` to name the real drop. Then consider instrumenting the Scan flow.
+
 ### 2026-06-24 (WP-16 Activation Attribution + Funnel Diagnostic)
 **Task:** Classify `067544b5`, recompute Resumely activation attribution, and name the measurable funnel drop-off.
 **Files Changed:**
