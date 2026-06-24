@@ -1,6 +1,6 @@
 # Project Progress
 
-**WP-13 Fit-First Release (2026-06-23):** Build **1.1 (6)** cut on branch `release/wp-13-v1.1-build-6` (commit `63dcad0`) — ships Fit-First Triage **dark** (`isFitCheckEnabled=false`) plus ATS copy fix from PR #70. Internal validation on `feat/wp-13-fit-check-internal` (`f20f8bc`, flag ON): live `/api/public/ats-check` HTTP 200, verdict + optimize handoff, all 4 `fit_check_*` analytics events, Hebrew RTL — see `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md`. **Flip decision: defer to D7 readout 2026-06-24** (logged in Agentic OS `DECISIONS.md`). Archive/upload + App Store submission blocked locally (provisioning profile mismatch) — requires Xcode Organizer manual upload. Branches local-only until pushed.
+**WP-13 Fit-First Release v1.1 (6) — 2026-06-24:** Release branch `release/v1.1-build-6` cut from `feat/wp-13-fit-check-internal` HEAD (`b9eb19b` + smoke-test evidence). **`BackendConfig.isFitCheckEnabled = false`** on the release branch — Fit-First ships **dark** (hidden). Flip deferred: D7 readout (2026-06-24, post-erratum) shows **zero organic activation for 10 days**; all `fit_check_*` PostHog events were internal smoke tests only — no real-user data to justify enabling the flag in this build. Internal validation on `feat/wp-13-fit-check-internal` (flag ON): live `/api/public/ats-check` HTTP 200, verdict + optimize handoff, all 4 `fit_check_*` analytics events, Hebrew RTL — see `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md`. **Build:** `MARKETING_VERSION` 1.1, `CURRENT_PROJECT_VERSION` 6. **Archive/upload:** blocked locally — only Apple Development cert in keychain; requires founder to open Xcode, resolve Distribution signing (Automatic), Product → Archive → Validate → Distribute to App Store Connect. PR open into `main`; merge after archive/upload confirmed.
 
 **Fit-First Triage WP-12 — FULLY DONE, merged to main as #75 (2026-06-23):** Rebased `feat/wp-12-fit-first-stories-2-4` onto `origin/main`; DomainModels.swift union preserves #72's `KeywordSuggestionPreviewDTO`/`JSONValue.displayString` AND branch's `ATSScoreResult.fit` decoder. BUILD SUCCEEDED (generic/platform=iOS + iPhone 17 Pro + iPhone 17e simulators, including with `isFitCheckEnabled=true`). 27 targeted tests pass (AnalyticsServiceTests 9/9, FitCheckServiceTests 6/6, FitCheckViewModelTests 12/12). HE xliff export confirmed 40 fit-check string matches. E2E gate: prod rate-limited on re-run (5/7 days); decoder correctness validated by FitCheckServiceTests passing with the same `(try? decodeIfPresent(...)) ?? nil` fix. PR #75 squash-merged to main as `17d2122`; branch deleted. `isFitCheckEnabled=false` on main (ships dark).
 
@@ -44,19 +44,19 @@ Last Updated: 2026-06-21
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: v1.1 (5) LIVE on App Store. WP-13 build 1.1 (6) cut locally (dark). Fit-First flip deferred to D7 readout 2026-06-24.
-Current Phase: Post-launch. D7 readout window ends 2026-06-24. Fit-First feature ships dark in build 6 until flip PR after D7 gate.
-Active Story: WP-13 — manual ASC upload + review submission pending founder action.
-Last Completed Story: WP-13 Step 3 internal live smoke (flag ON) — passed 2026-06-23.
-Next Recommended Story: (1) Founder: archive build 6 via Xcode Organizer → upload → submit for review (flag OFF). (2) D7 readout 2026-06-24 — if Gate A stable, open flip PR (`isFitCheckEnabled=true`). (3) Internal TestFlight from `feat/wp-13-fit-check-internal` for soak.
-Blockers: ASC upload requires manual Xcode Organizer (CLI archive failed: provisioning profile / signing cert mismatch).
-Risks: isFitCheckEnabled=false in public build 6 — Fit-First invisible until flip PR merges post-D7.
-Last Validation: 2026-06-23 — WP-13 live smoke 2/2 tests pass on iPhone 17 sim against production endpoint.
-Last Updated: 2026-06-23
-Current Branch: feat/wp-13-fit-check-internal (internal validation); release/wp-13-v1.1-build-6 (public dark build)
-Latest Base Commit: 63dcad0 (build 6 bump on release branch); f20f8bc (internal flag-on + live tests)
+Status: v1.1 (5) LIVE on App Store. v1.1 (6) release branch ready — Fit-First **dark** (`isFitCheckEnabled=false`).
+Current Phase: Post-launch. D7 readout complete (2026-06-24): zero organic activation 10d; upload→optimize drop-off is next product investigation (out of scope for build 6).
+Active Story: WP-13 — founder manual archive/upload/submit on `release/v1.1-build-6`.
+Last Completed Story: Release branch cut + flag reverted to false per D7 readout (2026-06-24).
+Next Recommended Story: (1) Founder: Xcode Organizer archive build 6 → upload → submit for review. (2) After upload confirmed: merge release PR. (3) Scope upload→optimize drop-off as follow-up story. (4) Flip `isFitCheckEnabled=true` only after real-user usage data exists.
+Blockers: Distribution signing cert/profile not in local keychain — founder must resolve in Xcode before archive.
+Risks: Fit-First invisible in build 6 until flip PR; intentional per dark-launch plan + D7 findings.
+Last Validation: 2026-06-24 — full test suite 105/105 pass + clean Debug build on iPhone 17 sim (`release/v1.1-build-6`, `isFitCheckEnabled=false`).
+Last Updated: 2026-06-24
+Current Branch: release/v1.1-build-6 (public dark build)
+Latest Base Commit: pending flag-revert + progress update commits on release branch
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md
-Latest QA Report: docs/qa/posthog-gate-a-baseline-2026-06-18.md
+Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 
 ## Tab Structure (as of 2026-05-20)
 | Tab | Index | View | VM |
