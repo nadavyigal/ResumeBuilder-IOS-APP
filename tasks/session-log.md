@@ -15,6 +15,24 @@
 
 ## Sessions
 
+### 2026-06-24 (WP-16 Activation Attribution + Funnel Diagnostic)
+**Task:** Classify `067544b5`, recompute Resumely activation attribution, and name the measurable funnel drop-off.
+**Files Changed:**
+- `docs/qa/reports/wp-16-activation-attribution-funnel-2026-06-24.md` — source-backed attribution and funnel diagnostic.
+- `tasks/progress.md` — recorded cleaned activation state and next recommended story.
+- `tasks/session-log.md` — this entry.
+**Decisions Made:**
+- `067544b5` is excluded from organic activation. PostHog shows backend completion on 2026-06-10 followed by later iOS sign-in, all classified as Automation / bot-like traffic.
+- Real-organic activation remains 0 confirmed users. The prior 3/35 raw readout should not be treated as a success signal.
+- Largest measurable drop-off is before optimization: saved iOS funnel drops from 26 `guest_mode_started` users to 5 `resume_uploaded` users.
+- Next packet should target upload/import friction and missing preflight/error instrumentation. This does not reverse the founder decision to ship Fit-First visible; it says the next new fix should address the earlier funnel loss.
+**Validation:**
+- PostHog project 270848 verified as "ResumeBuilder AI" in UTC.
+- Saved insight `VH410GF1` read and run for 2026-06-10 through 2026-06-24.
+- Live HogQL person and cohort reads completed without selecting full event property blobs.
+- `git diff --check` passed in Agentic OS, Resumely iOS, and ResumeBuilder Web.
+**Next Recommended Action:** Scope a focused upload/import friction packet before monetization, paid acquisition, score-copy nudges, or more GTM volume.
+
 ### 2026-06-23 (WP-13 Fit-First Release)
 **Task:** Ship Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision
 **Files Changed:**
