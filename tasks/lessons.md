@@ -15,6 +15,26 @@
 
 ## Lessons
 
+**Date:** 2026-06-25
+**Category:** Build
+**Rule:** The full test suite intermittently crashes the test host with `malloc: *** error for object 0x7ffd41cb7680: pointer being freed was not allocated`, always at the SAME memory address but in a DIFFERENT test each run (seen in `ResumeDiagnosisViewModelTests.testViewModelStartsEmptyWithoutOptimizationId` and separately in `OptimizedResumeViewModelTests.testATSInsightsExplainLowScoreAndExposeActions`) — this is a host-process-level instability, not a bug in any specific test or the app code under test. `xcodebuild -only-testing`/`-skip-testing` doesn't avoid it since it isn't tied to one test. The Debug build itself always succeeds clean, and every test that completes always passes. Don't chase this as a code bug; if it blocks a full-suite run, fall back to confirming the build is green plus spot-checking the relevant suites individually.
+**Why:** Found while QA'ing PR #83's CodeRabbit fixes, after an unusually heavy run of back-to-back `xcodebuild` test invocations in one session (multiple full builds + test runs in under an hour). Verified pre-existing and non-deterministic by reproducing identically with the session's changes stashed out (against the already-committed PR #83 state) and by watching it hit a different, unrelated test on a later run.
+
+**Date:** 2026-06-25
+**Category:** SwiftUI
+**Rule:** Before wiring new UI into an existing screen, `grep -rn "StructName("` across the whole app to confirm it's actually instantiated somewhere live — don't assume a file under `Features/V2/` is the live screen just because its name matches the tab.
+**Why:** The redesign's target-reached/save-account celebration was wired into `ImproveView.swift`, which is never instantiated anywhere in the app (confirmed via repo-wide grep) — the live Optimized tab renders `OptimizedResumeView.swift` instead. The feature built correctly, compiled, and passed review of the diff, but no user would ever see it. Caught only by checking call sites, not by reading the diff.
+
+**Date:** 2026-06-25
+**Category:** UX
+**Rule:** When implementing redesign screens that reference future backend/state capabilities, keep the UI honest by disabling or simplifying those affordances and recording the flag instead of presenting fake progress, fake point deltas, resumable jobs, paste-text diagnosis, or demo diagnoses as real.
+**Why:** The Resumely activation redesign includes paste-resume, sample diagnosis, parser-stage progress, precise locked-tab hasResume/hasJob state, point-delta fixes, resumable offline analysis, and guest persistence claims that are not fully backed by current iOS/backend contracts.
+
+**Date:** 2026-06-25
+**Category:** Build
+**Rule:** When the file picker and `UploadFilePreflight.mimeType(for:)` disagree on a type, widen preflight to match the picker's WP-18 intent — do not narrow the picker to match preflight. Check which direction actually serves the activation goal before "fixing" a mismatch.
+**Why:** The redesign pass found this exact mismatch (picker allowed `.doc`, preflight rejected it) and "fixed" it by removing `.doc` from the picker — silently re-blocking Word `.doc` users, the precise WP-18 regression it was trying to prevent for `.docx`. The correct fix (applied in the 2026-06-25 QA pass) was to add `application/msword` recognition to `mimeType(for:)` so `.doc` actually works end-to-end, completing WP-18's intent instead of reverting it.
+
 **Date:** 2026-06-24
 **Category:** UX
 **Rule:** Instrument the whole journey, not just the success terminal — a funnel that only fires the terminal event (e.g. `resume_uploaded`) makes every upstream drop-off unattributable.

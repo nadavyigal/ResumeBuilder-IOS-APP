@@ -17,6 +17,11 @@ final class TailorViewModel {
 
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
+    var uploadFailureReason: UploadFailureReason?
+    var failedResumeName: String?
+    /// True when the most recent optimize/ATS-check failure was a connectivity drop
+    /// (not a server or validation error) — drives the ConnectionLostView recovery UI.
+    var isConnectionError = false
 
     /// Set when an unauthenticated free ATS check completes.
     var atsResult: ATSScoreResult?
@@ -54,12 +59,17 @@ final class TailorViewModel {
         } catch {
             selectedResumeURL = nil
             selectedResumeName = nil
+            failedResumeName = filename
+            let reason = UploadFailureReason(error: error)
+            uploadFailureReason = reason
             errorMessage = error.localizedDescription
-            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: "\(type(of: error))"))
+            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: reason.analyticsValue))
             return
         }
         selectedResumeURL = candidateURL
         selectedResumeName = filename
+        failedResumeName = nil
+        uploadFailureReason = nil
         errorMessage = nil
         let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
         AnalyticsService.shared.track(.resumeFileSelected(
@@ -106,6 +116,7 @@ final class TailorViewModel {
 
         isOptimizing = true
         errorMessage = nil
+        isConnectionError = false
         reviewId = nil
         optimizationId = nil
         defer { isOptimizing = false }
@@ -199,9 +210,20 @@ final class TailorViewModel {
             }
         } catch {
             errorMessage = error.localizedDescription
+            isConnectionError = Self.isConnectivityError(error)
             if !didUpload {
                 AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
             }
+        }
+    }
+
+    static func isConnectivityError(_ error: Error) -> Bool {
+        guard let urlError = error as? URLError else { return false }
+        switch urlError.code {
+        case .notConnectedToInternet, .networkConnectionLost, .timedOut, .dataNotAllowed, .cannotConnectToHost:
+            return true
+        default:
+            return false
         }
     }
 
@@ -218,6 +240,7 @@ final class TailorViewModel {
         }
         isRunningFreeATS = true
         errorMessage = nil
+        isConnectionError = false
         atsResult = nil
         defer { isRunningFreeATS = false }
         do {
@@ -231,6 +254,7 @@ final class TailorViewModel {
             appState.storeAnonymousATSSessionId(response.sessionId)
         } catch {
             errorMessage = error.localizedDescription
+            isConnectionError = Self.isConnectivityError(error)
         }
     }
 

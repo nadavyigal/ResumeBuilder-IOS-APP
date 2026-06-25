@@ -70,6 +70,8 @@ enum AnalyticsEvent: Sendable {
     case resumeUploadFailed(failureStage: String, errorCode: String)
     case resumeUploadSucceeded(fileType: String)
     case resumeUploadErrorShown(errorCode: String)
+    case resumeUploadSheetDismissed(source: String)
+    case resumeUploadComingSoonTapped(route: String)
 
     nonisolated var name: String {
         switch self {
@@ -102,6 +104,8 @@ enum AnalyticsEvent: Sendable {
         case .resumeUploadFailed: return "resume_upload_failed"
         case .resumeUploadSucceeded: return "resume_upload_succeeded"
         case .resumeUploadErrorShown: return "resume_upload_error_shown"
+        case .resumeUploadSheetDismissed: return "resume_upload_sheet_dismissed"
+        case .resumeUploadComingSoonTapped: return "resume_upload_coming_soon_tapped"
         }
     }
 
@@ -146,6 +150,10 @@ enum AnalyticsEvent: Sendable {
             return ["failure_stage": failureStage, "error_code": errorCode]
         case .resumeUploadErrorShown(let errorCode):
             return ["error_code": errorCode]
+        case .resumeUploadSheetDismissed(let source):
+            return ["source": source]
+        case .resumeUploadComingSoonTapped(let route):
+            return ["route": route]
         }
     }
 

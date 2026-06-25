@@ -28,6 +28,15 @@ struct OptimizedResumeView: View {
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
 
+    // Target-reached celebration + save-account handoff (fires on a real
+    // ATS score crossing the target band, never a fabricated value).
+    @State private var showTargetReached = false
+    @State private var showSaveAccount = false
+    @State private var showSaveAccountOnboarding = false
+    @State private var targetReachedPreviousScore: Int? = nil
+    @State private var didShowTargetReached = false
+    private let targetReachedThreshold = 80
+
     // Design VM for preview fidelity (passes current template + customization to preview)
     @State private var designVM: DesignViewModel? = nil
     // Updated by the preview web view after each render-preview call.
@@ -128,6 +137,52 @@ struct OptimizedResumeView: View {
                 Task { await designVM?.loadCurrentAssignment(token: appState.session?.accessToken) }
             } else {
                 designVM = nil
+            }
+        }
+        .onChange(of: viewModel.atsScoreAfter) { oldValue, newValue in
+            // A nil oldValue means this is the initial load (including viewing an
+            // already-optimized resume from history), not a real improvement —
+            // never treat that as a crossing, or re-opening a high-scoring resume
+            // would fire a fake celebration.
+            guard !didShowTargetReached,
+                  let oldValue,
+                  let newValue,
+                  oldValue < targetReachedThreshold,
+                  newValue >= targetReachedThreshold
+            else { return }
+            targetReachedPreviousScore = oldValue
+            didShowTargetReached = true
+            showTargetReached = true
+        }
+        .fullScreenCover(isPresented: $showTargetReached) {
+            TargetReachedView(
+                score: viewModel.atsScoreAfter ?? targetReachedThreshold,
+                previousScore: targetReachedPreviousScore,
+                onOpenDesign: {
+                    showTargetReached = false
+                    onSwitchTab(.design)
+                },
+                onSaveProgress: {
+                    showTargetReached = false
+                    showSaveAccount = true
+                }
+            )
+        }
+        .sheet(isPresented: $showSaveAccount) {
+            SaveAccountSheetView(
+                score: viewModel.atsScoreAfter ?? targetReachedThreshold,
+                onContinueWithApple: {
+                    showSaveAccount = false
+                    showSaveAccountOnboarding = true
+                },
+                onMaybeLater: {
+                    showSaveAccount = false
+                }
+            )
+        }
+        .sheet(isPresented: $showSaveAccountOnboarding) {
+            NavigationStack {
+                OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
         .screenBackground(showRadialGlow: false)
