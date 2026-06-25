@@ -50,8 +50,8 @@ struct OptimizedResumeTabView: View {
             previewCaption: "Your résumé, scored & rewritten",
             subtitle: "An ATS match score, keyword gaps, and line-by-line fixes — tuned to your target job.",
             checklist: [
-                .init(title: "Upload your résumé", isComplete: appState.latestOptimizationId != nil),
-                .init(title: "Add a job to match against", isComplete: appState.latestOptimizationId != nil)
+                .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
+                .init(title: "Add a job to match against", isComplete: appState.hasAddedJobThisSession)
             ],
             ctaTitle: "Upload résumé on Home",
             systemImage: "wand.and.stars",

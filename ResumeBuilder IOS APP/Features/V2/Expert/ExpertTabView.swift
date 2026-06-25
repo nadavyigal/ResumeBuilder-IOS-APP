@@ -65,7 +65,7 @@ struct ExpertTabView: View {
             previewCaption: "Cover letters & submit packages",
             subtitle: "A tailored cover letter, likely recruiter questions, and an export-ready package for every application.",
             checklist: [
-                .init(title: "Upload your résumé", isComplete: appState.latestOptimizationId != nil),
+                .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
                 .init(title: "Run Optimize once", isComplete: appState.latestOptimizationId != nil)
             ],
             ctaTitle: "Upload résumé on Home",

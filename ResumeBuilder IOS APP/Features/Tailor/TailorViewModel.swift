@@ -60,9 +60,10 @@ final class TailorViewModel {
             selectedResumeURL = nil
             selectedResumeName = nil
             failedResumeName = filename
-            uploadFailureReason = UploadFailureReason(error: error)
+            let reason = UploadFailureReason(error: error)
+            uploadFailureReason = reason
             errorMessage = error.localizedDescription
-            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: "\(type(of: error))"))
+            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: reason.analyticsValue))
             return
         }
         selectedResumeURL = candidateURL

@@ -25,7 +25,7 @@ struct DesignTabView: View {
             previewCaption: "12 ATS-safe templates",
             subtitle: "Swap layouts, colors, and fonts. Every template stays parseable by the bots.",
             checklist: [
-                .init(title: "Upload your résumé", isComplete: appState.latestOptimizationId != nil),
+                .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
                 .init(title: "Run Optimize once", isComplete: appState.latestOptimizationId != nil)
             ],
             ctaTitle: "Upload résumé on Home",

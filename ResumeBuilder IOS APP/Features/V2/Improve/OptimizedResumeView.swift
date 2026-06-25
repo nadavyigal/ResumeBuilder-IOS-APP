@@ -140,10 +140,15 @@ struct OptimizedResumeView: View {
             }
         }
         .onChange(of: viewModel.atsScoreAfter) { oldValue, newValue in
+            // A nil oldValue means this is the initial load (including viewing an
+            // already-optimized resume from history), not a real improvement —
+            // never treat that as a crossing, or re-opening a high-scoring resume
+            // would fire a fake celebration.
             guard !didShowTargetReached,
+                  let oldValue,
                   let newValue,
-                  newValue >= targetReachedThreshold,
-                  (oldValue ?? 0) < targetReachedThreshold
+                  oldValue < targetReachedThreshold,
+                  newValue >= targetReachedThreshold
             else { return }
             targetReachedPreviousScore = oldValue
             didShowTargetReached = true

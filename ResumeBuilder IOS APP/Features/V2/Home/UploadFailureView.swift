@@ -23,6 +23,16 @@ enum UploadFailureReason: Equatable, Sendable {
         }
     }
 
+    /// Stable per-case identifier for analytics — never the localized copy.
+    var analyticsValue: String {
+        switch self {
+        case .scannedImage: return "scanned_image"
+        case .wrongType: return "wrong_type"
+        case .tooLarge: return "too_large"
+        case .generic: return "generic"
+        }
+    }
+
     var title: LocalizedStringKey {
         switch self {
         case .scannedImage:

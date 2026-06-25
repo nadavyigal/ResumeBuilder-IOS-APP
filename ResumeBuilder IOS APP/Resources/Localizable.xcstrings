@@ -609,16 +609,6 @@
         }
       }
     },
-    "ATS checks" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בדיקות ATS"
-          }
-        }
-      }
-    },
     "ATS improvements applied. Review the resume before submitting." : {
       "localizations" : {
         "he" : {
@@ -686,6 +676,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "עמיד ב-ATS"
+          }
+        }
+      }
+    },
+    "ATS score" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ATS"
           }
         }
       }

@@ -20,7 +20,24 @@ Decision: the implementation pass below was QA'd before being committed. 8 issue
 
 ## Validation (this pass)
 - [x] Fresh Debug build after all fixes — **BUILD SUCCEEDED**
-- [x] Full test suite — **105/105 tests passed, 0 failures**
+- [x] Full test suite — **110 tests passed (105 XCTest + 5 Swift Testing), 0 failures**
+
+---
+
+# Story: Resumely Activation Redesign — CodeRabbit review fix pass on PR #83 (2026-06-25)
+
+Decision: fix CodeRabbit's real findings on the open PR, skip verified false positives, rebuild/retest before pushing again.
+
+## Fixed
+- [x] Locked-tab checklists always showed `isComplete: false` (bound to `latestOptimizationId != nil` inside the branch where it's always nil) — added `AppState.hasUploadedResumeThisSession`/`hasAddedJobThisSession`, wired from `HomeTabView`
+- [x] Target-reached celebration could false-fire on initial load of an already-high-scoring resume — `onChange` now requires a real non-nil prior score
+- [x] `ProfileView` "ATS checks" label paired with a percentage value — renamed to "ATS score"
+- [x] `TailorViewModel` preflight-rejection analytics lost per-reason granularity (`type(of: error)`) — switched to `UploadFailureReason.analyticsValue`
+- [x] `redesign-notes.md` R3 section didn't note the manual-retry-only implementation vs the bold auto-resume spec — added amendment
+- [x] Reconciled "105/105" wording to accurate "110 tests (105 XCTest + 5 Swift Testing)"
+
+## Skipped (verified false positive)
+- [ ] `@MainActor` on `SaveAccountSheetView`/`TargetReachedView` — project sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` build-wide; every other new View in this PR also omits the explicit annotation
 
 ---
 

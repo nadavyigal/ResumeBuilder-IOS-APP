@@ -170,6 +170,8 @@ Global token note from the design file: body/helper text bumped to white 72% / 5
 
 **Flags:** Needs a resumable analysis job (checkpoint + idempotent re-run) and local persistence of in-flight inputs — backend work. Until that lands, implement the UI shell with a simpler behavior (full retry from scratch on reconnect) and flag the "resume from 72%" framing as not-yet-true; don't ship copy claiming a capability the backend doesn't have. Driven by `NWPathMonitor` for the offline banner + auto-retry trigger.
 
+**As actually implemented (2026-06-25):** `ConnectionLostView` ships the honest fallback described above, not the bold spec above it. No `NWPathMonitor` exists in the app, so there is no offline-banner auto-detection and no auto-retry on reconnect — "Retry now" is a manual, real re-invocation of the failed `optimize()`/`runFreeATS()` call via `TailorViewModel.isConnectionError` (classified from real `URLError` cases). Copy says "still here, nothing's lost" (true within the current app session — inputs live in `TailorViewModel` state) and does not claim auto-resume. Treat the auto-resume/NWPathMonitor description above as the future-state target, not the current build.
+
 ---
 
 ## S1 — You hit the target (celebrate & point forward)

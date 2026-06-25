@@ -233,7 +233,7 @@ struct ProfileView: View {
             )
             statCell(
                 value: latestOptimization.map { "\($0.matchScorePercent)%" } ?? "—",
-                label: NSLocalizedString("ATS checks", comment: "Me stats: count of ATS checks run"),
+                label: NSLocalizedString("ATS score", comment: "Me stats: latest resume's ATS match score percent"),
                 icon: "gauge.medium",
                 color: Theme.accentBlue
             )

@@ -186,6 +186,7 @@ struct HomeTabView: View {
                     let ext = viewModel.selectedResumeURL?.pathExtension.lowercased()
                     let fileType = (ext?.isEmpty == false) ? ext! : "unknown"
                     AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
+                    appState.hasUploadedResumeThisSession = true
                 }
             }
             .onChange(of: viewModel.jobDescription) { _, _ in trackJobAddedIfNeeded() }
@@ -265,6 +266,7 @@ struct HomeTabView: View {
     private func trackJobAddedIfNeeded() {
         guard hasJobInput, !didTrackJobAdded else { return }
         didTrackJobAdded = true
+        appState.hasAddedJobThisSession = true
         AnalyticsService.shared.track(.jobAdded(
             hasURL: !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             hasPaste: !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
