@@ -60,6 +60,16 @@ enum AnalyticsEvent: Sendable {
     case fitCheckCompleted(verdict: String, matchScore: Int)
     case fitCheckOptimizeTapped
     case fitCheckSkipped
+    // Upload / import journey (WP-18)
+    case resumeUploadCTATapped(source: String)
+    case resumeFilePickerOpened(source: String)
+    case resumeFilePickerCancelled(source: String)
+    case resumeFileSelected(fileType: String, sizeBucket: String)
+    case resumeUploadPreflightRejected(reason: String)
+    case resumeUploadStarted(fileType: String)
+    case resumeUploadFailed(failureStage: String, errorCode: String)
+    case resumeUploadSucceeded(fileType: String)
+    case resumeUploadErrorShown(errorCode: String)
 
     nonisolated var name: String {
         switch self {
@@ -83,6 +93,15 @@ enum AnalyticsEvent: Sendable {
         case .fitCheckCompleted: return "fit_check_completed"
         case .fitCheckOptimizeTapped: return "fit_check_optimize_tapped"
         case .fitCheckSkipped: return "fit_check_skipped"
+        case .resumeUploadCTATapped: return "resume_upload_cta_tapped"
+        case .resumeFilePickerOpened: return "resume_file_picker_opened"
+        case .resumeFilePickerCancelled: return "resume_file_picker_cancelled"
+        case .resumeFileSelected: return "resume_file_selected"
+        case .resumeUploadPreflightRejected: return "resume_upload_preflight_rejected"
+        case .resumeUploadStarted: return "resume_upload_started"
+        case .resumeUploadFailed: return "resume_upload_failed"
+        case .resumeUploadSucceeded: return "resume_upload_succeeded"
+        case .resumeUploadErrorShown: return "resume_upload_error_shown"
         }
     }
 
@@ -113,6 +132,20 @@ enum AnalyticsEvent: Sendable {
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
         case .fitCheckCompleted(let verdict, let matchScore):
             return ["verdict": verdict, "match_score": "\(matchScore)"]
+        case .resumeUploadCTATapped(let source),
+             .resumeFilePickerOpened(let source),
+             .resumeFilePickerCancelled(let source):
+            return ["source": source]
+        case .resumeFileSelected(let fileType, let sizeBucket):
+            return ["file_type": fileType, "file_size_bucket": sizeBucket]
+        case .resumeUploadPreflightRejected(let reason):
+            return ["reason": reason]
+        case .resumeUploadStarted(let fileType), .resumeUploadSucceeded(let fileType):
+            return ["file_type": fileType]
+        case .resumeUploadFailed(let failureStage, let errorCode):
+            return ["failure_stage": failureStage, "error_code": errorCode]
+        case .resumeUploadErrorShown(let errorCode):
+            return ["error_code": errorCode]
         }
     }
 

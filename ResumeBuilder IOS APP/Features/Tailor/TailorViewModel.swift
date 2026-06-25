@@ -39,7 +39,8 @@ final class TailorViewModel {
     func cachePickedFile(url: URL) {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent("picked_resume.pdf")
+        let ext = url.pathExtension.isEmpty ? "pdf" : url.pathExtension.lowercased()
+        let dest = docs.appendingPathComponent("picked_resume.\(ext)")
 
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
@@ -54,11 +55,29 @@ final class TailorViewModel {
             selectedResumeURL = nil
             selectedResumeName = nil
             errorMessage = error.localizedDescription
+            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: "\(type(of: error))"))
             return
         }
         selectedResumeURL = candidateURL
         selectedResumeName = filename
         errorMessage = nil
+        let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
+        AnalyticsService.shared.track(.resumeFileSelected(
+            fileType: pickedType,
+            sizeBucket: Self.fileSizeBucket(for: candidateURL)
+        ))
+    }
+
+    /// PII-safe coarse file-size bucket for upload analytics.
+    private static func fileSizeBucket(for url: URL) -> String {
+        let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? Int ?? -1
+        switch bytes {
+        case 0..<100_000: return "<100kb"
+        case 100_000..<1_000_000: return "100kb-1mb"
+        case 1_000_000..<5_000_000: return "1mb-5mb"
+        case 5_000_000...: return ">5mb"
+        default: return "unknown"
+        }
     }
 
     /// Pre-fills Step 1 from a file URL already downloaded from the library.
@@ -93,7 +112,11 @@ final class TailorViewModel {
 
         AnalyticsService.shared.track(.optimizationStarted)
 
+        let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
+        var didUpload = false
+
         do {
+            AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
             // Step 1 — upload PDF + job context. Server stores resume and JD,
             // returns ids we need for the optimize call.
             let upload = try await appState.callWithFreshToken { token in
@@ -106,6 +129,8 @@ final class TailorViewModel {
                 )
             }
             uploadResponse = upload
+            didUpload = true
+            AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
             #if DEBUG
             print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
             #endif
@@ -161,13 +186,22 @@ final class TailorViewModel {
                 errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
             }
         } catch let apiError as APIClientError {
-            if case .serverError(_, let message) = apiError {
+            if case .serverError(let status, let message) = apiError {
                 errorMessage = enhancedError(message)
+                if !didUpload {
+                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "\(status)"))
+                }
             } else {
                 errorMessage = apiError.localizedDescription
+                if !didUpload {
+                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "client_error"))
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
+            if !didUpload {
+                AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
+            }
         }
     }
 

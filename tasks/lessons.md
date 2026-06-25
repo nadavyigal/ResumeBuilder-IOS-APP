@@ -15,6 +15,16 @@
 
 ## Lessons
 
+**Date:** 2026-06-24
+**Category:** UX
+**Rule:** Instrument the whole journey, not just the success terminal — a funnel that only fires the terminal event (e.g. `resume_uploaded`) makes every upstream drop-off unattributable.
+**Why:** WP-16 showed an 81% guest→`resume_uploaded` drop with zero events in between, so the cause (never-tapped vs cancelled vs preflight-rejected vs upload-failed) was unknowable until WP-18 added the granular pick/upload events.
+
+**Date:** 2026-06-24
+**Category:** UX
+**Rule:** Keep `.fileImporter allowedContentTypes` in sync with what preflight/backend actually accept — a picker narrower than the parser silently blocks valid users with no analytics signal.
+**Why:** The picker was `[.pdf]` while `UploadFilePreflight` already accepted `.docx` (proven by `ScanViewModelTests.testDocxMimeTypeRecognizedByPreflight`), so Word-resume users couldn't even select their file and dropped invisibly.
+
 ### 2026-06-23 (WP-12 Stories 2-4)
 **Category:** Build
 **Rule:** `try? decodeIfPresent(T.self, forKey:)` returns `Optional<Optional<T>>`; flatten with `(try? ...) ?? nil` before `if let`, not the double-binding pattern `if let x = ..., let x`.
