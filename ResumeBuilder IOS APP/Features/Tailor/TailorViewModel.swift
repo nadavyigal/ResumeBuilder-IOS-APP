@@ -39,7 +39,8 @@ final class TailorViewModel {
     func cachePickedFile(url: URL) {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent("picked_resume.pdf")
+        let ext = url.pathExtension.isEmpty ? "pdf" : url.pathExtension.lowercased()
+        let dest = docs.appendingPathComponent("picked_resume.\(ext)")
 
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }

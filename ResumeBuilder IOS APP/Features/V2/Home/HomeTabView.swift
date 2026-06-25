@@ -179,7 +179,9 @@ struct HomeTabView: View {
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
-                    AnalyticsService.shared.track(.resumeUploaded(fileType: "pdf"))
+                    let ext = viewModel.selectedResumeURL?.pathExtension.lowercased()
+                    let fileType = (ext?.isEmpty == false) ? ext! : "unknown"
+                    AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
                 }
             }
             .onChange(of: viewModel.jobDescription) { _, _ in trackJobAddedIfNeeded() }
