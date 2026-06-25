@@ -60,6 +60,7 @@ struct ProfileView: View {
                             if BackendConfig.isMonetizationEnabled {
                                 creditsSection
                             }
+                            trustCard
                             languageSection
                             accountSection
                         }
@@ -70,6 +71,7 @@ struct ProfileView: View {
 
                         Spacer(minLength: 100)
                     }
+                    .environment(\.layoutDirection, localization.layoutDirection)
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .navigationDestination(isPresented: $navigateToLatestResume) {
@@ -126,53 +128,97 @@ struct ProfileView: View {
     // MARK: - Hero Header
 
     private var heroHeader: some View {
-        ZStack(alignment: .bottom) {
-            // Gradient banner
-            Theme.brandGradient
-                .opacity(0.85)
-                .frame(height: 160)
-                .overlay(
-                    RadialGradient(
-                        colors: [Color.white.opacity(0.15), .clear],
-                        center: .topLeading,
-                        startRadius: 0,
-                        endRadius: 220
-                    )
-                )
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            Text(NSLocalizedString("Account", comment: "Me tab title"))
+                .font(.system(size: 32, weight: .black, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
 
-            // Avatar + name
-            VStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(Theme.bgPrimary)
-                        .frame(width: 76, height: 76)
-                        .shadow(color: Theme.accent.opacity(0.4), radius: 16, y: 6)
+            HStack(spacing: AppSpacing.md) {
+                Text(accountInfo.avatarInitials)
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .frame(width: 56, height: 56)
+                    .background(AppGradients.primary, in: Circle())
+                    .shadow(color: AppColors.accentSky.opacity(0.36), radius: 16, y: 8)
 
-                    Text(accountInfo.avatarInitials)
-                        .font(.system(size: 26, weight: .black, design: .rounded))
-                        .foregroundStyle(Theme.brandGradient)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profileTitle)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(1)
+                    Text(profileSubtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(2)
                 }
-                .offset(y: 38)
 
-                Spacer().frame(height: 6)
+                Spacer()
+            }
+
+            if accountInfo.showsSignIn {
+                signInValueCard
             }
         }
-        .frame(maxWidth: .infinity)
-        .clipped()
-        .padding(.bottom, 48)
-        .overlay(alignment: .bottomLeading) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(accountInfo.title)
+        .padding(.horizontal, Theme.pagePadding)
+        .padding(.top, AppSpacing.xl)
+    }
+
+    private var profileTitle: String {
+        if case .guest = accountInfo {
+            return NSLocalizedString("Guest", comment: "Guest account display name")
+        }
+        return accountInfo.title
+    }
+
+    private var profileSubtitle: String {
+        if case .guest = accountInfo {
+            return NSLocalizedString("Not signed in", comment: "Guest account status")
+        }
+        return accountInfo.subtitle
+    }
+
+    private var signInValueCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text(NSLocalizedString("Save your progress", comment: "Guest sign-in value card title"))
+                .font(.title3.weight(.black))
+                .foregroundStyle(AppColors.textPrimary)
+
+            Text(NSLocalizedString(
+                "Create a free account to save every optimization, sync across devices, and export unlimited PDFs.",
+                comment: "Guest sign-in value card body"
+            ))
+            .font(.subheadline)
+            .foregroundStyle(AppColors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                showOnboarding = true
+            } label: {
+                Text(NSLocalizedString("Create free account", comment: "Guest sign-in primary CTA"))
+                    .font(.headline.weight(.bold))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .foregroundStyle(.white)
+                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showOnboarding = true
+            } label: {
+                Text(NSLocalizedString("Already have one? Sign in", comment: "Guest sign-in secondary CTA"))
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.textPrimary)
-                    .lineLimit(1)
-                Text(accountInfo.subtitle)
-                    .font(.caption)
-                    .foregroundStyle(Theme.textTertiary)
+                    .foregroundStyle(AppColors.accentSky)
+                    .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 6)
+            .buttonStyle(.plain)
         }
+        .padding(AppSpacing.lg)
+        .background(AppColors.accentViolet.opacity(0.13), in: RoundedRectangle(cornerRadius: AppRadii.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadii.lg, style: .continuous)
+                .strokeBorder(AppColors.accentSky.opacity(0.24), lineWidth: 1)
+        )
     }
 
     // MARK: - Stats Row
@@ -181,26 +227,26 @@ struct ProfileView: View {
         HStack(spacing: 12) {
             statCell(
                 value: latestOptimization != nil ? "1+" : "0",
-                label: "Optimized",
+                label: NSLocalizedString("Optimized", comment: "Me stats: count of optimized resumes"),
                 icon: "wand.and.stars",
                 color: Theme.accent
             )
             statCell(
                 value: latestOptimization.map { "\($0.matchScorePercent)%" } ?? "—",
-                label: "Best ATS",
+                label: NSLocalizedString("ATS checks", comment: "Me stats: count of ATS checks run"),
                 icon: "gauge.medium",
                 color: Theme.accentBlue
             )
             statCell(
                 value: "∞",
-                label: "Templates",
+                label: NSLocalizedString("Templates", comment: "Me stats: templates available"),
                 icon: "paintbrush.fill",
                 color: Theme.accentCyan
             )
         }
     }
 
-    private func statCell(value: String, label: LocalizedStringKey, icon: String, color: Color) -> some View {
+    private func statCell(value: String, label: String, icon: String, color: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
@@ -419,20 +465,66 @@ struct ProfileView: View {
 
     private var languageSection: some View {
         ProfileSection(title: "Language", icon: "globe", iconColor: Theme.accentCyan) {
-            Picker(
-                "Language",
-                selection: Binding(
-                    get: { localization.language },
-                    set: { localization.setLanguage($0) }
-                )
-            ) {
+            HStack(spacing: AppSpacing.sm) {
                 ForEach(LocalizationManager.AppLanguage.allCases) { lang in
-                    Text(lang.displayName).tag(lang)
+                    languageButton(lang)
                 }
             }
-            .pickerStyle(.segmented)
             .padding(14)
         }
+    }
+
+    private func languageButton(_ language: LocalizationManager.AppLanguage) -> some View {
+        let isSelected = localization.language == language
+        return Button {
+            localization.setLanguage(language)
+        } label: {
+            Text(language.displayName)
+                .font(.subheadline.weight(.bold))
+                .frame(maxWidth: .infinity)
+                .frame(height: 42)
+                .foregroundStyle(isSelected ? Color.white : AppColors.textSecondary)
+                .background(
+                    isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint),
+                    in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
+                        .strokeBorder(isSelected ? Color.white.opacity(0.12) : AppColors.glassStroke, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
+    private var trustCard: some View {
+        HStack(alignment: .top, spacing: AppSpacing.md) {
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(AppColors.accentCyan)
+                .frame(width: 40, height: 40)
+                .background(AppColors.accentCyan.opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(NSLocalizedString("Your résumé stays private", comment: "Me trust card title"))
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(NSLocalizedString(
+                    "We never sell or share your data. Delete it anytime.",
+                    comment: "Me trust card body"
+                ))
+                .font(.caption)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.accentCyan.opacity(0.07), in: RoundedRectangle(cornerRadius: AppRadii.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadii.lg, style: .continuous)
+                .strokeBorder(AppColors.accentCyan.opacity(0.18), lineWidth: 1)
+        )
     }
 
     // MARK: - Section: Account

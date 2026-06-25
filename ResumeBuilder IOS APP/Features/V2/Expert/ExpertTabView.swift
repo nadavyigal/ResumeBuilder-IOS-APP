@@ -59,17 +59,21 @@ struct ExpertTabView: View {
     }
 
     private var noOptimizationView: some View {
-        ContentUnavailableView {
-            Label("No expert analysis yet", systemImage: "rectangle.stack.badge.person.crop")
-        } description: {
-            Text("Run Optimize on Home to unlock expert workflows.")
-        } actions: {
-            Button("Go to Home") { onSwitchTab(.tailor) }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
+        LockedTabTeaser(
+            title: "Expert",
+            headline: "The full submit package, done for you.",
+            previewCaption: "Cover letters & submit packages",
+            subtitle: "A tailored cover letter, likely recruiter questions, and an export-ready package for every application.",
+            checklist: [
+                .init(title: "Upload your résumé", isComplete: appState.latestOptimizationId != nil),
+                .init(title: "Run Optimize once", isComplete: appState.latestOptimizationId != nil)
+            ],
+            ctaTitle: "Upload résumé on Home",
+            systemImage: "rectangle.stack.badge.person.crop",
+            onCTA: { onSwitchTab(.tailor) }
+        ) {
+            LockedExpertPreview()
         }
-        .foregroundStyle(Theme.textPrimary)
-        .screenBackground(showRadialGlow: false)
     }
 }
 

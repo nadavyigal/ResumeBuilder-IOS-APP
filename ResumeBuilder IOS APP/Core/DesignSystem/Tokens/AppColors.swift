@@ -14,6 +14,6 @@ enum AppColors {
     static let accentSky        = Color(hex: "4EA8FF")
     static let accentTeal       = Color(hex: "40E0D0")
     static let textPrimary      = Color.white
-    static let textSecondary    = Color.white.opacity(0.6)
-    static let textTertiary     = Color.white.opacity(0.35)
+    static let textSecondary    = Color.white.opacity(0.72)
+    static let textTertiary     = Color.white.opacity(0.5)
 }

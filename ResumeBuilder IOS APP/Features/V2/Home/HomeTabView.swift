@@ -4,10 +4,12 @@ import UniformTypeIdentifiers
 /// V2 Home activation surface — guest-first upload → job → ATS/optimize funnel.
 struct HomeTabView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var viewModel: TailorViewModel
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     @State private var isImporterPresented = false
+    @State private var isUploadSheetPresented = false
     @State private var shouldNavigate = false
     @State private var showDiagnosis = false
     @State private var pendingDiagnosisOptimizationId: String? = nil
@@ -46,43 +48,38 @@ struct HomeTabView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 18) {
                         pageHeader
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 12)
 
-                        activationBanner
+                        progressPath
                             .opacity(appeared ? 1 : 0)
 
                         if activationState == .optimizedReady || activationState == .exportComplete {
                             optimizedReadyCard
                         }
 
-                        VStack(spacing: 12) {
-                            stepCard(
-                                step: 1,
-                                title: "Upload Resume",
-                                subtitle: viewModel.selectedResumeName?.isEmpty == false ? viewModel.selectedResumeName! : NSLocalizedString("PDF, up to 5 MB", comment: ""),
-                                icon: "doc.fill",
-                                isFilled: viewModel.selectedResumeName?.isEmpty == false,
-                                action: {
-                                    AnalyticsService.shared.track(.resumeUploadCTATapped(source: "home"))
-                                    AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
-                                    isImporterPresented = true
-                                }
+                        uploadHero
+
+                        if viewModel.selectedResumeName?.isEmpty != false,
+                           appState.isAuthenticated,
+                           RuntimeFeatures.isResumeLibraryEnabled {
+                            libraryButton
+                        }
+
+                        motivationStrip
+
+                        if let uploadFailureReason = viewModel.uploadFailureReason {
+                            UploadFailureView(
+                                reason: uploadFailureReason,
+                                filename: viewModel.failedResumeName,
+                                onChooseAnother: openUploadSheet
                             )
+                        }
 
-                            if viewModel.selectedResumeName?.isEmpty != false,
-                               appState.isAuthenticated,
-                               RuntimeFeatures.isResumeLibraryEnabled {
-                                libraryButton
-                            }
-
-                            stepConnector(filled: viewModel.selectedResumeName?.isEmpty == false)
-
+                        if viewModel.selectedResumeName?.isEmpty == false {
                             jobInputCard
-
-                            stepConnector(filled: hasJobInput)
 
                             optimizeCard
                         }
@@ -92,7 +89,9 @@ struct HomeTabView: View {
                                 .transition(.scale.combined(with: .opacity))
                         }
 
-                        if let error = viewModel.errorMessage {
+                        if viewModel.errorMessage != nil, viewModel.uploadFailureReason == nil, viewModel.isConnectionError {
+                            ConnectionLostView(onRetry: { Task { await runAnalysis() } })
+                        } else if let error = viewModel.errorMessage, viewModel.uploadFailureReason == nil {
                             errorBanner(error)
                         }
 
@@ -133,6 +132,11 @@ struct HomeTabView: View {
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                }
+            }
+            .sheet(isPresented: $isUploadSheetPresented) {
+                UploadSheetView {
+                    openResumeImporter()
                 }
             }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
@@ -267,38 +271,227 @@ struct HomeTabView: View {
         ))
     }
 
+    private func openUploadSheet() {
+        AnalyticsService.shared.track(.resumeUploadCTATapped(source: "home"))
+        isUploadSheetPresented = true
+    }
+
+    private func openResumeImporter() {
+        AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
+        isImporterPresented = true
+    }
+
+    private func runAnalysis() async {
+        if appState.isAuthenticated {
+            // optimizationStarted / optimizationCompleted are fired inside
+            // TailorViewModel.optimize() — do not double-fire here.
+            await viewModel.optimize(appState: appState)
+            if let optId = viewModel.optimizationId, !optId.isEmpty {
+                appState.latestOptimizationId = optId
+                pendingDiagnosisOptimizationId = optId
+                showDiagnosis = true
+            } else if viewModel.reviewId != nil {
+                shouldNavigate = true
+            }
+        } else {
+            await viewModel.runFreeATS(appState: appState)
+            if viewModel.atsResult?.score?.overall != nil {
+                let score = viewModel.atsResult?.score?.overall ?? 0
+                AnalyticsService.shared.track(.freeATSCompleted(
+                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
+                ))
+            }
+        }
+    }
+
     // MARK: - Header & activation
 
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: "house.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.accent)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
                 Text("GET STARTED")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Theme.accent)
-                    .kerning(1.2)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Theme.accent.opacity(0.12), in: Capsule())
-
-            Text("Home")
-                .font(.system(size: 38, weight: .black, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Theme.accent, Theme.accentBlue],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                    .font(.caption2.weight(.black))
+                    .kerning(1.1)
+                    .foregroundStyle(AppColors.accentSky)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(AppColors.accentSky.opacity(0.12), in: Capsule())
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(AppColors.accentSky.opacity(0.3), lineWidth: 1)
                     )
-                )
+
+                Spacer()
+
+                Text("Step 1 of 3")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+
+            Text("See your résumé like a recruiter does")
+                .font(.system(size: 34, weight: .black, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text("Upload, match to a job, and get your first diagnosis in under 2 minutes.")
                 .font(.subheadline)
-                .foregroundStyle(Theme.textSecondary)
+                .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var progressPath: some View {
+        HStack(spacing: AppSpacing.sm) {
+            progressChip(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
+            progressConnector(isComplete: viewModel.selectedResumeName?.isEmpty == false)
+            progressChip(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
+            progressConnector(isComplete: hasJobInput)
+            progressChip(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Progress path. Upload, add job, ATS score.")
+    }
+
+    private func progressChip(index: Int, title: LocalizedStringKey, isActive: Bool, isComplete: Bool) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(isComplete || isActive ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint))
+                    .frame(width: 25, height: 25)
+
+                if isComplete {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundStyle(.white)
+                } else {
+                    Text("\(index)")
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(isActive ? .white : AppColors.textTertiary)
+                }
+            }
+
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(isActive || isComplete ? AppColors.textPrimary : AppColors.textTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(
+            (isActive ? AppColors.accentSky.opacity(0.1) : AppColors.glassTint),
+            in: RoundedRectangle(cornerRadius: 13, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(isActive ? AppColors.accentSky.opacity(0.34) : AppColors.glassStroke, lineWidth: 1)
+        )
+    }
+
+    private func progressConnector(isComplete: Bool) -> some View {
+        Rectangle()
+            .fill(isComplete ? AppColors.accentSky.opacity(0.45) : Color.white.opacity(0.16))
+            .frame(width: 12, height: 2)
+    }
+
+    private var uploadHero: some View {
+        Button(action: openUploadSheet) {
+            VStack(spacing: 0) {
+                VStack(spacing: AppSpacing.md) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(AppGradients.primary)
+                            .frame(width: 58, height: 58)
+                            .shadow(color: AppColors.accentSky.opacity(reduceMotion ? 0.32 : 0.55), radius: reduceMotion ? 14 : 22, y: 8)
+                            .scaleEffect(appeared && !reduceMotion ? 1.03 : 1)
+                            .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: appeared && !reduceMotion)
+
+                        Image(systemName: viewModel.selectedResumeName?.isEmpty == false ? "checkmark" : "square.and.arrow.up")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(spacing: 5) {
+                        Text(viewModel.selectedResumeName?.isEmpty == false ? "Résumé selected" : "Upload your résumé")
+                            .font(.title3.weight(.black))
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Text(viewModel.selectedResumeName?.isEmpty == false ? (viewModel.selectedResumeName ?? "") : "PDF or DOCX · up to 5 MB")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(viewModel.selectedResumeName?.isEmpty == false ? AppColors.accentSky : AppColors.textSecondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "folder.fill")
+                        Text(viewModel.selectedResumeName?.isEmpty == false ? "Choose a different file" : "Choose a file")
+                            .fontWeight(.bold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .foregroundStyle(.white)
+                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                }
+                .padding(18)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .fill(
+                            RadialGradient(
+                                colors: [AppColors.accentSky.opacity(0.12), .clear],
+                                center: .top,
+                                startRadius: 0,
+                                endRadius: 220
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [7, 5]))
+                        .foregroundStyle(AppColors.accentSky.opacity(0.42))
+                )
+
+                HStack(spacing: AppSpacing.md) {
+                    Text("Paste text")
+                    Text("·").foregroundStyle(Color.white.opacity(0.25))
+                    Text("Try a sample")
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColors.accentSky)
+                .padding(.vertical, 12)
+                .accessibilityHidden(true)
+            }
+            .padding(7)
+            .background(AppColors.glassTint, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+            )
+            .shadow(color: AppColors.accentSky.opacity(0.22), radius: 28, y: 12)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? "Résumé selected. Choose a different file." : "Upload your résumé. PDF or DOCX up to 5 megabytes.")
+    }
+
+    private var motivationStrip: some View {
+        Label {
+            Text("See what a recruiter notices in the first 7 seconds — then fix it.")
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: "eye.fill")
+                .foregroundStyle(AppColors.accentCyan)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.accentCyan.opacity(0.07), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(AppColors.accentCyan.opacity(0.18), lineWidth: 1)
+        )
     }
 
     private var activationBanner: some View {
@@ -541,28 +734,7 @@ struct HomeTabView: View {
             Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
 
             Button {
-                Task {
-                    if appState.isAuthenticated {
-                        // optimizationStarted / optimizationCompleted are fired inside
-                        // TailorViewModel.optimize() — do not double-fire here.
-                        await viewModel.optimize(appState: appState)
-                        if let optId = viewModel.optimizationId, !optId.isEmpty {
-                            appState.latestOptimizationId = optId
-                            pendingDiagnosisOptimizationId = optId
-                            showDiagnosis = true
-                        } else if viewModel.reviewId != nil {
-                            shouldNavigate = true
-                        }
-                    } else {
-                        await viewModel.runFreeATS(appState: appState)
-                        if viewModel.atsResult?.score?.overall != nil {
-                            let score = viewModel.atsResult?.score?.overall ?? 0
-                            AnalyticsService.shared.track(.freeATSCompleted(
-                                scoreBucket: AnalyticsEvent.scoreBucket(for: score)
-                            ))
-                        }
-                    }
-                }
+                Task { await runAnalysis() }
             } label: {
                 Group {
                     if viewModel.isOptimizing || viewModel.isRunningFreeATS {
