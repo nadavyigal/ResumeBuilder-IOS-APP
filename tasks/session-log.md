@@ -15,6 +15,12 @@
 
 ## Sessions
 
+**Date:** 2026-06-25
+**Task:** Review + merge PR #80 (WP-18 upload/import instrumentation + docx picker).
+**Files Changed:** `Features/Tailor/TailorViewModel.swift`, `Features/V2/Home/HomeTabView.swift`, `tasks/progress.md`, `tasks/session-log.md`.
+**Decisions Made:** Found docx picker regression — sandbox copy always used `picked_resume.pdf`, breaking preflight for Word files; fixed by preserving extension. Home `resume_uploaded` on pick now uses actual file type. Merged with merge commit (`0e38ce1`), branch deleted.
+**Next Recommended Action:** After organic traffic, read PostHog funnel `guest_mode_started → resume_upload_cta_tapped → resume_file_selected → resume_upload_succeeded → job_added`; instrument Scan flow as fast-follow.
+
 **Date:** 2026-06-24
 **Task:** WP-18 — diagnose + instrument Resumely upload/import friction (the WP-16 guest→resume_uploaded leak); widen file picker to DOCX.
 **Files Changed:** `Core/Analytics/AnalyticsService.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`.
