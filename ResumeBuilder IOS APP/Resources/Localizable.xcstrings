@@ -5404,10 +5404,24 @@
       }
     },
     "Résumé selected" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו"
+          }
+        }
+      }
     },
     "Résumé selected. Choose a different file." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו. בחר קובץ אחר."
+          }
+        }
+      }
     },
     "ResumeBuilder IOS APP" : {
       "extractionState" : "stale",
