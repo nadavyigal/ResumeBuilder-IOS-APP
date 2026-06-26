@@ -14,7 +14,7 @@ Decision: the implementation pass below was QA'd before being committed. 8 issue
 
 ## Still not done (honest, unchanged from the original pass)
 - [ ] E2 (separate full-screen "match to job" step) — deliberately not built; job input stays inline on Home per Story 1's shipped IA
-- [ ] iPhone SE simulator visual smoke (no iPhone SE simulator available in this runtime)
+- [x] iPhone SE simulator visual smoke (2026-06-26) — created fresh `Resumely Build7 iPhone SE` simulator on iOS 26.5; checked Home EN/HE, upload hero, locked Optimized/Design/Expert teasers, and Me language/RTL surfaces. Fixed visible Hebrew fallback strings found during smoke.
 - [ ] Deeper manual tap-through QA on-device/in-simulator for every redesigned screen (this pass verified via code review + build + full test suite, not interactive UI smoke)
 - [ ] All backend/state flags listed in the original pass below (paste-text, sample diagnosis, parser-stage events, true point deltas, resumable analysis, etc.)
 
@@ -70,7 +70,7 @@ Decision: implement the work-pack as a buildable native SwiftUI pass without fak
 - [x] Focused tests pass
 - [x] iPhone 17 simulator install/launch Home smoke
 - [ ] Deeper simulator visual smoke for upload sheet/failure states/locked tabs/Me EN+HE/free score reveal
-- [ ] iPhone SE simulator smoke (no iPhone SE simulator available in this runtime list)
+- [x] iPhone SE simulator smoke (2026-06-26) — fresh iPhone SE 3rd gen simulator created and used for build 7 smoke; screenshots saved under `/tmp/resumely-build7-se-smoke/`.
 - [x] Full test suite
 
 ## Backend/state flags left
