@@ -1,3 +1,21 @@
+# Story: Optimization Review Apply Timeout Recovery (2026-06-26)
+
+Decision: fix the real-device apply failure as an iOS recovery gap around a non-idempotent backend mutation. The apply endpoint can finish server-side after the client times out; iOS must reload review state and continue to the optimized resume instead of surfacing the retry's already-applied error.
+
+## Fixed
+- [x] `OptimizationReviewViewModel` uses a 120s timeout for apply.
+- [x] Timeout and already-applied failures reload `/api/v1/optimization-reviews/{id}` and recover `optimization_id`.
+- [x] `OptimizationReviewRunDTO` decodes applied optimization ids from snake_case and camelCase keys.
+- [x] `APIClient` supports injecting the long-running URLSession so timeout recovery is testable without live network.
+- [x] Regression test covers timeout-after-server-success recovery.
+
+## Validation
+- [x] Focused `ResumeOptimizationParsingTests` — 7/7 passed.
+- [x] Debug build on iPhone 17 simulator — **BUILD SUCCEEDED**.
+- [ ] Physical phone smoke retry of the same apply path after pulling/rebuilding this fix.
+
+---
+
 # Story: Resumely Activation Redesign — QA fix pass (2026-06-25)
 
 Decision: the implementation pass below was QA'd before being committed. 8 issues found, all fixed in this pass — see the top entry in `tasks/progress.md` for full detail. Summary:

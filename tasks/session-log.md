@@ -541,6 +541,24 @@
 - XcodeBuildMCP `test_sim` passed 33/33.
 **Next Recommended Action:** Provide/enable App Store Connect upload credentials or upload the files from `dist/app-store-screenshots/rb-aso-002/iphone-6.7/` and `iphone-6.5/` manually in slot order.
 
+### 2026-06-26
+**Task:** Fix real-device optimization review apply timeout/already-applied dead end
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/API/APIClient.swift` — made long-running URLSession injectable and used it for custom-timeout requests/uploads.
+- `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift` — decoded applied optimization ids from `optimization_id` and `optimizationId`.
+- `ResumeBuilder IOS APP/Features/V2/History/OptimizationReviewView.swift` — apply now uses a 120s timeout and recovers timeout/already-applied responses by reloading review state.
+- `ResumeBuilder IOS APPTests/ResumeOptimizationParsingTests.swift` — added regression coverage for timeout-after-server-success recovery.
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md` — updated project memory.
+**Decisions Made:**
+- Treat apply as a non-idempotent mutation: if the client times out, reload server state before displaying failure.
+- Keep recovery in the review view model because it owns apply navigation and included-change state.
+**Validation:**
+- Focused `ResumeOptimizationParsingTests` passed 7/7 on iPhone 17 simulator.
+- Debug build succeeded on iPhone 17 simulator.
+**Next Recommended Action:** Rebuild on the physical phone and retry the same apply path; if production still exceeds 120s, the backend should make apply explicitly idempotent or expose an async job status.
+
+---
+
 - `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated roadmap/status
 **Decisions Made:**
 - Runtime stays live-only; missing Resume Library backend is disabled, not mocked.

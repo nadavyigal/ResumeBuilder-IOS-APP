@@ -58,8 +58,21 @@ struct HTTPDataResponse: Sendable {
 struct APIClient: Sendable {
     var baseURL: URL = BackendConfig.apiBaseURL
     var session: URLSession = .shared
+    var longRunningSession: URLSession?
     var requestTimeout: TimeInterval = 30
     private let logger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
+
+    init(
+        baseURL: URL = BackendConfig.apiBaseURL,
+        session: URLSession = .shared,
+        longRunningSession: URLSession? = nil,
+        requestTimeout: TimeInterval = 30
+    ) {
+        self.baseURL = baseURL
+        self.session = session
+        self.longRunningSession = longRunningSession
+        self.requestTimeout = requestTimeout
+    }
 
     // Long-lived session for upload-resume: AI optimization can take 60-90s.
     private static let uploadSession: URLSession = {
@@ -93,7 +106,7 @@ struct APIClient: Sendable {
         // Use the long-running session when a custom timeout is requested so the
         // session-level timeoutIntervalForRequest is also extended — not just the
         // per-request value. This matches the uploadResume pattern.
-        let activeSession = timeout != nil ? Self.uploadSession : session
+        let activeSession = timeout != nil ? (longRunningSession ?? Self.uploadSession) : session
         return try await send(request, using: activeSession)
     }
 
@@ -248,7 +261,7 @@ struct APIClient: Sendable {
         )
 
         request.httpBody = body
-        return try await send(request, using: Self.uploadSession)
+        return try await send(request, using: longRunningSession ?? Self.uploadSession)
     }
 
     private func send<T: Decodable>(_ request: URLRequest, using urlSession: URLSession? = nil) async throws -> T {

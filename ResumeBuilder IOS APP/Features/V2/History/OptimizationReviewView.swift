@@ -15,10 +15,12 @@ final class OptimizationReviewViewModel {
     /// True after the apply endpoint returns 500 due to a missing DB column — disables Apply until the server is migrated.
     var serverRequiresMigration = false
 
-    private let api = RuntimeServices.sharedAPIClient
+    private let api: APIClient
+    private let applyTimeout: TimeInterval = 120
 
-    init(reviewId: String) {
+    init(reviewId: String, api: APIClient = RuntimeServices.sharedAPIClient) {
         self.reviewId = reviewId
+        self.api = api
     }
 
     var isAlreadyApplied: Bool {
@@ -75,7 +77,7 @@ final class OptimizationReviewViewModel {
         errorMessage = nil
         defer { isSubmitting = false }
         do {
-            try await apply(with: token)
+            try await applyOrRecover(with: token)
         } catch let apiError as APIClientError {
             switch apiError {
             case .serverError(let status, let message) where status >= 500:
@@ -103,7 +105,7 @@ final class OptimizationReviewViewModel {
         defer { isSubmitting = false }
         do {
             try await appState.callWithFreshToken { token in
-                try await self.apply(with: token)
+                try await self.applyOrRecover(with: token)
             }
         } catch let apiError as APIClientError {
             switch apiError {
@@ -136,7 +138,8 @@ final class OptimizationReviewViewModel {
         let result: OptimizationReviewApplyResponseDTO = try await api.postJSON(
             endpoint: .optimizationReviewApply(id: reviewId),
             body: body,
-            token: token
+            token: token,
+            timeout: applyTimeout
         )
         if let err = result.error, result.optimizationId == nil {
             errorMessage = err
@@ -146,6 +149,58 @@ final class OptimizationReviewViewModel {
         if result.optimizationId?.isEmpty == false {
             AnalyticsService.shared.track(.optimizationCompleted)
         }
+    }
+
+    private func applyOrRecover(with token: String) async throws {
+        do {
+            try await apply(with: token)
+        } catch {
+            if await recoverAppliedState(after: error, token: token) {
+                return
+            }
+            throw error
+        }
+    }
+
+    private func recoverAppliedState(after error: Error, token: String) async -> Bool {
+        guard Self.isTimeout(error) || Self.isAlreadyApplied(error) else { return false }
+        guard let data: OptimizationReviewEnvelope = try? await api.get(
+            endpoint: .optimizationReview(id: reviewId),
+            token: token
+        ) else {
+            return false
+        }
+
+        envelope = data
+        includedGroupIds = Set(data.review.groupedChanges.map(\.id))
+
+        if let optimizationId = data.review.optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !optimizationId.isEmpty {
+            applySuccessOptimizationId = optimizationId
+            errorMessage = nil
+            AnalyticsService.shared.track(.optimizationCompleted)
+            return true
+        }
+
+        if isAlreadyApplied {
+            errorMessage = NSLocalizedString("This review was already applied. Open the optimized resume from the Optimized tab.", comment: "")
+            return true
+        }
+
+        return false
+    }
+
+    private static func isTimeout(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return urlError.code == .timedOut
+        }
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorTimedOut
+    }
+
+    private static func isAlreadyApplied(_ error: Error) -> Bool {
+        guard case .serverError(_, let message) = error as? APIClientError else { return false }
+        return message.lowercased().contains("already") && message.lowercased().contains("applied")
     }
 }
 
