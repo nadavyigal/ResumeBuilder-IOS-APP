@@ -419,7 +419,7 @@ struct HomeTabView: View {
                             .font(.title3.weight(.black))
                             .foregroundStyle(AppColors.textPrimary)
 
-                        Text(viewModel.selectedResumeName?.isEmpty == false ? (viewModel.selectedResumeName ?? "") : "PDF or DOCX · up to 5 MB")
+                        Text(viewModel.selectedResumeName?.isEmpty == false ? (viewModel.selectedResumeName ?? "") : NSLocalizedString("PDF or DOCX · up to 5 MB", comment: ""))
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(viewModel.selectedResumeName?.isEmpty == false ? AppColors.accentSky : AppColors.textSecondary)
                             .lineLimit(2)
@@ -474,7 +474,7 @@ struct HomeTabView: View {
             .shadow(color: AppColors.accentSky.opacity(0.22), radius: 28, y: 12)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? "Résumé selected. Choose a different file." : "Upload your résumé. PDF or DOCX up to 5 megabytes.")
+        .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? NSLocalizedString("Résumé selected. Choose a different file.", comment: "") : NSLocalizedString("Upload your résumé. PDF or DOCX up to 5 megabytes.", comment: ""))
     }
 
     private var motivationStrip: some View {
