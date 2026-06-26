@@ -1654,15 +1654,29 @@ struct OptimizationReviewJobDescriptionDTO: Decodable, Sendable {
 
 struct OptimizationReviewRunDTO: Decodable, Sendable {
     let id: String
+    let optimizationId: String?
     let groupedChanges: [ReviewChangeGroupDTO]
     let atsPreview: ReviewATSPreviewDTO?
     let appliedAt: String?
 
     private enum CodingKeys: String, CodingKey {
         case id
+        case optimizationId
+        case optimization_id
         case groupedChanges = "grouped_changes_json"
         case atsPreview = "ats_preview_json"
         case appliedAt = "applied_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        optimizationId =
+            try c.decodeIfPresent(String.self, forKey: .optimizationId)
+            ?? c.decodeIfPresent(String.self, forKey: .optimization_id)
+        groupedChanges = try c.decode([ReviewChangeGroupDTO].self, forKey: .groupedChanges)
+        atsPreview = try c.decodeIfPresent(ReviewATSPreviewDTO.self, forKey: .atsPreview)
+        appliedAt = try c.decodeIfPresent(String.self, forKey: .appliedAt)
     }
 }
 

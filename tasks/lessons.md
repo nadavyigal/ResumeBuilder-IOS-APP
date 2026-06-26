@@ -303,6 +303,11 @@
 **Rule:** After merging a PR, fetch and pull `main` in the local Xcode working copy before rebuilding, then confirm Xcode's branch popover shows `main`.
 **Why:** The app was rebuilt from local `main` while it was still two commits behind `origin/main`, so the installed binary still contained code removed by the merged PR.
 
+### 2026-06-26
+**Category:** API
+**Rule:** Non-idempotent apply mutations must use a long timeout and recover timeout/already-applied responses by reloading server state before surfacing an error.
+**Why:** Real-device smoke showed optimization review apply could time out after the server had already applied changes; retry then returned "This review has already been applied" and stranded the user instead of opening the optimized resume.
+
 ### 2026-05-24
 **Category:** PDF
 **Rule:** For live optimize uploads, send a backend-readable text-layer PDF generated from iOS-extracted text instead of trusting the original PDF internals.
