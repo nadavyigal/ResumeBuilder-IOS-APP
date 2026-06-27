@@ -7229,6 +7229,16 @@
         }
       }
     },
+    "This review was already applied. Open the optimized resume from the Optimized tab." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סקירה זו כבר הוחלה. פתח את קורות החיים המשופרים בלשונית משופר."
+          }
+        }
+      }
+    },
     "Tip %lld" : {
       "localizations" : {
         "he" : {

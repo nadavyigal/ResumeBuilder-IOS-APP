@@ -1,3 +1,36 @@
+# Story: v1.1 Build 7 ASC Submission Handoff (2026-06-27)
+
+Decision: code on `main` is locally archive-ready for v1.1 (7) after resolving the string-catalog extraction diff; App Store Connect submission remains founder-only because this machine does not have an Apple Distribution signing identity.
+
+## Fixed
+- [x] Inspected the uncommitted `ResumeBuilder IOS APP/Resources/Localizable.xcstrings` diff.
+- [x] Kept the legitimate extracted recovery string: "This review was already applied. Open the optimized resume from the Optimized tab."
+- [x] Added Hebrew translation for that recovery string so HE/RTL runtime language mode does not fall back to English.
+
+## Confirmed
+- [x] `MARKETING_VERSION = 1.1`
+- [x] `CURRENT_PROJECT_VERSION = 7`
+- [x] Bundle ID: `Resumebuilder-IOS.ResumeBuilder-IOS-APP`
+- [x] `BackendConfig.isFitCheckEnabled = true`
+- [x] Production API base URL in project settings: `https://www.resumelybuilderai.com`
+- [x] Entitlements contain Sign in with Apple and no additional unexpected entitlement.
+- [x] Local signing blocker remains: keychain has Apple Development only, no Apple Distribution identity.
+
+## Validation
+- [x] `jq empty "ResumeBuilder IOS APP/Resources/Localizable.xcstrings"`
+- [x] Full Debug simulator tests on iPhone 17 iOS 26.5 — 107 XCTest + 5 Swift Testing, 0 failures.
+- [x] Release `iphoneos` compile/store-validation proxy — `xcodebuild build ... -configuration Release -destination "generic/platform=iOS" CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
+
+## Founder-only ASC steps
+- [ ] Open Xcode on `main`, resolve Apple Distribution signing for team `8VC4R5M425`.
+- [ ] Product → Archive.
+- [ ] Organizer → Validate App.
+- [ ] Organizer → Distribute App → App Store Connect.
+- [ ] In ASC, select/upload build `1.1 (7)`, fill release notes, and submit for review.
+- [ ] After approval and App Store live availability, verify production PostHog project `270848` receives WP-18 upload-funnel events: `resume_upload_cta_tapped`, `resume_file_picker_opened`, `resume_file_selected`, `resume_upload_succeeded`.
+
+---
+
 # Story: Optimization Review Apply Timeout Recovery (2026-06-26)
 
 Decision: fix the real-device apply failure as an iOS recovery gap around a non-idempotent backend mutation. The apply endpoint can finish server-side after the client times out; iOS must reload review state and continue to the optimized resume instead of surfacing the retry's already-applied error.
