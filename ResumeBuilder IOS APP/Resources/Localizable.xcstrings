@@ -1317,6 +1317,7 @@
       }
     },
     "ATS match" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -2072,6 +2073,16 @@
         }
       }
     },
+    "Cover letter saved in this application." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המכתב המלווה נשמר בהגשה הזו."
+          }
+        }
+      }
+    },
     "Cover letters & submit packages" : {
 
     },
@@ -2616,6 +2627,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ניתוח מומחה"
+          }
+        }
+      }
+    },
+    "Expert Analysis requires an optimized resume linked to this application." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניתוח מומחה דורש קורות חיים מותאמים שמקושרים להגשה הזו."
           }
         }
       }
@@ -3247,6 +3268,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תשובות בסגנון ראיון המבוססות על הישגים."
+          }
+        }
+      }
+    },
+    "Interview Prep" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הכנה לראיון"
+          }
+        }
+      }
+    },
+    "Interview Q&A" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שאלות ותשובות לראיון"
           }
         }
       }
@@ -4081,6 +4122,16 @@
     "no file handy?" : {
 
     },
+    "No job link attached" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא צורף קישור משרה"
+          }
+        }
+      }
+    },
     "No job link is attached yet. Add the job URL before saving so the package can track this application." : {
       "localizations" : {
         "he" : {
@@ -4260,6 +4311,7 @@
       }
     },
     "Open Resume Link" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4523,6 +4575,7 @@
       }
     },
     "Package" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4538,6 +4591,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תכולת החבילה"
+          }
+        }
+      }
+    },
+    "Package not complete" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החבילה לא הושלמה"
           }
         }
       }
@@ -5310,6 +5373,7 @@
       }
     },
     "Resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6866,6 +6930,7 @@
       }
     },
     "Submission Package" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {

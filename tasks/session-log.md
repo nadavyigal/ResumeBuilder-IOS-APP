@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Fix Submit Package reopened-from-Me persistence for build 1.1 (7).
+**Files Changed:** `App/AppState.swift`, `Core/API/Models/DomainModels.swift`, `Features/Track/ApplicationDetailView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Improve/SubmitApplicationViewModel.swift`, `Resources/Localizable.xcstrings`, `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift`, task notes.
+**Decisions Made:** Kept Submit Package internal and additive. Save to Me now stores package metadata in `job_extraction` and local cache, while the reopened Me detail falls back through backend reports, job extraction, remembered job URL, and cached package content for Job Link, Cover Letter, and Interview Q&A.
+**Next Recommended Action:** Rebuild 1.1 (7) on phone and smoke LinkedIn URL optimize → Submit Package → Save to Me → open from Me. Expected result: Job Link, Cover Letter, and Interview Q&A are visible; no recruiter send happens automatically.
+
+**Date:** 2026-06-28
 **Task:** Make Me application detail look like Submit Package and move language switching to Home for build 1.1 (7).
 **Files Changed:** `Features/Track/ApplicationDetailView.swift`, `Features/Profile/ProfileView.swift`, `Features/V2/Home/HomeTabView.swift`, `Core/Localization/LocalizationManager.swift`, `Resources/Localizable.xcstrings`, task notes.
 **Decisions Made:** Saved applications opened from Me now use the same internal package model as Submit Package, including package contents, cover letter, job link actions, and “nothing is sent automatically” copy. Language switching is now a Home-level control, not a Me/Profile setting.

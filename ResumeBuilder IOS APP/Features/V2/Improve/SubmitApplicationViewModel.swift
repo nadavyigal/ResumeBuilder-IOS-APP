@@ -201,6 +201,7 @@ final class SubmitApplicationViewModel {
                     status: "saved",
                     optimizationId: package.optimizationId,
                     optimizedResumeId: package.optimizationId,
+                    jobExtraction: packageJobExtraction(from: package),
                     contact: contactJSON(from: resumeProvider?.contact)
                 ),
                 token: token
@@ -345,6 +346,34 @@ final class SubmitApplicationViewModel {
             object["portfolio"] = .string(portfolio)
         }
         return object.isEmpty ? nil : .object(object)
+    }
+
+    private func packageJobExtraction(from package: SubmitApplicationPackage) -> JSONValue {
+        var submitPackage: [String: JSONValue] = [
+            "optimization_id": .string(package.optimizationId),
+            "cover_letter_text": .string(package.coverLetterText),
+            "screening_answers": .array(
+                package.screeningAnswers.map { answer in
+                    .object([
+                        "id": .number(Double(answer.id)),
+                        "question": .string(answer.question),
+                        "answer": .string(answer.answer),
+                        "evidence_used": .array(answer.evidenceUsed.map { .string($0) }),
+                        "confidence_note": answer.confidenceNote.map(JSONValue.string) ?? .null,
+                    ])
+                }
+            ),
+        ]
+        if let sourceURLString = package.sourceURLString?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !sourceURLString.isEmpty {
+            submitPackage["source_url"] = .string(sourceURLString)
+            submitPackage["job_url"] = .string(sourceURLString)
+        }
+        return .object([
+            "job_url": package.sourceURLString.map(JSONValue.string) ?? .null,
+            "source_url": package.sourceURLString.map(JSONValue.string) ?? .null,
+            "submit_package": .object(submitPackage),
+        ])
     }
 
     private func firstString(in value: JSONValue, keys: [String]) -> String? {

@@ -34,6 +34,10 @@ struct ApplicationDetailView: View {
                         coverLetterCard(report)
                     }
 
+                    if !screeningAnswers.isEmpty {
+                        screeningAnswersCard(screeningAnswers)
+                    }
+
                     secondaryActionsCard
                     overviewCard
 
@@ -59,7 +63,7 @@ struct ApplicationDetailView: View {
                         atsScoreAfter: vm.item.atsScore,
                         jobTitle: vm.item.jobTitle,
                         company: vm.item.companyName,
-                        jobURLString: vm.item.sourceURL
+                        jobURLString: resolvedSourceURLString
                     ),
                     onSwitchTab: onSwitchTab
                 )
@@ -83,7 +87,7 @@ struct ApplicationDetailView: View {
                     atsScoreAfter: vm.item.atsScore,
                     jobTitle: vm.item.jobTitle,
                     company: vm.item.companyName,
-                    jobURLString: vm.item.sourceURL
+                    jobURLString: resolvedSourceURLString
                 )
                 expertVM = ExpertModesViewModel(
                     optimizationId: oid,
@@ -132,7 +136,7 @@ struct ApplicationDetailView: View {
     }
 
     private var hasPackageContent: Bool {
-        optimizedAttachmentSummary != nil || coverLetterReport != nil || packageJobURL != nil
+        optimizedAttachmentSummary != nil || coverLetterReport != nil || packageJobURL != nil || !screeningAnswers.isEmpty
     }
 
     private var packageHeader: some View {
@@ -203,12 +207,19 @@ struct ApplicationDetailView: View {
                 isPresent: coverLetterReport != nil
             )
 
+            packageContentRow(
+                title: "Interview Q&A",
+                detail: screeningAnswers.isEmpty ? nil : "\(screeningAnswers.count)",
+                icon: "text.bubble.fill",
+                isPresent: !screeningAnswers.isEmpty
+            )
+
             if let url = packageJobURL {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Label("Job Link", systemImage: "link")
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textSecondary)
-                    Text(vm.item.sourceURL ?? url.absoluteString)
+                    Text(resolvedSourceURLString ?? url.absoluteString)
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textPrimary)
                         .lineLimit(2)
@@ -293,6 +304,35 @@ struct ApplicationDetailView: View {
                 .foregroundStyle(AppColors.textSecondary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func screeningAnswersCard(_ answers: [SubmitPackageCachedScreeningAnswer]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Interview Prep")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            ForEach(answers) { answer in
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(answer.question)
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text(answer.answer)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let note = answer.confidenceNote?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+                        Text(note)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
@@ -416,17 +456,122 @@ struct ApplicationDetailView: View {
             report.workflowType == ExpertWorkflowType.coverLetterArchitect.rawValue
                 || report.reportTitle?.localizedCaseInsensitiveContains("cover") == true
                 || report.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        } ?? cachedCoverLetterReport
+    }
+
+    private var cachedCoverLetterReport: ApplicationExpertReportItem? {
+        guard let coverLetterText = resolvedCoverLetterText else { return nil }
+        return ApplicationExpertReportItem(
+            id: "local-cover-letter-\(resolvedOptimizationId ?? vm.item.id)",
+            reportTitle: NSLocalizedString("Cover Letter", comment: ""),
+            workflowType: ExpertWorkflowType.coverLetterArchitect.rawValue,
+            coverLetterText: coverLetterText
+        )
+    }
+
+    private var screeningAnswers: [SubmitPackageCachedScreeningAnswer] {
+        if let reportAnswers = screeningAnswersFromReports, !reportAnswers.isEmpty {
+            return reportAnswers
+        }
+        if let extractionAnswers = screeningAnswersFromJobExtraction, !extractionAnswers.isEmpty {
+            return extractionAnswers
+        }
+        return cachedSubmitPackage?.screeningAnswers ?? []
+    }
+
+    private var screeningAnswersFromReports: [SubmitPackageCachedScreeningAnswer]? {
+        guard let report = vm.expertReports.first(where: {
+            $0.workflowType == ExpertWorkflowType.screeningAnswerStudio.rawValue
+                || $0.reportTitle?.localizedCaseInsensitiveContains("screening") == true
+                || $0.reportTitle?.localizedCaseInsensitiveContains("interview") == true
+        }), let outputJson = report.outputJson else {
+            return nil
+        }
+        let parsed = ExpertReportParsing.parsedOutput(from: outputJson)
+        return parsed.screeningAnswers.map(Self.cachedAnswer(from:))
+    }
+
+    private var screeningAnswersFromJobExtraction: [SubmitPackageCachedScreeningAnswer]? {
+        guard let answers = submitPackageExtraction?["screening_answers"], case .array(let rows) = answers else {
+            return nil
+        }
+        return rows.enumerated().compactMap { offset, row in
+            let question = row["question"]?.stringValue
+            let answer = row["answer"]?.stringValue
+            guard let question, let answer else { return nil }
+            let evidence: [String]
+            if let evidenceValue = row["evidence_used"], case .array(let values) = evidenceValue {
+                evidence = values.compactMap(\.stringValue)
+            } else {
+                evidence = []
+            }
+            return SubmitPackageCachedScreeningAnswer(
+                id: Int(row["id"]?.numberValue ?? Double(offset)),
+                question: question,
+                answer: answer,
+                evidenceUsed: evidence,
+                confidenceNote: row["confidence_note"]?.stringValue
+            )
         }
     }
 
     private var packageJobURL: URL? {
-        guard let raw = vm.item.sourceURL?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+        guard let raw = resolvedSourceURLString else {
             return nil
         }
         if let url = URL(string: raw), url.scheme != nil {
             return url
         }
         return URL(string: "https://\(raw)")
+    }
+
+    private var resolvedSourceURLString: String? {
+        firstNonEmpty(
+            vm.item.sourceURL,
+            vm.item.jobExtraction?["source_url"]?.stringValue,
+            vm.item.jobExtraction?["job_url"]?.stringValue,
+            submitPackageExtraction?["source_url"]?.stringValue,
+            submitPackageExtraction?["job_url"]?.stringValue,
+            appState.jobURL(for: resolvedOptimizationId),
+            cachedSubmitPackage?.sourceURLString
+        )
+    }
+
+    private var resolvedCoverLetterText: String? {
+        firstNonEmpty(
+            submitPackageExtraction?["cover_letter_text"]?.stringValue,
+            cachedSubmitPackage?.coverLetterText
+        )
+    }
+
+    private var resolvedOptimizationId: String? {
+        vm.item.optimizationId ?? vm.item.optimizedResumeId
+    }
+
+    private var cachedSubmitPackage: SubmitPackageCacheRecord? {
+        appState.submitPackageRecord(for: resolvedOptimizationId)
+    }
+
+    private var submitPackageExtraction: JSONValue? {
+        vm.item.jobExtraction?["submit_package"]
+    }
+
+    private static func cachedAnswer(from answer: ExpertScreeningAnswer) -> SubmitPackageCachedScreeningAnswer {
+        SubmitPackageCachedScreeningAnswer(
+            id: answer.id,
+            question: answer.question,
+            answer: answer.answer,
+            evidenceUsed: answer.evidenceUsed,
+            confidenceNote: answer.confidenceNote
+        )
+    }
+
+    private func firstNonEmpty(_ values: String?...) -> String? {
+        for value in values {
+            let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return nil
     }
 
     @MainActor

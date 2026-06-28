@@ -1346,7 +1346,21 @@ private struct SubmitApplicationSheet: View {
                     ) {
                         Task {
                             await vm.savePackageToMe(token: accessToken)
-                            if vm.package?.application != nil {
+                            if let savedPackage = vm.package, savedPackage.application != nil {
+                                appState.rememberSubmitPackage(
+                                    for: savedPackage.optimizationId,
+                                    sourceURLString: savedPackage.sourceURLString,
+                                    coverLetterText: savedPackage.coverLetterText,
+                                    screeningAnswers: savedPackage.screeningAnswers.map {
+                                        SubmitPackageCachedScreeningAnswer(
+                                            id: $0.id,
+                                            question: $0.question,
+                                            answer: $0.answer,
+                                            evidenceUsed: $0.evidenceUsed,
+                                            confidenceNote: $0.confidenceNote
+                                        )
+                                    }
+                                )
                                 appState.applicationsRefreshToken += 1
                             }
                         }

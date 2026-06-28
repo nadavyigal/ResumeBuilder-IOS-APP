@@ -15,6 +15,11 @@
 
 ## Lessons
 
+**Date:** 2026-06-28
+**Category:** Build
+**Rule:** When broadening a response envelope for decode-only API use, make the envelope `Decodable` unless the app actually encodes it.
+**Why:** Submit Package expert-report loading needed to decode `reports`, `expert_reports`, `data`, or a bare array. Leaving the envelope as `Codable` forced Swift to synthesize an encoder for alias-only keys and broke the build.
+
 **Date:** 2026-06-25
 **Category:** Build
 **Rule:** The full test suite intermittently crashes the test host with `malloc: *** error for object 0x7ffd41cb7680: pointer being freed was not allocated`, always at the SAME memory address but in a DIFFERENT test each run (seen in `ResumeDiagnosisViewModelTests.testViewModelStartsEmptyWithoutOptimizationId` and separately in `OptimizedResumeViewModelTests.testATSInsightsExplainLowScoreAndExposeActions`) — this is a host-process-level instability, not a bug in any specific test or the app code under test. `xcodebuild -only-testing`/`-skip-testing` doesn't avoid it since it isn't tied to one test. The Debug build itself always succeeds clean, and every test that completes always passes. Don't chase this as a code bug; if it blocks a full-suite run, fall back to confirming the build is green plus spot-checking the relevant suites individually.

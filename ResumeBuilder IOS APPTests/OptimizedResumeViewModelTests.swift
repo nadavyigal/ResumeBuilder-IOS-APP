@@ -358,6 +358,59 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(envelope.expertReports.first?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
     }
 
+    func testApplicationItemDecodesJobURLFromSubmitPackageExtraction() throws {
+        let json = """
+        {
+          "id": "app-1",
+          "job_title": "iOS Engineer",
+          "company_name": "Acme",
+          "optimization_id": "opt-1",
+          "job_extraction": {
+            "submit_package": {
+              "job_url": "https://www.linkedin.com/jobs/view/123",
+              "cover_letter_text": "Dear team",
+              "screening_answers": []
+            }
+          }
+        }
+        """
+
+        let item = try JSONDecoder().decode(ApplicationItem.self, from: Data(json.utf8))
+
+        XCTAssertEqual(item.sourceURL, "https://www.linkedin.com/jobs/view/123")
+        XCTAssertEqual(item.jobExtraction?["submit_package"]?["cover_letter_text"]?.stringValue, "Dear team")
+    }
+
+    func testApplicationExpertReportsEnvelopeDecodesBackendAliases() throws {
+        let json = """
+        {
+          "success": true,
+          "expert_reports": [
+            {
+              "id": "report-1",
+              "run_id": "run-1",
+              "report_title": "Interview Prep",
+              "workflow_type": "screening_answer_studio",
+              "output_json": {
+                "screening_answers": [
+                  {
+                    "question": "Why this company?",
+                    "answer": "Because the role matches my partner strategy background."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+        """
+
+        let envelope = try JSONDecoder().decode(ApplicationExpertReportsEnvelope.self, from: Data(json.utf8))
+
+        XCTAssertEqual(envelope.reports.count, 1)
+        XCTAssertEqual(envelope.reports.first?.workflowType, "screening_answer_studio")
+        XCTAssertEqual(envelope.reports.first?.runId, "run-1")
+    }
+
     func testSubmitApplicationPackageGeneratesDraftBeforeSavingToMe() async throws {
         let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
         try Data("%PDF phase 2".utf8).write(to: resumeURL)
@@ -424,6 +477,14 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(applicationService.createdRequests.first?.sourceURL, "https://example.com/job")
         XCTAssertEqual(applicationService.createdRequests.first?.optimizationId, "opt-1")
         XCTAssertEqual(applicationService.createdRequests.first?.optimizedResumeId, "opt-1")
+        XCTAssertEqual(
+            applicationService.createdRequests.first?.jobExtraction?["submit_package"]?["job_url"]?.stringValue,
+            "https://example.com/job"
+        )
+        XCTAssertEqual(
+            applicationService.createdRequests.first?.jobExtraction?["submit_package"]?["cover_letter_text"]?.stringValue,
+            "Dear Hiring Manager,\nI am excited to apply."
+        )
         XCTAssertEqual(applicationService.attached.first?.0, "app-1")
         XCTAssertEqual(applicationService.attached.first?.1, "opt-1")
         XCTAssertEqual(applicationService.markedAppliedIds, [])

@@ -1,3 +1,26 @@
+# Story: Submit Package reopened-from-Me persistence fix (2026-06-28)
+
+Decision: saved packages reopened from Me must reconstruct the full internal package even when the backend list/detail omits `source_url` or returns no saved expert reports.
+
+## Fixed
+- [x] Persist Submit Package metadata locally by optimization id after Save to Me succeeds.
+- [x] Include Submit Package metadata in the application create `job_extraction` payload: job link, optimization id, cover letter text, and screening answers.
+- [x] Decode job links from top-level and nested `job_extraction.submit_package` aliases.
+- [x] Decode expert-report envelopes from `reports`, `expert_reports`, `data`, or a bare array.
+- [x] Reopened Me detail now falls back through backend reports, job extraction, remembered job URL, and local Submit Package cache for Job Link, Cover Letter, and Interview Q&A.
+
+## Validation
+- [x] `git diff --check` — passed.
+- [x] Targeted Submit Package persistence tests — 4 executed, 0 failures.
+- [x] Debug simulator build on iPhone 17 Pro — **BUILD SUCCEEDED**.
+- [x] Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
+- [ ] Founder physical-phone smoke: LinkedIn URL optimize → Submit Package → Save to Me → open from Me and verify Job Link, Cover Letter, and Interview Q&A.
+
+## Note
+- A full `OptimizedResumeViewModelTests` run reached the new passing tests but also hit 4 pre-existing locale-sensitive assertions because the active simulator language was Hebrew; targeted package tests and both builds passed.
+
+---
+
 # Story: Me application detail package UI + Home language switcher (2026-06-28)
 
 Decision: saved applications opened from Me should present as the same internal Submit Package surface, and language selection belongs at the top of Home instead of inside Me.

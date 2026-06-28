@@ -736,10 +736,14 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         optimizationId = try c.decodeIfPresent(String.self, forKey: .optimizationId)
         optimizedResumeURL = try c.decodeIfPresent(String.self, forKey: .optimizedResumeURL)
         optimizedResumeId = try c.decodeIfPresent(String.self, forKey: .optimizedResumeId)
+        jobExtraction = try c.decodeIfPresent(JSONValue.self, forKey: .jobExtraction)
         sourceURL =
             try c.decodeIfPresent(String.self, forKey: .sourceURL)
             ?? c.decodeIfPresent(String.self, forKey: .jobURL)
-        jobExtraction = try c.decodeIfPresent(JSONValue.self, forKey: .jobExtraction)
+            ?? jobExtraction?["source_url"]?.stringValue
+            ?? jobExtraction?["job_url"]?.stringValue
+            ?? jobExtraction?["submit_package"]?["source_url"]?.stringValue
+            ?? jobExtraction?["submit_package"]?["job_url"]?.stringValue
         contact = try c.decodeIfPresent(JSONValue.self, forKey: .contact)
         if let intScore = try? c.decode(Int.self, forKey: .atsScore) {
             atsScore = intScore
@@ -946,13 +950,15 @@ struct ApplicationCreateEnvelope: Decodable, Sendable {
     }
 }
 
-struct ApplicationExpertReportsEnvelope: Codable, Sendable {
+struct ApplicationExpertReportsEnvelope: Decodable, Sendable {
     let success: Bool?
     let reports: [ApplicationExpertReportItem]
 
     enum CodingKeys: String, CodingKey {
         case success
         case reports
+        case expertReports = "expert_reports"
+        case data
     }
 
     init(success: Bool? = nil, reports: [ApplicationExpertReportItem] = []) {
@@ -961,9 +967,18 @@ struct ApplicationExpertReportsEnvelope: Codable, Sendable {
     }
 
     init(from decoder: Decoder) throws {
+        if let bareReports = try? [ApplicationExpertReportItem](from: decoder) {
+            success = nil
+            reports = bareReports
+            return
+        }
         let c = try decoder.container(keyedBy: CodingKeys.self)
         success = try c.decodeIfPresent(Bool.self, forKey: .success)
-        reports = try c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .reports) ?? []
+        reports =
+            try c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .reports)
+            ?? c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .expertReports)
+            ?? c.decodeIfPresent([ApplicationExpertReportItem].self, forKey: .data)
+            ?? []
     }
 }
 
