@@ -9,8 +9,11 @@ final class FitCheckViewModel {
     var result: FitCheckResult?
     var errorMessage: String?
 
-    /// The resume PDF the user has already selected upstream (set by the presenting view).
-    var resumeURL: URL?
+    /// The server-side resume id already produced by the upload/library flow.
+    var resumeId: String?
+
+    /// Bearer token for the authenticated resume-id Fit check.
+    var accessToken: String?
 
     /// Called when the user taps "Optimize for this job" in the verdict.
     var onOptimize: ((String) -> Void)?
@@ -38,8 +41,13 @@ final class FitCheckViewModel {
     }
 
     func checkFit() async {
-        guard let resumeURL else {
+        guard let resumeId, !resumeId.isEmpty else {
             onNeedResume?()
+            return
+        }
+
+        guard let accessToken, !accessToken.isEmpty else {
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
             return
         }
 
@@ -60,9 +68,10 @@ final class FitCheckViewModel {
 
         do {
             let checkResult = try await fitCheckService.checkFit(
-                resumeURL: resumeURL,
+                resumeId: resumeId,
                 jobDescription: trimmed,
                 jobDescriptionURL: nil,
+                accessToken: accessToken,
                 sessionId: nil
             )
             result = checkResult
@@ -78,7 +87,7 @@ final class FitCheckViewModel {
     }
 
     func optimizeForThisJob() {
-        guard let result else { return }
+        guard result != nil else { return }
         AnalyticsService.shared.track(.fitCheckOptimizeTapped)
         let jd = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         onOptimize?(jd)

@@ -15,6 +15,12 @@
 
 ## Sessions
 
+**Date:** 2026-06-28
+**Task:** Execute the Fit-First resume_id swap across iOS, using the stored server resume instead of re-uploading a PDF for the authenticated Fit check.
+**Files Changed:** `Core/API/APIClient.swift`, `Core/API/FitCheckService.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `ResumeBuilder IOS APPTests/FitCheckServiceTests.swift`, `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Kept the original PDF-upload APIClient overload for anonymous/free ATS checks; added a fields-only authenticated overload for `resume_id`; reused Tailor's deferred upload response for both Fit check and subsequent optimize; blocked stale upload reuse with a resume/job context signature; skipped the old live PDF Fit test because the live contract now needs an authenticated saved-resume fixture.
+**Next Recommended Action:** Run a real authenticated simulator/device smoke with a saved resume on iPhone 17 and iPhone SE after credentials/fixture are available, then confirm production `/api/public/ats-check` returns the additive Fit payload for that saved resume.
+
 **Date:** 2026-06-25
 **Task:** QA the uncommitted Resumely activation redesign pass against the work-pack, fix everything found, commit and push.
 **Files Changed:** `Core/API/UploadFilePreflight.swift`, `Core/Analytics/AnalyticsService.swift`, `Features/Profile/ProfileView.swift`, `Features/Score/ScoreResultView.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/V2/Design/DesignTabView.swift`, `Features/V2/Expert/ExpertTabView.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/ResumeOptimizationLoadingView.swift`, `Features/V2/Home/ConnectionLostView.swift` (new), `Features/V2/Improve/OptimizedResumeTabView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Improve/ImproveView.swift` (dead wiring removed), `Resources/Localizable.xcstrings`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`.
