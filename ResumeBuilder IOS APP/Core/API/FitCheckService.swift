@@ -19,9 +19,10 @@ struct FitCheckResult: Equatable, Sendable {
 
 protocol FitCheckServiceProtocol: Sendable {
     func checkFit(
-        resumeURL: URL,
+        resumeId: String,
         jobDescription: String?,
         jobDescriptionURL: String?,
+        accessToken: String?,
         sessionId: String?
     ) async throws -> FitCheckResult
 }
@@ -30,15 +31,17 @@ struct FitCheckService: FitCheckServiceProtocol, Sendable {
     var apiClient: APIClient = RuntimeServices.sharedAPIClient
 
     func checkFit(
-        resumeURL: URL,
+        resumeId: String,
         jobDescription: String?,
         jobDescriptionURL: String?,
+        accessToken: String?,
         sessionId: String?
     ) async throws -> FitCheckResult {
         let result = try await apiClient.runPublicATSCheck(
-            resumeURL: resumeURL,
+            resumeId: resumeId,
             jobDescription: jobDescription,
             jobDescriptionURL: jobDescriptionURL,
+            token: accessToken,
             sessionId: sessionId
         )
         return try Self.map(result)
@@ -90,11 +93,14 @@ struct MockFitCheckService: FitCheckServiceProtocol, Sendable {
     }
 
     func checkFit(
-        resumeURL: URL,
+        resumeId: String,
         jobDescription: String?,
         jobDescriptionURL: String?,
+        accessToken: String?,
         sessionId: String?
     ) async throws -> FitCheckResult {
+        _ = resumeId
+        _ = accessToken
         if let error {
             throw error
         }

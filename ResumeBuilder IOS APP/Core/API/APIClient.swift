@@ -228,6 +228,45 @@ struct APIClient: Sendable {
         )
     }
 
+    func runPublicATSCheck(
+        resumeId: String,
+        jobDescription: String?,
+        jobDescriptionURL: String?,
+        token: String?,
+        sessionId: String?
+    ) async throws -> ATSScoreResult {
+        try await postMultipartFields(
+            endpoint: .publicATSCheck,
+            token: token,
+            sessionId: sessionId,
+            fields: [
+                "resume_id": resumeId,
+                "jobDescription": jobDescription,
+                "jobDescriptionUrl": jobDescriptionURL,
+            ]
+        )
+    }
+
+    private func postMultipartFields<T: Decodable>(
+        endpoint: Endpoint,
+        token: String?,
+        sessionId: String?,
+        fields: [String: String?]
+    ) async throws -> T {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        if let sessionId {
+            request.setValue(sessionId, forHTTPHeaderField: "x-session-id")
+        }
+        request.httpBody = MultipartUploadBodyBuilder.buildFieldsOnly(boundary: boundary, fields: fields)
+        return try await send(request, using: longRunningSession ?? Self.uploadSession)
+    }
+
     private func uploadMultipart<T: Decodable>(
         endpoint: Endpoint,
         fileURL: URL,
@@ -311,6 +350,19 @@ struct APIClient: Sendable {
 }
 
 enum MultipartUploadBodyBuilder {
+    nonisolated static func buildFieldsOnly(
+        boundary: String,
+        fields: [String: String?]
+    ) -> Data {
+        var body = Data()
+        appendFields(to: &body, boundary: boundary, fields: fields, needsLeadingSeparator: false)
+        if !body.isEmpty {
+            body.append("\r\n".data(using: .utf8)!)
+        }
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        return body
+    }
+
     nonisolated static func build(
         boundary: String,
         uploadFile: UploadFileDescriptor,
@@ -322,14 +374,28 @@ enum MultipartUploadBodyBuilder {
         body.append("Content-Type: \(uploadFile.mimeType)\r\n\r\n".data(using: .utf8)!)
         body.append(uploadFile.data)
 
-        for (name, value) in fields {
-            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            body.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-            body.append(value.data(using: .utf8)!)
-        }
+        appendFields(to: &body, boundary: boundary, fields: fields, needsLeadingSeparator: true)
         body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
 
         return body
+    }
+
+    private nonisolated static func appendFields(
+        to body: inout Data,
+        boundary: String,
+        fields: [String: String?],
+        needsLeadingSeparator: Bool
+    ) {
+        var isFirstField = true
+        for (name, value) in fields {
+            guard let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
+            if needsLeadingSeparator || !isFirstField {
+                body.append("\r\n".data(using: .utf8)!)
+            }
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append(value.data(using: .utf8)!)
+            isFirstField = false
+        }
     }
 }

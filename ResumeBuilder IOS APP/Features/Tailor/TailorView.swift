@@ -559,28 +559,43 @@ struct TailorView: View {
             Button {
                 Task {
                     if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
-                        // Fit-First: route JD + resume through the verdict screen first.
-                        // Flag OFF → original path below runs unchanged.
-                        fitCheckViewModel.resumeURL = viewModel.selectedResumeURL
-                        fitCheckViewModel.jobDescription = viewModel.jobDescription
-                        fitCheckViewModel.resetToEntry()
-                        fitCheckViewModel.onOptimize = { _ in
-                            showFitCheck = false
-                            Task {
-                                await viewModel.optimize(appState: appState)
-                                if let optId = viewModel.optimizationId, !optId.isEmpty {
-                                    appState.latestOptimizationId = optId
-                                    pendingDiagnosisOptimizationId = optId
-                                    diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                                    showDiagnosis = true
-                                } else if viewModel.reviewId != nil {
-                                    shouldNavigate = true
+                        do {
+                            guard let upload = try await viewModel.ensureUploadedResumeForCurrentJob(appState: appState),
+                                  let resumeId = upload.resumeId,
+                                  !resumeId.isEmpty else {
+                                if viewModel.errorMessage == nil {
+                                    viewModel.errorMessage = NSLocalizedString("Upload did not return resume or job description ids.", comment: "")
+                                }
+                                return
+                            }
+
+                            // Fit-First: route JD + stored resume id through the verdict screen first.
+                            // Flag OFF → original path below runs unchanged.
+                            fitCheckViewModel.resumeId = resumeId
+                            fitCheckViewModel.accessToken = appState.session?.accessToken
+                            fitCheckViewModel.jobDescription = viewModel.jobDescription
+                            fitCheckViewModel.resetToEntry()
+                            fitCheckViewModel.onOptimize = { _ in
+                                showFitCheck = false
+                                Task {
+                                    await viewModel.optimize(appState: appState)
+                                    if let optId = viewModel.optimizationId, !optId.isEmpty {
+                                        appState.latestOptimizationId = optId
+                                        pendingDiagnosisOptimizationId = optId
+                                        diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+                                        showDiagnosis = true
+                                    } else if viewModel.reviewId != nil {
+                                        shouldNavigate = true
+                                    }
                                 }
                             }
+                            fitCheckViewModel.onSkip = { showFitCheck = false }
+                            fitCheckViewModel.onNeedResume = { showFitCheck = false }
+                            showFitCheck = true
+                        } catch {
+                            viewModel.errorMessage = error.localizedDescription
+                            viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
                         }
-                        fitCheckViewModel.onSkip = { showFitCheck = false }
-                        fitCheckViewModel.onNeedResume = { showFitCheck = false }
-                        showFitCheck = true
                     } else if appState.isAuthenticated {
                         await viewModel.optimize(appState: appState)
                         #if DEBUG

@@ -146,9 +146,10 @@ final class FitCheckServiceTests: XCTestCase {
         let service = MockFitCheckService(result: expected)
 
         let result = try await service.checkFit(
-            resumeURL: URL(fileURLWithPath: "/tmp/resume.pdf"),
+            resumeId: "resume-1",
             jobDescription: "Build iOS apps",
             jobDescriptionURL: nil,
+            accessToken: "token-1",
             sessionId: nil
         )
 

@@ -1,3 +1,23 @@
+# Story: Fit-First resume_id swap (2026-06-28)
+
+Decision: the authenticated iOS Fit-First check now sends the stored server `resumeId` to the existing `POST /api/public/ats-check` instead of re-uploading a PDF. The anonymous PDF-upload contract remains available through the original `APIClient.runPublicATSCheck(resumeURL:...)` overload.
+
+## Fixed
+- [x] Added an authenticated fields-only public ATS check path in `APIClient` with `resume_id`, job fields, bearer token, and optional `x-session-id`.
+- [x] Changed `FitCheckService`/`FitCheckViewModel` to require `resumeId` and `accessToken` for the iOS Fit check.
+- [x] Reused Tailor's existing deferred upload path to get the server `resumeId` before opening Fit check.
+- [x] Prevented stale upload reuse by keying the cached upload response to selected resume path + trimmed job description + trimmed job URL.
+- [x] Reused the same upload response for optimize after Fit check so the app does not upload twice.
+- [x] Updated focused Fit check tests for the resume-id contract and missing-token guard.
+
+## Validation
+- [x] Focused `FitCheckServiceTests` + `FitCheckViewModelTests` on iPhone 17 simulator — 21 executed, 1 skipped live fixture, 0 failures.
+- [x] Debug simulator build on iPhone 17 — **BUILD SUCCEEDED**.
+- [x] `git diff --check` — passed.
+- [ ] Real authenticated saved-resume Fit-check simulator smoke on iPhone 17/iPhone SE — blocked by no authenticated saved-resume fixture/credentials in this session.
+
+---
+
 # Story: v1.1 Build 7 ASC Submission Handoff (2026-06-27)
 
 Decision: code on `main` is locally archive-ready for v1.1 (7) after resolving the string-catalog extraction diff; App Store Connect submission remains founder-only because this machine does not have an Apple Distribution signing identity.

@@ -33,6 +33,7 @@ final class TailorViewModel {
 
     private let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationService: any ResumeOptimizationServiceProtocol
+    private var uploadContextSignature: String?
 
     init(
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
@@ -96,8 +97,68 @@ final class TailorViewModel {
         selectedResumeName = displayName
     }
 
-    func optimize(appState: AppState) async {
+    func ensureUploadedResumeForCurrentJob(appState: AppState) async throws -> ResumeUploadResponse? {
         guard let selectedResumeURL else {
+            errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
+            return nil
+        }
+
+        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let currentUploadSignature = [
+            selectedResumeURL.path,
+            trimmedDescription,
+            trimmedURL,
+        ].joined(separator: "\u{1F}")
+        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
+            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
+            return nil
+        }
+
+        guard appState.session?.accessToken != nil else {
+            errorMessage = NSLocalizedString("Please sign in first.", comment: "")
+            return nil
+        }
+
+        if let upload = uploadResponse,
+           uploadContextSignature == currentUploadSignature,
+           upload.resumeId?.isEmpty == false,
+           upload.jobDescriptionId?.isEmpty == false {
+            return upload
+        }
+
+        let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
+        AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
+
+        let upload = try await appState.callWithFreshToken { token in
+            try await self.apiClient.uploadResume(
+                fileURL: selectedResumeURL,
+                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                token: token,
+                deferOptimization: true
+            )
+        }
+        uploadResponse = upload
+        uploadContextSignature = currentUploadSignature
+        AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
+        #if DEBUG
+        print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
+        #endif
+
+        let fileExt = selectedResumeURL.pathExtension.lowercased()
+        let fileType = fileExt.isEmpty ? "unknown" : fileExt
+        AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
+
+        if let resumeId = upload.resumeId, !resumeId.isEmpty {
+            pendingSaveResumeId = resumeId
+        }
+
+        return upload
+    }
+
+    func optimize(appState: AppState) async {
+        guard selectedResumeURL != nil else {
             errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return
         }
@@ -123,37 +184,11 @@ final class TailorViewModel {
 
         AnalyticsService.shared.track(.optimizationStarted)
 
-        let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
-        var didUpload = false
+        var didUpload = uploadResponse?.resumeId?.isEmpty == false
 
         do {
-            AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
-            // Step 1 — upload PDF + job context. Server stores resume and JD,
-            // returns ids we need for the optimize call.
-            let upload = try await appState.callWithFreshToken { token in
-                try await self.apiClient.uploadResume(
-                    fileURL: selectedResumeURL,
-                    jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
-                    jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
-                    token: token,
-                    deferOptimization: true
-                )
-            }
-            uploadResponse = upload
+            guard let upload = try await ensureUploadedResumeForCurrentJob(appState: appState) else { return }
             didUpload = true
-            AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
-            #if DEBUG
-            print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
-            #endif
-
-            let fileExt = selectedResumeURL.pathExtension.lowercased()
-            let fileType = fileExt.isEmpty ? "unknown" : fileExt
-            AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
-
-            // Offer to save the uploaded resume to the library (prompt shown in TailorView).
-            if let resumeId = upload.resumeId, !resumeId.isEmpty {
-                pendingSaveResumeId = resumeId
-            }
 
             // Some backends return reviewId straight from upload — short-circuit.
             if let reviewId = upload.reviewId, !reviewId.isEmpty {
