@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Quick-fix Fit-First real-device smoke gap before archive.
+**Files Changed:** `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorView.swift`, `Features/Tailor/TailorViewModel.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Kept the existing server/API contract and feature flag; fixed the missed V2 Home entry point by routing Analyze through `FitCheckView` before optimize; corrected save prompt id state to use optimization ids, not uploaded resume ids.
+**Next Recommended Action:** Founder rebuild on physical device from `main` and smoke Home Analyze. Expected log order: upload/ensure resume, Fit check sheet, `fit_check_started`, `POST /api/public/ats-check`, then `/api/optimize` only after tapping the Fit verdict optimize CTA.
+
+**Date:** 2026-06-28
 **Task:** Execute the Fit-First resume_id swap across iOS, using the stored server resume instead of re-uploading a PDF for the authenticated Fit check.
 **Files Changed:** `Core/API/APIClient.swift`, `Core/API/FitCheckService.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `ResumeBuilder IOS APPTests/FitCheckServiceTests.swift`, `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
 **Decisions Made:** Kept the original PDF-upload APIClient overload for anonymous/free ATS checks; added a fields-only authenticated overload for `resume_id`; reused Tailor's deferred upload response for both Fit check and subsequent optimize; blocked stale upload reuse with a resume/job context signature; skipped the old live PDF Fit test because the live contract now needs an authenticated saved-resume fixture.

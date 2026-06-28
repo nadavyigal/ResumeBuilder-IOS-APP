@@ -150,10 +150,6 @@ final class TailorViewModel {
         let fileType = fileExt.isEmpty ? "unknown" : fileExt
         AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
 
-        if let resumeId = upload.resumeId, !resumeId.isEmpty {
-            pendingSaveResumeId = resumeId
-        }
-
         return upload
     }
 
@@ -221,6 +217,7 @@ final class TailorViewModel {
                 #endif
             } else if let optId = optimize.optimizationId, !optId.isEmpty {
                 self.optimizationId = optId
+                pendingSaveResumeId = optId
                 #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
                 #endif

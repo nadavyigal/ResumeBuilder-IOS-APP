@@ -1,3 +1,21 @@
+# Story: Fit-First Home smoke quick fix (2026-06-28)
+
+Decision: the V2 Home Analyze path must route through Fit-First when `BackendConfig.isFitCheckEnabled = true`; Tailor-only wiring was insufficient for build 1.1 (7) smoke.
+
+## Fixed
+- [x] `HomeTabView.runAnalysis()` now prepares the saved server resume, opens `FitCheckView`, and only continues to optimize from the Fit verdict CTA.
+- [x] The Home Fit check passes `resumeId`, bearer token, and job description to `FitCheckViewModel`.
+- [x] Direct optimize/review apply save prompts now use the optimization id rather than the uploaded resume id, avoiding the observed save 404.
+
+## Validation
+- [x] `git diff --check` — passed.
+- [x] Debug simulator build on iPhone 17 — **BUILD SUCCEEDED**.
+- [x] Focused `FitCheckServiceTests` + `FitCheckViewModelTests` on iPhone 17 simulator — 21 executed, 1 skipped live fixture, 0 failures.
+- [x] Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
+- [ ] Founder physical-phone smoke after rebuild: Home Analyze should show Fit check and log `/api/public/ats-check` before `/api/optimize`.
+
+---
+
 # Story: Fit-First resume_id swap (2026-06-28)
 
 Decision: the authenticated iOS Fit-First check now sends the stored server `resumeId` to the existing `POST /api/public/ats-check` instead of re-uploading a PDF. The anonymous PDF-upload contract remains available through the original `APIClient.runPublicATSCheck(resumeURL:...)` overload.

@@ -218,6 +218,7 @@ struct TailorView: View {
                         viewModel: OptimizationReviewViewModel(reviewId: reviewId),
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
+                            viewModel.pendingSaveResumeId = optId
                             shouldNavigate = false
                             pendingDiagnosisOptimizationId = optId
                             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)

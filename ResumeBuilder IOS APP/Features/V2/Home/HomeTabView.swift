@@ -20,6 +20,8 @@ struct HomeTabView: View {
     @State private var libraryViewModel = ResumeLibraryViewModel()
     @State private var appeared = false
     @State private var didTrackJobAdded = false
+    @State private var showFitCheck = false
+    @State private var fitCheckViewModel = FitCheckViewModel()
 
     private var activationState: HomeActivationState {
         HomeActivationState.derive(from: .init(
@@ -139,6 +141,11 @@ struct HomeTabView: View {
                     openResumeImporter()
                 }
             }
+            .sheet(isPresented: $showFitCheck) {
+                NavigationStack {
+                    FitCheckView(viewModel: fitCheckViewModel)
+                }
+            }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
                     showOnboarding = false
@@ -218,6 +225,7 @@ struct HomeTabView: View {
                         viewModel: OptimizationReviewViewModel(reviewId: reviewId),
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
+                            viewModel.pendingSaveResumeId = optId
                             shouldNavigate = false
                             pendingDiagnosisOptimizationId = optId
                             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
@@ -285,15 +293,10 @@ struct HomeTabView: View {
 
     private func runAnalysis() async {
         if appState.isAuthenticated {
-            // optimizationStarted / optimizationCompleted are fired inside
-            // TailorViewModel.optimize() — do not double-fire here.
-            await viewModel.optimize(appState: appState)
-            if let optId = viewModel.optimizationId, !optId.isEmpty {
-                appState.latestOptimizationId = optId
-                pendingDiagnosisOptimizationId = optId
-                showDiagnosis = true
-            } else if viewModel.reviewId != nil {
-                shouldNavigate = true
+            if BackendConfig.isFitCheckEnabled {
+                await prepareFitCheck()
+            } else {
+                await continueOptimization()
             }
         } else {
             await viewModel.runFreeATS(appState: appState)
@@ -303,6 +306,52 @@ struct HomeTabView: View {
                     scoreBucket: AnalyticsEvent.scoreBucket(for: score)
                 ))
             }
+        }
+    }
+
+    private func prepareFitCheck() async {
+        do {
+            guard let upload = try await viewModel.ensureUploadedResumeForCurrentJob(appState: appState),
+                  let resumeId = upload.resumeId,
+                  !resumeId.isEmpty else {
+                if viewModel.errorMessage == nil {
+                    viewModel.errorMessage = NSLocalizedString("Upload did not return resume or job description ids.", comment: "")
+                }
+                return
+            }
+
+            fitCheckViewModel.resumeId = resumeId
+            fitCheckViewModel.accessToken = appState.session?.accessToken
+            fitCheckViewModel.jobDescription = viewModel.jobDescription
+            fitCheckViewModel.resetToEntry()
+            fitCheckViewModel.onOptimize = { _ in
+                showFitCheck = false
+                Task { await continueOptimization() }
+            }
+            fitCheckViewModel.onSkip = { showFitCheck = false }
+            fitCheckViewModel.onNeedResume = {
+                showFitCheck = false
+                openUploadSheet()
+            }
+            showFitCheck = true
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
+        }
+    }
+
+    private func continueOptimization() async {
+        // optimizationStarted / optimizationCompleted are fired inside
+        // TailorViewModel.optimize() — do not double-fire here.
+        await viewModel.optimize(appState: appState)
+        if let optId = viewModel.optimizationId, !optId.isEmpty {
+            appState.latestOptimizationId = optId
+            viewModel.pendingSaveResumeId = optId
+            pendingDiagnosisOptimizationId = optId
+            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+            showDiagnosis = true
+        } else if viewModel.reviewId != nil {
+            shouldNavigate = true
         }
     }
 
