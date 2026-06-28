@@ -240,7 +240,7 @@ struct APIClient: Sendable {
             token: token,
             sessionId: sessionId,
             fields: [
-                "resumeId": resumeId,
+                "resume_id": resumeId,
                 "jobDescription": jobDescription,
                 "jobDescriptionUrl": jobDescriptionURL,
             ]
