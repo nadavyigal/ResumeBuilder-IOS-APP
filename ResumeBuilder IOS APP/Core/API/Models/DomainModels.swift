@@ -53,6 +53,23 @@ enum JSONValue: Codable, Hashable, Sendable {
         guard case .number(let value) = self else { return nil }
         return value
     }
+
+    var displayString: String {
+        switch self {
+        case .string(let value):
+            return value
+        case .number(let value):
+            return "\(value)"
+        case .bool(let value):
+            return "\(value)"
+        case .array(let values):
+            return values.map(\.displayString).filter { !$0.isEmpty }.joined(separator: ", ")
+        case .object:
+            return ""
+        case .null:
+            return ""
+        }
+    }
 }
 
 struct APIStatusResponse: Codable, Sendable {
@@ -545,6 +562,7 @@ struct ATSScoreResult: Codable, Sendable {
     let quickWins: [QuickWin]?
     let checksRemaining: Int?
     let sessionId: String?
+    let fit: FitVerdict?
     let error: String?
 
     struct ScorePayload: Codable, Sendable {
@@ -556,6 +574,73 @@ struct ATSScoreResult: Codable, Sendable {
         let topIssues: [ATSIssue]
         let totalIssues: Int?
         let lockedCount: Int?
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case score
+        case preview
+        case quickWins
+        case quickWinsSnake = "quick_wins"
+        case checksRemaining
+        case checksRemainingSnake = "checks_remaining"
+        case sessionId
+        case sessionIdSnake = "session_id"
+        case fit
+        case error
+    }
+
+    init(
+        success: Bool? = nil,
+        score: ScorePayload? = nil,
+        preview: PreviewPayload? = nil,
+        quickWins: [QuickWin]? = nil,
+        checksRemaining: Int? = nil,
+        sessionId: String? = nil,
+        fit: FitVerdict? = nil,
+        error: String? = nil
+    ) {
+        self.success = success
+        self.score = score
+        self.preview = preview
+        self.quickWins = quickWins
+        self.checksRemaining = checksRemaining
+        self.sessionId = sessionId
+        self.fit = fit
+        self.error = error
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let quickWinsCamel = try c.decodeIfPresent([QuickWin].self, forKey: .quickWins)
+        let quickWinsSnake = try c.decodeIfPresent([QuickWin].self, forKey: .quickWinsSnake)
+        let checksRemainingCamel = try c.decodeIfPresent(Int.self, forKey: .checksRemaining)
+        let checksRemainingSnake = try c.decodeIfPresent(Int.self, forKey: .checksRemainingSnake)
+        let sessionIdCamel = try c.decodeIfPresent(String.self, forKey: .sessionId)
+        let sessionIdSnake = try c.decodeIfPresent(String.self, forKey: .sessionIdSnake)
+
+        self.init(
+            success: try c.decodeIfPresent(Bool.self, forKey: .success),
+            score: try c.decodeIfPresent(ScorePayload.self, forKey: .score),
+            preview: try c.decodeIfPresent(PreviewPayload.self, forKey: .preview),
+            quickWins: quickWinsCamel ?? quickWinsSnake,
+            checksRemaining: checksRemainingCamel ?? checksRemainingSnake,
+            sessionId: sessionIdCamel ?? sessionIdSnake,
+            fit: try c.decodeIfPresent(FitVerdict.self, forKey: .fit),
+            error: try c.decodeIfPresent(String.self, forKey: .error)
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(success, forKey: .success)
+        try c.encodeIfPresent(score, forKey: .score)
+        try c.encodeIfPresent(preview, forKey: .preview)
+        try c.encodeIfPresent(quickWins, forKey: .quickWins)
+        try c.encodeIfPresent(checksRemaining, forKey: .checksRemaining)
+        try c.encodeIfPresent(sessionId, forKey: .sessionId)
+        try c.encodeIfPresent(fit, forKey: .fit)
+        try c.encodeIfPresent(error, forKey: .error)
     }
 }
 
@@ -1327,6 +1412,17 @@ struct ChatApproveChangeResponseDTO: Decodable, Sendable {
     }
 }
 
+/// POST `/api/v1/optimizations/:id/suggestions/:suggestionId/preview`
+struct KeywordSuggestionPreviewDTO: Decodable, Sendable {
+    let suggestionId: String?
+    let affectedFields: [ChatAffectedField]
+
+    private enum CodingKeys: String, CodingKey {
+        case suggestionId = "suggestion_id"
+        case affectedFields = "affected_fields"
+    }
+}
+
 /// POST `/api/v1/chat/sessions/{id}/apply`
 struct ChatApplyAmendmentResponseDTO: Decodable, Sendable {
     let updatedContent: JSONValue?
@@ -1558,15 +1654,29 @@ struct OptimizationReviewJobDescriptionDTO: Decodable, Sendable {
 
 struct OptimizationReviewRunDTO: Decodable, Sendable {
     let id: String
+    let optimizationId: String?
     let groupedChanges: [ReviewChangeGroupDTO]
     let atsPreview: ReviewATSPreviewDTO?
     let appliedAt: String?
 
     private enum CodingKeys: String, CodingKey {
         case id
+        case optimizationId
+        case optimization_id
         case groupedChanges = "grouped_changes_json"
         case atsPreview = "ats_preview_json"
         case appliedAt = "applied_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        optimizationId =
+            try c.decodeIfPresent(String.self, forKey: .optimizationId)
+            ?? c.decodeIfPresent(String.self, forKey: .optimization_id)
+        groupedChanges = try c.decode([ReviewChangeGroupDTO].self, forKey: .groupedChanges)
+        atsPreview = try c.decodeIfPresent(ReviewATSPreviewDTO.self, forKey: .atsPreview)
+        appliedAt = try c.decodeIfPresent(String.self, forKey: .appliedAt)
     }
 }
 

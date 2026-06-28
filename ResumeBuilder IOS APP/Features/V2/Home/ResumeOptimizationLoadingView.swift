@@ -6,15 +6,18 @@ struct ResumeOptimizationLoadingView: View {
         case optimization
         case atsCheck
         case diagnosis
+        case fitCheck
 
         var title: String {
             switch self {
             case .optimization:
                 return NSLocalizedString("Optimizing your resume", comment: "")
             case .atsCheck:
-                return NSLocalizedString("Scanning your resume", comment: "")
+                return NSLocalizedString("Scanning like a recruiter would", comment: "")
             case .diagnosis:
                 return NSLocalizedString("Preparing your diagnosis", comment: "")
+            case .fitCheck:
+                return NSLocalizedString("Checking fit for this role", comment: "")
             }
         }
 
@@ -23,9 +26,11 @@ struct ResumeOptimizationLoadingView: View {
             case .optimization:
                 return NSLocalizedString("Matching your experience to this role.", comment: "")
             case .atsCheck:
-                return NSLocalizedString("Checking ATS signals before you sign in.", comment: "")
+                return NSLocalizedString("Most recruiters scan a resume in about 7 seconds — here's what they'd notice.", comment: "")
             case .diagnosis:
                 return NSLocalizedString("Turning resume and job signals into recruiter-style feedback.", comment: "")
+            case .fitCheck:
+                return NSLocalizedString("Comparing your experience against the job requirements.", comment: "")
             }
         }
 
@@ -40,10 +45,10 @@ struct ResumeOptimizationLoadingView: View {
                 ]
             case .atsCheck:
                 return [
-                    "Reading the resume",
-                    "Finding ATS signals",
-                    "Checking keywords",
-                    "Preparing your score"
+                    "Extracting your text",
+                    "Checking formatting an ATS can parse",
+                    "Comparing your keywords to the role",
+                    "Finding your strongest lines"
                 ]
             case .diagnosis:
                 return [
@@ -51,6 +56,13 @@ struct ResumeOptimizationLoadingView: View {
                     "Comparing against the job",
                     "Finding missing signals",
                     "Preparing recruiter-style feedback"
+                ]
+            case .fitCheck:
+                return [
+                    "Reading the job description",
+                    "Comparing resume signals",
+                    "Estimating keyword match",
+                    "Preparing your verdict"
                 ]
             }
         }

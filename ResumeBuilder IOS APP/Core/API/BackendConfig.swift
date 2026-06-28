@@ -1,6 +1,12 @@
 import Foundation
 
 enum BackendConfig {
+    /// Fit-First Triage — paste a JD before optimizing, get a Strong/Stretch/Skip verdict.
+    /// Enabled 2026-06-24 (v1.1 build 6): ships visible to authenticated users. Targets the
+    /// upload-to-optimize activation drop-off surfaced by the D7 readout; internal smoke passed
+    /// (live /api/public/ats-check 200, all fit_check_* analytics, Hebrew RTL).
+    static let isFitCheckEnabled = true
+
     /// Stage 1 ships without monetization. Flip to `true` once the backend
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
     /// TODO(Stage2-RES-MONETIZATION): enable after sandbox IAP QA passes.

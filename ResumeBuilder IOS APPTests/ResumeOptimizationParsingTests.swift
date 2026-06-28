@@ -80,6 +80,77 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(OptimizeResponse.self, from: snakeJSON).reviewId, "review-snake")
     }
 
+    func testOptimizationReviewEnvelopeDecodesAppliedOptimizationId() throws {
+        let json = """
+        {
+          "review": {
+            "id": "review-1",
+            "optimization_id": "opt-applied",
+            "grouped_changes_json": [],
+            "applied_at": "2026-06-26T14:53:35Z"
+          }
+        }
+        """.data(using: .utf8)!
+
+        let envelope = try JSONDecoder().decode(OptimizationReviewEnvelope.self, from: json)
+
+        XCTAssertEqual(envelope.review.optimizationId, "opt-applied")
+        XCTAssertEqual(envelope.review.appliedAt, "2026-06-26T14:53:35Z")
+    }
+
+    func testOptimizationReviewApplyTimeoutRecoversAppliedOptimizationId() async {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
+        let api = APIClient(
+            baseURL: URL(string: "https://example.test")!,
+            session: URLSession(configuration: config),
+            longRunningSession: URLSession(configuration: config),
+            requestTimeout: 1
+        )
+        let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
+        viewModel.includedGroupIds = ["group-1"]
+
+        OptimizationReviewMockURLProtocol.handler = { request in
+            if request.httpMethod == "POST" {
+                throw URLError(.timedOut)
+            }
+
+            let json = """
+            {
+              "review": {
+                "id": "review-1",
+                "optimization_id": "opt-after-timeout",
+                "grouped_changes_json": [
+                  {
+                    "id": "group-1",
+                    "section": "summary",
+                    "title": "Sharpen summary",
+                    "summary": "Make the opening more relevant.",
+                    "before_excerpt": "Old summary",
+                    "after_excerpt": "New summary"
+                  }
+                ],
+                "applied_at": "2026-06-26T14:53:35Z"
+              }
+            }
+            """.data(using: .utf8)!
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, json)
+        }
+        defer { OptimizationReviewMockURLProtocol.handler = nil }
+
+        await viewModel.apply(token: "token")
+
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.applySuccessOptimizationId, "opt-after-timeout")
+        XCTAssertEqual(viewModel.envelope?.review.optimizationId, "opt-after-timeout")
+    }
+
     func testOptimizationDetailDecodesContactAndFlexibleScoreKeys() throws {
         let json = """
         {
@@ -114,4 +185,34 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(detail.atsScoreBefore, 61)
         XCTAssertEqual(detail.atsScoreAfter, 82)
     }
+}
+
+private final class OptimizationReviewMockURLProtocol: URLProtocol {
+    nonisolated(unsafe) static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        guard let handler = Self.handler else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+            return
+        }
+
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
 }

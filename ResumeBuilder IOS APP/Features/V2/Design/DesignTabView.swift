@@ -19,17 +19,25 @@ struct DesignTabView: View {
     }
 
     private var lockedView: some View {
-        ContentUnavailableView {
-            Label("Design unlocks after optimization", systemImage: "paintbrush.fill")
-        } description: {
-            Text("Upload your resume and run Optimize on Home to style your PDF.")
-        } actions: {
-            Button("Go to Home") { onSwitchTab(.tailor) }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
+        LockedTabTeaser(
+            title: "Design",
+            headline: "Recruiter-ready templates, one tap.",
+            previewCaption: "12 ATS-safe templates",
+            subtitle: "Swap layouts, colors, and fonts. Every template stays parseable by the bots.",
+            checklist: [
+                .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
+                .init(title: "Run Optimize once", isComplete: appState.latestOptimizationId != nil)
+            ],
+            ctaTitle: "Upload résumé on Home",
+            systemImage: "paintbrush.fill",
+            onCTA: { onSwitchTab(.tailor) }
+        ) {
+            HStack(spacing: AppSpacing.md) {
+                TemplateThumbnail(name: "Modern", category: "modern", templateId: "modern")
+                TemplateThumbnail(name: "ATS", category: "traditional", templateId: "ats-safe")
+                TemplateThumbnail(name: "Creative", category: "creative", templateId: "creative")
+            }
         }
-        .foregroundStyle(Theme.textPrimary)
-        .screenBackground(showRadialGlow: false)
     }
 }
 

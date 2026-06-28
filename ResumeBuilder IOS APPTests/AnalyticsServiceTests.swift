@@ -71,6 +71,19 @@ final class AnalyticsServiceTests: XCTestCase {
             "ats_improve_tapped",
             "export_pdf_tapped",
             "submit_package_saved",
+            "fit_check_started",
+            "fit_check_completed",
+            "fit_check_optimize_tapped",
+            "fit_check_skipped",
+            "resume_upload_cta_tapped",
+            "resume_file_picker_opened",
+            "resume_file_picker_cancelled",
+            "resume_file_selected",
+            "resume_upload_preflight_rejected",
+            "resume_upload_started",
+            "resume_upload_failed",
+            "resume_upload_succeeded",
+            "resume_upload_error_shown",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -93,6 +106,19 @@ final class AnalyticsServiceTests: XCTestCase {
             ["current_score": "55"],
             [:],
             ["has_cover_letter": "true"],
+            [:],
+            ["verdict": "stretch", "match_score": "68"],
+            [:],
+            [:],
+            ["source": "home"],
+            ["source": "home"],
+            ["source": "home"],
+            ["file_type": "pdf", "file_size_bucket": "100kb-1mb"],
+            ["reason": "unreadable"],
+            ["file_type": "pdf"],
+            ["failure_stage": "upload", "error_code": "500"],
+            ["file_type": "pdf"],
+            ["error_code": "500"],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -187,5 +213,18 @@ final class AnalyticsServiceTests: XCTestCase {
         .atsImproveTapped(currentScore: 55),
         .exportPdfTapped,
         .submitPackageSaved(hasCoverLetter: true),
+        .fitCheckStarted,
+        .fitCheckCompleted(verdict: "stretch", matchScore: 68),
+        .fitCheckOptimizeTapped,
+        .fitCheckSkipped,
+        .resumeUploadCTATapped(source: "home"),
+        .resumeFilePickerOpened(source: "home"),
+        .resumeFilePickerCancelled(source: "home"),
+        .resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb"),
+        .resumeUploadPreflightRejected(reason: "unreadable"),
+        .resumeUploadStarted(fileType: "pdf"),
+        .resumeUploadFailed(failureStage: "upload", errorCode: "500"),
+        .resumeUploadSucceeded(fileType: "pdf"),
+        .resumeUploadErrorShown(errorCode: "500"),
     ]
 }

@@ -44,17 +44,21 @@ struct OptimizedResumeTabView: View {
     }
 
     private var noOptimizationView: some View {
-        ContentUnavailableView {
-            Label("No optimized resume yet", systemImage: "wand.and.stars")
-        } description: {
-            Text("Upload and optimize on Home to see your resume here.")
-        } actions: {
-            Button("Go to Home") { onSwitchTab(.tailor) }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
+        LockedTabTeaser(
+            title: "Optimized",
+            headline: "Here's what you'll unlock.",
+            previewCaption: "Your résumé, scored & rewritten",
+            subtitle: "An ATS match score, keyword gaps, and line-by-line fixes — tuned to your target job.",
+            checklist: [
+                .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
+                .init(title: "Add a job to match against", isComplete: appState.hasAddedJobThisSession)
+            ],
+            ctaTitle: "Upload résumé on Home",
+            systemImage: "wand.and.stars",
+            onCTA: { onSwitchTab(.tailor) }
+        ) {
+            LockedScorePreview()
         }
-        .foregroundStyle(Theme.textPrimary)
-        .screenBackground(showRadialGlow: false)
     }
 }
 

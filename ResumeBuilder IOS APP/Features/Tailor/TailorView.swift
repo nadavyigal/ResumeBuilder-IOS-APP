@@ -17,6 +17,15 @@ struct TailorView: View {
     @State private var isImporterPresented = false
     @State private var navigateTo: TailorDestination?
     @State private var appeared = false
+
+    /// Resume import accepts PDF plus Word docs — the preflight/backend already
+    /// support .docx, so restricting the picker to PDF silently blocked Word users (WP-18).
+    static let resumeImportContentTypes: [UTType] = {
+        var types: [UTType] = [.pdf]
+        if let docx = UTType(filenameExtension: "docx") { types.append(docx) }
+        if let doc = UTType(filenameExtension: "doc") { types.append(doc) }
+        return types
+    }()
     @State private var shouldNavigate = false
     @State private var showDiagnosis = false
     @State private var pendingDiagnosisOptimizationId: String? = nil
@@ -26,6 +35,9 @@ struct TailorView: View {
     @State private var showSavePrompt = false
     @State private var saveDisplayName = ""
     @State private var libraryViewModel = ResumeLibraryViewModel()
+    // Fit-First Triage — behind BackendConfig.isFitCheckEnabled
+    @State private var showFitCheck = false
+    @State private var fitCheckViewModel = FitCheckViewModel()
 
     var body: some View {
         NavigationStack {
@@ -57,7 +69,11 @@ struct TailorView: View {
                                 subtitle: viewModel.selectedResumeName?.isEmpty == false ? viewModel.selectedResumeName! : "PDF, up to 5 MB",
                                 icon: "doc.fill",
                                 isFilled: viewModel.selectedResumeName?.isEmpty == false,
-                                action: { isImporterPresented = true }
+                                action: {
+                                    AnalyticsService.shared.track(.resumeUploadCTATapped(source: "tailor"))
+                                    AnalyticsService.shared.track(.resumeFilePickerOpened(source: "tailor"))
+                                    isImporterPresented = true
+                                }
                             )
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 16)
@@ -142,6 +158,12 @@ struct TailorView: View {
                 )
                 .environment(appState)
             }
+            .sheet(isPresented: $showFitCheck) {
+                NavigationStack {
+                    FitCheckView(viewModel: fitCheckViewModel)
+                }
+                .preferredColorScheme(.dark)
+            }
             .confirmationDialog(
                 "Save this resume?",
                 isPresented: $showSavePrompt,
@@ -171,15 +193,23 @@ struct TailorView: View {
             }
             .fileImporter(
                 isPresented: $isImporterPresented,
-                allowedContentTypes: [.pdf],
+                allowedContentTypes: Self.resumeImportContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
                 case .success(let urls):
-                    guard let url = urls.first else { return }
+                    guard let url = urls.first else {
+                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))
+                        return
+                    }
                     viewModel.cachePickedFile(url: url)
                 case .failure(let error):
-                    viewModel.errorMessage = error.localizedDescription
+                    if (error as NSError).code == NSUserCancelledError {
+                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))
+                    } else {
+                        viewModel.errorMessage = error.localizedDescription
+                        AnalyticsService.shared.track(.resumeUploadErrorShown(errorCode: "picker_failure"))
+                    }
                 }
             }
             .navigationDestination(isPresented: $shouldNavigate) {
@@ -528,7 +558,30 @@ struct TailorView: View {
 
             Button {
                 Task {
-                    if appState.isAuthenticated {
+                    if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
+                        // Fit-First: route JD + resume through the verdict screen first.
+                        // Flag OFF → original path below runs unchanged.
+                        fitCheckViewModel.resumeURL = viewModel.selectedResumeURL
+                        fitCheckViewModel.jobDescription = viewModel.jobDescription
+                        fitCheckViewModel.resetToEntry()
+                        fitCheckViewModel.onOptimize = { _ in
+                            showFitCheck = false
+                            Task {
+                                await viewModel.optimize(appState: appState)
+                                if let optId = viewModel.optimizationId, !optId.isEmpty {
+                                    appState.latestOptimizationId = optId
+                                    pendingDiagnosisOptimizationId = optId
+                                    diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
+                                    showDiagnosis = true
+                                } else if viewModel.reviewId != nil {
+                                    shouldNavigate = true
+                                }
+                            }
+                        }
+                        fitCheckViewModel.onSkip = { showFitCheck = false }
+                        fitCheckViewModel.onNeedResume = { showFitCheck = false }
+                        showFitCheck = true
+                    } else if appState.isAuthenticated {
                         await viewModel.optimize(appState: appState)
                         #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
@@ -539,6 +592,7 @@ struct TailorView: View {
                             #endif
                             appState.latestOptimizationId = optId
                             pendingDiagnosisOptimizationId = optId
+                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
                             showDiagnosis = true
                         } else if viewModel.reviewId != nil {
                             #if DEBUG

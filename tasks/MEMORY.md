@@ -1,3 +1,55 @@
+## 2026-06-23 — WP-13 Fit-First Release + Flip Decision
+
+**Worked on:** Shipping Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision gate.
+
+**Completed:**
+- Pre-flight: `origin/main` clean at `f87807a`; WP-12 MEMORY/progress committed; Finder duplicate junk deleted (`dist/app-store-screenshots/` + docs plans).
+- Build 6 bump on `release/wp-13-v1.1-build-6` (`63dcad0`) — MARKETING_VERSION 1.1, CURRENT_PROJECT_VERSION 6, `isFitCheckEnabled=false`.
+- Internal branch `feat/wp-13-fit-check-internal` (`f20f8bc`): flag ON + live smoke tests.
+- Live smoke PASS: production `/api/public/ats-check` HTTP 200, verdict + optimize handoff, 4 analytics events, Hebrew RTL. Report: `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md`.
+- Flip decision logged: **defer to D7 readout 2026-06-24** in Agentic OS `DECISIONS.md`.
+
+**Blocked (founder action):** CLI archive failed (provisioning profile doesn't include signing cert). Upload + App Store review submission require Xcode Organizer manual path (same as v1.1 build 5).
+
+**Decisions:** Do not flip flag in public build 6. No percentage rollout exists — flip is binary via `BackendConfig.isFitCheckEnabled`. Re-evaluate flip after D7 Gate A readout tomorrow.
+
+**Next session:** Upload build 6 via Organizer → submit for review (flag OFF). After D7 readout, open flip PR if gate is stable.
+
+---
+
+## 2026-06-23 — WP-12 Fit-First Triage FULLY DONE — merged to main (#75)
+
+**Worked on:** Landing the complete Fit-First Triage wedge — E2E gate, Stories 2-4 — onto main.
+
+**Completed:**
+- E2E gate confirmed: prod endpoint returns `fit` block; FitVerdict decodes band=stretch, score=62, topGaps/missingKeywords via string-array fallback (`decodeGapsOrStrings`/`decodeKeywordsOrStrings` helpers).
+- DomainModels.swift union: preserves #72's `KeywordSuggestionPreviewDTO` + `JSONValue.displayString` AND branch's `ATSScoreResult.fit` + custom decoder.
+- Story 2: `FitCheckViewModel`, `FitCheckView`, `FitVerdictView` under `Features/V2/Fit/`; `BackendConfig.isFitCheckEnabled=false`.
+- Story 3: `TailorView` routes through `FitCheckView` when flag on; flag-off path unchanged.
+- Story 4: 4 analytics events (20 total), 20 EN+HE strings (HE xliff confirmed 40 matches), `FitCheckViewModelTests` registered.
+- Rebase onto main was clean (Story 1 auto-skipped as already applied). BUILD SUCCEEDED. 27 tests pass.
+- PR #75 squash-merged to main as `17d2122`. Branch deleted.
+
+**Decisions:** `isFitCheckEnabled=false` on main (ships dark). Decoder uses `(try? decodeIfPresent(...)) ?? nil` pattern to avoid double-binding error on `Optional<Optional<T>>`.
+
+**Next session:** D7 readout (first complete D7 window from 2026-06-17 launch anchor ends 2026-06-24). Then decide next priority after WP-12.
+
+---
+
+## 2026-06-23 — Fit-First Triage Story 1 FitCheckService
+
+**Worked on:** Implementing the iOS model/service layer for the Fit-First Triage wedge without adding UI or changing the existing optimize/diagnosis flow.
+
+**Completed:** Added `FitVerdict`/`FitBand` under `Core/API/Models/`, flexible snake/camel decoding with clamped scores, optional additive `fit` decoding on `ATSScoreResult`, `FitCheckServiceProtocol`, live `FitCheckService` through `APIClient.runPublicATSCheck`, `RuntimeServices.fitCheckService()`, and an injectable `MockFitCheckService`. Reused the existing `ResumeGap` and `ResumeKeyword` types and kept the endpoint on `APIEndpoint.publicATSCheck`.
+
+**Validation:** Clean temp-copy Debug build passed on iPhone 17 simulator. Focused `FitCheckServiceTests` ran 6 tests with 0 failures. Production `/api/public/ats-check` was reachable and returned HTTP 200 for a sample PDF + 100+ word JD, but the response still lacked the Story-0 additive `fit` block.
+
+**Decisions:** Reconciled the spec's `Models/FitVerdict.swift` location to the real app layout at `Core/API/Models/FitVerdict.swift`. Server verdict wins when present; the iOS fallback derives Strong/Stretch/Skip from `score.overall` only when `fit.verdict` is absent.
+
+**Next session:** Deploy or verify Story 0 on web so `/api/public/ats-check` returns `fit`, then rerun the same live call and confirm it decodes into `FitVerdict` with verdict, gaps, and missing keywords populated before enabling Story 2 UI work.
+
+---
+
 ## 2026-05-24 — Live upload parser follow-up after stale main rebuild
 
 **Worked on:** Investigating phone logs that still showed `/api/v1/styles/history` and PDF upload 422 after PR #26 was merged.

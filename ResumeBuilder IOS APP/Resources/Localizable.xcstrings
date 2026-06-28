@@ -52,6 +52,9 @@
         }
       }
     },
+    "·" : {
+
+    },
     "· %@" : {
       "localizations" : {
         "he" : {
@@ -71,6 +74,9 @@
           }
         }
       }
+    },
+    "/100" : {
+
     },
     "% match" : {
       "localizations" : {
@@ -479,6 +485,16 @@
         }
       }
     },
+    "12 ATS-safe templates" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 תבניות בטוחות ל-ATS"
+          }
+        }
+      }
+    },
     "58" : {
       "localizations" : {
         "he" : {
@@ -488,6 +504,9 @@
           }
         }
       }
+    },
+    "68" : {
+
     },
     "100 credits" : {
       "localizations" : {
@@ -579,6 +598,9 @@
         }
       }
     },
+    "A tailored cover letter, likely recruiter questions, and an export-ready package for every application." : {
+
+    },
     "Above average" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -611,6 +633,7 @@
       }
     },
     "Account" : {
+      "comment" : "Me tab title",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -691,6 +714,9 @@
         }
       }
     },
+    "Add a job to match against" : {
+
+    },
     "Add a resume and a LinkedIn/job link or job description." : {
       "localizations" : {
         "he" : {
@@ -737,6 +763,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הוסף קלט מומחה"
+          }
+        }
+      }
+    },
+    "Add job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף משרה"
           }
         }
       }
@@ -865,6 +901,15 @@
         }
       }
     },
+    "Add your résumé" : {
+
+    },
+    "Addable keywords" : {
+
+    },
+    "Added" : {
+
+    },
     "After" : {
       "localizations" : {
         "he" : {
@@ -945,6 +990,20 @@
           }
         }
       }
+    },
+    "Already have one? Sign in" : {
+      "comment" : "Guest sign-in secondary CTA",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש לך כבר חשבון? התחבר"
+          }
+        }
+      }
+    },
+    "An ATS match score, keyword gaps, and line-by-line fixes — tuned to your target job." : {
+
     },
     "Analyze" : {
       "localizations" : {
@@ -1174,6 +1233,9 @@
         }
       }
     },
+    "Approve" : {
+
+    },
     "Ask AI to tweak your optimized resume…" : {
       "localizations" : {
         "he" : {
@@ -1295,52 +1357,13 @@
         }
       }
     },
-    "Match Score" : {
+    "ATS score" : {
+      "comment" : "Me stats: latest resume's ATS match score percent",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון התאמה"
-          }
-        }
-      }
-    },
-    "Resumely Match Score" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון ההתאמה של Resumely"
-          }
-        }
-      }
-    },
-    "Match Score %lld percent" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון התאמה %1$lld אחוז"
-          }
-        }
-      }
-    },
-    "Match" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התאמה"
-          }
-        }
-      }
-    },
-    "Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מבוסס על עיצוב והתאמת מילות מפתח למשרה שהדבקת. לא מזוהה עם אף ספק ATS."
+            "value" : "ציון ATS"
           }
         }
       }
@@ -1385,12 +1408,33 @@
         }
       }
     },
+    "Back" : {
+      "comment" : "FitVerdictView back button in toolbar",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חזרה"
+          }
+        }
+      }
+    },
     "Balance" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "יתרה"
+          }
+        }
+      }
+    },
+    "Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבוסס על עיצוב והתאמת מילות מפתח למשרה שהדבקת. לא מזוהה עם אף ספק ATS."
           }
         }
       }
@@ -1436,6 +1480,7 @@
       }
     },
     "Best ATS" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1454,6 +1499,15 @@
           }
         }
       }
+    },
+    "Biggest win" : {
+
+    },
+    "Biggest win: add missing keywords" : {
+
+    },
+    "Browse Files" : {
+
     },
     "Buy Credits" : {
       "localizations" : {
@@ -1535,6 +1589,17 @@
         }
       }
     },
+    "Check Fit" : {
+      "comment" : "FitCheckView primary CTA button and navigation title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדוק התאמה"
+          }
+        }
+      }
+    },
     "Check your email to confirm your account, then sign in." : {
       "localizations" : {
         "he" : {
@@ -1546,6 +1611,7 @@
       }
     },
     "Checking ATS signals before you sign in." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1554,6 +1620,20 @@
           }
         }
       }
+    },
+    "Checking fit for this role" : {
+      "comment" : "FitCheckView loading title (ResumeOptimizationLoadingView.Mode.fitCheck)",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודק התאמה לתפקיד זה"
+          }
+        }
+      }
+    },
+    "Checks left" : {
+
     },
     "Choose a design template first." : {
       "localizations" : {
@@ -1565,7 +1645,38 @@
         }
       }
     },
+    "Choose a different file" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קובץ אחר"
+          }
+        }
+      }
+    },
+    "Choose a file" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קובץ"
+          }
+        }
+      }
+    },
+    "Choose a PDF or DOCX résumé so we can read it reliably." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קובץ PDF או DOCX של קורות החיים כדי שנוכל לקרוא אותו בצורה אמינה."
+          }
+        }
+      }
+    },
     "Choose a PDF resume exported from your word processor, not a scanned image or shortcut file." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1584,6 +1695,9 @@
           }
         }
       }
+    },
+    "Choose a PDF, DOCX, or DOC resume exported from your word processor." : {
+
     },
     "Choose a summary to apply:" : {
       "localizations" : {
@@ -1604,6 +1718,12 @@
           }
         }
       }
+    },
+    "Choose another file" : {
+
+    },
+    "Choose another PDF or DOCX from Files and we'll try again." : {
+
     },
     "Clarity & impact" : {
       "localizations" : {
@@ -1655,6 +1775,9 @@
           }
         }
       }
+    },
+    "Coming soon" : {
+
     },
     "Company" : {
       "localizations" : {
@@ -1716,6 +1839,20 @@
         }
       }
     },
+    "Comparing your experience against the job requirements." : {
+      "comment" : "FitCheckView loading subtitle",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משווה את הניסיון שלך לדרישות המשרה."
+          }
+        }
+      }
+    },
+    "Complete" : {
+
+    },
     "Concerns" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1738,6 +1875,12 @@
       }
     },
     "Congrats! 🎉 One step closer to the job." : {
+
+    },
+    "Connection dropped" : {
+
+    },
+    "Connection dropped. Your résumé and job details are still here. Retry now." : {
 
     },
     "Content" : {
@@ -1780,6 +1923,12 @@
         }
       }
     },
+    "Continue with Apple" : {
+
+    },
+    "Continue with email" : {
+
+    },
     "Copied" : {
       "localizations" : {
         "he" : {
@@ -1819,6 +1968,9 @@
           }
         }
       }
+    },
+    "Copy from anywhere — works great" : {
+
     },
     "Copy share text" : {
       "localizations" : {
@@ -1920,12 +2072,40 @@
         }
       }
     },
+    "Cover letters & submit packages" : {
+
+    },
+    "Create a free account so this never disappears." : {
+
+    },
+    "Create a free account to save every optimization, sync across devices, and export unlimited PDFs." : {
+      "comment" : "Guest sign-in value card body",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צור חשבון חינמי כדי לשמור כל אופטימיזציה, לסנכרן בין מכשירים ולייצא PDF בלי הגבלה."
+          }
+        }
+      }
+    },
     "Create Account" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "צור חשבון"
+          }
+        }
+      }
+    },
+    "Create free account" : {
+      "comment" : "Guest sign-in primary CTA",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צור חשבון חינמי"
           }
         }
       }
@@ -2092,6 +2272,7 @@
       }
     },
     "Design unlocks after optimization" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -2200,6 +2381,12 @@
           }
         }
       }
+    },
+    "Downloads" : {
+
+    },
+    "Drop it into an ATS-safe template" : {
+
     },
     "e.g. Make it more concise and add leadership examples…" : {
       "localizations" : {
@@ -2311,6 +2498,17 @@
         }
       }
     },
+    "Estimated fit vs this job. Not affiliated with any ATS vendor. No optimization credit used." : {
+      "comment" : "FitCheckView explainer note (EXD-012 compliance)",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אומדן התאמה למשרה זו. ללא שיוך לספק ATS חיצוני. לא מנוכה קרדיט אופטימיזציה."
+          }
+        }
+      }
+    },
     "Estimated match guidance based on the target job, not a hiring guarantee." : {
       "localizations" : {
         "he" : {
@@ -2327,6 +2525,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הנחיית התאמה משוערת, לא ערובה."
+          }
+        }
+      }
+    },
+    "Estimated match score" : {
+      "comment" : "FitVerdictView score ring label",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה משוער"
           }
         }
       }
@@ -2488,6 +2697,9 @@
         }
       }
     },
+    "Files must be 5 MB or smaller. Export a lighter PDF or DOCX and try again." : {
+
+    },
     "Finding the aha moments…" : {
       "localizations" : {
         "he" : {
@@ -2527,6 +2739,9 @@
           }
         }
       }
+    },
+    "Format" : {
+
     },
     "Format & Structure" : {
       "localizations" : {
@@ -2649,11 +2864,26 @@
       }
     },
     "Go to Home" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "עבור לבית"
+          }
+        }
+      }
+    },
+    "Good start — a few quick fixes can help" : {
+
+    },
+    "Guest" : {
+      "comment" : "Guest account display name",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אורח"
           }
         }
       }
@@ -2679,6 +2909,9 @@
       }
     },
     "Here's a free export for your next application" : {
+
+    },
+    "Here's what you'll unlock." : {
 
     },
     "Hi %@ 👋" : {
@@ -2821,6 +3054,15 @@
           }
         }
       }
+    },
+    "iCloud Drive" : {
+
+    },
+    "Image-only · no text layer" : {
+
+    },
+    "Impact" : {
+
     },
     "Impact metrics" : {
       "localizations" : {
@@ -3029,12 +3271,40 @@
         }
       }
     },
+    "Is this job a fit?" : {
+      "comment" : "FitCheckView hero heading",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "האם המשרה הזו מתאימה לך?"
+          }
+        }
+      }
+    },
+    "Issues found" : {
+
+    },
+    "It looks like a scanned image — there's no selectable text, so an ATS can't read it either." : {
+
+    },
     "JD language parity & skill surfacing." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "התאמת שפת תיאור המשרה והבלטת כישורים."
+          }
+        }
+      }
+    },
+    "Job Description" : {
+      "comment" : "FitCheckView textarea label",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תיאור המשרה"
           }
         }
       }
@@ -3096,6 +3366,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "המשך לערוך"
+          }
+        }
+      }
+    },
+    "Key Gaps" : {
+      "comment" : "FitVerdictView gaps section header",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פערים מרכזיים"
           }
         }
       }
@@ -3223,6 +3504,9 @@
         }
       }
     },
+    "Let's fix the basics" : {
+
+    },
     "LinkedIn or Job Link" : {
       "localizations" : {
         "he" : {
@@ -3304,6 +3588,9 @@
         }
       }
     },
+    "Lock in your progress" : {
+
+    },
     "Low" : {
       "localizations" : {
         "he" : {
@@ -3324,6 +3611,9 @@
         }
       }
     },
+    "Mail" : {
+
+    },
     "Main issues" : {
       "localizations" : {
         "he" : {
@@ -3333,6 +3623,9 @@
           }
         }
       }
+    },
+    "Make it look the part" : {
+
     },
     "Mark as Applied" : {
       "localizations" : {
@@ -3365,12 +3658,31 @@
       }
     },
     "Match" : {
-      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "התאמה"
+          }
+        }
+      }
+    },
+    "Match Score" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה"
+          }
+        }
+      }
+    },
+    "Match Score %lld percent" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה %1$lld אחוז"
           }
         }
       }
@@ -3384,6 +3696,9 @@
           }
         }
       }
+    },
+    "Maybe later" : {
+
     },
     "Me" : {
       "localizations" : {
@@ -3598,6 +3913,9 @@
         }
       }
     },
+    "Most recruiters scan a resume in about 7 seconds — here's what they'd notice." : {
+
+    },
     "Move revenue impact into the first 8 words" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3654,6 +3972,9 @@
           }
         }
       }
+    },
+    "Needs another try" : {
+
     },
     "Needs keyword and skills alignment" : {
       "localizations" : {
@@ -3737,6 +4058,7 @@
       }
     },
     "No expert analysis yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3745,6 +4067,9 @@
           }
         }
       }
+    },
+    "no file handy?" : {
+
     },
     "No matching optimizations" : {
       "localizations" : {
@@ -3797,6 +4122,7 @@
       }
     },
     "No optimized resume yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3866,12 +4192,26 @@
         }
       }
     },
+    "Not complete" : {
+
+    },
     "Not now" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "לא עכשיו"
+          }
+        }
+      }
+    },
+    "Not signed in" : {
+      "comment" : "Guest account status",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא מחובר"
           }
         }
       }
@@ -3928,6 +4268,12 @@
           }
         }
       }
+    },
+    "Opens the Home tab" : {
+
+    },
+    "Opens the iOS Files picker" : {
+
     },
     "Optimization did not return a result. Try again." : {
       "localizations" : {
@@ -4010,6 +4356,7 @@
       }
     },
     "Optimized" : {
+      "comment" : "Me stats: count of optimized resumes",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4139,6 +4486,12 @@
         }
       }
     },
+    "out of 100" : {
+
+    },
+    "Over 5 MB" : {
+
+    },
     "Overview" : {
       "localizations" : {
         "he" : {
@@ -4209,6 +4562,59 @@
         }
       }
     },
+    "Paste résumé text" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק טקסט קורות חיים"
+          }
+        }
+      }
+    },
+    "Paste text" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק טקסט"
+          }
+        }
+      }
+    },
+    "Paste the complete job description for an accurate result." : {
+      "comment" : "FitCheckView short-JD warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק את תיאור המשרה המלא לקבלת תוצאה מדויקת."
+          }
+        }
+      }
+    },
+    "Paste the full job description (at least 100 words) so we can check your fit accurately." : {
+      "comment" : "FitCheckViewModel validation error",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק את תיאור המשרה המלא (לפחות 100 מילים) כדי שנוכל לבדוק את ההתאמה שלך במדויק."
+          }
+        }
+      }
+    },
+    "Paste the job description below. We'll estimate your fit before you spend time optimizing." : {
+      "comment" : "FitCheckView hero subtitle",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק את תיאור המשרה למטה. נעריך את ההתאמה שלך לפני שתשקיע זמן באופטימיזציה."
+          }
+        }
+      }
+    },
     "Paste the job description here if the link is unavailable…" : {
       "localizations" : {
         "he" : {
@@ -4218,6 +4624,20 @@
           }
         }
       }
+    },
+    "Paste the job description here…" : {
+      "comment" : "FitCheckView textarea placeholder",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדבק כאן את תיאור המשרה…"
+          }
+        }
+      }
+    },
+    "Paste the text instead" : {
+
     },
     "Paywall — coming soon" : {
 
@@ -4273,6 +4693,19 @@
         }
       }
     },
+    "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does." : {
+
+    },
+    "PDF or DOCX · up to 5 MB" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF או DOCX · עד 5 MB"
+          }
+        }
+      }
+    },
     "PDF Ready" : {
       "localizations" : {
         "he" : {
@@ -4284,6 +4717,7 @@
       }
     },
     "PDF, up to 5 MB" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4423,6 +4857,9 @@
         }
       }
     },
+    "Preview is locked until you optimize a resume" : {
+
+    },
     "Preview unavailable" : {
       "localizations" : {
         "he" : {
@@ -4493,6 +4930,16 @@
           "stringUnit" : {
             "state" : "needs_translation",
             "value" : "התנתק"
+          }
+        }
+      }
+    },
+    "Progress path. Upload, add job, ATS score." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מסלול התקדמות. העלאה, הוספת משרה, ציון ATS."
           }
         }
       }
@@ -4707,6 +5154,12 @@
           }
         }
       }
+    },
+    "RECRUITER-READY" : {
+
+    },
+    "Recruiter-ready templates, one tap." : {
+
     },
     "Recruiters scan for scope, numbers, and business context." : {
       "localizations" : {
@@ -4950,6 +5403,26 @@
         }
       }
     },
+    "Résumé selected" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו"
+          }
+        }
+      }
+    },
+    "Résumé selected. Choose a different file." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו. בחר קובץ אחר."
+          }
+        }
+      }
+    },
     "ResumeBuilder IOS APP" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4971,6 +5444,20 @@
         }
       }
     },
+    "Resumely Match Score" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה של Resumely"
+          }
+        }
+      }
+    },
+    "Résumés usually live in" : {
+
+    },
     "Resumes you save after uploading will appear here." : {
       "localizations" : {
         "he" : {
@@ -4990,6 +5477,9 @@
           }
         }
       }
+    },
+    "Retry now" : {
+
     },
     "Return after running Optimize to unlock expert workflows." : {
       "localizations" : {
@@ -5314,6 +5804,7 @@
       }
     },
     "Run Optimize on Home to unlock expert workflows." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5322,6 +5813,9 @@
           }
         }
       }
+    },
+    "Run Optimize once" : {
+
     },
     "Running" : {
       "localizations" : {
@@ -5362,6 +5856,9 @@
           }
         }
       }
+    },
+    "Save free so you don't lose this" : {
+
     },
     "Save Package to Me" : {
       "localizations" : {
@@ -5409,6 +5906,20 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שמור גרסה"
+          }
+        }
+      }
+    },
+    "Save your %lld" : {
+
+    },
+    "Save your progress" : {
+      "comment" : "Guest sign-in value card title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמור את ההתקדמות שלך"
           }
         }
       }
@@ -5537,7 +6048,11 @@
         }
       }
     },
+    "Scanning like a recruiter would" : {
+
+    },
     "Scanning your resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5546,6 +6061,9 @@
           }
         }
       }
+    },
+    "SCORE" : {
+
     },
     "Score signals" : {
       "localizations" : {
@@ -5617,6 +6135,12 @@
         }
       }
     },
+    "See a real diagnosis in 20 seconds" : {
+
+    },
+    "See all %lld fixes to keep climbing." : {
+
+    },
     "See the first score before signing in, then unlock the full diagnosis." : {
       "localizations" : {
         "he" : {
@@ -5637,12 +6161,25 @@
         }
       }
     },
+    "See what a recruiter notices in the first 7 seconds — then fix it." : {
+
+    },
     "See what's blocking this resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "ראה מה חוסם את קורות החיים האלה"
+          }
+        }
+      }
+    },
+    "See your résumé like a recruiter does" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראה את קורות החיים שלך כמו שמגייס רואה אותם"
           }
         }
       }
@@ -6100,6 +6637,17 @@
         }
       }
     },
+    "Skip — Browse Other Jobs" : {
+      "comment" : "FitVerdictView skip CTA",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דלג — חפש משרות אחרות"
+          }
+        }
+      }
+    },
     "Some role alignment is visible" : {
       "localizations" : {
         "he" : {
@@ -6109,6 +6657,9 @@
           }
         }
       }
+    },
+    "Soon" : {
+
     },
     "Spacing" : {
       "localizations" : {
@@ -6136,6 +6687,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סטטוס"
+          }
+        }
+      }
+    },
+    "Step 1 of 3" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלב 1 מתוך 3"
           }
         }
       }
@@ -6198,6 +6759,31 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "חוזקות"
+          }
+        }
+      }
+    },
+    "Stretch Fit" : {
+      "comment" : "FitVerdictView band label — stretch",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה עם מאמץ"
+          }
+        }
+      }
+    },
+    "Strong — polish it" : {
+
+    },
+    "Strong Fit" : {
+      "comment" : "FitVerdictView band label — strong",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה חזקה"
           }
         }
       }
@@ -6282,6 +6868,9 @@
         }
       }
     },
+    "Suggested place to look for your résumé" : {
+
+    },
     "Suggested resume updates (%lld)" : {
       "localizations" : {
         "he" : {
@@ -6321,6 +6910,12 @@
           }
         }
       }
+    },
+    "Swap layouts, colors, and fonts. Every template stays parseable by the bots." : {
+
+    },
+    "Sync across your iPhone & iPad" : {
+
     },
     "tab_design" : {
       "extractionState" : "stale",
@@ -6529,6 +7124,7 @@
       }
     },
     "Templates" : {
+      "comment" : "Me stats: templates available",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6537,6 +7133,12 @@
           }
         }
       }
+    },
+    "That file won't work yet" : {
+
+    },
+    "That résumé is too large" : {
+
     },
     "The cover letter response was empty. Please try again." : {
       "localizations" : {
@@ -6547,6 +7149,9 @@
           }
         }
       }
+    },
+    "The full submit package, done for you." : {
+
     },
     "The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again." : {
       "localizations" : {
@@ -6588,6 +7193,12 @@
         }
       }
     },
+    "These appear in the job description but not your resume. Review the proposed wording before adding it." : {
+
+    },
+    "This file is larger than 5 MB. Export a smaller PDF or DOCX and try again." : {
+
+    },
     "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot." : {
       "localizations" : {
         "he" : {
@@ -6618,6 +7229,16 @@
         }
       }
     },
+    "This review was already applied. Open the optimized resume from the Optimized tab." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סקירה זו כבר הוחלה. פתח את קורות החיים המשופרים בלשונית משופר."
+          }
+        }
+      }
+    },
     "Tip %lld" : {
       "localizations" : {
         "he" : {
@@ -6627,6 +7248,9 @@
           }
         }
       }
+    },
+    "Tip: in most apps, Export as PDF keeps the text readable." : {
+
     },
     "Title fit, accomplishments & measurable impact" : {
       "localizations" : {
@@ -6704,6 +7328,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ניסיון בר-העברה"
+          }
+        }
+      }
+    },
+    "Try a sample" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסה דוגמה"
+          }
+        }
+      }
+    },
+    "Try a sample résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסה קורות חיים לדוגמה"
           }
         }
       }
@@ -6808,12 +7452,34 @@
         }
       }
     },
+    "Unlimited PDF exports, any template" : {
+
+    },
+    "Unlock after Optimize" : {
+
+    },
+    "Unlock checklist" : {
+
+    },
+    "Unsupported type" : {
+
+    },
     "Untitled Role" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "תפקיד ללא שם"
+          }
+        }
+      }
+    },
+    "Up %lld points — from %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Up %1$lld points — from %2$lld"
           }
         }
       }
@@ -6865,7 +7531,18 @@
         }
       }
     },
+    "Upload" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה"
+          }
+        }
+      }
+    },
     "Upload and optimize on Home to see your resume here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6906,11 +7583,32 @@
       }
     },
     "Upload Resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "העלה קורות חיים"
+          }
+        }
+      }
+    },
+    "Upload résumé on Home" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה קורות חיים במסך הבית"
+          }
+        }
+      }
+    },
+    "Upload your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה את קורות החיים שלך"
           }
         }
       }
@@ -6926,6 +7624,7 @@
       }
     },
     "Upload your resume and run Optimize on Home to style your PDF." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6941,6 +7640,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "העלה את קורות החיים שלך לקריאה בעיני מגייס"
+          }
+        }
+      }
+    },
+    "Upload your résumé. PDF or DOCX up to 5 megabytes." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה את קורות החיים שלך. PDF או DOCX עד 5 מגה־בייט."
           }
         }
       }
@@ -7065,12 +7774,40 @@
         }
       }
     },
+    "We couldn't add that résumé" : {
+
+    },
+    "We couldn't read that résumé" : {
+
+    },
     "We couldn't save that edit. Please try again." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "לא הצלחנו לשמור את העריכה. אנא נסה שוב."
+          }
+        }
+      }
+    },
+    "We never sell or share your data. Delete it anytime." : {
+      "comment" : "Me trust card body",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אנחנו לא מוכרים או משתפים את הנתונים שלך. אפשר למחוק אותם בכל זמן."
+          }
+        }
+      }
+    },
+    "Weak Fit" : {
+      "comment" : "FitVerdictView band label — skip",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה חלשה"
           }
         }
       }
@@ -7118,12 +7855,37 @@
         }
       }
     },
+    "You could compete for this role, but there are key gaps to close before applying." : {
+      "comment" : "FitVerdictView stretch band description",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אתה יכול להתמודד על תפקיד זה, אך ישנם פערים מרכזיים לסגור לפני הגשה."
+          }
+        }
+      }
+    },
+    "You're offline" : {
+
+    },
     "You've used all your optimization credits. Upgrade your plan to continue." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "ניצלת את כל קרדיטי האופטימיזציה שלך. שדרג את התוכנית כדי להמשיך."
+          }
+        }
+      }
+    },
+    "Your current resume is a weak match for this role. Consider targeting a closer fit first." : {
+      "comment" : "FitVerdictView skip band description",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים הנוכחיים שלך אינם מתאימים לתפקיד זה. שקול לחפש תפקיד קרוב יותר תחילה."
           }
         }
       }
@@ -7148,6 +7910,20 @@
         }
       }
     },
+    "YOUR FIRST DIAGNOSIS" : {
+
+    },
+    "Your Fit" : {
+      "comment" : "FitVerdictView navigation title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההתאמה שלך"
+          }
+        }
+      }
+    },
     "Your free Resumely Match Score is in" : {
       "localizations" : {
         "he" : {
@@ -7157,6 +7933,9 @@
           }
         }
       }
+    },
+    "Your optimized résumé & score history" : {
+
     },
     "Your optimized resume is ready" : {
       "localizations" : {
@@ -7189,6 +7968,9 @@
         }
       }
     },
+    "Your résumé and job details are still here — nothing's lost. Retry when you're back online." : {
+
+    },
     "Your resume data is encrypted end-to-end." : {
       "localizations" : {
         "he" : {
@@ -7208,6 +7990,9 @@
           }
         }
       }
+    },
+    "Your résumé is ready to send" : {
+
     },
     "Your resume is uploaded securely for analysis. Sign in only when you're ready to optimize and export." : {
       "localizations" : {
@@ -7235,6 +8020,48 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלך תואמים כ-%1$lld%% מהמשרה הזו"
+          }
+        }
+      }
+    },
+    "Your resume signals align well with this role. A few tweaks could make it even stronger." : {
+      "comment" : "FitVerdictView strong band description",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "האותות בקורות החיים שלך מתאימים היטב לתפקיד זה. כמה שינויים קטנים יכולים לחזק אותם עוד יותר."
+          }
+        }
+      }
+    },
+    "Your résumé stays private" : {
+      "comment" : "Me trust card title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך נשארים פרטיים"
+          }
+        }
+      }
+    },
+    "Your résumé stays private. We never sell or share your data." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך נשארים פרטיים. אנחנו לא מוכרים או משתפים את הנתונים שלך."
+          }
+        }
+      }
+    },
+    "Your résumé, scored & rewritten" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך, עם ציון ושכתוב"
           }
         }
       }

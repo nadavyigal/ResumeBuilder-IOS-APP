@@ -19,6 +19,12 @@ final class AppState {
     var hasBootstrappedSession = false
     var exportCompletion: ExportCompletionRecord?
 
+    /// Real, in-session signals for the locked-tab teaser checklists (Optimized/Design/Expert).
+    /// Not persisted across launches — only tracks progress made in the current session,
+    /// since there is no durable pre-optimization resume/job state yet.
+    var hasUploadedResumeThisSession = false
+    var hasAddedJobThisSession = false
+
     nonisolated static let latestOptimizationKey = "latest_optimization_id"
     nonisolated static let exportCompletionKey = "last_export_completion"
     nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"

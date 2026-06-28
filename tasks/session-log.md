@@ -15,6 +15,83 @@
 
 ## Sessions
 
+**Date:** 2026-06-25
+**Task:** QA the uncommitted Resumely activation redesign pass against the work-pack, fix everything found, commit and push.
+**Files Changed:** `Core/API/UploadFilePreflight.swift`, `Core/Analytics/AnalyticsService.swift`, `Features/Profile/ProfileView.swift`, `Features/Score/ScoreResultView.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/V2/Design/DesignTabView.swift`, `Features/V2/Expert/ExpertTabView.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/ResumeOptimizationLoadingView.swift`, `Features/V2/Home/ConnectionLostView.swift` (new), `Features/V2/Improve/OptimizedResumeTabView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Improve/ImproveView.swift` (dead wiring removed), `Resources/Localizable.xcstrings`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`.
+**Decisions Made:** Fixed the WP-18 `.doc` regression by completing preflight support rather than re-narrowing the picker; instrumented the new upload sheet rather than leaving a fresh measurement blind spot; replaced fake duplicate sub-scores with real-data stats rather than hiding the discrepancy; rewired target-reached/save-account from the dead `ImproveView` into the live `OptimizedResumeView`; chose not to build a separate E2 "match job" screen since it would conflict with the shipped Home IA, and documented that as a deliberate call rather than a silent gap; added connection-lost recovery with manual-only retry since no `NWPathMonitor` infrastructure exists.
+**Next Recommended Action:** Founder: resolve Apple Distribution signing and submit 1.1 (7) — it now contains Fit-First, WP-18, and the full QA'd redesign. Manual simulator/device visual QA still recommended before submission since this pass verified via code + build + test, not interactive UI smoke.
+
+**Date:** 2026-06-25
+**Task:** Implement buildable first pass of the Resumely activation redesign work-pack.
+**Files Changed:** `Core/DesignSystem/Tokens/AppColors.swift`, `Core/API/UploadFilePreflight.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/UploadSheetView.swift`, `Features/V2/Home/UploadFailureView.swift`, `Core/DesignSystem/Components/LockedTabTeaser.swift`, `Features/V2/Improve/OptimizedResumeTabView.swift`, `Features/V2/Design/DesignTabView.swift`, `Features/V2/Expert/ExpertTabView.swift`, `Features/Profile/ProfileView.swift`, `Features/Score/ScoreResultView.swift`, `Features/V2/Improve/ImproveView.swift`, `Features/V2/Improve/TargetReachedView.swift`, `Features/V2/Improve/SaveAccountSheetView.swift`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`.
+**Decisions Made:** Kept paste-text/sample résumé disabled because backend/demo paths are not present; tightened Home picker to PDF/DOCX because preflight rejects `.doc`; used completed-only locked-tab checklist state because pre-optimization resume/job state is still local to Home; restyled first-score without fake sub-scores or point deltas; wired target celebration only when a real ATS rescan crosses 80.
+**Next Recommended Action:** Run deeper tap-through visual QA across upload sheet/failure states/locked tabs/Me EN+HE/free score reveal; add an iPhone SE simulator or equivalent compact device smoke; then scope backend/state follow-ups for the remaining flags.
+
+**Date:** 2026-06-25
+**Task:** Review + merge PR #80 (WP-18 upload/import instrumentation + docx picker).
+**Files Changed:** `Features/Tailor/TailorViewModel.swift`, `Features/V2/Home/HomeTabView.swift`, `tasks/progress.md`, `tasks/session-log.md`.
+**Decisions Made:** Found docx picker regression — sandbox copy always used `picked_resume.pdf`, breaking preflight for Word files; fixed by preserving extension. Home `resume_uploaded` on pick now uses actual file type. Merged with merge commit (`0e38ce1`), branch deleted.
+**Next Recommended Action:** After organic traffic, read PostHog funnel `guest_mode_started → resume_upload_cta_tapped → resume_file_selected → resume_upload_succeeded → job_added`; instrument Scan flow as fast-follow.
+
+**Date:** 2026-06-24
+**Task:** WP-18 — diagnose + instrument Resumely upload/import friction (the WP-16 guest→resume_uploaded leak); widen file picker to DOCX.
+**Files Changed:** `Core/Analytics/AnalyticsService.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`.
+**Decisions Made:** Instrumented the shared `TailorViewModel` (Home + Tailor share it) so both surfaces are covered; placed file_selected/preflight in `cachePickedFile`, upload started/succeeded/failed in `optimize()`. Widened both `.fileImporter`s to PDF+DOCX+DOC since preflight/backend already accept docx. Deferred the separate Scan flow. Error events kept precise (picker-level only) to avoid misattributing non-upload errorMessage changes.
+**Next Recommended Action:** Open PR + merge; after a clean cohort, read `guest_mode_started → resume_upload_cta_tapped → resume_file_selected → resume_upload_succeeded → job_added` to name the real drop. Then consider instrumenting the Scan flow.
+
+### 2026-06-24 (WP-16 Activation Attribution + Funnel Diagnostic)
+**Task:** Classify `067544b5`, recompute Resumely activation attribution, and name the measurable funnel drop-off.
+**Files Changed:**
+- `docs/qa/reports/wp-16-activation-attribution-funnel-2026-06-24.md` — source-backed attribution and funnel diagnostic.
+- `tasks/progress.md` — recorded cleaned activation state and next recommended story.
+- `tasks/session-log.md` — this entry.
+**Decisions Made:**
+- `067544b5` is excluded from organic activation. PostHog shows backend completion on 2026-06-10 followed by later iOS sign-in, all classified as Automation / bot-like traffic.
+- Real-organic activation remains 0 confirmed users. The prior 3/35 raw readout should not be treated as a success signal.
+- Largest measurable drop-off is before optimization: saved iOS funnel drops from 26 `guest_mode_started` users to 5 `resume_uploaded` users.
+- Next packet should target upload/import friction and missing preflight/error instrumentation. This does not reverse the founder decision to ship Fit-First visible; it says the next new fix should address the earlier funnel loss.
+**Validation:**
+- PostHog project 270848 verified as "ResumeBuilder AI" in UTC.
+- Saved insight `VH410GF1` read and run for 2026-06-10 through 2026-06-24.
+- Live HogQL person and cohort reads completed without selecting full event property blobs.
+- `git diff --check` passed in Agentic OS, Resumely iOS, and ResumeBuilder Web.
+**Next Recommended Action:** Scope a focused upload/import friction packet before monetization, paid acquisition, score-copy nudges, or more GTM volume.
+
+### 2026-06-23 (WP-13 Fit-First Release)
+**Task:** Ship Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision
+**Files Changed:**
+- `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — CURRENT_PROJECT_VERSION 6 (release branch)
+- `ResumeBuilder IOS APP/Core/API/BackendConfig.swift` — flag ON on internal branch only
+- `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift` — live production smoke + Hebrew RTL tests
+- `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md` — smoke evidence
+- `tasks/progress.md`, `tasks/MEMORY.md`, `tasks/session-log.md` — WP-13 status
+- Agentic OS `DECISIONS.md` — flip defer to 2026-06-24 D7 readout
+**Decisions Made:**
+- Public build 6 ships dark (`isFitCheckEnabled=false`)
+- Flip deferred to D7 readout 2026-06-24 (no percentage rollout gate exists)
+- Internal validation branch: `feat/wp-13-fit-check-internal`
+**Next Recommended Action:** Founder: Xcode Organizer → archive `release/wp-13-v1.1-build-6` → upload build 6 → submit for App Store review. After D7 readout 2026-06-24, open flip PR if Gate A stable.
+
+### 2026-06-23 (Fit-First Triage Story 1)
+**Task:** Implement FitCheckService model/service layer for the Fit-First Triage wedge
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/API/Models/FitVerdict.swift` — added `FitVerdict` + `FitBand` with flexible decoding, score clamping, and fallback band derivation.
+- `ResumeBuilder IOS APP/Core/API/FitCheckService.swift` — added protocol, live APIClient-backed service, mapping error, and injectable mock.
+- `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift` — added additive optional `fit` decode to `ATSScoreResult` while preserving existing public ATS fields.
+- `ResumeBuilder IOS APP/Core/API/RuntimeServices.swift` — exposed the live fit-check service factory.
+- `ResumeBuilder IOS APP/Models/ResumeDiagnosis.swift` — accepted `detail` as a backend alias for gap explanations.
+- `ResumeBuilder IOS APPTests/FitCheckServiceTests.swift`, `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` — added focused test coverage and explicit test-target membership.
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/session-log.md` — recorded story status, validation, and lessons.
+**Decisions Made:**
+- Placed `FitVerdict.swift` in `Core/API/Models/` instead of the spec's generic `Models/` path to match the app's actual API model layout.
+- The server verdict wins when present; iOS derives Strong/Stretch/Skip from `score.overall` only if the additive `fit` block omits `verdict`.
+- Kept the live implementation on existing `APIEndpoint.publicATSCheck`/`APIClient.runPublicATSCheck` and did not add a parallel endpoint, URL, package, or UI.
+**Validation:**
+- Debug iPhone 17 simulator build passed from a clean temp copy.
+- Focused `FitCheckServiceTests` passed: 6 executed, 0 failures.
+- Production `/api/public/ats-check` returned HTTP 200 for a sample PDF + 100+ word JD through `x-session-id`, but the deployed payload still lacked `fit`; Story 0 deployment is the remaining external verification gate.
+**Next Recommended Action:** Deploy/verify Story 0 so `/api/public/ats-check` returns additive `fit`, rerun the live decode check, then begin Story 2 UI work behind the feature flag.
+
 ### 2026-06-19 (PostHog findings remediation)
 **Task:** Resolve actionable PostHog/error-sweep findings for silent preview and PDF export failures
 **Files Changed:**
@@ -463,6 +540,24 @@
 - XcodeBuildMCP `build_run_sim` succeeded for the screenshot renderer.
 - XcodeBuildMCP `test_sim` passed 33/33.
 **Next Recommended Action:** Provide/enable App Store Connect upload credentials or upload the files from `dist/app-store-screenshots/rb-aso-002/iphone-6.7/` and `iphone-6.5/` manually in slot order.
+
+### 2026-06-26
+**Task:** Fix real-device optimization review apply timeout/already-applied dead end
+**Files Changed:**
+- `ResumeBuilder IOS APP/Core/API/APIClient.swift` — made long-running URLSession injectable and used it for custom-timeout requests/uploads.
+- `ResumeBuilder IOS APP/Core/API/Models/DomainModels.swift` — decoded applied optimization ids from `optimization_id` and `optimizationId`.
+- `ResumeBuilder IOS APP/Features/V2/History/OptimizationReviewView.swift` — apply now uses a 120s timeout and recovers timeout/already-applied responses by reloading review state.
+- `ResumeBuilder IOS APPTests/ResumeOptimizationParsingTests.swift` — added regression coverage for timeout-after-server-success recovery.
+- `tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md` — updated project memory.
+**Decisions Made:**
+- Treat apply as a non-idempotent mutation: if the client times out, reload server state before displaying failure.
+- Keep recovery in the review view model because it owns apply navigation and included-change state.
+**Validation:**
+- Focused `ResumeOptimizationParsingTests` passed 7/7 on iPhone 17 simulator.
+- Debug build succeeded on iPhone 17 simulator.
+**Next Recommended Action:** Rebuild on the physical phone and retry the same apply path; if production still exceeds 120s, the backend should make apply explicitly idempotent or expose an async job status.
+
+---
 
 - `tasks/MEMORY.md`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md` — updated roadmap/status
 **Decisions Made:**

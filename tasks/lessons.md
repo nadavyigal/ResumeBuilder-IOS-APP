@@ -15,6 +15,64 @@
 
 ## Lessons
 
+**Date:** 2026-06-25
+**Category:** Build
+**Rule:** The full test suite intermittently crashes the test host with `malloc: *** error for object 0x7ffd41cb7680: pointer being freed was not allocated`, always at the SAME memory address but in a DIFFERENT test each run (seen in `ResumeDiagnosisViewModelTests.testViewModelStartsEmptyWithoutOptimizationId` and separately in `OptimizedResumeViewModelTests.testATSInsightsExplainLowScoreAndExposeActions`) — this is a host-process-level instability, not a bug in any specific test or the app code under test. `xcodebuild -only-testing`/`-skip-testing` doesn't avoid it since it isn't tied to one test. The Debug build itself always succeeds clean, and every test that completes always passes. Don't chase this as a code bug; if it blocks a full-suite run, fall back to confirming the build is green plus spot-checking the relevant suites individually.
+**Why:** Found while QA'ing PR #83's CodeRabbit fixes, after an unusually heavy run of back-to-back `xcodebuild` test invocations in one session (multiple full builds + test runs in under an hour). Verified pre-existing and non-deterministic by reproducing identically with the session's changes stashed out (against the already-committed PR #83 state) and by watching it hit a different, unrelated test on a later run.
+
+**Date:** 2026-06-25
+**Category:** SwiftUI
+**Rule:** Before wiring new UI into an existing screen, `grep -rn "StructName("` across the whole app to confirm it's actually instantiated somewhere live — don't assume a file under `Features/V2/` is the live screen just because its name matches the tab.
+**Why:** The redesign's target-reached/save-account celebration was wired into `ImproveView.swift`, which is never instantiated anywhere in the app (confirmed via repo-wide grep) — the live Optimized tab renders `OptimizedResumeView.swift` instead. The feature built correctly, compiled, and passed review of the diff, but no user would ever see it. Caught only by checking call sites, not by reading the diff.
+
+**Date:** 2026-06-25
+**Category:** UX
+**Rule:** When implementing redesign screens that reference future backend/state capabilities, keep the UI honest by disabling or simplifying those affordances and recording the flag instead of presenting fake progress, fake point deltas, resumable jobs, paste-text diagnosis, or demo diagnoses as real.
+**Why:** The Resumely activation redesign includes paste-resume, sample diagnosis, parser-stage progress, precise locked-tab hasResume/hasJob state, point-delta fixes, resumable offline analysis, and guest persistence claims that are not fully backed by current iOS/backend contracts.
+
+**Date:** 2026-06-25
+**Category:** Build
+**Rule:** When the file picker and `UploadFilePreflight.mimeType(for:)` disagree on a type, widen preflight to match the picker's WP-18 intent — do not narrow the picker to match preflight. Check which direction actually serves the activation goal before "fixing" a mismatch.
+**Why:** The redesign pass found this exact mismatch (picker allowed `.doc`, preflight rejected it) and "fixed" it by removing `.doc` from the picker — silently re-blocking Word `.doc` users, the precise WP-18 regression it was trying to prevent for `.docx`. The correct fix (applied in the 2026-06-25 QA pass) was to add `application/msword` recognition to `mimeType(for:)` so `.doc` actually works end-to-end, completing WP-18's intent instead of reverting it.
+
+**Date:** 2026-06-24
+**Category:** UX
+**Rule:** Instrument the whole journey, not just the success terminal — a funnel that only fires the terminal event (e.g. `resume_uploaded`) makes every upstream drop-off unattributable.
+**Why:** WP-16 showed an 81% guest→`resume_uploaded` drop with zero events in between, so the cause (never-tapped vs cancelled vs preflight-rejected vs upload-failed) was unknowable until WP-18 added the granular pick/upload events.
+
+**Date:** 2026-06-24
+**Category:** UX
+**Rule:** Keep `.fileImporter allowedContentTypes` in sync with what preflight/backend actually accept — a picker narrower than the parser silently blocks valid users with no analytics signal.
+**Why:** The picker was `[.pdf]` while `UploadFilePreflight` already accepted `.docx` (proven by `ScanViewModelTests.testDocxMimeTypeRecognizedByPreflight`), so Word-resume users couldn't even select their file and dropped invisibly.
+
+### 2026-06-23 (WP-12 Stories 2-4)
+**Category:** Build
+**Rule:** `try? decodeIfPresent(T.self, forKey:)` returns `Optional<Optional<T>>`; flatten with `(try? ...) ?? nil` before `if let`, not the double-binding pattern `if let x = ..., let x`.
+**Why:** Using the pattern `if let x = try? decodeIfPresent(...), let x` caused the compiler error "initializer for conditional binding must have Optional type" because the inner unwrap target was already non-Optional. The correct pattern is `if let x = (try? decodeIfPresent(...)) ?? nil`.
+
+**Category:** Build
+**Rule:** Before adding a private `FlowLayout` (or any Layout type) to a new view, search the project for existing definitions — duplicating a non-private `struct FlowLayout` causes a redeclaration error.
+**Why:** `FlowLayout` was already defined (non-private) in `RecruiterEyeViewCard.swift`. Adding `private struct FlowLayout` in `FitVerdictView.swift` caused a "invalid redeclaration" compile error.
+
+**Category:** SwiftUI
+**Rule:** `GradientButton(title:)` takes `LocalizedStringKey`, not `String`. Pass a string literal directly, not `NSLocalizedString(...)`.
+**Why:** Passing `NSLocalizedString("Check Fit", comment: "")` (which returns `String`) to `GradientButton(title:)` caused "cannot convert value of type 'String' to expected argument type 'LocalizedStringKey'".
+
+### 2026-06-23
+**Category:** Build
+**Rule:** When adding a new fallback key to an existing Codable decoder, decode the primary and alias values into local optionals before nil-coalescing.
+**Why:** While adding `ResumeGap.detail` as an alias for the Fit payload, the first patch repeated the throwing-decode-inside-`??` pattern that has broken Swift builds before.
+
+### 2026-06-23
+**Category:** Build
+**Rule:** If XcodeBuildMCP times out during scheme listing, check for and stop the leftover `xcodebuild -list` process before running manual `xcodebuild`.
+**Why:** A timed-out scheme lookup left a stale Xcode project reader running, and subsequent manual builds hung before Swift compilation while coordinating project reads.
+
+### 2026-06-23
+**Category:** Test
+**Rule:** In flexible decoders that probe a key as both scalar and nested object, wrap the nested-object probe in `try?` after scalar probes so a type mismatch does not abort the whole decode.
+**Why:** `FitVerdict` decoded numeric `score` first, but the follow-up nested `score.overall` probe still threw a type mismatch and failed the snake-case payload test.
+
 ### 2026-06-19
 **Category:** PDF
 **Rule:** Any `WKWebView` used for resume preview or PDF export must have a `WKNavigationDelegate` and OSLog/analytics coverage for timeout, provisional, navigation, and PDF creation failures.
@@ -244,6 +302,11 @@
 **Category:** Build
 **Rule:** After merging a PR, fetch and pull `main` in the local Xcode working copy before rebuilding, then confirm Xcode's branch popover shows `main`.
 **Why:** The app was rebuilt from local `main` while it was still two commits behind `origin/main`, so the installed binary still contained code removed by the merged PR.
+
+### 2026-06-26
+**Category:** API
+**Rule:** Non-idempotent apply mutations must use a long timeout and recover timeout/already-applied responses by reloading server state before surfacing an error.
+**Why:** Real-device smoke showed optimization review apply could time out after the server had already applied changes; retry then returned "This review has already been applied" and stranded the user instead of opening the optimized resume.
 
 ### 2026-05-24
 **Category:** PDF

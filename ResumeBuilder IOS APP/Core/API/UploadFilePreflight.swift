@@ -14,6 +14,7 @@ enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
     case missingFile
     case emptyFile
     case unsupportedFileType
+    case fileTooLarge(bytes: Int)
     case unreadablePDF
 
     var errorDescription: String? {
@@ -23,7 +24,9 @@ enum UploadFilePreflightError: LocalizedError, Equatable, Sendable {
         case .emptyFile:
             return NSLocalizedString("Selected resume file is empty. Please choose a freshly exported PDF.", comment: "")
         case .unsupportedFileType:
-            return NSLocalizedString("Choose a PDF resume exported from your word processor, not a scanned image or shortcut file.", comment: "")
+            return NSLocalizedString("Choose a PDF, DOCX, or DOC resume exported from your word processor.", comment: "")
+        case .fileTooLarge:
+            return NSLocalizedString("This file is larger than 5 MB. Export a smaller PDF or DOCX and try again.", comment: "")
         case .unreadablePDF:
             return NSLocalizedString("This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot.", comment: "")
         }
@@ -41,6 +44,9 @@ enum UploadFilePreflight {
         let data = try Data(contentsOf: fileURL)
         guard !data.isEmpty else {
             throw UploadFilePreflightError.emptyFile
+        }
+        guard data.count <= 5_000_000 else {
+            throw UploadFilePreflightError.fileTooLarge(bytes: data.count)
         }
         var uploadData = data
         var resumeText: String?
@@ -63,6 +69,8 @@ enum UploadFilePreflight {
             return "application/pdf"
         case "docx":
             return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        case "doc":
+            return "application/msword"
         default:
             return nil
         }

@@ -17,6 +17,11 @@ final class TailorViewModel {
 
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
+    var uploadFailureReason: UploadFailureReason?
+    var failedResumeName: String?
+    /// True when the most recent optimize/ATS-check failure was a connectivity drop
+    /// (not a server or validation error) — drives the ConnectionLostView recovery UI.
+    var isConnectionError = false
 
     /// Set when an unauthenticated free ATS check completes.
     var atsResult: ATSScoreResult?
@@ -39,7 +44,8 @@ final class TailorViewModel {
     func cachePickedFile(url: URL) {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent("picked_resume.pdf")
+        let ext = url.pathExtension.isEmpty ? "pdf" : url.pathExtension.lowercased()
+        let dest = docs.appendingPathComponent("picked_resume.\(ext)")
 
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
@@ -53,12 +59,35 @@ final class TailorViewModel {
         } catch {
             selectedResumeURL = nil
             selectedResumeName = nil
+            failedResumeName = filename
+            let reason = UploadFailureReason(error: error)
+            uploadFailureReason = reason
             errorMessage = error.localizedDescription
+            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: reason.analyticsValue))
             return
         }
         selectedResumeURL = candidateURL
         selectedResumeName = filename
+        failedResumeName = nil
+        uploadFailureReason = nil
         errorMessage = nil
+        let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
+        AnalyticsService.shared.track(.resumeFileSelected(
+            fileType: pickedType,
+            sizeBucket: Self.fileSizeBucket(for: candidateURL)
+        ))
+    }
+
+    /// PII-safe coarse file-size bucket for upload analytics.
+    private static func fileSizeBucket(for url: URL) -> String {
+        let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? Int ?? -1
+        switch bytes {
+        case 0..<100_000: return "<100kb"
+        case 100_000..<1_000_000: return "100kb-1mb"
+        case 1_000_000..<5_000_000: return "1mb-5mb"
+        case 5_000_000...: return ">5mb"
+        default: return "unknown"
+        }
     }
 
     /// Pre-fills Step 1 from a file URL already downloaded from the library.
@@ -87,13 +116,18 @@ final class TailorViewModel {
 
         isOptimizing = true
         errorMessage = nil
+        isConnectionError = false
         reviewId = nil
         optimizationId = nil
         defer { isOptimizing = false }
 
         AnalyticsService.shared.track(.optimizationStarted)
 
+        let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
+        var didUpload = false
+
         do {
+            AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
             // Step 1 — upload PDF + job context. Server stores resume and JD,
             // returns ids we need for the optimize call.
             let upload = try await appState.callWithFreshToken { token in
@@ -106,6 +140,8 @@ final class TailorViewModel {
                 )
             }
             uploadResponse = upload
+            didUpload = true
+            AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
             #if DEBUG
             print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
             #endif
@@ -161,13 +197,33 @@ final class TailorViewModel {
                 errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
             }
         } catch let apiError as APIClientError {
-            if case .serverError(_, let message) = apiError {
+            if case .serverError(let status, let message) = apiError {
                 errorMessage = enhancedError(message)
+                if !didUpload {
+                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "\(status)"))
+                }
             } else {
                 errorMessage = apiError.localizedDescription
+                if !didUpload {
+                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "client_error"))
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
+            isConnectionError = Self.isConnectivityError(error)
+            if !didUpload {
+                AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
+            }
+        }
+    }
+
+    static func isConnectivityError(_ error: Error) -> Bool {
+        guard let urlError = error as? URLError else { return false }
+        switch urlError.code {
+        case .notConnectedToInternet, .networkConnectionLost, .timedOut, .dataNotAllowed, .cannotConnectToHost:
+            return true
+        default:
+            return false
         }
     }
 
@@ -184,6 +240,7 @@ final class TailorViewModel {
         }
         isRunningFreeATS = true
         errorMessage = nil
+        isConnectionError = false
         atsResult = nil
         defer { isRunningFreeATS = false }
         do {
@@ -197,6 +254,7 @@ final class TailorViewModel {
             appState.storeAnonymousATSSessionId(response.sessionId)
         } catch {
             errorMessage = error.localizedDescription
+            isConnectionError = Self.isConnectivityError(error)
         }
     }
 
