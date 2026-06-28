@@ -3231,6 +3231,16 @@
         }
       }
     },
+    "Internal package only. Nothing is sent to a recruiter from here. Use this to save, share, and track your application." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חבילה פנימית בלבד. שום דבר לא נשלח למגייס מכאן. השתמש בזה כדי לשמור, לשתף ולעקוב אחרי ההגשה שלך."
+          }
+        }
+      }
+    },
     "Interview-style answers grounded in wins." : {
       "localizations" : {
         "he" : {
@@ -4071,6 +4081,16 @@
     "no file handy?" : {
 
     },
+    "No job link is attached yet. Add the job URL before saving so the package can track this application." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא צורף קישור משרה. הוסף את קישור המשרה לפני השמירה כדי שהחבילה תוכל לעקוב אחרי ההגשה הזו."
+          }
+        }
+      }
+    },
     "No matching optimizations" : {
       "localizations" : {
         "he" : {
@@ -4508,6 +4528,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "חבילה"
+          }
+        }
+      }
+    },
+    "Package Contents" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תכולת החבילה"
           }
         }
       }
@@ -5568,6 +5598,7 @@
       }
     },
     "Review the resume, cover letter, and job link. Save this package to Me when it is ready." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5926,6 +5957,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שמור את ההתקדמות שלך"
+          }
+        }
+      }
+    },
+    "Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נשמר פנימית באזור האישי. שום דבר לא נשלח אוטומטית; אפשר לשתף את קורות החיים, להעתיק את המכתב המלווה או לפתוח את קישור המשרה כשתהיה מוכן."
           }
         }
       }
@@ -7205,6 +7246,16 @@
     "This file is larger than 5 MB. Export a smaller PDF or DOCX and try again." : {
 
     },
+    "This is an internal tracking package. Saving it adds it to Me; it does not send anything to the recruiter." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "זו חבילת מעקב פנימית. השמירה מוסיפה אותה לאזור האישי; היא לא שולחת שום דבר למגייס."
+          }
+        }
+      }
+    },
     "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot." : {
       "localizations" : {
         "he" : {
@@ -7845,6 +7896,7 @@
 
     },
     "You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {

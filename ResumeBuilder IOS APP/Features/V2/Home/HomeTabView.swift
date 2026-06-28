@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 /// V2 Home activation surface — guest-first upload → job → ATS/optimize funnel.
 struct HomeTabView: View {
     @Environment(AppState.self) private var appState
+    @Environment(LocalizationManager.self) private var localization
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var viewModel: TailorViewModel
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
@@ -377,10 +378,12 @@ struct HomeTabView: View {
 
                 Spacer()
 
-                Text("Step 1 of 3")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppColors.textTertiary)
+                languageSwitcher
             }
+
+            Text("Step 1 of 3")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppColors.textTertiary)
 
             Text("See your résumé like a recruiter does")
                 .font(.system(size: 34, weight: .black, design: .rounded))
@@ -393,6 +396,40 @@ struct HomeTabView: View {
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var languageSwitcher: some View {
+        HStack(spacing: 4) {
+            ForEach(LocalizationManager.AppLanguage.allCases) { language in
+                languageButton(language)
+            }
+        }
+        .padding(4)
+        .background(AppColors.glassTint, in: Capsule())
+        .overlay(
+            Capsule()
+                .strokeBorder(AppColors.glassStroke, lineWidth: 1)
+        )
+        .accessibilityLabel("Language")
+    }
+
+    private func languageButton(_ language: LocalizationManager.AppLanguage) -> some View {
+        let isSelected = localization.language == language
+        return Button {
+            localization.setLanguage(language)
+        } label: {
+            Text(language.rawValue.uppercased())
+                .font(.caption2.weight(.black))
+                .frame(minWidth: 34, minHeight: 28)
+                .foregroundStyle(isSelected ? Color.white : AppColors.textSecondary)
+                .background(
+                    isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(Color.clear),
+                    in: Capsule()
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(language.displayName)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
     private var progressPath: some View {

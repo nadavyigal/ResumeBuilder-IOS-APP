@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Make Me application detail look like Submit Package and move language switching to Home for build 1.1 (7).
+**Files Changed:** `Features/Track/ApplicationDetailView.swift`, `Features/Profile/ProfileView.swift`, `Features/V2/Home/HomeTabView.swift`, `Core/Localization/LocalizationManager.swift`, `Resources/Localizable.xcstrings`, task notes.
+**Decisions Made:** Saved applications opened from Me now use the same internal package model as Submit Package, including package contents, cover letter, job link actions, and “nothing is sent automatically” copy. Language switching is now a Home-level control, not a Me/Profile setting.
+**Next Recommended Action:** Rebuild 1.1 (7) on phone and smoke LinkedIn URL optimize → Submit Package → Save to Me → open the saved package from Me. If clean, archive in Xcode Organizer.
+
+**Date:** 2026-06-28
 **Task:** Fix Submit Package missing job link before build 1.1 (7) archive.
 **Files Changed:** `App/AppState.swift`, optimize entry points, optimized/expert/profile/application-detail submit wiring, `Features/V2/Improve/OptimizedResumeView.swift`, `ViewModels/ImproveViewModel.swift`, `ViewModels/OptimizedResumeViewModel.swift`, `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift`, task notes.
 **Decisions Made:** Submit Package remains internal tracking/share prep only; the user must still open the job link or share materials manually. The original optimize job URL is remembered by optimization id and reused when opening Submit Package later.

@@ -73,11 +73,11 @@ Project: ResumeBuilder iOS
 Status: v1.1 (5) LIVE on App Store. v1.1 (7) pre-archive quick fixes are on `main`, including Submit Package job-link carryover.
 Current Phase: Post-launch / build 7 smoke and archive prep.
 Active Story: Founder smoke test build 7 on device, then Xcode archive/upload when the device smoke passes.
-Last Completed Story: Submit Package now carries the optimization job link into the package, visibly includes job link + cover letter, and clarifies the package is internal tracking/share prep, not recruiter auto-submit (2026-06-28).
-Next Recommended Story: Build/run 1.1 (7) on phone, smoke optimize-from-LinkedIn-URL → Submit Package → Save to Me, then archive in Xcode Organizer.
+Last Completed Story: Me application detail now uses the Submit Package-style internal package UI, and language selection moved from Me to the top of Home (2026-06-28).
+Next Recommended Story: Build/run 1.1 (7) on phone, smoke optimize-from-LinkedIn-URL → Submit Package → Save to Me → open the saved package from Me, then archive in Xcode Organizer.
 Blockers: Distribution signing cert/profile not in local keychain — founder must resolve in Xcode before archive.
 Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
-Last Validation: 2026-06-28 — `git diff --check` clean; focused Submit Package tests 4/4 passed on iPhone 17 Pro simulator; Debug simulator build/run passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed.
+Last Validation: 2026-06-28 — `git diff --check` clean; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed.
 Last Updated: 2026-06-28
 Current Branch: main
 Latest Base Commit: pending Submit Package job-link commit
@@ -114,7 +114,8 @@ Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 - Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
 - Optimized resume now supports an assisted Submit Package flow. It refreshes optimization detail before package generation, downloads the optimized resume PDF, runs Cover Letter Architect and Screening Answer Studio, previews a draft package, then saves it to Me only after user confirmation. Saving creates a saved application, attaches the optimized resume, saves Expert reports, and presents share/copy/submit-at-link actions without attempting third-party auto-submit.
 - Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
-- Submit Package remembers the job URL entered during optimize by `optimizationId`, seeds Optimized/Expert/Profile/Application Detail submit flows with that URL, shows package contents including Resume PDF, Cover Letter, and Job Link, and clarifies that saving/sharing is internal and does not auto-send to a recruiter.
+- Submit Package remembers the job URL entered during optimize by `optimizationId`, seeds Optimized/Expert/Profile/Application Detail submit flows with that URL, shows package contents including Resume PDF, Cover Letter, and Job Link, and clarifies that saving/sharing is internal and does not auto-send to a recruiter. Saved applications opened from Me now reuse the same package-style surface, including package contents, cover letter, job link actions, secondary actions, and overview.
+- Home now owns the app language switcher in the top header; Me/Profile no longer includes the language section.
 - Optimized resume now has a normal in-app ATS insight panel that maps App Store screenshot claims to a reachable product surface: headline score, before/after delta, score signals, top blockers/actions, Improve ATS, and an explicit low-score explanation when the optimized score remains below 55.
 - Home/Tailor now route successful resume/job optimization into a V2 Resume Diagnosis screen before the full Improve tab. Diagnosis shows estimated match guidance, potential score, top gaps, missing keywords, recruiter-eye review, before/after rewrite, and grounded CTAs to improve or edit the target job.
 - Optimized resume now reuses the diagnosis mapper for a compact recruiter snapshot and confidence checklist so the user sees why the resume is stronger before export/payment.

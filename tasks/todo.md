@@ -1,3 +1,22 @@
+# Story: Me application detail package UI + Home language switcher (2026-06-28)
+
+Decision: saved applications opened from Me should present as the same internal Submit Package surface, and language selection belongs at the top of Home instead of inside Me.
+
+## Fixed
+- [x] Rebuilt `ApplicationDetailView` as a dark package-style ScrollView with package ready header, role/company card, internal tracking note, contents, share/copy/open actions, cover-letter preview, secondary actions, and overview.
+- [x] Kept package actions internal: share resume PDF, copy cover letter, and open the job link, with copy that says nothing is sent automatically.
+- [x] Removed the language section from Me/Profile.
+- [x] Added a compact EN/HE language switcher to the top of Home and moved the step badge under the Home header.
+- [x] Added Hebrew translations for the new package copy.
+
+## Validation
+- [x] `git diff --check` — passed.
+- [x] Debug simulator build on iPhone 17 Pro — **BUILD SUCCEEDED**.
+- [x] Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
+- [ ] Founder physical-phone smoke: save a Submit Package, open it from Me, confirm it looks/behaves like the package screen and Home language switching still works.
+
+---
+
 # Story: Fit-First LinkedIn URL carry-forward fix (2026-06-28)
 
 Decision: Fit-First must preserve URL-only job input from Home/Tailor instead of forcing a second pasted job description.

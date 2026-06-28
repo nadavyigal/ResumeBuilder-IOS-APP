@@ -22,81 +22,28 @@ struct ApplicationDetailView: View {
 
     var body: some View {
         ZStack {
-            List {
-                Section("Actions") {
-                    if vm.item.applyClickedAt == nil {
-                        Button {
-                            Task { await vm.markApplied(token: token) }
-                        } label: {
-                            Label(
-                                vm.isMarkingApplied ? "Marking…" : "Mark as Applied",
-                                systemImage: "checkmark.circle"
-                            )
-                        }
-                        .disabled(vm.isMarkingApplied)
-                    } else if let badge = formattedAppliedBadge(from: vm.item.applyClickedAt) {
-                        Label(badge, systemImage: "checkmark.seal.fill")
-                            .foregroundStyle(.green)
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    packageHeader
+                    applicationSummaryCard
+                    internalPackageNotice
+                    packageContentsCard
+                    packageActionButtons
+
+                    if let report = coverLetterReport {
+                        coverLetterCard(report)
                     }
 
-                    Button {
-                        showAttachPicker = true
-                    } label: {
-                        Label(
-                            vm.isAttaching ? "Attaching…" : "Attach Optimized Resume",
-                            systemImage: "doc.badge.plus"
-                        )
-                    }
-                    .disabled(vm.isAttaching)
+                    secondaryActionsCard
+                    overviewCard
 
-                    if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button {
-                            appState.latestOptimizationId = oid
-                            navigateToOptimizedResume = true
-                        } label: {
-                            Label("View Optimized Resume", systemImage: "doc.richtext")
-                        }
-                    }
-
-                    if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        NavigationLink {
-                            if let evm = expertVM {
-                                ExpertModesView(vm: evm)
-                            } else {
-                                ProgressView("Loading expert analysis…")
-                            }
-                        } label: {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Expert Analysis")
-                                    .foregroundStyle(AppColors.textPrimary)
-                                Text(
-                                    vm.expertReportsCount == 0
-                                        ? "Run expert workflows for this optimization"
-                                        : "\(vm.expertReportsCount) saved report\(vm.expertReportsCount == 1 ? "" : "s")"
-                                )
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            }
-                        }
-                    } else {
-                        LabeledContent("Expert Analysis", value: "Requires optimization linked to this application")
-                            .foregroundStyle(.secondary)
-                    }
+                    Spacer(minLength: 100)
                 }
-
-                packageHubSection
-
-                Section("Overview") {
-                    LabeledContent("Role", value: vm.item.jobTitle ?? "—")
-                    LabeledContent("Company", value: vm.item.companyName ?? "—")
-                    LabeledContent("Applied", value: vm.item.appliedDate.map { formattedListDate(from: $0) } ?? "—")
-                    if let score = vm.item.atsScore {
-                        LabeledContent("Match Score", value: "\(score)%")
-                    }
-                    LabeledContent("Status", value: vm.item.status ?? "applied")
-                }
+                .padding(AppSpacing.lg)
             }
-            .navigationTitle("Application")
+            .screenBackground(showRadialGlow: false)
+            .navigationTitle("Submit Package")
+            .navigationBarTitleDisplayMode(.inline)
 
             if vm.isLoading {
                 ProgressView()
@@ -184,6 +131,41 @@ struct ApplicationDetailView: View {
         let url: URL?
     }
 
+    private var hasPackageContent: Bool {
+        optimizedAttachmentSummary != nil || coverLetterReport != nil || packageJobURL != nil
+    }
+
+    private var packageHeader: some View {
+        Label(
+            hasPackageContent ? "Saved to Me" : "Package not complete",
+            systemImage: hasPackageContent ? "checkmark.circle.fill" : "tray.full.fill"
+        )
+        .font(.appHeadline)
+        .foregroundStyle(AppColors.accentTeal)
+    }
+
+    private var applicationSummaryCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(vm.item.jobTitle ?? NSLocalizedString("Target Role", comment: ""))
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(vm.item.companyName ?? NSLocalizedString("Company not specified", comment: ""))
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+        }
+        .padding(AppSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var internalPackageNotice: some View {
+        Text("Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready.")
+            .font(.appCaption)
+            .foregroundStyle(AppColors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     private var optimizedAttachmentSummary: AttachmentSummary? {
         let id = vm.item.optimizedResumeId ?? vm.item.optimizationId
         let link = vm.item.optimizedResumeURL
@@ -201,71 +183,232 @@ struct ApplicationDetailView: View {
         return AttachmentSummary(filename: name, url: urlParsed)
     }
 
-    @ViewBuilder
-    private var packageHubSection: some View {
-        Section("Submission Package") {
-            if optimizedAttachmentSummary == nil && coverLetterReport == nil && packageJobURL == nil {
-                LabeledContent("Package", value: "Attach an optimized resume to complete this application.")
-                    .foregroundStyle(.secondary)
+    private var packageContentsCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Package Contents")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            packageContentRow(
+                title: "Resume PDF",
+                detail: optimizedAttachmentSummary?.filename,
+                icon: "doc.fill",
+                isPresent: optimizedAttachmentSummary != nil
+            )
+
+            packageContentRow(
+                title: "Cover Letter",
+                detail: coverLetterReport?.reportTitle,
+                icon: "doc.text.fill",
+                isPresent: coverLetterReport != nil
+            )
+
+            if let url = packageJobURL {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Label("Job Link", systemImage: "link")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(vm.item.sourceURL ?? url.absoluteString)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                }
             } else {
-                if let score = vm.item.atsScore {
-                    LabeledContent("ATS match", value: "\(score)% · \(atsStatusLabel(score))")
+                Label("No job link attached", systemImage: "exclamationmark.triangle.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(.orange)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func packageContentRow(title: LocalizedStringKey, detail: String?, icon: String, isPresent: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: AppSpacing.sm) {
+            Image(systemName: icon)
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(isPresent ? AppColors.textSecondary : AppColors.textTertiary)
+                .frame(width: 20)
+            Text(title)
+                .font(.appCaption.weight(isPresent ? .semibold : .regular))
+                .foregroundStyle(isPresent ? AppColors.textSecondary : AppColors.textTertiary)
+            if let detail, !detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Spacer(minLength: AppSpacing.sm)
+                Text(detail)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var packageActionButtons: some View {
+        VStack(spacing: AppSpacing.sm) {
+            if optimizedAttachmentSummary != nil {
+                packageButton(
+                    title: isDownloadingResume ? "Preparing…" : "Share Resume PDF",
+                    icon: "square.and.arrow.up"
+                ) {
+                    Task { await shareOptimizedResume() }
                 }
+                .disabled(isDownloadingResume)
+            }
 
-                if let summary = optimizedAttachmentSummary {
-                    LabeledContent("Resume", value: summary.filename)
-
-                    Button {
-                        Task { await shareOptimizedResume() }
-                    } label: {
-                        Label(isDownloadingResume ? "Preparing…" : "Share Resume PDF", systemImage: "square.and.arrow.up")
-                    }
-                    .disabled(isDownloadingResume)
-
-                    if let url = summary.url {
-                        Button {
-                            UIApplication.shared.open(url)
-                        } label: {
-                            Label("Open Resume Link", systemImage: "safari")
-                        }
-                    }
-                }
-
-                if let report = coverLetterReport {
-                    Button {
-                        if let text = report.coverLetterText {
-                            UIPasteboard.general.string = text
-                            withAnimation { showCopiedCoverLetter = true }
-                        }
-                    } label: {
-                        Label("Copy Cover Letter", systemImage: "doc.on.doc")
-                    }
-                    .disabled(report.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false)
-
+            if let report = coverLetterReport {
+                packageButton(title: "Copy Cover Letter", icon: "doc.on.doc") {
                     if let text = report.coverLetterText {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Cover Letter")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                            Text(text)
-                                .font(.footnote)
-                                .textSelection(.enabled)
-                                .lineLimit(8)
-                        }
-                    } else {
-                        LabeledContent("Cover Letter", value: report.reportTitle ?? "Saved")
+                        UIPasteboard.general.string = text
+                        withAnimation { showCopiedCoverLetter = true }
                     }
                 }
+                .disabled(report.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false)
+            }
 
-                if let url = packageJobURL {
-                    Button {
-                        UIApplication.shared.open(url)
-                    } label: {
-                        Label("Submit at Job Link", systemImage: "link")
-                    }
+            if let url = packageJobURL {
+                packageButton(title: "Submit at Job Link", icon: "safari") {
+                    UIApplication.shared.open(url)
                 }
             }
         }
+    }
+
+    private func packageButton(title: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.appSubheadline.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .glassCard(cornerRadius: AppRadii.md)
+        }
+        .buttonStyle(GradientButtonStyle())
+    }
+
+    private func coverLetterCard(_ report: ApplicationExpertReportItem) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Cover Letter")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+            Text(report.coverLetterText ?? NSLocalizedString("Cover letter saved in this application.", comment: ""))
+                .font(.appBody)
+                .foregroundStyle(AppColors.textSecondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private var secondaryActionsCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Actions")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            if vm.item.applyClickedAt == nil {
+                secondaryActionButton(
+                    title: vm.isMarkingApplied ? "Marking…" : "Mark as Applied",
+                    icon: "checkmark.circle"
+                ) {
+                    Task { await vm.markApplied(token: token) }
+                }
+                .disabled(vm.isMarkingApplied)
+            } else if let badge = formattedAppliedBadge(from: vm.item.applyClickedAt) {
+                Label(badge, systemImage: "checkmark.seal.fill")
+                    .font(.appCaption.weight(.semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+
+            secondaryActionButton(
+                title: vm.isAttaching ? "Attaching…" : "Attach Optimized Resume",
+                icon: "doc.badge.plus"
+            ) {
+                showAttachPicker = true
+            }
+            .disabled(vm.isAttaching)
+
+            if let oid = vm.item.optimizationId, !oid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                secondaryActionButton(title: "View Optimized Resume", icon: "doc.richtext") {
+                    appState.latestOptimizationId = oid
+                    navigateToOptimizedResume = true
+                }
+
+                NavigationLink {
+                    if let evm = expertVM {
+                        ExpertModesView(vm: evm)
+                    } else {
+                        ProgressView("Loading expert analysis…")
+                    }
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Expert Analysis")
+                                .font(.appBody.weight(.semibold))
+                                .foregroundStyle(AppColors.textPrimary)
+                            Text(
+                                vm.expertReportsCount == 0
+                                    ? "Run expert workflows for this optimization"
+                                    : "\(vm.expertReportsCount) saved report\(vm.expertReportsCount == 1 ? "" : "s")"
+                            )
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textTertiary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.appCaption.weight(.bold))
+                            .foregroundStyle(AppColors.textTertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                Label("Expert Analysis requires an optimized resume linked to this application.", systemImage: "wand.and.stars")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func secondaryActionButton(title: LocalizedStringKey, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.appBody.weight(.semibold))
+                .foregroundStyle(AppColors.accentSky)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var overviewCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Overview")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+            overviewRow("Role", vm.item.jobTitle ?? "—")
+            overviewRow("Company", vm.item.companyName ?? "—")
+            overviewRow("Applied", vm.item.appliedDate.map { formattedListDate(from: $0) } ?? "—")
+            if let score = vm.item.atsScore {
+                overviewRow("Match Score", "\(score)% · \(atsStatusLabel(score))")
+            }
+            overviewRow("Status", vm.item.status ?? "applied")
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    private func overviewRow(_ title: LocalizedStringKey, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(title)
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+            Text(value)
+                .font(.appBody)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var coverLetterReport: ApplicationExpertReportItem? {

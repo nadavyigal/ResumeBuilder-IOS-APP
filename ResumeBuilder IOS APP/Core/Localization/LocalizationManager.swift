@@ -4,7 +4,7 @@
 //
 //  Owns the app's selected language. On first launch it auto-detects the
 //  device language (Hebrew → Hebrew, otherwise English). The user's explicit
-//  choice from the Me tab is persisted in UserDefaults and applied at runtime
+//  choice from the Home tab is persisted in UserDefaults and applied at runtime
 //  without an app restart.
 //
 

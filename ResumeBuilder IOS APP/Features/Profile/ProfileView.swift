@@ -61,7 +61,6 @@ struct ProfileView: View {
                                 creditsSection
                             }
                             trustCard
-                            languageSection
                             accountSection
                         }
                         .padding(.horizontal, 20)
@@ -460,42 +459,6 @@ struct ProfileView: View {
                 .buttonStyle(.plain)
             }
         }
-    }
-
-    // MARK: - Section: Language
-
-    private var languageSection: some View {
-        ProfileSection(title: "Language", icon: "globe", iconColor: Theme.accentCyan) {
-            HStack(spacing: AppSpacing.sm) {
-                ForEach(LocalizationManager.AppLanguage.allCases) { lang in
-                    languageButton(lang)
-                }
-            }
-            .padding(14)
-        }
-    }
-
-    private func languageButton(_ language: LocalizationManager.AppLanguage) -> some View {
-        let isSelected = localization.language == language
-        return Button {
-            localization.setLanguage(language)
-        } label: {
-            Text(language.displayName)
-                .font(.subheadline.weight(.bold))
-                .frame(maxWidth: .infinity)
-                .frame(height: 42)
-                .foregroundStyle(isSelected ? Color.white : AppColors.textSecondary)
-                .background(
-                    isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint),
-                    in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
-                        .strokeBorder(isSelected ? Color.white.opacity(0.12) : AppColors.glassStroke, lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
     private var trustCard: some View {
