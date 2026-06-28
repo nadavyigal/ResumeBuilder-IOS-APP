@@ -5,6 +5,7 @@ import Observation
 @MainActor
 final class FitCheckViewModel {
     var jobDescription = ""
+    var jobDescriptionURL = ""
     var isLoading = false
     var result: FitCheckResult?
     var errorMessage: String?
@@ -32,11 +33,14 @@ final class FitCheckViewModel {
 
     var canCheck: Bool {
         let trimmed = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.split(separator: " ").count >= 50
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedURL.isEmpty || trimmed.split(separator: " ").count >= 50
     }
 
     var jobDescriptionTooShort: Bool {
         let trimmed = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedURL.isEmpty else { return false }
         return !trimmed.isEmpty && !canCheck
     }
 
@@ -51,10 +55,11 @@ final class FitCheckViewModel {
             return
         }
 
-        let trimmed = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.split(separator: " ").count >= 50 else {
+        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURL.isEmpty || trimmedDescription.split(separator: " ").count >= 50 else {
             errorMessage = NSLocalizedString(
-                "Paste the full job description (at least 100 words) so we can check your fit accurately.",
+                "Paste the full job description or add a job link so we can check your fit accurately.",
                 comment: ""
             )
             return
@@ -69,8 +74,8 @@ final class FitCheckViewModel {
         do {
             let checkResult = try await fitCheckService.checkFit(
                 resumeId: resumeId,
-                jobDescription: trimmed,
-                jobDescriptionURL: nil,
+                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
+                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
                 accessToken: accessToken,
                 sessionId: nil
             )

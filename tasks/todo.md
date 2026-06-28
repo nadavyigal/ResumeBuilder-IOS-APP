@@ -1,3 +1,22 @@
+# Story: Fit-First LinkedIn URL carry-forward fix (2026-06-28)
+
+Decision: Fit-First must preserve URL-only job input from Home/Tailor instead of forcing a second pasted job description.
+
+## Fixed
+- [x] `FitCheckViewModel` now stores `jobDescriptionURL` and allows URL-only checks.
+- [x] Fit check requests now send `jobDescriptionUrl` when a URL exists.
+- [x] Home and Tailor seed the Fit view-model with the URL the user already entered.
+- [x] `FitCheckView` shows the carried job link and makes pasted description optional when a URL is present.
+- [x] Added focused regression coverage that URL-only input is valid and reaches `FitCheckService`.
+
+## Validation
+- [x] `git diff --check` — passed.
+- [x] Focused `FitCheckViewModelTests` on iPhone 17 simulator — 17 executed, 1 skipped live fixture, 0 failures.
+- [x] Debug simulator build on iPhone 17 — **BUILD SUCCEEDED**.
+- [ ] Founder physical-phone smoke: LinkedIn URL-only flow should no longer require paste.
+
+---
+
 # Story: Fit-First Home smoke quick fix (2026-06-28)
 
 Decision: the V2 Home Analyze path must route through Fit-First when `BackendConfig.isFitCheckEnabled = true`; Tailor-only wiring was insufficient for build 1.1 (7) smoke.

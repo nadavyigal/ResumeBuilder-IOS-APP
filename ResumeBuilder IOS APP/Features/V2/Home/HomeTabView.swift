@@ -323,6 +323,7 @@ struct HomeTabView: View {
             fitCheckViewModel.resumeId = resumeId
             fitCheckViewModel.accessToken = appState.session?.accessToken
             fitCheckViewModel.jobDescription = viewModel.jobDescription
+            fitCheckViewModel.jobDescriptionURL = viewModel.jobDescriptionURL
             fitCheckViewModel.resetToEntry()
             fitCheckViewModel.onOptimize = { _ in
                 showFitCheck = false

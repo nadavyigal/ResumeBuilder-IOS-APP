@@ -33,6 +33,10 @@ struct FitCheckView: View {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 heroHeader
 
+                if !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    jobLinkSummary
+                }
+
                 jobDescriptionInput
 
                 if viewModel.jobDescriptionTooShort {
@@ -61,12 +65,40 @@ struct FitCheckView: View {
                 .foregroundStyle(AppColors.textPrimary)
 
             Text(NSLocalizedString(
-                "Paste the job description below. We'll estimate your fit before you spend time optimizing.",
+                viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? "Paste the job description below. We'll estimate your fit before you spend time optimizing."
+                    : "We'll use the job link you added to estimate your fit before you spend time optimizing.",
                 comment: ""
             ))
             .font(.appBody)
             .foregroundStyle(AppColors.textSecondary)
         }
+    }
+
+    private var jobLinkSummary: some View {
+        HStack(alignment: .top, spacing: AppSpacing.sm) {
+            Image(systemName: "link.circle.fill")
+                .foregroundStyle(AppColors.accentSky)
+                .imageScale(.medium)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(NSLocalizedString("Using Job Link", comment: ""))
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                Text(viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
+                    .textSelection(.enabled)
+            }
+        }
+        .padding(AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.accentSky.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppColors.accentSky.opacity(0.25), lineWidth: 1)
+        )
     }
 
     private var jobDescriptionInput: some View {
@@ -87,7 +119,12 @@ struct FitCheckView: View {
                     )
 
                 if viewModel.jobDescription.isEmpty {
-                    Text(NSLocalizedString("Paste the job description here…", comment: ""))
+                    Text(NSLocalizedString(
+                        viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? "Paste the job description here…"
+                            : "Optional: paste the job description for more detail…",
+                        comment: ""
+                    ))
                         .font(.appBody)
                         .foregroundStyle(AppColors.textTertiary)
                         .padding(AppSpacing.md)

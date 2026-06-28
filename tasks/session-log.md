@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Fix Fit-First URL-only job flow after founder LinkedIn smoke logs.
+**Files Changed:** `Features/V2/Fit/FitCheckView.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorView.swift`, `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Kept the existing endpoint and multipart field names; treated URL-only input as valid for Fit-First; made pasted description optional when a URL is present instead of forcing duplicate user work.
+**Next Recommended Action:** Rebuild on physical device and smoke the same LinkedIn URL flow. Expected Fit sheet shows the carried URL and logs `POST /api/public/ats-check` without requiring pasted job description.
+
+**Date:** 2026-06-28
 **Task:** Quick-fix Fit-First real-device smoke gap before archive.
 **Files Changed:** `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorView.swift`, `Features/Tailor/TailorViewModel.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
 **Decisions Made:** Kept the existing server/API contract and feature flag; fixed the missed V2 Home entry point by routing Analyze through `FitCheckView` before optimize; corrected save prompt id state to use optimization ids, not uploaded resume ids.
