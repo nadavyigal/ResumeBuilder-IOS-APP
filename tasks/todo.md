@@ -33,6 +33,24 @@ Decision: the V2 Home Analyze path must route through Fit-First when `BackendCon
 - [x] Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
 - [ ] Founder physical-phone smoke after rebuild: Home Analyze should show Fit check and log `/api/public/ats-check` before `/api/optimize`.
 
+# Story: Submit Package job-link carryover for build 1.1 (7) (2026-06-28)
+
+Decision: Submit Package is an internal tracking/share package. It must carry the original optimize job link and cover letter, but never imply auto-submit to a recruiter.
+
+## Fixed
+- [x] Remember job URL by optimization id after Home/Tailor/Improve optimize success.
+- [x] Seed Optimized/Expert/Profile/Application Detail submit flows with remembered/backend job URL.
+- [x] Submit Package preview now shows package contents: Resume PDF, Cover Letter, and Job Link.
+- [x] Submit Package copy now says saving/sharing is internal and nothing is sent automatically.
+- [x] Covered provider URL fallback when the form starts empty.
+
+## Validation
+- [x] `git diff --check` — passed.
+- [x] Focused Submit Package tests on iPhone 17 Pro simulator — 4 executed, 0 failures.
+- [x] Debug simulator build/run on iPhone 17 Pro — **BUILD SUCCEEDED**.
+- [x] Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` — **BUILD SUCCEEDED**.
+- [ ] Founder physical-phone smoke: LinkedIn URL optimize → Submit Package form prefilled with Job Link → Create Package shows Cover Letter and Job Link → Save to Me.
+
 ---
 
 # Story: Fit-First resume_id swap (2026-06-28)

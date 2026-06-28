@@ -80,6 +80,7 @@ struct ImproveView: View {
                                 } else if let optId = result.optimizationId {
                                     currentOptId = optId
                                     optimizedSections = result.sections
+                                    appState.rememberJobURL(viewModel.sourceJobDescriptionURL, for: optId)
                                     navigateToOptimized = true
                                     onOptimized?(optId)
                                 }
@@ -106,7 +107,8 @@ struct ImproveView: View {
                     viewModel: OptimizedResumeViewModel(
                         optimizationId: currentOptId,
                         resumeId: viewModel.sourceResumeId,
-                        sections: optimizedSections
+                        sections: optimizedSections,
+                        jobURLString: viewModel.sourceJobDescriptionURL
                     ),
                     atsScorePercent: viewModel.analysis.map(\.ats)
                 )

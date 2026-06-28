@@ -36,7 +36,10 @@ struct ExpertTabView: View {
         if expertVM?.optimizationId == id { return }
         expertVM = ExpertModesViewModel(
             optimizationId: id,
-            resumeViewModel: OptimizedResumeViewModel(optimizationId: id)
+            resumeViewModel: OptimizedResumeViewModel(
+                optimizationId: id,
+                jobURLString: appState.jobURL(for: id)
+            )
         )
     }
 

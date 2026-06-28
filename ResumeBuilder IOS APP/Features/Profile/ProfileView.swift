@@ -81,7 +81,8 @@ struct ProfileView: View {
                                 optimizationId: opt.id,
                                 atsScoreAfter: opt.matchScorePercent,
                                 jobTitle: opt.jobTitle,
-                                company: opt.company
+                                company: opt.company,
+                                jobURLString: opt.jobUrl
                             ),
                             onSwitchTab: onSwitchTab
                         )

@@ -1233,6 +1233,8 @@ private struct SubmitApplicationSheet: View {
 
     private var formView: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            internalPackageNotice
+
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 Text("Role")
                     .font(.appCaption.weight(.semibold))
@@ -1333,7 +1335,7 @@ private struct SubmitApplicationSheet: View {
 
             if package.application == nil {
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("Review the resume, cover letter, and job link. Save this package to Me when it is ready.")
+                    Text("This is an internal tracking package. Saving it adds it to Me; it does not send anything to the recruiter.")
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
 
@@ -1352,10 +1354,12 @@ private struct SubmitApplicationSheet: View {
                     .disabled(vm.isSavingPackage)
                 }
             } else {
-                Label("You can find this package in Me and send yourself the resume PDF, copy the cover letter, or open the job link.", systemImage: "person.crop.circle.badge.checkmark")
+                Label("Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready.", systemImage: "person.crop.circle.badge.checkmark")
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
             }
+
+            packageAssetsView(package)
 
             VStack(spacing: AppSpacing.sm) {
                 ShareLink(item: package.resumePDFURL) {
@@ -1406,6 +1410,53 @@ private struct SubmitApplicationSheet: View {
                 screeningAnswersView(package.screeningAnswers)
             }
         }
+    }
+
+    private var internalPackageNotice: some View {
+        Label(
+            "Internal package only. Nothing is sent to a recruiter from here. Use this to save, share, and track your application.",
+            systemImage: "lock.shield.fill"
+        )
+        .font(.appCaption)
+        .foregroundStyle(AppColors.textSecondary)
+        .padding(AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+    }
+
+    private func packageAssetsView(_ package: SubmitApplicationPackage) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Package Contents")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+
+            Label("Resume PDF", systemImage: "doc.fill")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textSecondary)
+
+            Label("Cover Letter", systemImage: "doc.text.fill")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textSecondary)
+
+            if let url = package.jobURL {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Label("Job Link", systemImage: "link")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(package.sourceURLString ?? url.absoluteString)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textPrimary)
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                }
+            } else {
+                Label("No job link is attached yet. Add the job URL before saving so the package can track this application.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(.orange)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     private func screeningAnswersView(_ answers: [ExpertScreeningAnswer]) -> some View {

@@ -111,7 +111,8 @@ struct ApplicationDetailView: View {
                         optimizationId: oid,
                         atsScoreAfter: vm.item.atsScore,
                         jobTitle: vm.item.jobTitle,
-                        company: vm.item.companyName
+                        company: vm.item.companyName,
+                        jobURLString: vm.item.sourceURL
                     ),
                     onSwitchTab: onSwitchTab
                 )
@@ -134,7 +135,8 @@ struct ApplicationDetailView: View {
                     optimizationId: oid,
                     atsScoreAfter: vm.item.atsScore,
                     jobTitle: vm.item.jobTitle,
-                    company: vm.item.companyName
+                    company: vm.item.companyName,
+                    jobURLString: vm.item.sourceURL
                 )
                 expertVM = ExpertModesViewModel(
                     optimizationId: oid,

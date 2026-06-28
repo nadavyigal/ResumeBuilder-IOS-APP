@@ -436,6 +436,57 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.package?.application?.sourceURL, "https://example.com/job")
     }
 
+    func testSubmitApplicationPackageUsesProviderJobURLWhenFormEmpty() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF provider url".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+        vm.jobTitle = "iOS Engineer"
+        vm.companyName = "Acme"
+
+        await vm.submit(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(vm.sourceURLString, "https://example.com/job-from-optimization")
+        XCTAssertEqual(vm.package?.sourceURLString, "https://example.com/job-from-optimization")
+        XCTAssertEqual(vm.package?.jobURL?.absoluteString, "https://example.com/job-from-optimization")
+        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+    }
+
+    func testSubmitApplicationPackageSaveToMeUsesProviderJobURLWhenFormEmpty() async throws {
+        let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
+        try Data("%PDF provider save".utf8).write(to: resumeURL)
+        defer { try? FileManager.default.removeItem(at: resumeURL) }
+
+        let resumeProvider = SubmitResumeProviderSpy(pdfURL: resumeURL)
+        let applicationService = SubmitApplicationTrackingSpy()
+        let expertService = SubmitExpertWorkflowSpy()
+        let vm = SubmitApplicationViewModel(
+            resumeProvider: resumeProvider,
+            applicationService: applicationService,
+            expertService: expertService
+        )
+        vm.jobTitle = "iOS Engineer"
+        vm.companyName = "Acme"
+
+        await vm.submit(token: "tok")
+        await vm.savePackageToMe(token: "tok")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(applicationService.createdRequests.first?.sourceURL, "https://example.com/job-from-optimization")
+        XCTAssertEqual(applicationService.savedReports.count, 1)
+        XCTAssertEqual(vm.package?.application?.sourceURL, "https://example.com/job-from-optimization")
+        XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+    }
+
     func testSubmitApplicationPackageUsesFallbackCompanyWhenMissing() async throws {
         let resumeURL = FileManager.default.temporaryDirectory.appendingPathComponent("resume-\(UUID().uuidString).pdf")
         try Data("%PDF missing company".utf8).write(to: resumeURL)

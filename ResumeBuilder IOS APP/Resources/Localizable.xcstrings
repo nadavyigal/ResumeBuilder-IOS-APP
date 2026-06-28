@@ -4595,6 +4595,7 @@
     },
     "Paste the full job description (at least 100 words) so we can check your fit accurately." : {
       "comment" : "FitCheckViewModel validation error",
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4604,8 +4605,12 @@
         }
       }
     },
+    "Paste the full job description or add a job link so we can check your fit accurately." : {
+
+    },
     "Paste the job description below. We'll estimate your fit before you spend time optimizing." : {
       "comment" : "FitCheckView hero subtitle",
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4627,6 +4632,7 @@
     },
     "Paste the job description here…" : {
       "comment" : "FitCheckView textarea placeholder",
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4693,9 +4699,6 @@
         }
       }
     },
-    "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does." : {
-
-    },
     "PDF or DOCX · up to 5 MB" : {
       "localizations" : {
         "he" : {
@@ -4705,6 +4708,9 @@
           }
         }
       }
+    },
+    "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does." : {
+
     },
     "PDF Ready" : {
       "localizations" : {
@@ -7713,6 +7719,9 @@
           }
         }
       }
+    },
+    "Using Job Link" : {
+
     },
     "View ATS breakdown" : {
       "localizations" : {

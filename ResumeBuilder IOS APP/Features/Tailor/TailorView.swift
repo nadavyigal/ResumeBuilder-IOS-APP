@@ -218,6 +218,7 @@ struct TailorView: View {
                         viewModel: OptimizationReviewViewModel(reviewId: reviewId),
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
+                            appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                             viewModel.pendingSaveResumeId = optId
                             shouldNavigate = false
                             pendingDiagnosisOptimizationId = optId
@@ -583,6 +584,7 @@ struct TailorView: View {
                                     await viewModel.optimize(appState: appState)
                                     if let optId = viewModel.optimizationId, !optId.isEmpty {
                                         appState.latestOptimizationId = optId
+                                        appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                                         pendingDiagnosisOptimizationId = optId
                                         diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
                                         showDiagnosis = true
@@ -608,6 +610,7 @@ struct TailorView: View {
                             print("➡️ [TAILOR VIEW] showing diagnosis for id=\(optId)")
                             #endif
                             appState.latestOptimizationId = optId
+                            appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                             pendingDiagnosisOptimizationId = optId
                             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
                             showDiagnosis = true

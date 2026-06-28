@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Fix Submit Package missing job link before build 1.1 (7) archive.
+**Files Changed:** `App/AppState.swift`, optimize entry points, optimized/expert/profile/application-detail submit wiring, `Features/V2/Improve/OptimizedResumeView.swift`, `ViewModels/ImproveViewModel.swift`, `ViewModels/OptimizedResumeViewModel.swift`, `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift`, task notes.
+**Decisions Made:** Submit Package remains internal tracking/share prep only; the user must still open the job link or share materials manually. The original optimize job URL is remembered by optimization id and reused when opening Submit Package later.
+**Next Recommended Action:** Rebuild 1.1 (7) on phone and smoke LinkedIn URL optimize → Submit Package → Save to Me. Expected result: Job Link is prefilled, package preview shows Cover Letter and Job Link, and the copy says nothing is sent automatically.
+
+**Date:** 2026-06-28
 **Task:** Fix Fit-First URL-only job flow after founder LinkedIn smoke logs.
 **Files Changed:** `Features/V2/Fit/FitCheckView.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorView.swift`, `ResumeBuilder IOS APPTests/FitCheckViewModelTests.swift`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
 **Decisions Made:** Kept the existing endpoint and multipart field names; treated URL-only input as valid for Fit-First; made pasted description optional when a URL is present instead of forcing duplicate user work.

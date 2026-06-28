@@ -22,6 +22,10 @@ final class ImproveViewModel {
 
     /// Resume UUID used during optimize/upload (passed into chat screens for metadata parity).
     var sourceResumeId: String? { resumeId }
+    var sourceJobDescriptionURL: String? {
+        let trimmed = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     private var resumeId: String?
     private var jobDescriptionId: String?

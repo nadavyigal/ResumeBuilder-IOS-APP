@@ -62,6 +62,7 @@ final class OptimizedResumeViewModel {
         jobTitle: String? = nil,
         company: String? = nil,
         contact: ResumeContact? = nil,
+        jobURLString: String? = nil,
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
         analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
         expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
@@ -75,6 +76,7 @@ final class OptimizedResumeViewModel {
         self.jobTitle = jobTitle
         self.company = company
         self.contact = contact
+        self.jobURLString = jobURLString
         self.optimizationService = optimizationService
         self.analysisService = analysisService
         self.expertService = expertService

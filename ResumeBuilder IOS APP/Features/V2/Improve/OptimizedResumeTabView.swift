@@ -40,7 +40,10 @@ struct OptimizedResumeTabView: View {
         if optimizedVM?.optimizationIdentifier == id {
             return
         }
-        optimizedVM = OptimizedResumeViewModel(optimizationId: id)
+        optimizedVM = OptimizedResumeViewModel(
+            optimizationId: id,
+            jobURLString: appState.jobURL(for: id)
+        )
     }
 
     private var noOptimizationView: some View {

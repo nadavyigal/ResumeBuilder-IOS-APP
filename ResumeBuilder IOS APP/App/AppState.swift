@@ -18,6 +18,7 @@ final class AppState {
     var applicationsRefreshToken: Int = 0
     var hasBootstrappedSession = false
     var exportCompletion: ExportCompletionRecord?
+    private var optimizationJobURLs: [String: String] = [:]
 
     /// Real, in-session signals for the locked-tab teaser checklists (Optimized/Design/Expert).
     /// Not persisted across launches — only tracks progress made in the current session,
@@ -28,6 +29,7 @@ final class AppState {
     nonisolated static let latestOptimizationKey = "latest_optimization_id"
     nonisolated static let exportCompletionKey = "last_export_completion"
     nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"
+    nonisolated static let optimizationJobURLsKey = "optimization_job_urls"
 
     var latestOptimizationId: String? {
         didSet {
@@ -58,6 +60,7 @@ final class AppState {
             latestOptimizationId = storedOptimizationId
         }
         exportCompletion = Self.loadExportCompletion()
+        optimizationJobURLs = Self.loadOptimizationJobURLs()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -81,7 +84,9 @@ final class AppState {
         creditsBalance = 0
         latestOptimizationId = nil
         exportCompletion = nil
+        optimizationJobURLs = [:]
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
+        UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
         refreshTask?.cancel()
         refreshTask = nil
         AnalyticsService.shared.resetDistinctId()
@@ -109,9 +114,28 @@ final class AppState {
         return exportCompletion.optimizationId == optimizationId
     }
 
+    func rememberJobURL(_ urlString: String?, for optimizationId: String) {
+        let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !optimizationId.isEmpty, !trimmed.isEmpty else { return }
+        optimizationJobURLs[optimizationId] = trimmed
+        if let data = try? JSONEncoder().encode(optimizationJobURLs) {
+            UserDefaults.standard.set(data, forKey: Self.optimizationJobURLsKey)
+        }
+    }
+
+    func jobURL(for optimizationId: String?) -> String? {
+        guard let optimizationId else { return nil }
+        return optimizationJobURLs[optimizationId]
+    }
+
     private static func loadExportCompletion() -> ExportCompletionRecord? {
         guard let data = UserDefaults.standard.data(forKey: exportCompletionKey) else { return nil }
         return try? JSONDecoder().decode(ExportCompletionRecord.self, from: data)
+    }
+
+    private static func loadOptimizationJobURLs() -> [String: String] {
+        guard let data = UserDefaults.standard.data(forKey: optimizationJobURLsKey) else { return [:] }
+        return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
     }
 
     func setSession(_ session: AuthSession) async {
@@ -226,7 +250,7 @@ final class AppState {
     }
 
     private func shouldSignOutAfterRefreshFailure(_ error: Error) -> Bool {
-        if let urlError = error as? URLError {
+        if error is URLError {
             return false
         }
         if let authError = error as? AuthServiceError {

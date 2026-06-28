@@ -70,17 +70,17 @@ Last Updated: 2026-06-26
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: v1.1 (5) LIVE on App Store. v1.1 (6) release branch ready — Fit-First **dark** (`isFitCheckEnabled=false`).
-Current Phase: Post-launch. D7 readout complete (2026-06-24): zero organic activation 10d; upload→optimize drop-off is next product investigation (out of scope for build 6).
-Active Story: WP-13 — founder manual archive/upload/submit on `release/v1.1-build-6`.
-Last Completed Story: Release branch cut + flag reverted to false per D7 readout (2026-06-24).
-Next Recommended Story: (1) Founder: Xcode Organizer archive build 6 → upload → submit for review. (2) After upload confirmed: merge release PR. (3) Scope upload→optimize drop-off as follow-up story. (4) Flip `isFitCheckEnabled=true` only after real-user usage data exists.
+Status: v1.1 (5) LIVE on App Store. v1.1 (7) pre-archive quick fixes are on `main`, including Submit Package job-link carryover.
+Current Phase: Post-launch / build 7 smoke and archive prep.
+Active Story: Founder smoke test build 7 on device, then Xcode archive/upload when the device smoke passes.
+Last Completed Story: Submit Package now carries the optimization job link into the package, visibly includes job link + cover letter, and clarifies the package is internal tracking/share prep, not recruiter auto-submit (2026-06-28).
+Next Recommended Story: Build/run 1.1 (7) on phone, smoke optimize-from-LinkedIn-URL → Submit Package → Save to Me, then archive in Xcode Organizer.
 Blockers: Distribution signing cert/profile not in local keychain — founder must resolve in Xcode before archive.
-Risks: Fit-First invisible in build 6 until flip PR; intentional per dark-launch plan + D7 findings.
-Last Validation: 2026-06-24 — full test suite 105/105 pass + clean Debug build on iPhone 17 sim (`release/v1.1-build-6`, `isFitCheckEnabled=false`).
-Last Updated: 2026-06-24
-Current Branch: release/v1.1-build-6 (public dark build)
-Latest Base Commit: pending flag-revert + progress update commits on release branch
+Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
+Last Validation: 2026-06-28 — `git diff --check` clean; focused Submit Package tests 4/4 passed on iPhone 17 Pro simulator; Debug simulator build/run passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed.
+Last Updated: 2026-06-28
+Current Branch: main
+Latest Base Commit: pending Submit Package job-link commit
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md
 Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 
@@ -114,6 +114,7 @@ Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 - Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
 - Optimized resume now supports an assisted Submit Package flow. It refreshes optimization detail before package generation, downloads the optimized resume PDF, runs Cover Letter Architect and Screening Answer Studio, previews a draft package, then saves it to Me only after user confirmation. Saving creates a saved application, attaches the optimized resume, saves Expert reports, and presents share/copy/submit-at-link actions without attempting third-party auto-submit.
 - Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
+- Submit Package remembers the job URL entered during optimize by `optimizationId`, seeds Optimized/Expert/Profile/Application Detail submit flows with that URL, shows package contents including Resume PDF, Cover Letter, and Job Link, and clarifies that saving/sharing is internal and does not auto-send to a recruiter.
 - Optimized resume now has a normal in-app ATS insight panel that maps App Store screenshot claims to a reachable product surface: headline score, before/after delta, score signals, top blockers/actions, Improve ATS, and an explicit low-score explanation when the optimized score remains below 55.
 - Home/Tailor now route successful resume/job optimization into a V2 Resume Diagnosis screen before the full Improve tab. Diagnosis shows estimated match guidance, potential score, top gaps, missing keywords, recruiter-eye review, before/after rewrite, and grounded CTAs to improve or edit the target job.
 - Optimized resume now reuses the diagnosis mapper for a compact recruiter snapshot and confidence checklist so the user sees why the resume is stronger before export/payment.
@@ -131,4 +132,4 @@ Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 - `Features/V2/Profile/ProfileViewV2.swift`
 - `Features/Track/ApplicationsListView.swift`
 
-Notes: App is v1.0 build 4 (resubmission). Archive from `main`. V2 folder is active target for all new screens. Dark mode only.
+Notes: App is v1.1 build 7 prep on `main`. V2 folder is active target for all new screens. Dark mode only.
