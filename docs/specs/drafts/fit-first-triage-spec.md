@@ -54,9 +54,10 @@ Add fields to `formatResponse(...)` **additively** (do not remove or rename `sco
   }
 }
 ```
-- `verdict` band derived server-side from `score.overall` (Open Question 1: ≥75 strong / 50–74 stretch / <50 skip).
+- `verdict` band derived server-side from `score.overall` — **founder-confirmed: ≥75 strong / 50–74 stretch / <50 skip.**
 - `topGaps` / `missingKeywords` derived from `extractJob` `must_have` entries not matched in `resumeText` (the same data already powering `suggestions`).
 - Web UI: the existing free-ATS-check page should render the verdict band on top of the current score/quick-wins (this is the "replace the free ATS check with the Fit check" step).
+- **Resume input (founder-confirmed):** accept an authenticated `resume_id` as an alternative to the multipart PDF upload — iOS in-app calls pass the stored resume by `resume_id` instead of re-uploading a PDF. The existing anonymous PDF-upload path is unchanged for web/anonymous callers.
 
 ### Unchanged
 The `/api/optimize` flow is untouched and remains the destination when the user taps **Optimize for this job**. `convert-session` continues to upgrade an anonymous Fit result into an account.
@@ -94,11 +95,13 @@ New front door for the tailor journey: **paste JD → FitCheckView → FitVerdic
 
 > Story 0 lands first (web) so the new fields exist. iOS Stories 1–3 can be built against a mocked service in parallel, then pointed at the live endpoint once Story 0 ships.
 
+## Decisions (resolved, founder-confirmed 2026-06-28)
+1. Verdict thresholds: ≥75 strong / 50–74 stretch / <50 skip, server-owned; client renders `fit.verdict` as sent.
+2. iOS resume input: stored `resume_id` (no re-upload). Server adds `resume_id` as an alternative input to the multipart PDF upload for authenticated calls.
+
 ## Open Questions
-1. Verdict thresholds + server ownership of the band (recommend server-owned: ≥75 / 50–74 / <50; client renders `fit.verdict` as sent).
-2. iOS resume input: the current free check takes a **resume PDF upload**. In-app the resume is already on file — confirm whether the mirrored iOS path passes the stored resume (avoid re-upload) or keeps the upload model for v1. (Affects whether a small server change is needed to accept a stored `resume_id` for authed sessions.)
-3. JD minimum: web enforces ≥100 words — keep the same minimum on the iOS paste flow? (Recommend yes, parity.)
-4. Does "Skip / save for later" persist anywhere, or is it ephemeral in v1? (Recommend ephemeral in v1; persistence belongs with the Wedge 3 outcome loop.)
+1. JD minimum: web enforces ≥100 words — keep the same minimum on the iOS paste flow? (Recommend yes, parity.)
+2. Does "Skip / save for later" persist anywhere, or is it ephemeral in v1? (Recommend ephemeral in v1; persistence belongs with the Wedge 3 outcome loop.)
 
 ## Out of Scope
 - Share-extension "forward a job" inbox (fast-follow).
