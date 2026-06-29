@@ -36,6 +36,9 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(props?["$lib"], "resumely-ios-urlsession")
         XCTAssertEqual(props?["platform"], "ios")
         XCTAssertEqual(props?["$os"], "iOS")
+        XCTAssertEqual(props?["app"], "resumely")
+        XCTAssertFalse((props?["app_version"] ?? "").isEmpty)
+        XCTAssertFalse((props?["build_number"] ?? "").isEmpty)
     }
 
     // MARK: PII guard — all events
@@ -84,6 +87,8 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_failed",
             "resume_upload_succeeded",
             "resume_upload_error_shown",
+            "resume_upload_sheet_dismissed",
+            "resume_upload_coming_soon_tapped",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -119,6 +124,8 @@ final class AnalyticsServiceTests: XCTestCase {
             ["failure_stage": "upload", "error_code": "500"],
             ["file_type": "pdf"],
             ["error_code": "500"],
+            ["source": "home"],
+            ["route": "scan"],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -226,5 +233,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadFailed(failureStage: "upload", errorCode: "500"),
         .resumeUploadSucceeded(fileType: "pdf"),
         .resumeUploadErrorShown(errorCode: "500"),
+        .resumeUploadSheetDismissed(source: "home"),
+        .resumeUploadComingSoonTapped(route: "scan"),
     ]
 }

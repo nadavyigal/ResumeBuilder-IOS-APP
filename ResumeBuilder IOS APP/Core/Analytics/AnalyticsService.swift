@@ -252,11 +252,20 @@ final class AnalyticsService {
         ]
     }
 
-    nonisolated static let baseProperties: [String: String] = [
-        "$lib": "resumely-ios-urlsession",
-        "platform": "ios",
-        "$os": "iOS",
-    ]
+    nonisolated static var baseProperties: [String: String] {
+        [
+            "$lib": "resumely-ios-urlsession",
+            "platform": "ios",
+            "$os": "iOS",
+            "app": "resumely",
+            "app_version": bundleString("CFBundleShortVersionString"),
+            "build_number": bundleString("CFBundleVersion"),
+        ]
+    }
+
+    nonisolated private static func bundleString(_ key: String) -> String {
+        Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "unknown"
+    }
 
     nonisolated static let forbiddenPropertyKeys: Set<String> = [
         "email", "name", "resume", "job", "job_description", "resume_text", "file_name",
