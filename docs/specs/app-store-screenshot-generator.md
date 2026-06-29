@@ -19,11 +19,11 @@ As the app owner, I want one repeatable capture workflow for all App Store scree
 | Slot | Headline | Product evidence shown |
 |------|----------|------------------------|
 | 01 | Your resume, tailored for any job | Resume plus job-description targeting and match summary |
-| 02 | See exactly what's blocking you | ATS score, section breakdown, and top blockers with no truncation |
+| 02 | See exactly what's blocking you | Resumely Match Score, section breakdown, and top blockers with no truncation |
 | 03 | AI edits that actually fit the role | Before/after bullet rewrite and role-specific improvements |
-| 04 | Turn a weak match into a stronger resume | Before/after ATS score and optimized section status |
+| 04 | Turn a weak match into a stronger resume | Before/after Match Score and optimized section status |
 | 05 | Keep every fact under your control | Manual section editing, factuality guidance, and save state |
-| 06 | Templates that pass ATS and impress recruiters | Template selection and realistic resume preview |
+| 06 | ATS-friendly templates that impress recruiters | Template selection and realistic resume preview |
 | 07 | Export a polished PDF in one tap | Designed preview, PDF export, and share-ready state |
 | 08 | Expert analysis for every section | Hiring-manager review, recommendations, and suggested rewrite |
 | 09 | A tailored cover letter, ready to use | Role-specific cover-letter preview with save/copy actions |
@@ -94,7 +94,7 @@ There is no user-facing navigation. The screenshot renderer remains a launch-arg
 - Phone scenes retain the current strong vertical composition.
 - Tablet scenes use two-column or centered-card compositions with tablet-specific maximum widths.
 - Use `ViewThatFits`, explicit line limits, and minimum scale factors only as safeguards; primary copy must fit at intended font sizes.
-- Slot 2 must render the full ATS summary without ellipsis.
+- Slot 2 must render the full match summary without ellipsis.
 
 ### Capture Targets
 

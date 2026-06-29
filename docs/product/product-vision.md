@@ -1,12 +1,12 @@
 # Product Vision — ResumeBuilder iOS
 
-**Last updated:** 2026-05-13
+**Last updated:** 2026-06-28
 
 ---
 
 ## What We Are Building
 
-A premium native iOS resume optimization experience that makes it simple for anyone to create, improve, and export a professional resume from their phone — powered by AI, built for mobile-first users.
+A premium native iOS application strategist that helps job seekers check whether a role is worth applying to, tailor their resume to that job, and export a professional application package from their phone.
 
 This is **not** a port of the web app. It is a distinct mobile product designed around how people actually use their phones: quick inputs, visual feedback, step-by-step flows, and a single confident output (the improved PDF).
 
@@ -17,20 +17,20 @@ This is **not** a port of the web app. It is a distinct mobile product designed 
 A job seeker who:
 - Has an existing resume (PDF) that needs improvement
 - Is applying for specific jobs and wants their resume tailored
-- Wants to feel confident their resume will pass ATS systems
+- Wants to understand how well their resume matches a specific job
 - Prefers mobile-first tools (doesn't want to open a laptop)
 - Values a professional, polished output — not a generic template
 
-Secondary: Hebrew-speaking job seekers (future — not built yet)
+Secondary: Hebrew-speaking job seekers using the authored Hebrew / RTL experience.
 
 ---
 
 ## Core Value Proposition
 
-1. **Upload your resume** → get an instant ATS score and specific feedback
-2. **Paste a job description** → AI tailors your resume to that specific job
-3. **Choose a professional template** → apply it with one tap
-4. **Export a polished PDF** → ready to submit
+1. **Upload your resume** → add a job and see a Fit-First verdict
+2. **Review your Resumely Match Score** → understand the top gaps for this role
+3. **Apply targeted edits** → tailor the resume without losing control of the facts
+4. **Export a complete package** → resume PDF, cover letter, and job-specific materials
 
 The experience should feel like having a professional resume coach in your pocket.
 
@@ -45,11 +45,11 @@ The experience should feel like having a professional resume coach in your pocke
 5. User confidence (they should feel proud to submit this resume)
 6. Simple resume editing (ability to tweak AI suggestions in-app — not yet built)
 7. High-quality AI suggestions (specific, measurable, relevant)
-8. Hebrew/English support (future)
-9. TestFlight readiness (current gate)
-10. App Store quality (next gate)
+8. Hebrew/English support
+9. App Store quality and review-safe marketing
+10. Post-live activation measurement
 
-**Monetization is not the current priority.** Credits system exists but aggressive upsell is deferred.
+**Monetization is not the current priority.** Paid acquisition, pricing, and aggressive upsell stay deferred until the v1.2 activation funnel is readable.
 
 ---
 
@@ -58,6 +58,8 @@ The experience should feel like having a professional resume coach in your pocke
 - Not a resume builder from scratch (requires uploading an existing resume today)
 - Not a job board or job search tool
 - Not a LinkedIn profile tool
+- Not an auto-apply bot
+- Not an official ATS-vendor scoring product
 - Not a generic template picker (templates must be tied to optimized content)
 - Not a copy of the web app UI
 

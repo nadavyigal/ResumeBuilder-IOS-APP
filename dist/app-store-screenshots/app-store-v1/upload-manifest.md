@@ -17,7 +17,7 @@ Upload each complete folder to the matching device-size section in App Store Con
 3. `03-ai-edits.png` — AI edits that actually fit the role
 4. `04-score-lift.png` — Turn a weak match into a stronger resume
 5. `05-manual-edit.png` — Keep every fact under your control
-6. `06-templates.png` — Templates that pass ATS and impress recruiters
+6. `06-templates.png` — ATS-friendly templates that impress recruiters
 7. `07-export.png` — Export a polished PDF in one tap
 8. `08-expert.png` — Expert analysis for every section
 9. `09-cover-letter.png` — A tailored cover letter, ready to use

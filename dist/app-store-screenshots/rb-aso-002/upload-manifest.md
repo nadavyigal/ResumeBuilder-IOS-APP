@@ -17,7 +17,7 @@ Status: Ready for App Store Connect upload; upload blocked locally by missing Ap
 1. `slot-1.png` - Your resume, tailored for any job
 2. `slot-2.png` - See exactly what's blocking you
 3. `slot-3.png` - AI edits that actually fit the role
-4. `slot-4.png` - Templates that pass ATS and impress recruiters
+4. `slot-4.png` - ATS-friendly templates that impress recruiters
 5. `slot-5.png` - Expert analysis for every section
 
 ## Captions

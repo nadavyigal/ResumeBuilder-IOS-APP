@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-06-28
+**Task:** Execute approved product-marketing recommendations after 1.2 (7) was sent for App Store review.
+**Files Changed:** `.agents/product-marketing.md`, `docs/product/product-vision.md`, `docs/product/current-product-state.md`, `docs/app-store/he-metadata.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `dist/app-store-screenshots/app-store-v1/upload-manifest.md`, `tasks/progress.md`, `tasks/session-log.md`.
+**Decisions Made:** Canonical marketing direction is now Fit/Match first, not "pass ATS"; Resumely Match Score remains self-defined and process-descriptive; paid acquisition and monetization stay blocked until post-1.2 funnel data is readable; Fit-First is the front-door story for ASO and lifecycle copy.
+**Next Recommended Action:** Monitor 1.2 (7) review. After approval/live availability, verify upload-funnel and `fit_check_*` events in production PostHog before scaling ASO volume, lifecycle, paid acquisition, or paywall work.
+
+**Date:** 2026-06-28
 **Task:** Fix Submit Package reopened-from-Me persistence for build 1.1 (7).
 **Files Changed:** `App/AppState.swift`, `Core/API/Models/DomainModels.swift`, `Features/Track/ApplicationDetailView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `Features/V2/Improve/SubmitApplicationViewModel.swift`, `Resources/Localizable.xcstrings`, `ResumeBuilder IOS APPTests/OptimizedResumeViewModelTests.swift`, task notes.
 **Decisions Made:** Kept Submit Package internal and additive. Save to Me now stores package metadata in `job_extraction` and local cache, while the reopened Me detail falls back through backend reports, job extraction, remembered job URL, and cached package content for Job Link, Cover Letter, and Interview Q&A.
