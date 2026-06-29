@@ -42,14 +42,14 @@
 
 **v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
 
-Status: LIVE on the App Store — v1.1 (5), confirmed live by founder 2026-06-21. **v1.2 (7) was sent to App Store Connect review on 2026-06-28** with Fit-First visible, WP-18 upload-funnel instrumentation, the activation redesign, Hebrew/RTL fixes, and Submit Package reopened-from-Me persistence.
-Current Phase: Post-launch — v1.2 (7) in App Store review; waiting for Apple outcome and then post-live funnel read.
-Active Story: App Store review monitoring + post-approval production analytics verification.
+Status: LIVE on the App Store — v1.2 (7), confirmed live by founder 2026-06-29 (submitted 2026-06-28, approved in under 24h). Fit-First visible, WP-18 upload-funnel instrumentation, the activation redesign, Hebrew/RTL fixes, and Submit Package reopened-from-Me persistence are all in production.
+Current Phase: Post-launch — v1.2 (7) live; verifying production funnel events and planning next ASO/outreach iteration.
+Active Story: Post-live production analytics verification (PostHog project 270848: upload-funnel + `fit_check_*` events) and zero-budget founder outreach (personal DM, vibecoding FB group, LinkedIn job-seeker groups).
 Last Completed Story: Product-marketing context and current ASO positioning update — Fit/Match front-door story, unsafe ATS claim cleanup, no-paid-acquisition rule, and Fit-First marketing direction captured in `.agents/product-marketing.md` (2026-06-28).
-Next Recommended Story: (1) Monitor Apple review for 1.2 (7). (2) After approval/live availability, verify production PostHog project 270848 receives upload-funnel and `fit_check_*` events. (3) Use the clean post-1.2 funnel read to decide whether ASO volume, lifecycle messaging, monetization, or backend/state follow-ups are next.
+Next Recommended Story: (1) Verify production PostHog project 270848 receives upload-funnel and `fit_check_*` events now that 1.2 (7) is live. (2) Read results of the founder's zero-budget outreach wave. (3) Use the clean post-1.2 funnel read to decide whether ASO volume, lifecycle messaging, monetization, or backend/state follow-ups are next.
 Blockers: Backend/state capabilities remain absent for paste-text diagnosis, sample/demo diagnosis, parser-stage progress callbacks, point-delta apply-all fixes, resumable offline analysis, globally accurate pre-optimization `hasResume`/`hasJob` flags, and a true NWPathMonitor-driven auto-resume for connection-lost recovery (current Retry is manual only).
 Last Validation: 2026-06-26 — full test suite passed on iPhone 17 simulator (105 XCTest + 5 Swift Testing, 0 failures); iPhone SE 3rd gen simulator visual smoke passed for Home EN/HE, locked Optimized/Design/Expert teasers, and Me language/RTL after fixing visible Hebrew fallback strings.
-Last Updated: 2026-06-28
+Last Updated: 2026-06-29
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -74,9 +74,9 @@ Last Updated: 2026-06-28
 **Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
 
 Project: ResumeBuilder iOS
-Status: v1.1 (5) LIVE on App Store. v1.2 (7) sent to App Store Connect review on 2026-06-28.
-Current Phase: Post-launch / App Store review for 1.2 (7).
-Active Story: Monitor Apple review, then verify production activation events after approval/live availability.
+Status: v1.2 (7) LIVE on App Store, confirmed by founder 2026-06-29.
+Current Phase: Post-launch / verifying production activation events and zero-budget outreach.
+Active Story: Verify production activation events now live; read results of founder outreach wave.
 Last Completed Story: Product-marketing context + positioning update for approved recommendations 2-5 (Fit/Match ASO, unsafe claim cleanup, no paid acquisition until data, Fit-First front-door story) (2026-06-28).
 Next Recommended Story: After 1.2 (7) is approved and live, verify production PostHog project 270848 receives WP-18 upload-funnel events and `fit_check_*` events, then set the next D7 readout target.
 Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
