@@ -219,6 +219,14 @@ struct OptimizedResumeView: View {
             showExportSuccess = appState.isExportComplete(for: viewModel.optimizationIdentifier)
             trackOptimizedAndExportVisibilityIfNeeded()
         }
+        .task(id: isActive) {
+            guard isActive else { return }
+            trackOptimizedAndExportVisibilityIfNeeded()
+        }
+        .onChange(of: isActive) { _, active in
+            guard active else { return }
+            trackOptimizedAndExportVisibilityIfNeeded()
+        }
         .onChange(of: viewModel.optimizationIdentifier) { _, _ in
             trackOptimizedAndExportVisibilityIfNeeded()
         }

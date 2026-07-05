@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MainTabViewV2: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedTab: ResumlyTab = .tailor
+    @State private var selectedTab: ResumlyTab = MainTabViewV2.initialTab
 
     // Stable VM instances — created once, survive tab switches.
     @State private var tailorViewModel = TailorViewModel()
@@ -49,6 +49,11 @@ struct MainTabViewV2: View {
             }
         }
         .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--smoke-open-optimized-tab") {
+                selectedTab = .optimized
+            }
+            #endif
             if let id = appState.latestOptimizationId, designViewModel.optimizationId != id {
                 designViewModel.setOptimizationId(id)
             }
@@ -59,6 +64,15 @@ struct MainTabViewV2: View {
         withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
             selectedTab = tab
         }
+    }
+
+    private static var initialTab: ResumlyTab {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--smoke-open-optimized-tab") {
+            return .optimized
+        }
+        #endif
+        return .tailor
     }
 }
 

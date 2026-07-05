@@ -1,3 +1,21 @@
+## 2026-07-05 — WP-36 Export Friction Instrumentation Shipped (1.3 build 8)
+
+**Worked on:** Ship WP-36 `optimized_viewed` / `export_cta_seen` instrumentation; simulator smoke against PostHog 270848; ASC upload; export-funnel readout.
+
+**Completed:**
+- Verified commit `292b816` instrumentation; fixed pre-ship bug where events did not fire while Optimized tab was hidden (`opacity: 0`) — added `isActive` `.task` / `.onChange` handlers in `OptimizedResumeView`.
+- Simulator smoke PASS: seeded `latest_optimization_id`, opened Optimized tab; PostHog confirmed `optimized_viewed` + `export_cta_seen` at `2026-07-05T17:20:08Z`, `$lib=resumely-ios-urlsession`, build 8.
+- Bumped `CURRENT_PROJECT_VERSION` 7 → 8; `MARKETING_VERSION` 1.2 → **1.3** (ASC rejected new build on closed 1.2 train).
+- Release archive + upload to App Store Connect succeeded **2026-07-05**.
+- PostHog 60d funnel read (founder/QA/bot excluded): 9 `resume_uploaded`, 0 `export_success`, 0 `export_pdf_tapped`; `optimized_viewed`/`export_cta_seen` only from smoke pre-production.
+- Updated `tasks/progress.md`, Agentic OS `WP-36-resumely-export-friction-diagnostic.md`.
+
+**Decisions:** Events measure Optimized-tab visibility (`isActive`), not merely optimization id in memory — matches "viewed" semantics. Do not change export UX until live 1.3 (8) data distinguishes "never viewed Optimized" vs "viewed but never tapped export".
+
+**Next session:** After 1.3 (8) is live, re-run dashboard `1801425`; if `optimization_completed` > 0 but `optimized_viewed` = 0, audit `HomeTabView`/`TailorView` `onSwitchTab(.optimized)` before proposing export CTA UX changes.
+
+---
+
 ## 2026-06-23 — WP-13 Fit-First Release + Flip Decision
 
 **Worked on:** Shipping Fit-First Triage dark in v1.1 build 6; internal flag-on validation; flip decision gate.

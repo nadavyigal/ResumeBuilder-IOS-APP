@@ -15,6 +15,11 @@
 
 ## Lessons
 
+**Date:** 2026-07-05
+**Category:** UX
+**Rule:** When instrumenting "viewed" events on a tab kept alive but hidden via `opacity: 0`, fire on `isActive` (or tab selection), not `onAppear` alone — hidden tabs may never appear.
+**Why:** WP-36 `optimized_viewed` / `export_cta_seen` did not fire in simulator smoke until the Optimized tab was actually selected; `MainTabViewV2` keeps all tabs mounted but only the active tab is visible.
+
 **Date:** 2026-06-28
 **Category:** Build
 **Rule:** When broadening a response envelope for decode-only API use, make the envelope `Decodable` unless the app actually encodes it.
