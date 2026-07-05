@@ -48,12 +48,14 @@ enum AnalyticsEvent: Sendable {
     case accountDeleted
     case optimizationStarted
     case optimizationCompleted
+    case optimizedViewed
     case exportStarted
     case exportSuccess
     case exportFailed(errorCode: String)
     case diagnosisViewed(matchScore: Int)
     case atsImproveTapped(currentScore: Int)
     case exportPdfTapped
+    case exportCTASeen
     case submitPackageSaved(hasCoverLetter: Bool)
     // Fit-First Triage (WP-12)
     case fitCheckStarted
@@ -84,12 +86,14 @@ enum AnalyticsEvent: Sendable {
         case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
         case .optimizationCompleted: return "optimization_completed"
+        case .optimizedViewed: return "optimized_viewed"
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
         case .exportFailed: return "export_failed"
         case .diagnosisViewed: return "diagnosis_viewed"
         case .atsImproveTapped: return "ats_improve_tapped"
         case .exportPdfTapped: return "export_pdf_tapped"
+        case .exportCTASeen: return "export_cta_seen"
         case .submitPackageSaved: return "submit_package_saved"
         case .fitCheckStarted: return "fit_check_started"
         case .fitCheckCompleted: return "fit_check_completed"
@@ -114,8 +118,8 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .optimizationStarted, .optimizationCompleted, .exportStarted, .exportSuccess,
-             .exportPdfTapped, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
+             .optimizationStarted, .optimizationCompleted, .optimizedViewed, .exportStarted, .exportSuccess,
+             .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]

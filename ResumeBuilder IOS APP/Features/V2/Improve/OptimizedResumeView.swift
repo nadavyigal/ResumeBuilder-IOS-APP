@@ -27,6 +27,8 @@ struct OptimizedResumeView: View {
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
+    @State private var didTrackOptimizedViewed = false
+    @State private var didTrackExportCTASeen = false
 
     // Target-reached celebration + save-account handoff (fires on a real
     // ATS score crossing the target band, never a fabricated value).
@@ -215,6 +217,10 @@ struct OptimizedResumeView: View {
         }
         .onAppear {
             showExportSuccess = appState.isExportComplete(for: viewModel.optimizationIdentifier)
+            trackOptimizedAndExportVisibilityIfNeeded()
+        }
+        .onChange(of: viewModel.optimizationIdentifier) { _, _ in
+            trackOptimizedAndExportVisibilityIfNeeded()
         }
         .safeAreaInset(edge: .bottom) {
             bottomBar
@@ -1079,6 +1085,18 @@ struct OptimizedResumeView: View {
             } else {
                 viewModel.errorMessage = String(format: NSLocalizedString("PDF export failed: %@", comment: ""), error.localizedDescription)
             }
+        }
+    }
+
+    private func trackOptimizedAndExportVisibilityIfNeeded() {
+        guard viewModel.optimizationIdentifier != nil else { return }
+        if !didTrackOptimizedViewed {
+            AnalyticsService.shared.track(.optimizedViewed)
+            didTrackOptimizedViewed = true
+        }
+        if !didTrackExportCTASeen {
+            AnalyticsService.shared.track(.exportCTASeen)
+            didTrackExportCTASeen = true
         }
     }
 
