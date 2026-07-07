@@ -178,8 +178,6 @@ final class TailorViewModel {
         optimizationId = nil
         defer { isOptimizing = false }
 
-        AnalyticsService.shared.track(.optimizationStarted)
-
         var didUpload = uploadResponse?.resumeId?.isEmpty == false
 
         do {
@@ -199,6 +197,7 @@ final class TailorViewModel {
             }
 
             // Step 2 — actually run the optimizer.
+            AnalyticsService.shared.track(.optimizationStarted(resumeId: resumeId, jobDescriptionId: jobDescriptionId))
             let optimize = try await appState.callWithFreshToken { token in
                 try await self.optimizationService.optimize(
                     resumeId: resumeId,
@@ -221,7 +220,7 @@ final class TailorViewModel {
                 #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
                 #endif
-                AnalyticsService.shared.track(.optimizationCompleted)
+                AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optId, reviewId: nil))
             } else {
                 #if DEBUG
                 print("❌ [TAILOR] → no valid id in response")

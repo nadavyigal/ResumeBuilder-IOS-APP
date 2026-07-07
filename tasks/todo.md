@@ -1,3 +1,31 @@
+# Story: Supabase + PostHog post-live current-state review (2026-07-06)
+
+Decision: do not make paid acquisition, monetization, or export-UX calls from the current data; production usage is too small and too QA-heavy, while backend optimization completion is healthy once reached.
+
+## Findings
+- [x] Supabase backend path since App Store live: 23/23 completed optimizations, 0 failed optimizations, 36 review runs, 23 applied review runs.
+- [x] Backend activity is highly concentrated: one user/tester accounts for 22 of 23 optimizations and all saved applications/resumes.
+- [x] Clean PostHog iOS read: 51 launchers, 9 upload CTA tappers, 4 file selectors, 7 uploaders, 4 job-added users, 1 optimization completer, 0 clean export successes.
+- [x] v1.3 export-view instrumentation is verified but not yet backed by real production completer volume.
+
+## Next
+- [ ] Harden analytics identity and test filtering: stable app/build/environment properties, internal tester flag, PostHog aliasing after Supabase auth, and backend optimization id correlation. Code + tests are in place; authenticated smoke evidence is still blocked.
+- [ ] Focus the next product pass on first-session upload/job activation before export/paywall changes.
+- [ ] Re-run the clean funnel after v1.3 (8) or later is live for a real user cohort.
+
+## Story 1 Implementation Plan — Analytics Identity Hardening
+- [x] `Core/Analytics/AnalyticsService.swift` — add stable anonymous session id, `app=resumely_ios`, `marketing_version`, `build_number`, `is_internal_tester`, and PostHog `$create_alias` / `$identify` support.
+- [x] `App/AppState.swift` — identify/alias immediately after Supabase auth succeeds and rehydrate analytics identity after restored sessions.
+- [x] `Features/Tailor/TailorViewModel.swift`, `ViewModels/ImproveViewModel.swift`, `Features/V2/History/OptimizationReviewView.swift` — include non-content `optimization_id` / `review_id` properties where optimization start/completion events are emitted.
+- [x] `Config/Info.plist`, `Secrets.xcconfig.template` — add an optional internal tester user-id allowlist without committing private values.
+- [x] `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — cover global properties, stable anonymous identity, alias/identify payloads, and optimization id properties.
+- [ ] Verification — focused analytics tests, full simulator tests, Debug build, simulator launch, and PostHog launch-property read passed; authenticated anonymous-to-signed-in smoke is blocked because simulator secure-field automation did not enter a valid password, so no live `$create_alias` / `$identify` row was captured yet.
+
+## Report
+- [x] `docs/qa/reports/supabase-post-live-current-state-2026-07-06.md`
+
+---
+
 # Story: Submit Package reopened-from-Me persistence fix (2026-06-28)
 
 Decision: saved packages reopened from Me must reconstruct the full internal package even when the backend list/detail omits `source_url` or returns no saved expert reports.

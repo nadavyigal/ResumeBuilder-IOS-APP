@@ -224,6 +224,7 @@ final class ImproveViewModel {
         guard let resumeId else {
             throw ResumeOptimizationError.missingResumeId
         }
+        AnalyticsService.shared.track(.optimizationStarted(resumeId: resumeId, jobDescriptionId: jobDescriptionId))
         let response = try await optimizationService.optimize(
             resumeId: resumeId,
             jobDescriptionId: jobDescriptionId,
@@ -240,6 +241,7 @@ final class ImproveViewModel {
         }
         let sections = response.sections ?? []
         self.optimizationId = optimizationId
+        AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: nil))
         return OptimizationResult(optimizationId: optimizationId, reviewId: nil, sections: sections)
     }
 }

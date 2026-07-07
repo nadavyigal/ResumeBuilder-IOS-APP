@@ -69,6 +69,9 @@ final class AppState {
 
     func bootstrap() {
         session = AuthService.shared.restoreSession()
+        if let session {
+            AnalyticsService.shared.prepareRestoredSession(userId: session.userId, email: session.email)
+        }
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
         let storedOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
         if storedOptimizationId?.hasPrefix("mock-") == true {
@@ -196,7 +199,7 @@ final class AppState {
 
     func setSession(_ session: AuthSession) async {
         self.session = session
-        AnalyticsService.shared.setDistinctId(session.userId)
+        AnalyticsService.shared.identifyAuthenticatedUser(userId: session.userId, email: session.email)
         AnalyticsService.shared.track(.signInCompleted)
         await convertAnonymousSessionIfNeeded()
         await refreshCredits()

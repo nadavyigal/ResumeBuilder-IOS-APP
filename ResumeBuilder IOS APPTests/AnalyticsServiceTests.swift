@@ -7,8 +7,23 @@ import XCTest
 /// because all access happens on the MainActor during tests.
 private final class SpyTransport: AnalyticsTransport, @unchecked Sendable {
     var captured: [String] = []
+    var capturedProperties: [[String: String]] = []
+    var capturedDistinctIds: [String] = []
+    var aliases: [(previousDistinctId: String, userDistinctId: String, properties: [String: String])] = []
+    var identifies: [(distinctId: String, userProperties: [String: String])] = []
+
     func capture(event: String, properties: [String: String], distinctId: String) async throws {
         captured.append(event)
+        capturedProperties.append(properties)
+        capturedDistinctIds.append(distinctId)
+    }
+
+    func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws {
+        aliases.append((previousDistinctId, userDistinctId, properties))
+    }
+
+    func identify(distinctId: String, userProperties: [String: String]) async throws {
+        identifies.append((distinctId, userProperties))
     }
 }
 
@@ -20,9 +35,20 @@ private final class SpyTransport: AnalyticsTransport, @unchecked Sendable {
 @MainActor
 final class AnalyticsServiceTests: XCTestCase {
 
+    override func setUp() async throws {
+        try await super.setUp()
+        resetAnalyticsDefaults()
+    }
+
+    override func tearDown() async throws {
+        resetAnalyticsDefaults()
+        try await super.tearDown()
+    }
+
     // MARK: Payload shape
 
     func testBuildCapturePayloadShape() async {
+        UserDefaults.standard.set("anon-123", forKey: AnalyticsService.anonymousSessionIdKey)
         let payload = AnalyticsService.buildCapturePayload(
             apiKey: "phc_test",
             event: .appLaunched(isAuthenticated: false),
@@ -36,9 +62,42 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(props?["$lib"], "resumely-ios-urlsession")
         XCTAssertEqual(props?["platform"], "ios")
         XCTAssertEqual(props?["$os"], "iOS")
-        XCTAssertEqual(props?["app"], "resumely")
+        XCTAssertEqual(props?["app"], "resumely_ios")
         XCTAssertFalse((props?["app_version"] ?? "").isEmpty)
+        XCTAssertFalse((props?["marketing_version"] ?? "").isEmpty)
         XCTAssertFalse((props?["build_number"] ?? "").isEmpty)
+        XCTAssertEqual(props?["anonymous_session_id"], "anon-123")
+        XCTAssertEqual(props?["is_internal_tester"], "true")
+    }
+
+    func testBuildAliasPayloadShape() async {
+        UserDefaults.standard.set("anon-before-auth", forKey: AnalyticsService.anonymousSessionIdKey)
+        let payload = AnalyticsService.buildAliasPayload(
+            apiKey: "phc_test",
+            previousDistinctId: "anon-before-auth",
+            userDistinctId: "user-123"
+        )
+        XCTAssertEqual(payload["event"] as? String, "$create_alias")
+        XCTAssertEqual(payload["distinct_id"] as? String, "anon-before-auth")
+        let props = payload["properties"] as? [String: String]
+        XCTAssertEqual(props?["alias"], "user-123")
+        XCTAssertEqual(props?["anonymous_session_id"], "anon-before-auth")
+        XCTAssertEqual(props?["app"], "resumely_ios")
+    }
+
+    func testBuildIdentifyPayloadShape() async {
+        UserDefaults.standard.set("anon-before-auth", forKey: AnalyticsService.anonymousSessionIdKey)
+        let payload = AnalyticsService.buildIdentifyPayload(
+            apiKey: "phc_test",
+            distinctId: "user-123",
+            isInternalTester: true
+        )
+        XCTAssertEqual(payload["event"] as? String, "$identify")
+        XCTAssertEqual(payload["distinct_id"] as? String, "user-123")
+        let props = payload["properties"] as? [String: [String: String]]
+        XCTAssertEqual(props?["$set"]?["is_internal_tester"], "true")
+        XCTAssertEqual(props?["$set"]?["anonymous_session_id"], "anon-before-auth")
+        XCTAssertEqual(props?["$set"]?["app"], "resumely_ios")
     }
 
     // MARK: PII guard — all events
@@ -104,8 +163,8 @@ final class AnalyticsServiceTests: XCTestCase {
             ["score_bucket": "61-80"],
             [:],
             [:],
-            [:],
-            [:],
+            ["resume_id": "resume-1", "job_description_id": "job-1"],
+            ["optimization_id": "opt-1", "review_id": "review-1"],
             [:],
             [:],
             [:],
@@ -158,6 +217,30 @@ final class AnalyticsServiceTests: XCTestCase {
         service.resetDistinctId()
         XCTAssertNil(UserDefaults.standard.string(forKey: key))
         _ = service.isEnabled
+    }
+
+    func testAnonymousSessionIdPersistsAndDistinctIdSwitchesAfterIdentify() async throws {
+        UserDefaults.standard.set("anon-before-auth", forKey: AnalyticsService.anonymousSessionIdKey)
+        let spy = SpyTransport()
+        let service = AnalyticsService(transport: spy)
+
+        service.track(.appLaunched(isAuthenticated: false))
+        try await Task.sleep(nanoseconds: 10_000_000)
+        XCTAssertEqual(spy.capturedDistinctIds.last, "anon-before-auth")
+        XCTAssertEqual(spy.capturedProperties.last?["anonymous_session_id"], "anon-before-auth")
+
+        service.identifyAuthenticatedUser(userId: "user-123", email: nil)
+        try await Task.sleep(nanoseconds: 10_000_000)
+
+        XCTAssertEqual(spy.aliases.first?.previousDistinctId, "anon-before-auth")
+        XCTAssertEqual(spy.aliases.first?.userDistinctId, "user-123")
+        XCTAssertEqual(spy.identifies.first?.distinctId, "user-123")
+        XCTAssertEqual(spy.identifies.first?.userProperties["is_internal_tester"], "true")
+
+        service.track(.signInCompleted)
+        try await Task.sleep(nanoseconds: 10_000_000)
+        XCTAssertEqual(spy.capturedDistinctIds.last, "user-123")
+        XCTAssertEqual(spy.capturedProperties.last?["anonymous_session_id"], "anon-before-auth")
     }
 
     // MARK: Export action analytics
@@ -215,8 +298,8 @@ final class AnalyticsServiceTests: XCTestCase {
         .freeATSCompleted(scoreBucket: "61-80"),
         .signInCompleted,
         .accountDeleted,
-        .optimizationStarted,
-        .optimizationCompleted,
+        .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1"),
+        .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1"),
         .optimizedViewed,
         .exportStarted,
         .exportSuccess,
@@ -242,4 +325,11 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadSheetDismissed(source: "home"),
         .resumeUploadComingSoonTapped(route: "scan"),
     ]
+
+    private func resetAnalyticsDefaults() {
+        UserDefaults.standard.removeObject(forKey: AnalyticsService.distinctIdKey)
+        UserDefaults.standard.removeObject(forKey: AnalyticsService.anonymousSessionIdKey)
+        UserDefaults.standard.removeObject(forKey: AnalyticsService.authenticatedUserIdKey)
+        UserDefaults.standard.removeObject(forKey: AnalyticsService.internalTesterKey)
+    }
 }

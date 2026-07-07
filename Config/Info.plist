@@ -117,5 +117,7 @@
 	<string>$(POSTHOG_HOST)</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>INTERNAL_TESTER_USER_IDS</key>
+	<string>$(INTERNAL_TESTER_USER_IDS)</string>
 </dict>
 </plist>

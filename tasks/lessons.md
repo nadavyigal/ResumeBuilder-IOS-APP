@@ -15,6 +15,11 @@
 
 ## Lessons
 
+**Date:** 2026-07-06
+**Category:** Test
+**Rule:** Use the Xcode test target's displayed name in `-only-testing` selectors, including spaces, such as `ResumeBuilder IOS APPTests/...`.
+**Why:** A focused MCP test run failed before compiling when invoked with the Swift module-style target name `ResumeBuilder_IOS_APPTests/...`; rerunning with `ResumeBuilder IOS APPTests/...` executed the intended analytics tests.
+
 **Date:** 2026-07-05
 **Category:** UX
 **Rule:** When instrumenting "viewed" events on a tab kept alive but hidden via `opacity: 0`, fire on `isActive` (or tab selection), not `onAppear` alone — hidden tabs may never appear.
