@@ -2,6 +2,8 @@ import Foundation
 
 protocol AnalyticsTransport: Sendable {
     func capture(event: String, properties: [String: String], distinctId: String) async throws
+    func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws
+    func identify(distinctId: String, userProperties: [String: String]) async throws
 }
 
 struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
@@ -16,6 +18,28 @@ struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
     }
 
     func capture(event: String, properties: [String: String], distinctId: String) async throws {
+        try await post(event: event, distinctId: distinctId, properties: properties.mapValues { $0 as Any })
+    }
+
+    func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws {
+        try await post(
+            event: "$create_alias",
+            distinctId: previousDistinctId,
+            properties: properties
+                .merging(["alias": userDistinctId]) { current, _ in current }
+                .mapValues { $0 as Any }
+        )
+    }
+
+    func identify(distinctId: String, userProperties: [String: String]) async throws {
+        try await post(
+            event: "$identify",
+            distinctId: distinctId,
+            properties: ["$set": userProperties as Any]
+        )
+    }
+
+    private func post(event: String, distinctId: String, properties: [String: Any]) async throws {
         var request = URLRequest(url: host.appendingPathComponent("capture"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -23,7 +47,7 @@ struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
             "api_key": apiKey,
             "event": event,
             "distinct_id": distinctId,
-            "properties": properties.merging(AnalyticsService.baseProperties) { current, _ in current },
+            "properties": properties,
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (_, response) = try await session.data(for: request)
@@ -46,8 +70,8 @@ enum AnalyticsEvent: Sendable {
     case freeATSCompleted(scoreBucket: String)
     case signInCompleted
     case accountDeleted
-    case optimizationStarted
-    case optimizationCompleted
+    case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
+    case optimizationCompleted(optimizationId: String?, reviewId: String?)
     case optimizedViewed
     case exportStarted
     case exportSuccess
@@ -118,9 +142,19 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .optimizationStarted, .optimizationCompleted, .optimizedViewed, .exportStarted, .exportSuccess,
+             .optimizedViewed, .exportStarted, .exportSuccess,
              .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
+        case .optimizationStarted(let resumeId, let jobDescriptionId):
+            return Self.compactProperties([
+                "resume_id": resumeId,
+                "job_description_id": jobDescriptionId,
+            ])
+        case .optimizationCompleted(let optimizationId, let reviewId):
+            return Self.compactProperties([
+                "optimization_id": optimizationId,
+                "review_id": reviewId,
+            ])
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]
         case .jobAdded(let hasURL, let hasPaste):
@@ -169,6 +203,14 @@ enum AnalyticsEvent: Sendable {
         default: return "81-100"
         }
     }
+
+    nonisolated private static func compactProperties(_ values: [String: String?]) -> [String: String] {
+        values.compactMapValues { value in
+            guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !value.isEmpty else { return nil }
+            return value
+        }
+    }
 }
 
 @MainActor
@@ -178,6 +220,9 @@ final class AnalyticsService {
     private let transport: (any AnalyticsTransport)?
     private let distinctIdProvider: () -> String
     nonisolated static let distinctIdKey = "analytics_distinct_id"
+    nonisolated static let anonymousSessionIdKey = "analytics_anonymous_session_id"
+    nonisolated static let authenticatedUserIdKey = "analytics_authenticated_user_id"
+    nonisolated static let internalTesterKey = "analytics_is_internal_tester"
 
     init(
         transport: (any AnalyticsTransport)? = nil,
@@ -193,31 +238,67 @@ final class AnalyticsService {
             self.transport = nil
         }
         self.distinctIdProvider = distinctIdProvider ?? {
-            if let existing = UserDefaults.standard.string(forKey: AnalyticsService.distinctIdKey),
-               !existing.isEmpty {
-                return existing
+            if let userId = UserDefaults.standard.string(forKey: AnalyticsService.authenticatedUserIdKey),
+               !userId.isEmpty {
+                return userId
             }
-            let created = UUID().uuidString
-            UserDefaults.standard.set(created, forKey: AnalyticsService.distinctIdKey)
-            return created
+            return AnalyticsService.anonymousSessionId()
         }
     }
 
     var isEnabled: Bool { transport != nil }
 
     func setDistinctId(_ id: String) {
+        UserDefaults.standard.set(id, forKey: Self.authenticatedUserIdKey)
         UserDefaults.standard.set(id, forKey: Self.distinctIdKey)
     }
 
     /// Clears the stored distinct ID so the next track call creates a fresh anonymous ID.
     func resetDistinctId() {
         UserDefaults.standard.removeObject(forKey: Self.distinctIdKey)
+        UserDefaults.standard.removeObject(forKey: Self.anonymousSessionIdKey)
+        UserDefaults.standard.removeObject(forKey: Self.authenticatedUserIdKey)
+        UserDefaults.standard.removeObject(forKey: Self.internalTesterKey)
+    }
+
+    func prepareRestoredSession(userId: String, email: String?) {
+        UserDefaults.standard.set(userId, forKey: Self.authenticatedUserIdKey)
+        UserDefaults.standard.set(userId, forKey: Self.distinctIdKey)
+        UserDefaults.standard.set(Self.resolveInternalTester(userId: userId), forKey: Self.internalTesterKey)
+    }
+
+    func identifyAuthenticatedUser(userId: String, email: String?) {
+        let anonymousId = Self.anonymousSessionId()
+        let previousDistinctId = distinctIdProvider()
+        let isInternalTester = Self.resolveInternalTester(userId: userId)
+        UserDefaults.standard.set(userId, forKey: Self.authenticatedUserIdKey)
+        UserDefaults.standard.set(userId, forKey: Self.distinctIdKey)
+        UserDefaults.standard.set(isInternalTester, forKey: Self.internalTesterKey)
+
+        guard let transport else { return }
+        let userProperties = Self.identityProperties(isInternalTester: isInternalTester)
+        Task {
+            do {
+                if previousDistinctId != userId {
+                    try await transport.alias(
+                        previousDistinctId: previousDistinctId.isEmpty ? anonymousId : previousDistinctId,
+                        userDistinctId: userId,
+                        properties: Self.baseProperties
+                    )
+                }
+                try await transport.identify(distinctId: userId, userProperties: userProperties)
+            } catch {
+                #if DEBUG
+                print("Analytics identity update failed: \(error)")
+                #endif
+            }
+        }
     }
 
     func track(_ event: AnalyticsEvent) {
         guard let transport else { return }
         let distinctId = distinctIdProvider()
-        let payload = event.properties
+        let payload = event.properties.merging(Self.baseProperties) { current, _ in current }
         // Guard PII at the call site — fire in debug builds so new event cases
         // are caught during development before any key ever reaches the network.
         assert(
@@ -256,19 +337,113 @@ final class AnalyticsService {
         ]
     }
 
+    nonisolated static func buildAliasPayload(
+        apiKey: String,
+        previousDistinctId: String,
+        userDistinctId: String
+    ) -> [String: Any] {
+        [
+            "api_key": apiKey,
+            "event": "$create_alias",
+            "distinct_id": previousDistinctId,
+            "properties": baseProperties.merging(["alias": userDistinctId]) { current, _ in current },
+        ]
+    }
+
+    nonisolated static func buildIdentifyPayload(
+        apiKey: String,
+        distinctId: String,
+        isInternalTester: Bool
+    ) -> [String: Any] {
+        [
+            "api_key": apiKey,
+            "event": "$identify",
+            "distinct_id": distinctId,
+            "properties": [
+                "$set": identityProperties(isInternalTester: isInternalTester),
+            ],
+        ]
+    }
+
     nonisolated static var baseProperties: [String: String] {
         [
             "$lib": "resumely-ios-urlsession",
             "platform": "ios",
             "$os": "iOS",
-            "app": "resumely",
+            "app": "resumely_ios",
             "app_version": bundleString("CFBundleShortVersionString"),
+            "marketing_version": bundleString("CFBundleShortVersionString"),
             "build_number": bundleString("CFBundleVersion"),
+            "anonymous_session_id": anonymousSessionId(),
+            "is_internal_tester": currentInternalTesterValue() ? "true" : "false",
         ]
+    }
+
+    nonisolated private static func identityProperties(isInternalTester: Bool) -> [String: String] {
+        baseProperties.merging([
+            "is_internal_tester": isInternalTester ? "true" : "false",
+        ]) { _, new in new }
     }
 
     nonisolated private static func bundleString(_ key: String) -> String {
         Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "unknown"
+    }
+
+    nonisolated static func anonymousSessionId() -> String {
+        if let existing = UserDefaults.standard.string(forKey: anonymousSessionIdKey),
+           !existing.isEmpty {
+            return existing
+        }
+        if UserDefaults.standard.string(forKey: authenticatedUserIdKey) == nil,
+           let legacyDistinctId = UserDefaults.standard.string(forKey: distinctIdKey),
+           !legacyDistinctId.isEmpty {
+            UserDefaults.standard.set(legacyDistinctId, forKey: anonymousSessionIdKey)
+            return legacyDistinctId
+        }
+        let created = UUID().uuidString
+        UserDefaults.standard.set(created, forKey: anonymousSessionIdKey)
+        return created
+    }
+
+    nonisolated static func resolveInternalTester(userId: String?) -> Bool {
+        #if DEBUG
+        return true
+        #else
+        if ProcessInfo.processInfo.arguments.contains("--internal-tester") {
+            return true
+        }
+        if ProcessInfo.processInfo.environment["RESUMELY_INTERNAL_TESTER"] == "1" {
+            return true
+        }
+        if isRunningFromTestFlight {
+            return true
+        }
+        guard let userId, !userId.isEmpty else { return false }
+        return configuredInternalTesterUserIds.contains(userId)
+        #endif
+    }
+
+    nonisolated private static func currentInternalTesterValue() -> Bool {
+        if resolveInternalTester(userId: UserDefaults.standard.string(forKey: authenticatedUserIdKey)) {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: internalTesterKey)
+    }
+
+    nonisolated private static var isRunningFromTestFlight: Bool {
+        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    }
+
+    nonisolated private static var configuredInternalTesterUserIds: Set<String> {
+        guard let raw = Bundle.main.object(forInfoDictionaryKey: "INTERNAL_TESTER_USER_IDS") as? String,
+              !raw.contains("$(") else { return [] }
+        return Set(
+            raw.split { character in
+                character == "," || character == "\n" || character == " "
+            }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        )
     }
 
     nonisolated static let forbiddenPropertyKeys: Set<String> = [

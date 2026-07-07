@@ -146,8 +146,9 @@ final class OptimizationReviewViewModel {
             return
         }
         applySuccessOptimizationId = result.optimizationId
-        if result.optimizationId?.isEmpty == false {
-            AnalyticsService.shared.track(.optimizationCompleted)
+        if let optimizationId = result.optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !optimizationId.isEmpty {
+            AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
         }
     }
 
@@ -178,7 +179,7 @@ final class OptimizationReviewViewModel {
            !optimizationId.isEmpty {
             applySuccessOptimizationId = optimizationId
             errorMessage = nil
-            AnalyticsService.shared.track(.optimizationCompleted)
+            AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
             return true
         }
 
