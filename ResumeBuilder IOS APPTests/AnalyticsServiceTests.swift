@@ -150,6 +150,7 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_error_shown",
             "resume_upload_sheet_dismissed",
             "resume_upload_coming_soon_tapped",
+            "resume_upload_cta_seen",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -189,6 +190,7 @@ final class AnalyticsServiceTests: XCTestCase {
             ["error_code": "500"],
             ["source": "home"],
             ["route": "scan"],
+            ["source": "home"],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -324,6 +326,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadErrorShown(errorCode: "500"),
         .resumeUploadSheetDismissed(source: "home"),
         .resumeUploadComingSoonTapped(route: "scan"),
+        .resumeUploadCTASeen(source: "home"),
     ]
 
     private func resetAnalyticsDefaults() {

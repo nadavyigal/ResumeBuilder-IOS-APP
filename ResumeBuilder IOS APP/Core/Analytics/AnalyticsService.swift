@@ -98,6 +98,7 @@ enum AnalyticsEvent: Sendable {
     case resumeUploadErrorShown(errorCode: String)
     case resumeUploadSheetDismissed(source: String)
     case resumeUploadComingSoonTapped(route: String)
+    case resumeUploadCTASeen(source: String)
 
     nonisolated var name: String {
         switch self {
@@ -134,6 +135,7 @@ enum AnalyticsEvent: Sendable {
         case .resumeUploadErrorShown: return "resume_upload_error_shown"
         case .resumeUploadSheetDismissed: return "resume_upload_sheet_dismissed"
         case .resumeUploadComingSoonTapped: return "resume_upload_coming_soon_tapped"
+        case .resumeUploadCTASeen: return "resume_upload_cta_seen"
         }
     }
 
@@ -175,6 +177,7 @@ enum AnalyticsEvent: Sendable {
         case .fitCheckCompleted(let verdict, let matchScore):
             return ["verdict": verdict, "match_score": "\(matchScore)"]
         case .resumeUploadCTATapped(let source),
+             .resumeUploadCTASeen(let source),
              .resumeFilePickerOpened(let source),
              .resumeFilePickerCancelled(let source):
             return ["source": source]
