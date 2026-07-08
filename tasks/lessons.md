@@ -15,6 +15,16 @@
 
 ## Lessons
 
+**Date:** 2026-07-08
+**Category:** Test
+**Rule:** When verifying `.fileImporter`, pair runtime accessibility snapshots with a simulator screenshot because the system Files picker may be presented outside the app-scoped snapshot tree.
+**Why:** Story 3's XcodeBuildMCP tap fired `resume_upload_cta_tapped` and `resume_file_picker_opened`, but `snapshot_ui` still showed Home; the simulator screenshot confirmed the iOS Files picker was actually open.
+
+**Date:** 2026-07-08
+**Category:** General
+**Rule:** When updating PostHog `DataVisualizationNode` table insights through MCP, keep `tableSettings` to accepted keys like `columns`; `showTotalRow` is rejected.
+**Why:** The first Story 2 insight update failed with a PostHog schema error because the payload included `tableSettings.showTotalRow`.
+
 **Date:** 2026-07-06
 **Category:** Test
 **Rule:** Use the Xcode test target's displayed name in `-only-testing` selectors, including spaces, such as `ResumeBuilder IOS APPTests/...`.

@@ -10,7 +10,6 @@ struct HomeTabView: View {
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
 
     @State private var isImporterPresented = false
-    @State private var isUploadSheetPresented = false
     @State private var shouldNavigate = false
     @State private var showDiagnosis = false
     @State private var pendingDiagnosisOptimizationId: String? = nil
@@ -19,7 +18,9 @@ struct HomeTabView: View {
     @State private var showLibraryPicker = false
     @State private var saveDisplayName = ""
     @State private var libraryViewModel = ResumeLibraryViewModel()
+    @State private var isImporterFlowActive = false
     @State private var appeared = false
+    @State private var didTrackUploadCTASeen = false
     @State private var didTrackJobAdded = false
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
@@ -77,7 +78,7 @@ struct HomeTabView: View {
                             UploadFailureView(
                                 reason: uploadFailureReason,
                                 filename: viewModel.failedResumeName,
-                                onChooseAnother: openUploadSheet
+                                onChooseAnother: openUploadPicker
                             )
                         }
 
@@ -135,11 +136,6 @@ struct HomeTabView: View {
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
-                }
-            }
-            .sheet(isPresented: $isUploadSheetPresented) {
-                UploadSheetView {
-                    openResumeImporter()
                 }
             }
             .sheet(isPresented: $showFitCheck) {
@@ -206,18 +202,27 @@ struct HomeTabView: View {
             ) { result in
                 switch result {
                 case .success(let urls):
+                    markImporterResolved()
                     guard let url = urls.first else {
                         AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
                         return
                     }
                     viewModel.cachePickedFile(url: url)
                 case .failure(let error):
+                    markImporterResolved()
                     if (error as NSError).code == NSUserCancelledError {
                         AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
                     } else {
                         viewModel.errorMessage = error.localizedDescription
                         AnalyticsService.shared.track(.resumeUploadErrorShown(errorCode: "picker_failure"))
                     }
+                }
+            }
+            .onChange(of: isImporterPresented) { _, isPresented in
+                guard !isPresented else { return }
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 350_000_000)
+                    trackImporterCancellationIfNeeded()
                 }
             }
             .navigationDestination(isPresented: $shouldNavigate) {
@@ -283,14 +288,31 @@ struct HomeTabView: View {
         ))
     }
 
-    private func openUploadSheet() {
+    private func openUploadPicker() {
         AnalyticsService.shared.track(.resumeUploadCTATapped(source: "home"))
-        isUploadSheetPresented = true
+        openResumeImporter()
     }
 
     private func openResumeImporter() {
+        isImporterFlowActive = true
         AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
         isImporterPresented = true
+    }
+
+    private func markImporterResolved() {
+        isImporterFlowActive = false
+    }
+
+    private func trackImporterCancellationIfNeeded() {
+        guard isImporterFlowActive else { return }
+        isImporterFlowActive = false
+        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
+    }
+
+    private func trackUploadCTASeenIfNeeded() {
+        guard !didTrackUploadCTASeen else { return }
+        didTrackUploadCTASeen = true
+        AnalyticsService.shared.track(.resumeUploadCTASeen(source: "home"))
     }
 
     private func runAnalysis() async {
@@ -334,7 +356,7 @@ struct HomeTabView: View {
             fitCheckViewModel.onSkip = { showFitCheck = false }
             fitCheckViewModel.onNeedResume = {
                 showFitCheck = false
-                openUploadSheet()
+                openUploadPicker()
             }
             showFitCheck = true
         } catch {
@@ -487,7 +509,7 @@ struct HomeTabView: View {
     }
 
     private var uploadHero: some View {
-        Button(action: openUploadSheet) {
+        Button(action: openUploadPicker) {
             VStack(spacing: 0) {
                 VStack(spacing: AppSpacing.md) {
                     ZStack {
@@ -544,12 +566,15 @@ struct HomeTabView: View {
                         .foregroundStyle(AppColors.accentSky.opacity(0.42))
                 )
 
-                HStack(spacing: AppSpacing.md) {
-                    Text("Paste text")
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "folder")
+                    Text("Files")
                     Text("·").foregroundStyle(Color.white.opacity(0.25))
-                    Text("Try a sample")
+                    Text("iCloud Drive")
+                    Text("·").foregroundStyle(Color.white.opacity(0.25))
+                    Text("Downloads")
                 }
-                .font(.subheadline.weight(.semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(AppColors.accentSky)
                 .padding(.vertical, 12)
                 .accessibilityHidden(true)
@@ -564,6 +589,7 @@ struct HomeTabView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? NSLocalizedString("Résumé selected. Choose a different file.", comment: "") : NSLocalizedString("Upload your résumé. PDF or DOCX up to 5 megabytes.", comment: ""))
+        .onAppear(perform: trackUploadCTASeenIfNeeded)
     }
 
     private var motivationStrip: some View {

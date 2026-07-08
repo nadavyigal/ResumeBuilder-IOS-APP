@@ -9,7 +9,7 @@ Decision: do not make paid acquisition, monetization, or export-UX calls from th
 - [x] v1.3 export-view instrumentation is verified but not yet backed by real production completer volume.
 
 ## Next
-- [ ] Harden analytics identity and test filtering: stable app/build/environment properties, internal tester flag, PostHog aliasing after Supabase auth, and backend optimization id correlation. Code + tests are in place; authenticated smoke evidence is still blocked.
+- [x] Harden analytics identity and test filtering: stable app/build/environment properties, internal tester flag, PostHog aliasing after Supabase auth, and backend optimization id correlation.
 - [ ] Focus the next product pass on first-session upload/job activation before export/paywall changes.
 - [ ] Re-run the clean funnel after v1.3 (8) or later is live for a real user cohort.
 
@@ -19,7 +19,32 @@ Decision: do not make paid acquisition, monetization, or export-UX calls from th
 - [x] `Features/Tailor/TailorViewModel.swift`, `ViewModels/ImproveViewModel.swift`, `Features/V2/History/OptimizationReviewView.swift` — include non-content `optimization_id` / `review_id` properties where optimization start/completion events are emitted.
 - [x] `Config/Info.plist`, `Secrets.xcconfig.template` — add an optional internal tester user-id allowlist without committing private values.
 - [x] `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — cover global properties, stable anonymous identity, alias/identify payloads, and optimization id properties.
-- [ ] Verification — focused analytics tests, full simulator tests, Debug build, simulator launch, and PostHog launch-property read passed; authenticated anonymous-to-signed-in smoke is blocked because simulator secure-field automation did not enter a valid password, so no live `$create_alias` / `$identify` row was captured yet.
+- [x] Verification — focused analytics tests, full simulator tests, Debug build, simulator launch, PostHog launch-property read, and manual sign-in identity evidence passed. Fresh rows on 2026-07-08: `$create_alias` at `2026-07-08T07:49:02.112Z` from anonymous `7AB71271-C87B-461C-948D-B1923A0454B2` to user alias `9fa6c1f5-9aba-439e-9e4e-5760d516ce6e`; `$identify` at `2026-07-08T07:49:02.275Z` with `app=resumely_ios`, build `8`, marketing version `1.3`, `is_internal_tester=true`, and the same anonymous session id.
+
+## Story 2 — Canonical Activation Metric
+- [x] Updated PostHog insight `3NiBhRDP` in place: `Resumely — Canonical Activation Status (clean iOS 60d)`.
+- [x] Primary activation is now `optimization_completed`, labeled `PRIMARY_ACTIVATION`.
+- [x] `export_success` remains present but is labeled `SECONDARY_EXPORT_DIAGNOSTIC`.
+- [x] Query filters to iOS `$lib=resumely-ios-urlsession` and keeps founder/QA/bot person-prefix exclusions: `067544b5`, `761e5b1b`, `a6441489`, `712cf425`.
+- [x] Evidence from refreshed insight run: 68 launched, 11 upload CTA tapped, 10 file picker opened, 5 file selected, 12 resume uploaded, 7 job added, 3 optimization completed, 1 export success.
+
+## Story 3 — Launch to Upload CTA Wall
+- [x] Reproduced fresh-launch Home: upload CTA is above the fold after the app settles; early 2s screenshot can still catch a blank startup frame.
+- [x] Queried PostHog clean iOS data and found historical launch → CTA loss is partly contaminated by pre-instrumentation/alternate-path users with downstream activity but no CTA event.
+- [x] Isolated the focused product friction: Home's primary "Choose a file" CTA opened an intermediate upload sheet before the system file picker.
+- [x] Added `resume_upload_cta_seen` so future reads can separate CTA exposure from CTA tap.
+- [x] Changed Home upload CTA, upload retry, and FitCheck need-resume paths to open the system file picker directly.
+- [x] Verification: `AnalyticsServiceTests` 12/12 passed; PostHog confirmed fresh `resume_upload_cta_seen`, `resume_upload_cta_tapped`, and `resume_file_picker_opened` rows with `is_internal_tester=True`; XcodeBuildMCP tap smoke opened Files directly.
+- [ ] Next cohort read: compare post-fix `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` on non-founder users once enough production traffic exists.
+
+## Story 4 — File Picker to File Selected Loss
+- [x] Queried clean iOS 60d funnel: 10 picker openers → 5 file selectors; no production `resume_file_picker_cancelled` rows existed.
+- [x] Queried recent non-selectors: users repeatedly opened the picker/tapped upload but had no file selected or upload events.
+- [x] Reproduced likely friction: iOS Files opens on an empty Recents screen, with Browse only available in the bottom tab bar.
+- [x] Replaced inactive "Paste text / Try sample" Home copy with real file-location cues: `Files · iCloud Drive · Downloads`.
+- [x] Added fallback cancellation tracking when Home's importer dismisses without a result.
+- [x] Verification: `AnalyticsServiceTests` 12/12 passed; patched Home screenshot looked clean; CTA opened Files directly; PostHog confirmed fresh QA `resume_upload_cta_seen`, `resume_upload_cta_tapped`, and `resume_file_picker_opened` rows with `is_internal_tester=True`.
+- [ ] Manual or next-real-user verification: confirm `resume_file_picker_cancelled` lands after the user closes the system picker without selecting a file.
 
 ## Report
 - [x] `docs/qa/reports/supabase-post-live-current-state-2026-07-06.md`
