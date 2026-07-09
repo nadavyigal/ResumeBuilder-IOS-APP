@@ -38,6 +38,10 @@ struct HomeTabView: View {
         ))
     }
 
+    private enum ScrollAnchor {
+        static let jobInput = "job-input"
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -51,82 +55,92 @@ struct HomeTabView: View {
                 )
                 .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        pageHeader
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 12)
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            pageHeader
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 12)
 
-                        progressPath
-                            .opacity(appeared ? 1 : 0)
+                            progressPath
+                                .opacity(appeared ? 1 : 0)
 
-                        if activationState == .optimizedReady || activationState == .exportComplete {
-                            optimizedReadyCard
-                        }
-
-                        uploadHero
-
-                        if viewModel.selectedResumeName?.isEmpty != false,
-                           appState.isAuthenticated,
-                           RuntimeFeatures.isResumeLibraryEnabled {
-                            libraryButton
-                        }
-
-                        motivationStrip
-
-                        if let uploadFailureReason = viewModel.uploadFailureReason {
-                            UploadFailureView(
-                                reason: uploadFailureReason,
-                                filename: viewModel.failedResumeName,
-                                onChooseAnother: openUploadPicker
-                            )
-                        }
-
-                        if viewModel.selectedResumeName?.isEmpty == false {
-                            jobInputCard
-
-                            optimizeCard
-                        }
-
-                        if viewModel.isOptimizing || viewModel.isRunningFreeATS {
-                            ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
-                                .transition(.scale.combined(with: .opacity))
-                        }
-
-                        if viewModel.errorMessage != nil, viewModel.uploadFailureReason == nil, viewModel.isConnectionError {
-                            ConnectionLostView(onRetry: { Task { await runAnalysis() } })
-                        } else if let error = viewModel.errorMessage, viewModel.uploadFailureReason == nil {
-                            errorBanner(error)
-                        }
-
-                        if let atsResult = viewModel.atsResult, !appState.isAuthenticated {
-                            ScoreResultView(result: atsResult, isAuthenticated: false)
-                                .transition(.scale(scale: 0.95).combined(with: .opacity))
-
-                            privacyReassurance
-
-                            Button {
-                                showOnboarding = true
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "person.crop.circle.badge.plus")
-                                        .font(.system(size: 14, weight: .semibold))
-                                    Text("Sign in to Optimize")
-                                        .fontWeight(.bold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .foregroundStyle(.white)
-                                .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            if activationState == .optimizedReady || activationState == .exportComplete {
+                                optimizedReadyCard
                             }
-                            .buttonStyle(.plain)
+
+                            uploadHero
+
+                            if viewModel.selectedResumeName?.isEmpty != false,
+                               appState.isAuthenticated,
+                               RuntimeFeatures.isResumeLibraryEnabled {
+                                libraryButton
+                            }
+
+                            motivationStrip
+
+                            if let uploadFailureReason = viewModel.uploadFailureReason {
+                                UploadFailureView(
+                                    reason: uploadFailureReason,
+                                    filename: viewModel.failedResumeName,
+                                    onChooseAnother: openUploadPicker
+                                )
+                            }
+
+                            if viewModel.selectedResumeName?.isEmpty == false {
+                                jobInputCard
+                                    .id(ScrollAnchor.jobInput)
+
+                                optimizeCard
+                            }
+
+                            if viewModel.isOptimizing || viewModel.isRunningFreeATS {
+                                ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+
+                            if viewModel.errorMessage != nil, viewModel.uploadFailureReason == nil, viewModel.isConnectionError {
+                                ConnectionLostView(onRetry: { Task { await runAnalysis() } })
+                            } else if let error = viewModel.errorMessage, viewModel.uploadFailureReason == nil {
+                                errorBanner(error)
+                            }
+
+                            if let atsResult = viewModel.atsResult, !appState.isAuthenticated {
+                                ScoreResultView(result: atsResult, isAuthenticated: false)
+                                    .transition(.scale(scale: 0.95).combined(with: .opacity))
+
+                                privacyReassurance
+
+                                Button {
+                                    showOnboarding = true
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "person.crop.circle.badge.plus")
+                                            .font(.system(size: 14, weight: .semibold))
+                                        Text("Sign in to Optimize")
+                                            .fontWeight(.bold)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .foregroundStyle(.white)
+                                    .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 100)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                    .onChange(of: viewModel.selectedResumeName) { _, newName in
+                        guard newName?.isEmpty == false else { return }
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 150_000_000)
+                            scrollToJobInput(using: scrollProxy)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 100)
                 }
-                .scrollBounceBehavior(.basedOnSize)
             }
             .navigationBarHidden(true)
             .onAppear {
@@ -276,6 +290,16 @@ struct HomeTabView: View {
     private var hasJobInput: Bool {
         !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private func scrollToJobInput(using proxy: ScrollViewProxy) {
+        if reduceMotion {
+            proxy.scrollTo(ScrollAnchor.jobInput, anchor: .top)
+        } else {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                proxy.scrollTo(ScrollAnchor.jobInput, anchor: .top)
+            }
+        }
     }
 
     private func trackJobAddedIfNeeded() {

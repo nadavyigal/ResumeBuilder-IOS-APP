@@ -2718,6 +2718,9 @@
         }
       }
     },
+    "Files" : {
+
+    },
     "Files must be 5 MB or smaller. Export a lighter PDF or DOCX and try again." : {
 
     },
@@ -3262,16 +3265,6 @@
         }
       }
     },
-    "Interview-style answers grounded in wins." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תשובות בסגנון ראיון המבוססות על הישגים."
-          }
-        }
-      }
-    },
     "Interview Prep" : {
       "localizations" : {
         "he" : {
@@ -3288,6 +3281,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שאלות ותשובות לראיון"
+          }
+        }
+      }
+    },
+    "Interview-style answers grounded in wins." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תשובות בסגנון ראיון המבוססות על הישגים."
           }
         }
       }
@@ -4666,6 +4669,7 @@
       }
     },
     "Paste text" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
