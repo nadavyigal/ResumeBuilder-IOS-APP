@@ -34,3 +34,6 @@ Secrets.xcconfig
 
 # Claude Code
 .claude/
+
+# gstack tool cache
+.gstack/
