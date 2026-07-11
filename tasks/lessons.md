@@ -15,6 +15,11 @@
 
 ## Lessons
 
+**Date:** 2026-07-11
+**Category:** General
+**Rule:** When the connected PostHog plugin advertises `read-data-warehouse-schema` but returns `Tool read-data-warehouse-schema not found`, use verified narrow `events`/`system.*` HogQL probes and `read-data-schema` rather than guessing columns.
+**Why:** WP-41's required warehouse-schema discovery call was unavailable at runtime even though the tool appeared in the connected capability list.
+
 **Date:** 2026-07-08
 **Category:** Test
 **Rule:** When verifying `.fileImporter`, pair runtime accessibility snapshots with a simulator screenshot because the system Files picker may be presented outside the app-scoped snapshot tree.
