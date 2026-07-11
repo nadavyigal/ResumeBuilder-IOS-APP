@@ -77,14 +77,14 @@
 
 **v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
 
-Status: v1.4 (10) LIVE on App Store; **1.4.1 (11) cut locally on `main` (`4e586ed`), awaiting founder ASC submit** (WP-37 S4).
-Current Phase: Post-launch — activation measurement is hardened; WP-37 S1/S4 shipped to `main`; S2/S3/S5 are web-side (separate repo), already shipped per that repo's progress log.
-Active Story: WP-37 S4 handoff — founder archive/submit 1.4.1 (11).
-Last Completed Story: WP-37 S4 — scroll-into-view fix + 1.4.1 (11) version bump, merged to `main` (2026-07-09).
-Next Recommended Story: Founder submits 1.4.1 (11); then re-read the PostHog picker→file-selected funnel 7-14d post-1.4 for a real cohort.
+Status: **v1.4.1 (11) LIVE on App Store, founder-confirmed 2026-07-11** (Apple state change, no commit — see WP-37 S4 for the code that shipped in this build).
+Current Phase: Post-launch — 1.4.1 (11) live; next gate is re-reading the picker→file-selected funnel against a real post-1.4.1 cohort.
+Active Story: None — WP-37 S4 handoff closed now that 1.4.1 (11) is live. Next: PostHog funnel re-read.
+Last Completed Story: WP-37 S4 — scroll-into-view fix + 1.4.1 (11) version bump, merged to `main` (2026-07-09); Apple approved and live 2026-07-11.
+Next Recommended Story: Re-read the PostHog picker→file-selected funnel 7-14d post-1.4.1 for a real cohort (earliest usable window ~2026-07-18).
 Blockers: Missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
-Last Validation: 2026-07-09 — Debug build **SUCCEEDED**; `.gstack/` gitignore hygiene fix committed (`597bf9f`); no new device QA since 2026-07-08 (`resume_upload_cta_seen/tapped`, `resume_file_picker_opened` PostHog QA rows still current from that date).
-Last Updated: 2026-07-09
+Last Validation: 2026-07-09 — Debug build **SUCCEEDED**; `.gstack/` gitignore hygiene fix committed (`597bf9f`); no new device QA since 2026-07-08 (`resume_upload_cta_seen/tapped`, `resume_file_picker_opened` PostHog QA rows still current from that date). Live-on-Store status confirmed by founder 2026-07-11, not yet by a fresh PostHog read.
+Last Updated: 2026-07-11
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
