@@ -72,6 +72,26 @@ Review your Resumely Match Score, apply targeted edits, choose an ATS-friendly d
 - "Get hired"
 - Any named ATS-vendor compatibility claim without evidence
 
+## Demand-Mining Update (2026-07-11) — DRAFT, pending founder approval
+
+Sourced from `executive-os/research/2026-07-11-demand-mining-right-user-fit.md` (Agentic OS). Two findings, both additive to the existing Positioning Rule above, not a replacement:
+
+1. **Anti-generic-AI angle.** Primary-sourced complaint (TeamBlind): resumes drafted by ChatGPT read as "really obvious it was written by ChatGPT" and use "flowery prose" recruiters push back on. This is a direct, evidence-backed reason to lead with "sounds like you," not just "AI-powered."
+2. **Match Score defensibility reinforcement.** A named competitor's ATS score is called "gameable" by users (inflating scores with irrelevant keywords). This is exactly the failure mode the existing "Resumely Match Score" rebrand + non-affiliation explainer already defends against — treat this as evidence the existing positioning is correct, not a reason to change it.
+
+**Draft promotional text variant (170 chars max) — leads with the anti-generic-AI angle, not yet approved:**
+```
+Tailor your resume to sound like you, not a chatbot. See what's missing for a real job, fix it with Resumely, and export a complete package from your iPhone.
+```
+(159 chars)
+
+**Draft keyword additions (evaluate against the 100-byte budget with existing list):**
+```
+sounds like me,human resume,not generic ai
+```
+
+**Decision needed:** which promotional text variant to run (current 1.2 recommendation above, or this anti-generic-AI draft) — not yet submitted to App Store Connect.
+
 ## Post-1.2 Optimization Gate
 
 Do not scale ASO volume, lifecycle campaigns, paid acquisition, or monetization
