@@ -1,3 +1,22 @@
+# WP-45 S0 — Measurement Contract and Baseline (2026-07-12)
+
+Goal: establish the privacy-safe baseline and event contract needed to measure removal of the pre-optimization Fit gate without changing the user journey in this story.
+
+## Implementation Plan
+- [x] `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift` — added the red contract for `analysis_cta_tapped` and versioned Fit events.
+- [x] `ResumeBuilder IOS APP/Core/Analytics/AnalyticsService.swift` — added bounded, non-PII measurement properties for the current `fit_gate_v1` flow.
+- [x] `ResumeBuilder IOS APP/Features/V2/Home/HomeTabView.swift` — fires one Analyze-intent event from the real authenticated button, not retry paths.
+- [x] `ResumeBuilder IOS APP/Features/Tailor/TailorView.swift` — fires the same event from the live Tailor entry.
+- [x] `docs/qa/reports/wp45-s0-measurement-baseline-2026-07-12.md` — saved the founder/QA/bot-excluded baseline, cohort rules, and on-call questions.
+- [x] Verification — red contract failure confirmed; focused analytics tests passed 13/13; Debug simulator build succeeded; SpyTransport smoke captured the event; `git diff --check` and privacy review passed.
+- [x] Memory — updated `tasks/progress.md`, `tasks/session-log.md`, and the Swift 6 nonisolated-helper lesson.
+
+## Out of Scope
+- Removing `FitCheckView` or changing navigation.
+- Scoring, extraction, API, Supabase, deployment, App Store, or production PostHog configuration changes.
+
+---
+
 # Story: Supabase + PostHog post-live current-state review (2026-07-06)
 
 Decision: do not make paid acquisition, monetization, or export-UX calls from the current data; production usage is too small and too QA-heavy, while backend optimization completion is healthy once reached.

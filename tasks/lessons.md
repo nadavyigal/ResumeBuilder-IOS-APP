@@ -15,6 +15,11 @@
 
 ## Lessons
 
+**Date:** 2026-07-12
+**Category:** Build
+**Rule:** Any pure analytics helper called from `AnalyticsEvent`'s nonisolated name or properties contract must also be declared `nonisolated` under Swift 6 default MainActor isolation.
+**Why:** WP-45 S0 reused `scoreBucket(for:)` inside nonisolated event properties; the first green build failed until the pure static helper was explicitly marked nonisolated.
+
 **Date:** 2026-07-11
 **Category:** General
 **Rule:** When the connected PostHog plugin advertises `read-data-warehouse-schema` but returns `Tool read-data-warehouse-schema not found`, use verified narrow `events`/`system.*` HogQL probes and `read-data-schema` rather than guessing columns.

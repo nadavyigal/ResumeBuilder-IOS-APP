@@ -62,11 +62,17 @@ enum AnalyticsError: Error, Equatable {
     case disabled
 }
 
+enum AnalyticsFlowVersion: String, Sendable {
+    case fitGateV1 = "fit_gate_v1"
+    case directOptimizeV2 = "direct_optimize_v2"
+}
+
 enum AnalyticsEvent: Sendable {
     case appLaunched(isAuthenticated: Bool)
     case guestModeStarted
     case resumeUploaded(fileType: String)
     case jobAdded(hasURL: Bool, hasPaste: Bool)
+    case analysisCTATapped(source: String, flowVersion: AnalyticsFlowVersion, hasURL: Bool, hasPaste: Bool)
     case freeATSCompleted(scoreBucket: String)
     case signInCompleted
     case accountDeleted
@@ -106,6 +112,7 @@ enum AnalyticsEvent: Sendable {
         case .guestModeStarted: return "guest_mode_started"
         case .resumeUploaded: return "resume_uploaded"
         case .jobAdded: return "job_added"
+        case .analysisCTATapped: return "analysis_cta_tapped"
         case .freeATSCompleted: return "free_ats_completed"
         case .signInCompleted: return "sign_in_completed"
         case .accountDeleted: return "account_deleted"
@@ -145,7 +152,7 @@ enum AnalyticsEvent: Sendable {
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
              .optimizedViewed, .exportStarted, .exportSuccess,
-             .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
+             .exportPdfTapped, .exportCTASeen, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):
             return Self.compactProperties([
@@ -164,6 +171,15 @@ enum AnalyticsEvent: Sendable {
                 "has_url": hasURL ? "true" : "false",
                 "has_paste": hasPaste ? "true" : "false",
             ]
+        case .analysisCTATapped(let source, let flowVersion, let hasURL, let hasPaste):
+            return [
+                "source": source,
+                "flow_version": flowVersion.rawValue,
+                "job_input_source": Self.jobInputSource(hasURL: hasURL, hasPaste: hasPaste),
+                "extraction_quality": "unknown",
+                "requirement_count_bucket": "unknown",
+                "score_version": "ats_v2_legacy",
+            ]
         case .freeATSCompleted(let scoreBucket):
             return ["score_bucket": scoreBucket]
         case .exportFailed(let errorCode):
@@ -174,8 +190,19 @@ enum AnalyticsEvent: Sendable {
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
+        case .fitCheckStarted:
+            return [
+                "flow_version": AnalyticsFlowVersion.fitGateV1.rawValue,
+                "score_version": "ats_v2_legacy",
+            ]
         case .fitCheckCompleted(let verdict, let matchScore):
-            return ["verdict": verdict, "match_score": "\(matchScore)"]
+            return [
+                "verdict": verdict,
+                "match_score": "\(matchScore)",
+                "score_bucket": Self.scoreBucket(for: matchScore),
+                "flow_version": AnalyticsFlowVersion.fitGateV1.rawValue,
+                "score_version": "ats_v2_legacy",
+            ]
         case .resumeUploadCTATapped(let source),
              .resumeUploadCTASeen(let source),
              .resumeFilePickerOpened(let source),
@@ -198,12 +225,21 @@ enum AnalyticsEvent: Sendable {
         }
     }
 
-    static func scoreBucket(for score: Int) -> String {
+    nonisolated static func scoreBucket(for score: Int) -> String {
         switch score {
         case ...40: return "0-40"
         case 41...60: return "41-60"
         case 61...80: return "61-80"
         default: return "81-100"
+        }
+    }
+
+    nonisolated private static func jobInputSource(hasURL: Bool, hasPaste: Bool) -> String {
+        switch (hasURL, hasPaste) {
+        case (true, true): return "url_and_paste"
+        case (true, false): return "url"
+        case (false, true): return "paste"
+        case (false, false): return "none"
         }
     }
 

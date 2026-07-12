@@ -339,6 +339,16 @@ struct HomeTabView: View {
         AnalyticsService.shared.track(.resumeUploadCTASeen(source: "home"))
     }
 
+    private func trackAnalysisCTATapped() {
+        guard appState.isAuthenticated else { return }
+        AnalyticsService.shared.track(.analysisCTATapped(
+            source: "home",
+            flowVersion: .fitGateV1,
+            hasURL: !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            hasPaste: !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ))
+    }
+
     private func runAnalysis() async {
         if appState.isAuthenticated {
             if BackendConfig.isFitCheckEnabled {
@@ -875,6 +885,7 @@ struct HomeTabView: View {
             Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
 
             Button {
+                trackAnalysisCTATapped()
                 Task { await runAnalysis() }
             } label: {
                 Group {

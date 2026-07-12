@@ -15,6 +15,12 @@
 
 ## Sessions
 
+**Date:** 2026-07-12
+**Task:** Execute WP-45 S0, measurement contract and pre-change activation baseline.
+**Files Changed:** `Core/Analytics/AnalyticsService.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/Tailor/TailorView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`, `docs/qa/reports/wp45-s0-measurement-baseline-2026-07-12.md`, `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md`.
+**Decisions Made:** Instrument the actual authenticated Analyze button rather than shared retry functions; tag current events as `fit_gate_v1` / `ats_v2_legacy`; use `unknown` for extraction fields that do not exist at tap time rather than inventing quality; preserve the historical event names; treat the clean pre-change downstream cohort as underpowered because it has zero eligible entrants.
+**Next Recommended Action:** Execute WP-45 S1 on a fresh story branch: remove Home/Tailor `FitCheckView` routing, start the existing optimization directly, and emit `analysis_cta_tapped` with `direct_optimize_v2`; do not change scoring or backend extraction in S1.
+
 **Date:** 2026-06-28
 **Task:** Execute approved product-marketing recommendations after 1.2 (7) was sent for App Store review.
 **Files Changed:** `.agents/product-marketing.md`, `docs/product/product-vision.md`, `docs/product/current-product-state.md`, `docs/app-store/he-metadata.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `dist/app-store-screenshots/app-store-v1/upload-manifest.md`, `tasks/progress.md`, `tasks/session-log.md`.

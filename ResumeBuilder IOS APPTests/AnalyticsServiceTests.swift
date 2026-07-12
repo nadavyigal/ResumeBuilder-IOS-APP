@@ -121,6 +121,7 @@ final class AnalyticsServiceTests: XCTestCase {
             "guest_mode_started",
             "resume_uploaded",
             "job_added",
+            "analysis_cta_tapped",
             "free_ats_completed",
             "sign_in_completed",
             "account_deleted",
@@ -161,6 +162,14 @@ final class AnalyticsServiceTests: XCTestCase {
             [:],
             ["file_type": "pdf"],
             ["has_url": "true", "has_paste": "false"],
+            [
+                "source": "home",
+                "flow_version": "fit_gate_v1",
+                "job_input_source": "url",
+                "extraction_quality": "unknown",
+                "requirement_count_bucket": "unknown",
+                "score_version": "ats_v2_legacy",
+            ],
             ["score_bucket": "61-80"],
             [:],
             [:],
@@ -175,8 +184,14 @@ final class AnalyticsServiceTests: XCTestCase {
             [:],
             [:],
             ["has_cover_letter": "true"],
-            [:],
-            ["verdict": "stretch", "match_score": "68"],
+            ["flow_version": "fit_gate_v1", "score_version": "ats_v2_legacy"],
+            [
+                "verdict": "stretch",
+                "match_score": "68",
+                "score_bucket": "61-80",
+                "flow_version": "fit_gate_v1",
+                "score_version": "ats_v2_legacy",
+            ],
             [:],
             [:],
             ["source": "home"],
@@ -201,6 +216,30 @@ final class AnalyticsServiceTests: XCTestCase {
         let service = AnalyticsService(transport: SpyTransport())
         XCTAssertTrue(service.isEnabled)
         service.track(.resumeUploaded(fileType: "pdf")) // must not crash
+    }
+
+    func testAnalysisCTAEventCapturesVersionedPrivacySafeContext() async throws {
+        let spy = SpyTransport()
+        let service = AnalyticsService(transport: spy, distinctIdProvider: { "test-person" })
+
+        service.track(.analysisCTATapped(
+            source: "tailor",
+            flowVersion: .fitGateV1,
+            hasURL: true,
+            hasPaste: true
+        ))
+        try await Task.sleep(nanoseconds: 10_000_000)
+
+        XCTAssertEqual(spy.captured, ["analysis_cta_tapped"])
+        XCTAssertEqual(spy.capturedProperties.first?["source"], "tailor")
+        XCTAssertEqual(spy.capturedProperties.first?["flow_version"], "fit_gate_v1")
+        XCTAssertEqual(spy.capturedProperties.first?["job_input_source"], "url_and_paste")
+        XCTAssertEqual(spy.capturedProperties.first?["extraction_quality"], "unknown")
+        XCTAssertEqual(spy.capturedProperties.first?["requirement_count_bucket"], "unknown")
+        XCTAssertEqual(spy.capturedProperties.first?["score_version"], "ats_v2_legacy")
+        XCTAssertNil(spy.capturedProperties.first?["job_url"])
+        XCTAssertNil(spy.capturedProperties.first?["job_description"])
+        XCTAssertNil(spy.capturedProperties.first?["email"])
     }
 
     // MARK: Score buckets
@@ -297,6 +336,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .guestModeStarted,
         .resumeUploaded(fileType: "pdf"),
         .jobAdded(hasURL: true, hasPaste: false),
+        .analysisCTATapped(source: "home", flowVersion: .fitGateV1, hasURL: true, hasPaste: false),
         .freeATSCompleted(scoreBucket: "61-80"),
         .signInCompleted,
         .accountDeleted,

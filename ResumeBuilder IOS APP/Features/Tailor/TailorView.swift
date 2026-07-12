@@ -559,6 +559,14 @@ struct TailorView: View {
                 .padding(.horizontal, 16)
 
             Button {
+                if appState.isAuthenticated {
+                    AnalyticsService.shared.track(.analysisCTATapped(
+                        source: "tailor",
+                        flowVersion: .fitGateV1,
+                        hasURL: !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                        hasPaste: !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ))
+                }
                 Task {
                     if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
                         do {
