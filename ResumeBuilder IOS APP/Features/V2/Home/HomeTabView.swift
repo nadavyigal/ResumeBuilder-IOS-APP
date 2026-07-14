@@ -240,8 +240,8 @@ struct HomeTabView: View {
             .navigationDestination(item: $journeyRoute) { route in
                 switch route {
                 case .optimizationReview(let reviewId):
-                    OptimizationReviewView(
-                        viewModel: OptimizationReviewViewModel(reviewId: reviewId),
+                    OptimizationReviewDestination(
+                        reviewId: reviewId,
                         onAppliedOptimization: { optId in
                             FirstSessionJourneyTransition.completeApply(
                                 optimizationId: optId,

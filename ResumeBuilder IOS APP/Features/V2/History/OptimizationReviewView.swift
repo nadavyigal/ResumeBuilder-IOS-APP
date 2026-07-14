@@ -261,6 +261,53 @@ final class OptimizationReviewViewModel {
     }
 }
 
+/// Keeps a review fetch alive when SwiftUI refreshes the presenting screen.
+/// Navigation destinations are value views, so constructing a model inline there
+/// can replace the instance that just received the review response.
+@Observable
+@MainActor
+final class OptimizationReviewDestinationState {
+    private(set) var reviewId: String
+    private(set) var viewModel: OptimizationReviewViewModel
+
+    init(reviewId: String) {
+        self.reviewId = reviewId
+        self.viewModel = OptimizationReviewViewModel(reviewId: reviewId)
+    }
+
+    func activate(reviewId: String) {
+        guard self.reviewId != reviewId else { return }
+        self.reviewId = reviewId
+        viewModel = OptimizationReviewViewModel(reviewId: reviewId)
+    }
+}
+
+/// Stable owner for an optimization-review model used from navigation destinations.
+struct OptimizationReviewDestination: View {
+    let reviewId: String
+    let onAppliedOptimization: ((String) -> Void)?
+    @State private var state: OptimizationReviewDestinationState
+
+    init(
+        reviewId: String,
+        onAppliedOptimization: ((String) -> Void)? = nil
+    ) {
+        self.reviewId = reviewId
+        self.onAppliedOptimization = onAppliedOptimization
+        _state = State(initialValue: OptimizationReviewDestinationState(reviewId: reviewId))
+    }
+
+    var body: some View {
+        OptimizationReviewView(
+            viewModel: state.viewModel,
+            onAppliedOptimization: onAppliedOptimization
+        )
+        .onChange(of: reviewId) { _, newReviewId in
+            state.activate(reviewId: newReviewId)
+        }
+    }
+}
+
 struct OptimizationReviewView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss

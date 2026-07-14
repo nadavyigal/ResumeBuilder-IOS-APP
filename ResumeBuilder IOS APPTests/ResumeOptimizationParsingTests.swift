@@ -98,6 +98,22 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(envelope.review.appliedAt, "2026-06-26T14:53:35Z")
     }
 
+    @MainActor
+    func testReviewDestinationStateRetainsItsViewModelForTheSameReview() {
+        let state = OptimizationReviewDestinationState(reviewId: "review-1")
+        let originalModel = state.viewModel
+
+        state.activate(reviewId: "review-1")
+
+        XCTAssertTrue(originalModel === state.viewModel)
+
+        state.activate(reviewId: "review-2")
+
+        XCTAssertEqual(state.reviewId, "review-2")
+        XCTAssertFalse(originalModel === state.viewModel)
+        XCTAssertEqual(state.viewModel.reviewId, "review-2")
+    }
+
     func testOptimizationReviewApplyTimeoutRecoversAppliedOptimizationId() async {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
