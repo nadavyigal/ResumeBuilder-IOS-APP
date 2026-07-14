@@ -307,7 +307,7 @@ struct ProfileView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Theme.textPrimary)
                                 .lineLimit(1)
-                            Text(opt?.company ?? NSLocalizedString("Tap to preview", comment: ""))
+                            Text(latestResumeSubtitle(opt))
                                 .font(.caption)
                                 .foregroundStyle(Theme.textSecondary)
                                 .lineLimit(1)
@@ -349,6 +349,13 @@ struct ProfileView: View {
                 .padding(14)
             }
         }
+    }
+
+    private func latestResumeSubtitle(_ optimization: OptimizationHistoryItem?) -> String {
+        if appState.savedResumeRecord(for: appState.latestOptimizationId) != nil {
+            return NSLocalizedString("Saved in My Resumes · Tap to preview", comment: "")
+        }
+        return optimization?.company ?? NSLocalizedString("Tap to preview", comment: "")
     }
 
     // MARK: - Section: Applications

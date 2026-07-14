@@ -74,6 +74,10 @@ enum AnalyticsEvent: Sendable {
     case optimizationCompleted(optimizationId: String?, reviewId: String?)
     case optimizationStateRecovered(optimizationId: String)
     case optimizedViewed
+    case optimizedPreviewRendered
+    case savedResumePromptViewed
+    case saveSuccess
+    case saveFailed(errorCode: String)
     case exportStarted
     case exportSuccess
     case exportFailed(errorCode: String)
@@ -119,6 +123,10 @@ enum AnalyticsEvent: Sendable {
         case .optimizationCompleted: return "optimization_completed"
         case .optimizationStateRecovered: return "optimization_state_recovered"
         case .optimizedViewed: return "optimized_viewed"
+        case .optimizedPreviewRendered: return "optimized_preview_rendered"
+        case .savedResumePromptViewed: return "saved_resume_prompt_viewed"
+        case .saveSuccess: return "save_success"
+        case .saveFailed: return "save_failed"
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
         case .exportFailed: return "export_failed"
@@ -156,7 +164,8 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .optimizedViewed, .exportStarted, .exportSuccess,
+             .optimizedViewed, .optimizedPreviewRendered, .savedResumePromptViewed, .saveSuccess,
+             .exportStarted, .exportSuccess,
              .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):
@@ -181,6 +190,8 @@ enum AnalyticsEvent: Sendable {
         case .freeATSCompleted(let scoreBucket):
             return ["score_bucket": scoreBucket]
         case .exportFailed(let errorCode):
+            return ["error_code": errorCode]
+        case .saveFailed(let errorCode):
             return ["error_code": errorCode]
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]

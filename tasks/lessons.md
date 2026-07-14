@@ -16,6 +16,21 @@
 ## Lessons
 
 **Date:** 2026-07-14
+**Category:** Test
+**Rule:** `devicectl device process terminate` accepts `--pid`, not a bundle identifier; resolve the app PID from `device info processes` before requesting a physical-device relaunch.
+**Why:** Story 6's first relaunch command passed the bundle identifier to an unsupported `--process` option, so termination did not occur even though the following launch request succeeded.
+
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** Before physical-device automation, verify the connected iPhone is unlocked; signed build and installation can succeed while CoreDevice still denies launch with a locked-device error.
+**Why:** Story 6 installed successfully on the connected iPhone 13, but the launch request was rejected by SpringBoard because the phone was locked.
+
+**Date:** 2026-07-14
+**Category:** Build
+**Rule:** When a `let` result is assigned inside `do/catch`, complete every throwing validation before the assignment so the catch fallback is not treated as a possible second initialization.
+**Why:** Story 6's first green build assigned the styled PDF URL and then ran a throwing text-layer check, so Swift correctly rejected assigning the fallback URL from the catch path.
+
+**Date:** 2026-07-14
 **Category:** General
 **Rule:** If `gh pr edit` fails while querying deprecated Projects Classic cards, update the pull request title/body with the REST `repos/{owner}/{repo}/pulls/{number}` endpoint instead.
 **Why:** Story 2 was pushed successfully, but `gh pr edit 94` aborted on the Projects Classic GraphQL deprecation before changing the PR metadata.

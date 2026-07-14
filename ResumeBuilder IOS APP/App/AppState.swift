@@ -6,6 +6,12 @@ struct ExportCompletionRecord: Codable, Sendable, Equatable {
     let exportedAt: Date
 }
 
+struct SavedResumeLinkRecord: Codable, Sendable, Equatable {
+    let optimizationId: String
+    let resume: SavedResume
+    let savedAt: Date
+}
+
 struct SubmitPackageCachedScreeningAnswer: Codable, Sendable, Equatable, Identifiable {
     let id: Int
     let question: String
@@ -47,6 +53,7 @@ final class AppState {
     private(set) var optimizationRecoveryState: OptimizationRecoveryState = .idle
     private var optimizationJobURLs: [String: String] = [:]
     private var submitPackageRecords: [String: SubmitPackageCacheRecord] = [:]
+    private var savedResumeRecords: [String: SavedResumeLinkRecord] = [:]
     private var latestOptimizationStorage: String?
 
     /// Real, in-session signals for the locked-tab teaser checklists (Optimized/Design/Expert).
@@ -60,6 +67,7 @@ final class AppState {
     nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"
     nonisolated static let optimizationJobURLsKey = "optimization_job_urls"
     nonisolated static let submitPackageRecordsKey = "submit_package_records"
+    nonisolated static let savedResumeRecordsKey = "saved_resume_records"
 
     var latestOptimizationId: String? {
         get { latestOptimizationStorage }
@@ -103,6 +111,7 @@ final class AppState {
         exportCompletion = Self.loadExportCompletion()
         optimizationJobURLs = Self.loadOptimizationJobURLs()
         submitPackageRecords = Self.loadSubmitPackageRecords()
+        savedResumeRecords = Self.loadSavedResumeRecords()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -131,9 +140,11 @@ final class AppState {
         exportCompletion = nil
         optimizationJobURLs = [:]
         submitPackageRecords = [:]
+        savedResumeRecords = [:]
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
+        UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
         refreshTask?.cancel()
         refreshTask = nil
         AnalyticsService.shared.resetDistinctId()
@@ -159,6 +170,23 @@ final class AppState {
     func isExportComplete(for optimizationId: String?) -> Bool {
         guard let optimizationId, let exportCompletion else { return false }
         return exportCompletion.optimizationId == optimizationId
+    }
+
+    func rememberSavedResume(_ resume: SavedResume, for optimizationId: String) {
+        guard !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        savedResumeRecords[optimizationId] = SavedResumeLinkRecord(
+            optimizationId: optimizationId,
+            resume: resume,
+            savedAt: Date()
+        )
+        if let data = try? JSONEncoder().encode(savedResumeRecords) {
+            UserDefaults.standard.set(data, forKey: Self.savedResumeRecordsKey)
+        }
+    }
+
+    func savedResumeRecord(for optimizationId: String?) -> SavedResumeLinkRecord? {
+        guard let optimizationId else { return nil }
+        return savedResumeRecords[optimizationId]
     }
 
     func rememberJobURL(_ urlString: String?, for optimizationId: String) {
@@ -218,6 +246,11 @@ final class AppState {
     private static func loadSubmitPackageRecords() -> [String: SubmitPackageCacheRecord] {
         guard let data = UserDefaults.standard.data(forKey: submitPackageRecordsKey) else { return [:] }
         return (try? JSONDecoder().decode([String: SubmitPackageCacheRecord].self, from: data)) ?? [:]
+    }
+
+    private static func loadSavedResumeRecords() -> [String: SavedResumeLinkRecord] {
+        guard let data = UserDefaults.standard.data(forKey: savedResumeRecordsKey) else { return [:] }
+        return (try? JSONDecoder().decode([String: SavedResumeLinkRecord].self, from: data)) ?? [:]
     }
 
     func setSession(_ session: AuthSession) async {

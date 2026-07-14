@@ -1,3 +1,17 @@
+# Story 6: Preview-owned save, export, and relaunch continuity (Release A, 2026-07-14)
+
+Decision: the optimized preview owns saved-résumé state; successful saves persist the live API response locally by optimization ID, failures keep the preview visible and retryable, and every shared PDF must contain an extractable text layer.
+
+## Implementation plan
+- [x] Add focused save/retry/relaunch/text-layer tests to the real test target and confirm red first.
+- [x] Add preview-owned save state using the verified live fields (`filename`, `display_name`, `size_bytes`, `created_at`) and safe lifecycle analytics.
+- [x] Persist the saved-résumé link across relaunch and expose it consistently in the saved picker/account history.
+- [x] Validate backend, styled, and local PDFs for an extractable text layer before sharing.
+- [ ] Run focused tests, Debug + Release builds, iPhone 17 + smallest supported simulator smoke, and physical-device smoke if a device is available. Tests/builds/simulators plus physical build/install/launch/relaunch passed; physical preview/save/export taps remain manual because device UI automation is unavailable.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 7 / Release B.
+
+---
+
 # Story 5: Recommendation presentation safety gate (Release A, 2026-07-14)
 
 Decision: when backend evidence metadata is absent, the iOS client applies a conservative local safety policy; placeholders are hidden, factual changes require explicit inclusion, and non-improving reviews start with no selected changes.
