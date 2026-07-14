@@ -526,3 +526,8 @@
 **Category:** Simulator tooling
 **Rule:** Use XcodeBuildMCP's individual UI actions unless the current `batch` schema has been inspected; its steps are action records, not nested tool-and-arguments objects.
 **Why:** A smallest-screen smoke step used an assumed batch shape and failed validation before interacting with the simulator.
+
+### 2026-07-14
+**Category:** GitHub API updates
+**Rule:** When building a JSON object from a raw string in `jq`, parenthesize string concatenation inside the object value: `{body: (. + $addition)}`.
+**Why:** The first PR-body update used `{body: . + ...}`, which failed `jq` parsing and sent no update to GitHub.
