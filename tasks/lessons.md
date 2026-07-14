@@ -16,6 +16,11 @@
 ## Lessons
 
 **Date:** 2026-07-14
+**Category:** General
+**Rule:** If `gh pr edit` fails while querying deprecated Projects Classic cards, update the pull request title/body with the REST `repos/{owner}/{repo}/pulls/{number}` endpoint instead.
+**Why:** Story 2 was pushed successfully, but `gh pr edit 94` aborted on the Projects Classic GraphQL deprecation before changing the PR metadata.
+
+**Date:** 2026-07-14
 **Category:** Test
 **Rule:** Capture simulator screenshots with `xcrun simctl io <device> screenshot <path>`; `simctl screenshot` is not a valid top-level command.
 **Why:** Story 2's first smoke evidence command used the obsolete command shape, so no screenshot was produced until the operation was routed through `simctl io`.
