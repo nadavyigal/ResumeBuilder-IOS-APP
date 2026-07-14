@@ -3,7 +3,7 @@
 **Feature:** Trustworthy First-Time Journey Upgrade
 **Spec:** `docs/specs/drafts/first-time-user-journey-upgrade-spec.md`
 **Date:** 2026-07-13
-**Status:** Draft — awaiting founder approval
+**Status:** Release A approved — 2026-07-14; Releases B and C remain out of scope
 
 Every story must leave the app buildable. New production types must be `Sendable` or `@MainActor`, new screens belong in `Features/V2/`, and no new package is permitted.
 
@@ -134,20 +134,20 @@ Every story must leave the app buildable. New production types must be `Sendable
 - [ ] User can edit the target job before optimization.
 - [ ] Fit failure degrades gracefully without losing the guest result.
 
-### Story 9 — Evidence-backed review with Edit, Accept, Skip
+### Story 9 — Evidence-backed review with Accept and Skip
 
 **Size:** L (3–4h)
 **Prerequisite:** Backend additive metadata or agreed fallback
-**Objective:** Make every applied change deliberate, traceable, and editable.
+**Objective:** Make every applied change deliberate and traceable. Edit-and-resubmit requires a separate backend contract work packet.
 
-**Files:** Create `RecommendationEditSheet.swift`; modify review models, decoders, API request, `OptimizationReviewView.swift`, and tests.
+**Files:** Modify review models, decoders, `OptimizationReviewView.swift`, and tests.
 
 **Acceptance criteria:**
 
 - [ ] Each group shows job evidence and résumé evidence when available.
-- [ ] User can Accept, Edit, or Skip.
+- [ ] User can Accept or Skip.
 - [ ] Factual changes require explicit confirmation and never default on.
-- [ ] Edited text is applied or the UI clearly disables Edit until backend support exists.
+- [ ] No UI implies edited recommendation text can be submitted through the current apply contract.
 - [ ] Analytics records decisions without content.
 
 ### Story 10 — Canonical activation and failure instrumentation

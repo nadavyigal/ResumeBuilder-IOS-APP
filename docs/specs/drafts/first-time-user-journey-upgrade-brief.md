@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-13
 **Author:** Codex
-**Status:** Draft — awaiting founder approval
+**Status:** Approved for Release A only — 2026-07-14; Releases B and C remain out of scope
 **Source audit:** `docs/audits/first-time-user-journey-audit.md`
 
 ## Problem

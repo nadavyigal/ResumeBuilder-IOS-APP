@@ -15,6 +15,21 @@
 
 ## Lessons
 
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** When a Swift test harness has private stored state but tests need to construct it, provide an explicit initializer for the fixture inputs instead of relying on the synthesized memberwise initializer.
+**Why:** Story 1's first green attempt failed to compile because private navigation flags made `FirstSessionJourneyHarness`'s synthesized initializer inaccessible, which also erased contextual typing in the stage assertion.
+
+**Date:** 2026-07-14
+**Category:** Build
+**Rule:** If a focused build stalls at `ValidateCAS` while another repository owns a long-running `xcodebuild -list`, stop only the current build and retry after Xcode project coordination clears; do not terminate unrelated workspace processes.
+**Why:** Story 1's first red test run reached `ValidateCAS` but never compiled while a separate RunSmart worktree held an `xcodebuild -list` process, so it could not provide valid red-state evidence.
+
+**Date:** 2026-07-13
+**Category:** General
+**Rule:** On Figma's free FigJam plan, keep audit evidence and the roadmap on one page, use a single labeled contact sheet for large screenshot sets, and verify creation through the file URL/selection state when canvas capture times out.
+**Why:** The direct new-board navigation completed despite a navigation timeout, canvas screenshots repeatedly timed out, and attempting a second page triggered the plan-upgrade gate; a one-page roadmap plus a 20-screen contact sheet remained reliable.
+
 **Date:** 2026-07-11
 **Category:** General
 **Rule:** When the connected PostHog plugin advertises `read-data-warehouse-schema` but returns `Tool read-data-warehouse-schema not found`, use verified narrow `events`/`system.*` HogQL probes and `read-data-schema` rather than guessing columns.

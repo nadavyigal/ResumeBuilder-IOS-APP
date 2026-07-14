@@ -1,3 +1,54 @@
+# Story 1: Golden-path regression harness (Release A, 2026-07-14)
+
+Decision: pin the existing first-session state transitions and competing-navigation precondition before Story 2 changes production routing.
+
+## Implementation plan
+- [x] Add a synthetic, no-network first-session fixture covering guest check → auth → review → apply → preview.
+- [x] Confirm a focused red test before adding the harness implementation.
+- [x] Assert the current two-destination Apply transition and one optimization ID across Home, Optimized, Design, Expert, and Account wrappers.
+- [x] Run focused tests, Debug + Release builds, then launch smoke on iPhone 17 and the smallest supported simulator.
+- [x] Update project memory and report Story 1 only; do not begin Story 2 without confirmation.
+
+---
+
+# Story: Trustworthy first-time journey upgrade planning (2026-07-13)
+
+Decision: ship completion and trust repairs before continuity polish, reach experiments, or monetization.
+
+## Planning completed
+- [x] Draft product brief: `docs/specs/drafts/first-time-user-journey-upgrade-brief.md`.
+- [x] Draft feature spec: `docs/specs/drafts/first-time-user-journey-upgrade-spec.md`.
+- [x] Thirteen independently testable development stories: `docs/specs/drafts/first-time-user-journey-upgrade-stories.md`.
+- [x] FigJam board created with the audit journey, failures, proposed flow, roadmap, and 20-screen evidence sheet.
+- [x] No production code or dependencies changed.
+
+## Approval gate
+- [x] Founder approved Release A and its story order on 2026-07-14; Q1 backend evidence ownership and Q4 fallback simulator availability remain open only if a story blocks on them.
+- [ ] After approval, move the spec to `docs/specs/`, add it to `docs/specs/README.md`, and set it as Active Spec.
+- [x] Implement Story 1 golden-path regression harness.
+- [ ] Implement Story 2 deterministic Apply-to-preview route.
+
+---
+
+# Story: First-time-user product and UX audit (2026-07-13)
+
+Decision: keep monetization disabled and prioritize a deterministic, credible completion path before scaling acquisition.
+
+## Completed
+- [x] Fresh-install iPhone 17 Pro simulator walkthrough with synthetic résumé and job content.
+- [x] Evidence captured for Home, upload/job input, guest diagnosis, signup, fit, optimization review, broken completion, return state, and Hebrew localization.
+- [x] Relevant implementation inspected to separate observed behavior from likely causes.
+- [x] Audit saved to `docs/audits/first-time-user-journey-audit.md` with prioritized risks, bugs, instrumentation gaps, experiments, and scorecard.
+- [x] Debug simulator build succeeded; no production code changed.
+
+## Next
+- [ ] P0: replace the post-Apply competing navigation states with one deterministic optimized-preview route.
+- [ ] P0: recover the latest optimization consistently across Optimized, Design, Expert, Account, and Saved Résumés.
+- [ ] P0: reject placeholder, fact-changing, and non-improving AI output before it reaches users.
+- [ ] P0: unify client/server job-description validation and replace technical 400 copy with inline guidance.
+
+---
+
 # Story: Supabase + PostHog post-live current-state review (2026-07-06)
 
 Decision: do not make paid acquisition, monetization, or export-UX calls from the current data; production usage is too small and too QA-heavy, while backend optimization completion is healthy once reached.

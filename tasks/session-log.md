@@ -15,6 +15,24 @@
 
 ## Sessions
 
+**Date:** 2026-07-14
+**Task:** Implement Release A Story 1, the first-session golden-path regression harness.
+**Files Changed:** `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift`, `ResumeBuilder IOS APP.xcodeproj/project.pbxproj`, the three first-time-journey draft docs, `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md`.
+**Decisions Made:** Keep Story 1 test-only; capture the current competing-navigation precondition without changing production routing; use Accept/Skip only because the apply endpoint has no text override; treat saved résumés as live and verify real route field names in Story 6; leave Releases B/C untouched.
+**Next Recommended Action:** After explicit user confirmation, implement Story 2 deterministic Apply-to-preview routing using the Story 1 regression harness.
+
+**Date:** 2026-07-13
+**Task:** Plan the Resumely first-time journey upgrade and plot the audit in FigJam.
+**Files Changed:** `docs/specs/drafts/first-time-user-journey-upgrade-brief.md`, `docs/specs/drafts/first-time-user-journey-upgrade-spec.md`, `docs/specs/drafts/first-time-user-journey-upgrade-stories.md`, `docs/specs/drafts/first-time-user-journey-upgrade-figma-board.md`, `docs/audits/first-time-user-journey-figma-contact-sheet.jpg`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Sequence Release A around trustworthy completion/recovery, Release B around continuity and evidence-backed control, and Release C around accessibility/retention; keep monetization, paid acquisition, full résumé creation, and broad redesign out of the upgrade; define activation as a successfully rendered optimized preview.
+**Next Recommended Action:** Review and approve the draft scope, then begin Story 1 regression coverage followed by Story 2 deterministic Apply-to-preview navigation.
+
+**Date:** 2026-07-13
+**Task:** Conduct a first-time-user product and UX audit of the Resumely iOS journey without changing production code.
+**Files Changed:** `docs/audits/first-time-user-journey-audit.md`, `docs/audits/first-time-user-journey-evidence/`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Preserve guest-first diagnosis as the product advantage; define activation as an optimized résumé successfully viewed rather than backend optimization completion; keep monetization disabled until Apply-to-preview, recovery, export, and AI fact-safety are reliable.
+**Next Recommended Action:** Fix the critical post-Apply blank/locked state and add safety gates for placeholders, factual changes, and non-positive predicted score deltas, then rerun the same fresh-user smoke through PDF export and relaunch recovery.
+
 **Date:** 2026-06-28
 **Task:** Execute approved product-marketing recommendations after 1.2 (7) was sent for App Store review.
 **Files Changed:** `.agents/product-marketing.md`, `docs/product/product-vision.md`, `docs/product/current-product-state.md`, `docs/app-store/he-metadata.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `dist/app-store-screenshots/app-store-v1/upload-manifest.md`, `tasks/progress.md`, `tasks/session-log.md`.

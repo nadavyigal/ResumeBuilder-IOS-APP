@@ -1,7 +1,7 @@
 # Feature Spec — Trustworthy First-Time Journey Upgrade
 
 **Date:** 2026-07-13
-**Status:** Draft — do not implement until approved
+**Status:** Approved for Release A only — 2026-07-14; Releases B and C remain out of scope
 **Brief:** `docs/specs/drafts/first-time-user-journey-upgrade-brief.md`
 **Story plan:** `docs/specs/drafts/first-time-user-journey-upgrade-stories.md`
 **Audit evidence:** `docs/audits/first-time-user-journey-audit.md`
@@ -63,7 +63,7 @@ As a first-time job seeker, I want Resumely to remember my work and show why eac
 - [ ] Changes touching title, company, dates, degree, location, contact data, or numerical achievements are classified as factual-field changes.
 - [ ] Factual-field changes default to unselected and require explicit confirmation.
 - [ ] Each recommendation exposes the target job evidence and, where applicable, source résumé evidence.
-- [ ] Users can Accept, Edit, or Skip each recommendation; edits are reflected in the applied payload or a documented backend-compatible override.
+- [ ] Release A supports deliberate Accept or Skip decisions only. Inline edit submission is excluded because the apply contract has no text-override field.
 - [ ] Duplicate score labels are removed and the metric is consistently named Resumely Match Score/estimate.
 
 ### Continuity
@@ -112,7 +112,7 @@ No new endpoint is required for the P0 completion repair if authenticated optimi
 | `POST /api/public/ats-check` | Return normalized validation metadata/error categories and suppress unresolved placeholders before response. |
 | `POST /api/optimize` and optimization-review creation | Preserve correlation IDs and return a stable review/optimization state for continuity. |
 | `GET /api/v1/optimization-reviews/{id}` | Add per-group evidence, confidence, factual-field classification, and quality warnings. |
-| Apply optimization review endpoint | Accept optional user-edited text overrides per approved group, or expose a documented follow-up edit endpoint. |
+| Apply optimization review endpoint | Existing contract accepts `approvedGroupIds` only. Release A must not imply that edited recommendation text can be submitted. |
 | `GET /api/v1/optimizations` / detail | Remain the recovery source for latest completed optimization and preview data. |
 | Saved résumé endpoint | Return idempotent save status for an optimization; repeated save must not create duplicate user-visible items. |
 
@@ -154,7 +154,7 @@ All additions should be optional during rollout so the current client decoder re
 | `Features/V2/Home/FirstSessionJourneyRoute.swift` | `Hashable`, `Sendable` destination model for one deterministic navigation path. |
 | `Features/V2/Home/JobInputPolicy.swift` | Shared URL/text readiness and word-count policy used by Home and Fit. |
 | `Features/V2/History/RecommendationSafetyPolicy.swift` | Pure, testable rules for placeholder, regression, and factual-field safety. |
-| `Features/V2/History/RecommendationEditSheet.swift` | User edit surface for one generated change. |
+| `Features/V2/History/RecommendationEditSheet.swift` | Deferred from this work packet; edit-and-resubmit requires a separate backend contract change. |
 | `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift` | Continuity, routing, reconciliation, and activation regression coverage. |
 | `ResumeBuilder IOS APPTests/RecommendationSafetyPolicyTests.swift` | Content-safety fixtures and regression cases. |
 
@@ -226,7 +226,7 @@ Never attach résumé text, job-description text, email, or generated content to
 ### Release B — Continuous, evidence-backed journey (P1)
 
 - Guest-to-auth continuity and automatic fit reuse.
-- Evidence-backed recommendations with edit/skip/accept.
+- Evidence-backed recommendations with accept/skip; edit-and-resubmit requires a separate backend work packet.
 - Preview-level save state.
 - Activation and failure instrumentation.
 
@@ -246,9 +246,12 @@ See `docs/specs/drafts/first-time-user-journey-upgrade-stories.md` for 13 ordere
 ## Open Questions
 
 1. Backend ownership and rollout date for evidence/factual metadata.
-2. Whether edited recommendation text can be submitted in the existing apply request.
-3. Whether the existing saved-résumé service is enabled in the production runtime targeted by this upgrade.
-4. Smallest available supported simulator for release QA if iPhone SE is unavailable.
+2. Smallest available supported simulator for release QA if iPhone SE is unavailable.
+
+## Resolved Decisions
+
+- **Recommendation edits:** the existing apply endpoint accepts `approvedGroupIds` only and has no per-change text override. Release A uses Accept/Skip only; edit-and-resubmit is a separate backend contract work packet.
+- **Saved résumés:** the production service is live. Story 6 must verify `filename`, `display_name`, `size_bytes`, and `created_at` directly against the web save/read routes rather than the earlier JSON sketch.
 
 ## Out of Scope
 
