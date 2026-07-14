@@ -34,21 +34,12 @@ private enum FirstSessionTab: String, CaseIterable, Sendable {
     case account
 }
 
-private struct CompetingNavigationTransition: Sendable, Equatable {
-    let reviewWasPresented: Bool
-    let reviewWasDismissed: Bool
-    let diagnosisWasPresented: Bool
-    let destinationMutations: Int
-}
-
 @MainActor
 private final class FirstSessionJourneyHarness {
     let fixture: FirstSessionJourneyFixture
     private(set) var visitedStages: [FirstSessionStage] = [.resumeAndJobReady]
     private(set) var networkCallCount = 0
     private let appState: AppState
-    private var isReviewPresented = false
-    private var isDiagnosisPresented = false
 
     init(fixture: FirstSessionJourneyFixture, appState: AppState = AppState()) {
         self.fixture = fixture
@@ -70,7 +61,6 @@ private final class FirstSessionJourneyHarness {
     }
 
     func presentReview() {
-        isReviewPresented = true
         visitedStages.append(.review)
     }
 
@@ -83,19 +73,6 @@ private final class FirstSessionJourneyHarness {
         visitedStages.append(.optimizedPreview)
     }
 
-    func simulateCurrentApplySuccess() -> CompetingNavigationTransition {
-        let reviewWasPresented = isReviewPresented
-        applyApprovedChanges()
-        isReviewPresented = false
-        isDiagnosisPresented = true
-
-        return CompetingNavigationTransition(
-            reviewWasPresented: reviewWasPresented,
-            reviewWasDismissed: !isReviewPresented,
-            diagnosisWasPresented: isDiagnosisPresented,
-            destinationMutations: 2
-        )
-    }
 }
 
 @MainActor
@@ -121,16 +98,45 @@ final class FirstSessionJourneyTests: XCTestCase {
         XCTAssertEqual(harness.networkCallCount, 0)
     }
 
-    func testCurrentApplyTransitionCapturesCompetingNavigationPrecondition() async {
-        let harness = FirstSessionJourneyHarness(fixture: .synthetic)
-        harness.presentReview()
+    func testFirstSessionRoutesHaveStableDistinctIdentities() {
+        let review = FirstSessionJourneyRoute.optimizationReview(reviewId: "review-001")
+        let diagnosis = FirstSessionJourneyRoute.diagnosis(optimizationId: "optimization-001")
 
-        let transition = harness.simulateCurrentApplySuccess()
+        XCTAssertNotEqual(review.id, diagnosis.id)
+        XCTAssertNotEqual(review, diagnosis)
+    }
 
-        XCTAssertTrue(transition.reviewWasPresented)
-        XCTAssertTrue(transition.reviewWasDismissed)
-        XCTAssertTrue(transition.diagnosisWasPresented)
-        XCTAssertEqual(transition.destinationMutations, 2)
+    func testApplyTransitionPersistsBeforeRequestingExactlyOnePreview() {
+        var operations: [String] = []
+        var previewCount = 0
+
+        let completed = FirstSessionJourneyTransition.completeApply(
+            optimizationId: " optimization-001 ",
+            persist: { id in operations.append("persist:\(id)") },
+            showPreview: { id in
+                operations.append("preview:\(id)")
+                previewCount += 1
+            }
+        )
+
+        XCTAssertTrue(completed)
+        XCTAssertEqual(operations, ["persist:optimization-001", "preview:optimization-001"])
+        XCTAssertEqual(previewCount, 1)
+    }
+
+    func testApplyTransitionWithoutOptimizationIdDoesNotLeaveReviewOrShowSuccess() {
+        var didPersist = false
+        var didShowPreview = false
+
+        let completed = FirstSessionJourneyTransition.completeApply(
+            optimizationId: "   ",
+            persist: { _ in didPersist = true },
+            showPreview: { _ in didShowPreview = true }
+        )
+
+        XCTAssertFalse(completed)
+        XCTAssertFalse(didPersist)
+        XCTAssertFalse(didShowPreview)
     }
 
     func testAppliedOptimizationIdPropagatesToEveryTabWrapper() async {

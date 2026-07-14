@@ -212,6 +212,7 @@ struct OptimizationReviewView: View {
     var onAppliedOptimization: ((String) -> Void)? = nil
 
     @State private var navigateToDetail = false
+    @State private var handledAppliedOptimizationId: String?
 
     var body: some View {
         ScrollView {
@@ -296,16 +297,26 @@ struct OptimizationReviewView: View {
             }
         }
         .onChange(of: viewModel.applySuccessOptimizationId) { _, newId in
-            if let newId {
-                appState.latestOptimizationId = newId
-                onAppliedOptimization?(newId)
-                if onAppliedOptimization == nil {
-                    navigateToDetail = true
-                }
-            }
+            handleAppliedOptimization(newId)
         }
         .task {
             await viewModel.load(appState: appState)
+        }
+    }
+
+    private func handleAppliedOptimization(_ candidate: String?) {
+        guard let optimizationId = candidate?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !optimizationId.isEmpty,
+              handledAppliedOptimizationId != optimizationId else {
+            return
+        }
+
+        handledAppliedOptimizationId = optimizationId
+        appState.latestOptimizationId = optimizationId
+        if let onAppliedOptimization {
+            onAppliedOptimization(optimizationId)
+        } else {
+            navigateToDetail = true
         }
     }
 

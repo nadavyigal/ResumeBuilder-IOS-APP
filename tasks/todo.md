@@ -1,3 +1,16 @@
+# Story 2: Deterministic Apply-to-preview route (Release A, 2026-07-14)
+
+Decision: Home owns one Sendable first-session destination; a successful Apply persists the optimization ID before requesting one Optimized-tab preview, while failures remain on the review.
+
+## Implementation plan
+- [x] Add focused route/transition tests and confirm the missing production route fails first.
+- [x] Add `Features/V2/Home/FirstSessionJourneyRoute.swift` with one Sendable destination model and an ordered Apply transition.
+- [x] Replace Home's competing review/diagnosis booleans and wire Main to one optimized-preview handoff; make review completion idempotent.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update the open PR, and stop before Story 3.
+
+---
+
 # Story 1: Golden-path regression harness (Release A, 2026-07-14)
 
 Decision: pin the existing first-session state transitions and competing-navigation precondition before Story 2 changes production routing.

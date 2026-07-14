@@ -699,3 +699,24 @@
 **Files Changed:** 49 new markdown files created. No Swift files changed.
 **Decisions Made:** Thin router design — AGENTS.md/CLAUDE.md/CODEX.md route to detail files in .agent-os/. Task memory lives in tasks/. Product + architecture docs in docs/.
 **Next Recommended Action:** Read `tasks/lessons.md` + `tasks/progress.md`, then plan the next story from `plan-phases-3-5-6.md` using the feature-planning workflow.
+### 2026-07-14
+**Task:** Release A Story 2 — deterministic Apply-to-preview route
+**Files Changed:**
+- `Features/V2/Home/FirstSessionJourneyRoute.swift` — added the single Sendable Home destination and ordered Apply transition.
+- `Features/V2/Home/HomeTabView.swift` — replaced competing review/diagnosis Boolean destinations and sends Apply success to one optimized preview.
+- `Features/V2/History/OptimizationReviewView.swift` — made completion handling trimmed and idempotent.
+- `App/MainTabViewV2.swift` — guards that the optimization ID is persisted before selecting Optimized.
+- `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift` and `ResumeOptimizationParsingTests.swift` — cover route identity, success ordering, one preview, and retryable 503 failure.
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md` — updated project memory.
+**Decisions Made:**
+- Keep direct optimize → diagnosis behavior, but represent it and review with one Home route state.
+- Review Apply success skips the diagnosis detour and selects Optimized once after persistence.
+- Keep Release A recommendation controls accept/skip only; no backend text-override contract was added.
+**Validation:**
+- Focused red compile failure confirmed missing Story 2 route/transition types.
+- Focused final tests passed 6/6 on iPhone 17, including a simulated 503 retry case.
+- Debug iPhone 17 simulator build and Release generic iOS build succeeded.
+- iPhone 17 and iPhone SE smoke launches rendered the Optimized surface without blank UI or crash.
+**Next Recommended Action:** Begin Story 3 only after explicit user confirmation.
+
+---

@@ -17,6 +17,11 @@
 
 **Date:** 2026-07-14
 **Category:** Test
+**Rule:** Capture simulator screenshots with `xcrun simctl io <device> screenshot <path>`; `simctl screenshot` is not a valid top-level command.
+**Why:** Story 2's first smoke evidence command used the obsolete command shape, so no screenshot was produced until the operation was routed through `simctl io`.
+
+**Date:** 2026-07-14
+**Category:** Test
 **Rule:** When a Swift test harness has private stored state but tests need to construct it, provide an explicit initializer for the fixture inputs instead of relying on the synthesized memberwise initializer.
 **Why:** Story 1's first green attempt failed to compile because private navigation flags made `FirstSessionJourneyHarness`'s synthesized initializer inaccessible, which also erased contextual typing in the stage assertion.
 

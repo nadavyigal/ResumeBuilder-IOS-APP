@@ -12,7 +12,11 @@ struct MainTabViewV2: View {
         ZStack(alignment: .bottom) {
             // Keep tabs alive to preserve form fields and in-flight async state.
             Group {
-                HomeTabView(viewModel: tailorViewModel, onSwitchTab: switchTab)
+                HomeTabView(
+                    viewModel: tailorViewModel,
+                    onSwitchTab: switchTab,
+                    onShowOptimizedPreview: showOptimizedPreview
+                )
                     .opacity(selectedTab == .tailor ? 1 : 0)
                     .allowsHitTesting(selectedTab == .tailor)
 
@@ -64,6 +68,14 @@ struct MainTabViewV2: View {
         withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
             selectedTab = tab
         }
+    }
+
+    private func showOptimizedPreview(_ optimizationId: String) {
+        guard appState.latestOptimizationId == optimizationId else {
+            assertionFailure("The optimization ID must be persisted before preview navigation.")
+            return
+        }
+        switchTab(.optimized)
     }
 
     private static var initialTab: ResumlyTab {
