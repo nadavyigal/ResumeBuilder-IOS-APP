@@ -72,6 +72,7 @@ enum AnalyticsEvent: Sendable {
     case accountDeleted
     case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
     case optimizationCompleted(optimizationId: String?, reviewId: String?)
+    case optimizationStateRecovered(optimizationId: String)
     case optimizedViewed
     case exportStarted
     case exportSuccess
@@ -111,6 +112,7 @@ enum AnalyticsEvent: Sendable {
         case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
         case .optimizationCompleted: return "optimization_completed"
+        case .optimizationStateRecovered: return "optimization_state_recovered"
         case .optimizedViewed: return "optimized_viewed"
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
@@ -157,6 +159,8 @@ enum AnalyticsEvent: Sendable {
                 "optimization_id": optimizationId,
                 "review_id": reviewId,
             ])
+        case .optimizationStateRecovered(let optimizationId):
+            return ["optimization_id": optimizationId]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]
         case .jobAdded(let hasURL, let hasPaste):

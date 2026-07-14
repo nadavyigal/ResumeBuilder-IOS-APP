@@ -34,6 +34,26 @@ private enum FirstSessionTab: String, CaseIterable, Sendable {
     case account
 }
 
+private enum OptimizationHistoryStubResponse: Sendable {
+    case items([OptimizationHistoryItem])
+    case failure
+}
+
+private struct OptimizationHistoryServiceStub: OptimizationHistoryServiceProtocol, Sendable {
+    let response: OptimizationHistoryStubResponse
+
+    func list(token: String) async throws -> [OptimizationHistoryItem] {
+        switch response {
+        case .items(let items): return items
+        case .failure: throw URLError(.cannotConnectToHost)
+        }
+    }
+
+    func delete(ids: [String], token: String) async throws -> BulkDeleteResponse {
+        BulkDeleteResponse(success: true, deleted: ids.count, errors: nil)
+    }
+}
+
 @MainActor
 private final class FirstSessionJourneyHarness {
     let fixture: FirstSessionJourneyFixture
@@ -153,8 +173,109 @@ final class FirstSessionJourneyTests: XCTestCase {
         )
     }
 
+    func testMissingLocalOptimizationRecoversLatestCompletedBackendItem() async {
+        let newestCompleted = optimizationItem(
+            id: "optimization-new",
+            status: "completed",
+            createdAt: "2026-07-14T12:00:00Z"
+        )
+        let appState = AppState(
+            optimizationHistoryService: OptimizationHistoryServiceStub(
+                response: .items([
+                    optimizationItem(id: "optimization-running", status: "processing", createdAt: "2026-07-14T13:00:00Z"),
+                    newestCompleted,
+                    optimizationItem(id: "optimization-old", status: "completed", createdAt: "2026-07-13T12:00:00Z")
+                ])
+            )
+        )
+        appState.session = authenticatedSession
+
+        await appState.reconcileLatestOptimization()
+
+        XCTAssertEqual(appState.latestOptimizationId, newestCompleted.id)
+        XCTAssertEqual(appState.latestOptimization?.id, newestCompleted.id)
+        XCTAssertEqual(appState.optimizationRecoveryState, .recovered)
+        XCTAssertEqual(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey), newestCompleted.id)
+    }
+
+    func testStaleLocalOptimizationIsReplacedByBackendHistory() async {
+        let valid = optimizationItem(id: "optimization-valid", status: "completed")
+        let appState = AppState(
+            optimizationHistoryService: OptimizationHistoryServiceStub(response: .items([valid]))
+        )
+        appState.session = authenticatedSession
+        appState.latestOptimizationId = "optimization-stale"
+
+        await appState.reconcileLatestOptimization()
+
+        XCTAssertEqual(appState.latestOptimizationId, valid.id)
+        XCTAssertEqual(appState.latestOptimization?.id, valid.id)
+        XCTAssertEqual(appState.optimizationRecoveryState, .recovered)
+    }
+
+    func testMockOptimizationIdsNeverUnlockCompletionState() async {
+        let appState = AppState(
+            optimizationHistoryService: OptimizationHistoryServiceStub(
+                response: .items([optimizationItem(id: "mock-history", status: "completed")])
+            )
+        )
+        appState.session = authenticatedSession
+        appState.latestOptimizationId = "mock-local"
+
+        await appState.reconcileLatestOptimization()
+
+        XCTAssertNil(appState.latestOptimizationId)
+        XCTAssertNil(appState.latestOptimization)
+        XCTAssertEqual(appState.optimizationRecoveryState, .empty)
+    }
+
+    func testRecoveryFailureIsRetryableWithoutInventingCompletion() async {
+        let appState = AppState(
+            optimizationHistoryService: OptimizationHistoryServiceStub(response: .failure)
+        )
+        appState.session = authenticatedSession
+
+        await appState.reconcileLatestOptimization()
+
+        XCTAssertNil(appState.latestOptimizationId)
+        XCTAssertEqual(appState.optimizationRecoveryState, .failed)
+    }
+
+    func testUnverifiedLocalOptimizationDoesNotUnlockTabsWhenRecoveryFails() async {
+        let appState = AppState(
+            optimizationHistoryService: OptimizationHistoryServiceStub(response: .failure)
+        )
+        appState.session = authenticatedSession
+        appState.latestOptimizationId = "optimization-unverified"
+
+        await appState.reconcileLatestOptimization()
+
+        XCTAssertNil(appState.latestOptimizationId)
+        XCTAssertNil(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey))
+        XCTAssertEqual(appState.optimizationRecoveryState, .failed)
+    }
+
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: AppState.latestOptimizationKey)
         super.tearDown()
+    }
+
+    private var authenticatedSession: AuthSession {
+        AuthSession(accessToken: "test-token", refreshToken: nil, userId: "test-user", email: nil)
+    }
+
+    private func optimizationItem(
+        id: String,
+        status: String,
+        createdAt: String = "2026-07-14T12:00:00Z"
+    ) -> OptimizationHistoryItem {
+        OptimizationHistoryItem(
+            id: id,
+            createdAt: createdAt,
+            jobTitle: nil,
+            company: nil,
+            matchScorePercent: 80,
+            status: status
+        )
     }
 }

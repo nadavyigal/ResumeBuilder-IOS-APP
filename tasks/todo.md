@@ -1,3 +1,16 @@
+# Story 3: One optimization source of truth (Release A, 2026-07-14)
+
+Decision: `AppState` owns the only valid optimization ID and reconciles it with authenticated `GET /api/optimizations` history before every tab derives its completion state.
+
+## Implementation plan
+- [x] Add focused recovery/source-of-truth tests and confirm the missing recovery API fails first.
+- [x] Add Sendable recovery state and authenticated history reconciliation to `AppState`, including rejection of blank/mock/stale IDs and a PII-safe recovery event.
+- [x] Make Main, Optimized, Design, Expert, and Account render from the same AppState ID, with loading, restored, empty, and retryable failure UI.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 4.
+
+---
+
 # Story 2: Deterministic Apply-to-preview route (Release A, 2026-07-14)
 
 Decision: Home owns one Sendable first-session destination; a successful Apply persists the optimization ID before requesting one Optimized-tab preview, while failures remain on the review.
@@ -39,7 +52,8 @@ Decision: ship completion and trust repairs before continuity polish, reach expe
 - [x] Founder approved Release A and its story order on 2026-07-14; Q1 backend evidence ownership and Q4 fallback simulator availability remain open only if a story blocks on them.
 - [ ] After approval, move the spec to `docs/specs/`, add it to `docs/specs/README.md`, and set it as Active Spec.
 - [x] Implement Story 1 golden-path regression harness.
-- [ ] Implement Story 2 deterministic Apply-to-preview route.
+- [x] Implement Story 2 deterministic Apply-to-preview route.
+- [x] Implement Story 3 optimization source-of-truth reconciliation.
 
 ---
 

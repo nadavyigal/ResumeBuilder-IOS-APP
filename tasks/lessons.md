@@ -442,3 +442,22 @@
 **Category:** Build
 **Rule:** Do not add Swift Package Manager dependencies without explicit approval. The project uses only system frameworks.
 **Why:** There is no Package.swift in this project. Adding SPM packages requires Xcode project changes and team sign-off.
+### 2026-07-14
+**Category:** Repository navigation
+**Rule:** Resolve source paths with `rg --files` before opening files in this repository; the filesystem source root is `ResumeBuilder IOS APP/`, not the Xcode product name `ResumeBuilder/`.
+**Why:** Story 3 inspection initially used logical Xcode paths and failed to find the files, creating an avoidable tool round trip.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** When multiple simulator runtimes contain a device with the same name, target the already-booted simulator by UDID instead of using `destination name=...`.
+**Why:** Story 3's focused test built successfully but stalled before launching tests because `name=iPhone 17` was ambiguous across installed iOS runtimes.
+
+### 2026-07-14
+**Category:** Xcode testing
+**Rule:** Reuse a built test bundle only with a simulator on the same runtime; switching an existing DerivedData directory from iOS 26.5 to 26.3 can force a new thinned asset compile that stalls in `actool`.
+**Why:** Story 3's retry targeted the older booted iPhone 17 runtime with a 26.5-derived bundle and hung rebuilding device-thinned assets; using the exact 26.5 simulator with `test-without-building` avoids that mismatch.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** If an exact-UDID `test-without-building` never starts XCTest and `simctl bootstatus` also stops responding, restart the simulator fleet before retrying.
+**Why:** Story 3's already-built focused bundle could not launch on the booted iPhone SE because CoreSimulator was wedged, not because the test binary failed.

@@ -16,6 +16,12 @@
 ## Sessions
 
 **Date:** 2026-07-14
+**Task:** Implement Release A Story 3, one authoritative optimization state across relaunch and all five tabs.
+**Files Changed:** `App/AppState.swift`, `App/MainTabViewV2.swift`, `Core/Analytics/AnalyticsService.swift`, `Core/DesignSystem/Components/LockedTabTeaser.swift`, `Features/Profile/ProfileView.swift`, the Optimized/Design/Expert tab wrappers, `AnalyticsServiceTests.swift`, `FirstSessionJourneyTests.swift`, and task memory.
+**Decisions Made:** Validate every persisted ID against authenticated optimization history before unlocking recovered state; retain the same valid local optimization when it exists in history; otherwise restore the newest completed backend item; lock and offer retry on a recovery failure rather than trusting an unverified local ID; emit `optimization_state_recovered` with `optimization_id` only.
+**Next Recommended Action:** After explicit user confirmation, implement Release A Story 4 recommendation fact-safety gates. Do not begin Release B or C.
+
+**Date:** 2026-07-14
 **Task:** Implement Release A Story 1, the first-session golden-path regression harness.
 **Files Changed:** `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift`, `ResumeBuilder IOS APP.xcodeproj/project.pbxproj`, the three first-time-journey draft docs, `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md`.
 **Decisions Made:** Keep Story 1 test-only; capture the current competing-navigation precondition without changing production routing; use Accept/Skip only because the apply endpoint has no text override; treat saved résumés as live and verify real route field names in Story 6; leave Releases B/C untouched.

@@ -58,10 +58,16 @@ struct OptimizedResumeTabView: View {
             ],
             ctaTitle: "Upload résumé on Home",
             systemImage: "wand.and.stars",
+            recoveryState: appState.optimizationRecoveryState,
+            onRetryRecovery: retryRecovery,
             onCTA: { onSwitchTab(.tailor) }
         ) {
             LockedScorePreview()
         }
+    }
+
+    private func retryRecovery() {
+        Task { await appState.reconcileLatestOptimization() }
     }
 }
 

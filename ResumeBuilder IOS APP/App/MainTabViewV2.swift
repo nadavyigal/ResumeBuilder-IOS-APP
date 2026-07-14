@@ -47,10 +47,17 @@ struct MainTabViewV2: View {
         }
         .ignoresSafeArea(edges: .bottom)
         .tint(Theme.accent)
-        .onChange(of: appState.latestOptimizationId) { _, newId in
-            if let id = newId, designViewModel.optimizationId != id {
-                designViewModel.setOptimizationId(id)
+        .overlay(alignment: .top) {
+            if appState.optimizationRecoveryState == .recovered {
+                optimizationRecoveredBanner
+                    .padding(.horizontal, Theme.pagePadding)
+                    .padding(.top, AppSpacing.sm)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
+        }
+        .animation(.easeOut(duration: 0.25), value: appState.optimizationRecoveryState)
+        .onChange(of: appState.latestOptimizationId) { _, newId in
+            syncDesignViewModel(to: newId)
         }
         .onAppear {
             #if DEBUG
@@ -58,9 +65,7 @@ struct MainTabViewV2: View {
                 selectedTab = .optimized
             }
             #endif
-            if let id = appState.latestOptimizationId, designViewModel.optimizationId != id {
-                designViewModel.setOptimizationId(id)
-            }
+            syncDesignViewModel(to: appState.latestOptimizationId)
         }
     }
 
@@ -76,6 +81,37 @@ struct MainTabViewV2: View {
             return
         }
         switchTab(.optimized)
+    }
+
+    private func syncDesignViewModel(to optimizationId: String?) {
+        guard designViewModel.optimizationId != optimizationId else { return }
+        designViewModel = DesignViewModel(optimizationId: optimizationId)
+    }
+
+    private var optimizationRecoveredBanner: some View {
+        HStack(spacing: AppSpacing.md) {
+            Image(systemName: "checkmark.icloud.fill")
+                .foregroundStyle(AppColors.accentCyan)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Latest optimization restored")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Your Optimized, Design, Expert, and Account tabs are back in sync.")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            Spacer()
+            Button {
+                appState.dismissOptimizationRecoveryNotice()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .accessibilityLabel("Dismiss restored optimization message")
+        }
+        .padding(AppSpacing.md)
+        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     private static var initialTab: ResumlyTab {
