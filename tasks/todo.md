@@ -1,3 +1,16 @@
+# Story 4: Shared job-input policy and friendly errors (Release A, 2026-07-14)
+
+Decision: Home, guest ATS, and Fit use one local 100-word fallback for pasted descriptions while a valid HTTP(S) job URL remains independently sufficient.
+
+## Implementation plan
+- [x] Add focused policy/view-model tests for whitespace, URL-only, 99/100-word boundaries, API blocking, and friendly input errors; confirm red first.
+- [x] Add a pure Sendable `JobInputPolicy` with normalized text/URL readiness and localized guidance.
+- [x] Drive Home, Fit, and Tailor submission gates from the shared policy and show live word-count guidance before submission.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 5.
+
+---
+
 # Story 3: One optimization source of truth (Release A, 2026-07-14)
 
 Decision: `AppState` owns the only valid optimization ID and reconciles it with authenticated `GET /api/optimizations` history before every tab derives its completion state.
@@ -54,6 +67,7 @@ Decision: ship completion and trust repairs before continuity polish, reach expe
 - [x] Implement Story 1 golden-path regression harness.
 - [x] Implement Story 2 deterministic Apply-to-preview route.
 - [x] Implement Story 3 optimization source-of-truth reconciliation.
+- [x] Implement Story 4 shared job-input policy and friendly errors.
 
 ---
 

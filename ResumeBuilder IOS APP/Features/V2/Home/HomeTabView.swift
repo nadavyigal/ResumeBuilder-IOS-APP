@@ -27,8 +27,7 @@ struct HomeTabView: View {
     private var activationState: HomeActivationState {
         HomeActivationState.derive(from: .init(
             hasResume: viewModel.selectedResumeName?.isEmpty == false,
-            hasJob: !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                || !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            hasJob: jobInputEvaluation.isReady,
             isAuthenticated: appState.isAuthenticated,
             isOptimizing: viewModel.isOptimizing || viewModel.isRunningFreeATS,
             hasATSResult: viewModel.atsResult != nil,
@@ -287,9 +286,15 @@ struct HomeTabView: View {
         return types
     }()
 
+    private var jobInputEvaluation: JobInputPolicy.Evaluation {
+        JobInputPolicy.evaluate(
+            description: viewModel.jobDescription,
+            urlString: viewModel.jobDescriptionURL
+        )
+    }
+
     private var hasJobInput: Bool {
-        !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        jobInputEvaluation.isReady
     }
 
     private func scrollToJobInput(using proxy: ScrollViewProxy) {
@@ -383,6 +388,13 @@ struct HomeTabView: View {
                 openUploadPicker()
             }
             showFitCheck = true
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 400 {
+                viewModel.errorMessage = JobInputPolicy.friendlyInputError()
+            } else {
+                viewModel.errorMessage = apiError.userFacingMessage
+            }
+            viewModel.isConnectionError = false
         } catch {
             viewModel.errorMessage = error.localizedDescription
             viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
@@ -839,6 +851,14 @@ struct HomeTabView: View {
                         .tint(Theme.accent)
                 }
                 .frame(minHeight: 110)
+
+                HStack(spacing: 6) {
+                    Image(systemName: jobInputEvaluation.isReady ? "checkmark.circle.fill" : "info.circle.fill")
+                    Text(jobInputEvaluation.inlineGuidance)
+                }
+                .font(.caption)
+                .foregroundStyle(jobInputEvaluation.isReady ? Color.green : Theme.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

@@ -16,10 +16,17 @@
 ## Sessions
 
 **Date:** 2026-07-14
+**Task:** Implement Release A Story 4, shared job-input policy and friendly errors.
+**Files Changed:** `Features/V2/Home/JobInputPolicy.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/V2/Fit/FitCheckView.swift`, `Features/Tailor/TailorViewModel.swift`, `Resources/Localizable.xcstrings`, `FitCheckViewModelTests.swift`, and task memory.
+**Decisions Made:** Use the web-parity temporary fallback of 100 pasted words; accept only complete HTTP(S) links as URL-only input; omit optional text below the boundary when a valid link is present; normalize expected 400s without exposing HTTP terminology; add no content-bearing analytics properties.
+**Validation:** Focused red compile failure confirmed the policy was absent. Final focused suite passed 24 tests with 1 intentional live-auth skip and 0 failures. Final Debug simulator and Release generic iOS builds succeeded. iPhone 17 and iPhone SE install/launch/visual smokes passed.
+**Next Recommended Action:** After explicit user confirmation, implement Release A Story 5 recommendation presentation safety gate. Do not begin Release B or C.
+
+**Date:** 2026-07-14
 **Task:** Implement Release A Story 3, one authoritative optimization state across relaunch and all five tabs.
 **Files Changed:** `App/AppState.swift`, `App/MainTabViewV2.swift`, `Core/Analytics/AnalyticsService.swift`, `Core/DesignSystem/Components/LockedTabTeaser.swift`, `Features/Profile/ProfileView.swift`, the Optimized/Design/Expert tab wrappers, `AnalyticsServiceTests.swift`, `FirstSessionJourneyTests.swift`, and task memory.
 **Decisions Made:** Validate every persisted ID against authenticated optimization history before unlocking recovered state; retain the same valid local optimization when it exists in history; otherwise restore the newest completed backend item; lock and offer retry on a recovery failure rather than trusting an unverified local ID; emit `optimization_state_recovered` with `optimization_id` only.
-**Next Recommended Action:** After explicit user confirmation, implement Release A Story 4 recommendation fact-safety gates. Do not begin Release B or C.
+**Next Recommended Action:** After explicit user confirmation, implement Release A Story 4 shared job-input policy. Do not begin Release B or C.
 
 **Date:** 2026-07-14
 **Task:** Implement Release A Story 1, the first-session golden-path regression harness.

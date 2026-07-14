@@ -461,3 +461,13 @@
 **Category:** Simulator testing
 **Rule:** If an exact-UDID `test-without-building` never starts XCTest and `simctl bootstatus` also stops responding, restart the simulator fleet before retrying.
 **Why:** Story 3's already-built focused bundle could not launch on the booted iPhone SE because CoreSimulator was wedged, not because the test binary failed.
+
+### 2026-07-14
+**Category:** Swift concurrency tests
+**Rule:** Read actor-isolated values into a local variable before passing them to XCTest assertion autoclosures.
+**Why:** `XCTAssertNil(await actor.value)` is invalid because XCTest autoclosures are synchronous and do not support `await`.
+
+### 2026-07-14
+**Category:** Shared validation
+**Rule:** When replacing an input-readiness Boolean with a shared policy, search every derived UI state—not only the submit button and API guard—and route all completion/progress state through the policy.
+**Why:** Story 4 initially updated Home cards and submission but left `HomeActivationState` deriving job readiness from raw nonempty input, which could mark an invalid job as complete.
