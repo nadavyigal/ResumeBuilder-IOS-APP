@@ -57,24 +57,9 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
-                if shouldShowATSInsightPanel {
-                    atsInsightPanel
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                if shouldShowDiagnosisPanels {
-                    diagnosisSnapshotPanel
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                // Improve actions — above the resume so they are easy to reach
-                if viewModel.optimizationIdentifier != nil {
-                    improveActionsRow
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
-                }
-
-                // Inline resume preview — the main content
+                // The resume is the primary deliverable. Keep it ahead of the
+                // supporting ATS/diagnosis panels so opening this tab never looks
+                // like the optimized document is missing on a phone-sized screen.
                 if let optId = viewModel.optimizationIdentifier {
                     if viewModel.hasVisibleAppliedChanges {
                         Label("Applied changes are ready to preview", systemImage: "checkmark.seal.fill")
@@ -96,6 +81,7 @@ struct OptimizedResumeView: View {
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
                     .padding(.horizontal, AppSpacing.lg)
+                    .accessibilityIdentifier("optimized-resume-preview")
 
                     savedResumePanel
                         .padding(.horizontal, AppSpacing.lg)
@@ -103,6 +89,23 @@ struct OptimizedResumeView: View {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
                         .padding(.top, AppSpacing.xl)
+                }
+
+                if shouldShowATSInsightPanel {
+                    atsInsightPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
+                if shouldShowDiagnosisPanels {
+                    diagnosisSnapshotPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
+                // Improvement tools follow the primary preview and supporting evidence.
+                if viewModel.optimizationIdentifier != nil {
+                    improveActionsRow
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                 }
 
                 if viewModel.optimizationIdentifier != nil {

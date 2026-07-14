@@ -1,3 +1,15 @@
+# Bug: Optimized résumé appears missing after rebuild (2026-07-14)
+
+Decision: the résumé is the primary deliverable and must be visible in the initial Optimized viewport; supporting insights follow it.
+
+- [x] Read the supplied log in full and separate API failures from unrelated simulator warnings.
+- [x] Reproduce the missing-looking state on iPhone 17 and confirm the document renders below the fold.
+- [x] Move the existing preview directly below the score without changing optimization/review state or analytics payloads.
+- [x] Pass focused tests and Debug build; smoke iPhone 17 and the smallest supported iPhone SE.
+- [x] Complete Release build, commit, push, and update PR #94.
+
+---
+
 # Story 6: Preview-owned save, export, and relaunch continuity (Release A, 2026-07-14)
 
 Decision: the optimized preview owns saved-résumé state; successful saves persist the live API response locally by optimization ID, failures keep the preview visible and retryable, and every shared PDF must contain an extractable text layer.

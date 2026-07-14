@@ -16,6 +16,13 @@
 ## Sessions
 
 **Date:** 2026-07-14
+**Task:** Investigate and fix the optimized résumé appearing missing after a rebuild.
+**Files Changed:** `Features/V2/Improve/OptimizedResumeView.swift`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, and `tasks/session-log.md`.
+**Decisions Made:** Treat the rendered document as the primary output and place it immediately after the score; leave the review/apply contract unchanged because the reported new run has a review ID but no Apply response or new optimization ID; ignore unrelated keyboard and LaunchServices warnings.
+**Validation:** Reproduced the initial-viewport failure on iPhone 17 and confirmed the résumé only appeared after two scrolls. After the fix it is visible without scrolling. Focused suites passed 38/38, Debug and Release builds passed, and the smallest supported iPhone SE built/launched and rendered the locked Optimized state without clipping or crash.
+**Next Recommended Action:** On the reported pending review, choose the acceptable recommendations and tap Apply; confirm the returned optimization opens directly to the visible résumé preview.
+
+**Date:** 2026-07-14
 **Task:** Implement Release A Story 4, shared job-input policy and friendly errors.
 **Files Changed:** `Features/V2/Home/JobInputPolicy.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/V2/Fit/FitCheckView.swift`, `Features/Tailor/TailorViewModel.swift`, `Resources/Localizable.xcstrings`, `FitCheckViewModelTests.swift`, and task memory.
 **Decisions Made:** Use the web-parity temporary fallback of 100 pasted words; accept only complete HTTP(S) links as URL-only input; omit optional text below the boundary when a valid link is present; normalize expected 400s without exposing HTTP terminology; add no content-bearing analytics properties.

@@ -17,6 +17,11 @@
 
 **Date:** 2026-07-14
 **Category:** Test
+**Rule:** XcodeBuildMCP simulator gesture presets accept a maximum `delta` of 200 pixels; use repeated 200-pixel gestures for longer scrolls.
+**Why:** The first optimized-preview diagnostic gesture requested 500 pixels and was rejected by tool validation before interacting with the app.
+
+**Date:** 2026-07-14
+**Category:** Test
 **Rule:** `devicectl device process terminate` accepts `--pid`, not a bundle identifier; resolve the app PID from `device info processes` before requesting a physical-device relaunch.
 **Why:** Story 6's first relaunch command passed the bundle identifier to an unsupported `--process` option, so termination did not occur even though the following launch request succeeded.
 
@@ -511,3 +516,13 @@
 **Category:** Release builds
 **Rule:** For this project’s first optimized simulator build, use direct `xcodebuild` when the XcodeBuildMCP call approaches its fixed 300-second tool timeout.
 **Why:** Story 5's Release build produced no source error but the MCP transport timed out before returning a result, so the run could not be counted as verification.
+
+### 2026-07-14
+**Category:** Optimized résumé UX
+**Rule:** Keep the rendered optimized résumé ahead of supporting insight and diagnosis panels so the primary deliverable is visible in the initial viewport.
+**Why:** The optimization and preview APIs were healthy, but placing the document after the full analysis stack made a successfully rendered résumé appear missing until the user scrolled twice.
+
+### 2026-07-14
+**Category:** Simulator tooling
+**Rule:** Use XcodeBuildMCP's individual UI actions unless the current `batch` schema has been inspected; its steps are action records, not nested tool-and-arguments objects.
+**Why:** A smallest-screen smoke step used an assumed batch shape and failed validation before interacting with the simulator.
