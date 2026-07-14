@@ -21,7 +21,7 @@ struct SavedResumePickerSheet: View {
                     ContentUnavailableView(
                         "No saved resumes",
                         systemImage: "books.vertical",
-                        description: Text("Resumes you save after uploading will appear here.")
+                        description: Text("Optimized resumes you save from Preview will appear here.")
                     )
                 } else {
                     List {
@@ -87,11 +87,9 @@ struct SavedResumePickerSheet: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                    if let size = resume.sizeBytes {
-                        Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(resumeMetadata(resume))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -106,6 +104,14 @@ struct SavedResumePickerSheet: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private func resumeMetadata(_ resume: SavedResume) -> String {
+        var values = [String(resume.createdAt.prefix(10))]
+        if let size = resume.sizeBytes {
+            values.append(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
+        }
+        return values.joined(separator: " · ")
     }
 }
 

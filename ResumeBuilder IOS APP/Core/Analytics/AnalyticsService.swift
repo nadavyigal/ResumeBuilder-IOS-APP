@@ -72,11 +72,21 @@ enum AnalyticsEvent: Sendable {
     case accountDeleted
     case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
     case optimizationCompleted(optimizationId: String?, reviewId: String?)
+    case optimizationStateRecovered(optimizationId: String)
     case optimizedViewed
+    case optimizedPreviewRendered
+    case savedResumePromptViewed
+    case saveSuccess
+    case saveFailed(errorCode: String)
     case exportStarted
     case exportSuccess
     case exportFailed(errorCode: String)
     case diagnosisViewed(matchScore: Int)
+    case recommendationViewed(surface: String, safetyState: String)
+    case recommendationIncluded(surface: String, safetyState: String)
+    case recommendationEdited(surface: String, safetyState: String)
+    case recommendationSkipped(surface: String, safetyState: String)
+    case recommendationBlocked(surface: String, reason: String)
     case atsImproveTapped(currentScore: Int)
     case exportPdfTapped
     case exportCTASeen
@@ -111,11 +121,21 @@ enum AnalyticsEvent: Sendable {
         case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
         case .optimizationCompleted: return "optimization_completed"
+        case .optimizationStateRecovered: return "optimization_state_recovered"
         case .optimizedViewed: return "optimized_viewed"
+        case .optimizedPreviewRendered: return "optimized_preview_rendered"
+        case .savedResumePromptViewed: return "saved_resume_prompt_viewed"
+        case .saveSuccess: return "save_success"
+        case .saveFailed: return "save_failed"
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
         case .exportFailed: return "export_failed"
         case .diagnosisViewed: return "diagnosis_viewed"
+        case .recommendationViewed: return "recommendation_viewed"
+        case .recommendationIncluded: return "recommendation_included"
+        case .recommendationEdited: return "recommendation_edited"
+        case .recommendationSkipped: return "recommendation_skipped"
+        case .recommendationBlocked: return "recommendation_blocked"
         case .atsImproveTapped: return "ats_improve_tapped"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .exportCTASeen: return "export_cta_seen"
@@ -144,7 +164,8 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .optimizedViewed, .exportStarted, .exportSuccess,
+             .optimizedViewed, .optimizedPreviewRendered, .savedResumePromptViewed, .saveSuccess,
+             .exportStarted, .exportSuccess,
              .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):
@@ -157,6 +178,8 @@ enum AnalyticsEvent: Sendable {
                 "optimization_id": optimizationId,
                 "review_id": reviewId,
             ])
+        case .optimizationStateRecovered(let optimizationId):
+            return ["optimization_id": optimizationId]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]
         case .jobAdded(let hasURL, let hasPaste):
@@ -168,8 +191,17 @@ enum AnalyticsEvent: Sendable {
             return ["score_bucket": scoreBucket]
         case .exportFailed(let errorCode):
             return ["error_code": errorCode]
+        case .saveFailed(let errorCode):
+            return ["error_code": errorCode]
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]
+        case .recommendationViewed(let surface, let safetyState),
+             .recommendationIncluded(let surface, let safetyState),
+             .recommendationEdited(let surface, let safetyState),
+             .recommendationSkipped(let surface, let safetyState):
+            return ["surface": surface, "safety_state": safetyState]
+        case .recommendationBlocked(let surface, let reason):
+            return ["surface": surface, "reason": reason]
         case .atsImproveTapped(let currentScore):
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):

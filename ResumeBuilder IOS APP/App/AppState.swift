@@ -6,6 +6,12 @@ struct ExportCompletionRecord: Codable, Sendable, Equatable {
     let exportedAt: Date
 }
 
+struct SavedResumeLinkRecord: Codable, Sendable, Equatable {
+    let optimizationId: String
+    let resume: SavedResume
+    let savedAt: Date
+}
+
 struct SubmitPackageCachedScreeningAnswer: Codable, Sendable, Equatable, Identifiable {
     let id: Int
     let question: String
@@ -22,6 +28,15 @@ struct SubmitPackageCacheRecord: Codable, Sendable, Equatable {
     let savedAt: Date
 }
 
+enum OptimizationRecoveryState: Sendable, Equatable {
+    case idle
+    case loading
+    case ready
+    case recovered
+    case empty
+    case failed
+}
+
 @Observable
 @MainActor
 final class AppState {
@@ -34,8 +49,12 @@ final class AppState {
     var applicationsRefreshToken: Int = 0
     var hasBootstrappedSession = false
     var exportCompletion: ExportCompletionRecord?
+    private(set) var latestOptimization: OptimizationHistoryItem?
+    private(set) var optimizationRecoveryState: OptimizationRecoveryState = .idle
     private var optimizationJobURLs: [String: String] = [:]
     private var submitPackageRecords: [String: SubmitPackageCacheRecord] = [:]
+    private var savedResumeRecords: [String: SavedResumeLinkRecord] = [:]
+    private var latestOptimizationStorage: String?
 
     /// Real, in-session signals for the locked-tab teaser checklists (Optimized/Design/Expert).
     /// Not persisted across launches — only tracks progress made in the current session,
@@ -48,11 +67,19 @@ final class AppState {
     nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"
     nonisolated static let optimizationJobURLsKey = "optimization_job_urls"
     nonisolated static let submitPackageRecordsKey = "submit_package_records"
+    nonisolated static let savedResumeRecordsKey = "saved_resume_records"
 
     var latestOptimizationId: String? {
-        didSet {
-            if let latestOptimizationId {
-                UserDefaults.standard.set(latestOptimizationId, forKey: Self.latestOptimizationKey)
+        get { latestOptimizationStorage }
+        set {
+            let normalized = Self.normalizedOptimizationId(newValue)
+            let didChange = latestOptimizationStorage != normalized
+            latestOptimizationStorage = normalized
+            if didChange, latestOptimization?.id != normalized {
+                latestOptimization = nil
+            }
+            if let normalized {
+                UserDefaults.standard.set(normalized, forKey: Self.latestOptimizationKey)
             } else {
                 UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
             }
@@ -60,8 +87,15 @@ final class AppState {
     }
 
     let apiClient = RuntimeServices.sharedAPIClient
+    private let optimizationHistoryService: any OptimizationHistoryServiceProtocol
     private let anonymousSessionKey = "anonymous_ats_session_id"
     private var refreshTask: Task<String, Error>?
+
+    init(
+        optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService()
+    ) {
+        self.optimizationHistoryService = optimizationHistoryService
+    }
 
     var isAuthenticated: Bool {
         session != nil
@@ -73,16 +107,11 @@ final class AppState {
             AnalyticsService.shared.prepareRestoredSession(userId: session.userId, email: session.email)
         }
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
-        let storedOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
-        if storedOptimizationId?.hasPrefix("mock-") == true {
-            UserDefaults.standard.removeObject(forKey: Self.latestOptimizationKey)
-            latestOptimizationId = nil
-        } else {
-            latestOptimizationId = storedOptimizationId
-        }
+        latestOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
         exportCompletion = Self.loadExportCompletion()
         optimizationJobURLs = Self.loadOptimizationJobURLs()
         submitPackageRecords = Self.loadSubmitPackageRecords()
+        savedResumeRecords = Self.loadSavedResumeRecords()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -91,6 +120,7 @@ final class AppState {
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
         }
+        await reconcileLatestOptimization()
         hasBootstrappedSession = true
     }
 
@@ -105,12 +135,16 @@ final class AppState {
         session = nil
         creditsBalance = 0
         latestOptimizationId = nil
+        latestOptimization = nil
+        optimizationRecoveryState = .idle
         exportCompletion = nil
         optimizationJobURLs = [:]
         submitPackageRecords = [:]
+        savedResumeRecords = [:]
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
+        UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
         refreshTask?.cancel()
         refreshTask = nil
         AnalyticsService.shared.resetDistinctId()
@@ -136,6 +170,23 @@ final class AppState {
     func isExportComplete(for optimizationId: String?) -> Bool {
         guard let optimizationId, let exportCompletion else { return false }
         return exportCompletion.optimizationId == optimizationId
+    }
+
+    func rememberSavedResume(_ resume: SavedResume, for optimizationId: String) {
+        guard !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        savedResumeRecords[optimizationId] = SavedResumeLinkRecord(
+            optimizationId: optimizationId,
+            resume: resume,
+            savedAt: Date()
+        )
+        if let data = try? JSONEncoder().encode(savedResumeRecords) {
+            UserDefaults.standard.set(data, forKey: Self.savedResumeRecordsKey)
+        }
+    }
+
+    func savedResumeRecord(for optimizationId: String?) -> SavedResumeLinkRecord? {
+        guard let optimizationId else { return nil }
+        return savedResumeRecords[optimizationId]
     }
 
     func rememberJobURL(_ urlString: String?, for optimizationId: String) {
@@ -197,12 +248,72 @@ final class AppState {
         return (try? JSONDecoder().decode([String: SubmitPackageCacheRecord].self, from: data)) ?? [:]
     }
 
+    private static func loadSavedResumeRecords() -> [String: SavedResumeLinkRecord] {
+        guard let data = UserDefaults.standard.data(forKey: savedResumeRecordsKey) else { return [:] }
+        return (try? JSONDecoder().decode([String: SavedResumeLinkRecord].self, from: data)) ?? [:]
+    }
+
     func setSession(_ session: AuthSession) async {
         self.session = session
         AnalyticsService.shared.identifyAuthenticatedUser(userId: session.userId, email: session.email)
         AnalyticsService.shared.track(.signInCompleted)
         await convertAnonymousSessionIfNeeded()
         await refreshCredits()
+        await reconcileLatestOptimization()
+    }
+
+    func reconcileLatestOptimization() async {
+        guard isAuthenticated else {
+            latestOptimization = nil
+            optimizationRecoveryState = .idle
+            return
+        }
+        guard optimizationRecoveryState != .loading else { return }
+        if let latestOptimizationId,
+           latestOptimization?.id == latestOptimizationId,
+           optimizationRecoveryState == .ready || optimizationRecoveryState == .recovered {
+            return
+        }
+
+        let localOptimizationId = latestOptimizationId
+        optimizationRecoveryState = .loading
+        latestOptimizationId = nil
+        latestOptimization = nil
+
+        do {
+            let history = try await callWithFreshToken { token in
+                try await self.optimizationHistoryService.list(token: token)
+            }
+            let completed = history.filter(Self.isRecoverableOptimization)
+
+            if let localOptimizationId,
+               let localItem = completed.first(where: { $0.id == localOptimizationId }) {
+                latestOptimizationId = localItem.id
+                latestOptimization = localItem
+                optimizationRecoveryState = .ready
+                return
+            }
+
+            guard let recovered = completed.max(by: { $0.createdAt < $1.createdAt }) else {
+                latestOptimizationId = nil
+                latestOptimization = nil
+                optimizationRecoveryState = .empty
+                return
+            }
+
+            latestOptimizationId = recovered.id
+            latestOptimization = recovered
+            optimizationRecoveryState = .recovered
+            AnalyticsService.shared.track(.optimizationStateRecovered(optimizationId: recovered.id))
+        } catch {
+            latestOptimization = nil
+            optimizationRecoveryState = .failed
+        }
+    }
+
+    func dismissOptimizationRecoveryNotice() {
+        guard optimizationRecoveryState == .recovered else { return }
+        optimizationRecoveryState = .ready
     }
 
     func storeAnonymousATSSessionId(_ sessionId: String?) {
@@ -321,5 +432,19 @@ final class AppState {
             return lower.contains("401") || lower.contains("unauthorized")
         }
         return false
+    }
+
+    private nonisolated static func normalizedOptimizationId(_ id: String?) -> String? {
+        guard let trimmed = id?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty,
+              !trimmed.lowercased().hasPrefix("mock-") else {
+            return nil
+        }
+        return trimmed
+    }
+
+    private nonisolated static func isRecoverableOptimization(_ item: OptimizationHistoryItem) -> Bool {
+        guard normalizedOptimizationId(item.id) == item.id else { return false }
+        return item.status?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "completed"
     }
 }

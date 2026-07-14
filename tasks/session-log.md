@@ -15,6 +15,44 @@
 
 ## Sessions
 
+**Date:** 2026-07-14
+**Task:** Investigate and fix the optimized résumé appearing missing after a rebuild.
+**Files Changed:** `Features/V2/Improve/OptimizedResumeView.swift`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, and `tasks/session-log.md`.
+**Decisions Made:** Treat the rendered document as the primary output and place it immediately after the score; leave the review/apply contract unchanged because the reported new run has a review ID but no Apply response or new optimization ID; ignore unrelated keyboard and LaunchServices warnings.
+**Validation:** Reproduced the initial-viewport failure on iPhone 17 and confirmed the résumé only appeared after two scrolls. After the fix it is visible without scrolling. Focused suites passed 38/38, Debug and Release builds passed, and the smallest supported iPhone SE built/launched and rendered the locked Optimized state without clipping or crash.
+**Next Recommended Action:** On the reported pending review, choose the acceptable recommendations and tap Apply; confirm the returned optimization opens directly to the visible résumé preview.
+
+**Date:** 2026-07-14
+**Task:** Implement Release A Story 4, shared job-input policy and friendly errors.
+**Files Changed:** `Features/V2/Home/JobInputPolicy.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Fit/FitCheckViewModel.swift`, `Features/V2/Fit/FitCheckView.swift`, `Features/Tailor/TailorViewModel.swift`, `Resources/Localizable.xcstrings`, `FitCheckViewModelTests.swift`, and task memory.
+**Decisions Made:** Use the web-parity temporary fallback of 100 pasted words; accept only complete HTTP(S) links as URL-only input; omit optional text below the boundary when a valid link is present; normalize expected 400s without exposing HTTP terminology; add no content-bearing analytics properties.
+**Validation:** Focused red compile failure confirmed the policy was absent. Final focused suite passed 24 tests with 1 intentional live-auth skip and 0 failures. Final Debug simulator and Release generic iOS builds succeeded. iPhone 17 and iPhone SE install/launch/visual smokes passed.
+**Next Recommended Action:** After explicit user confirmation, implement Release A Story 5 recommendation presentation safety gate. Do not begin Release B or C.
+
+**Date:** 2026-07-14
+**Task:** Implement Release A Story 3, one authoritative optimization state across relaunch and all five tabs.
+**Files Changed:** `App/AppState.swift`, `App/MainTabViewV2.swift`, `Core/Analytics/AnalyticsService.swift`, `Core/DesignSystem/Components/LockedTabTeaser.swift`, `Features/Profile/ProfileView.swift`, the Optimized/Design/Expert tab wrappers, `AnalyticsServiceTests.swift`, `FirstSessionJourneyTests.swift`, and task memory.
+**Decisions Made:** Validate every persisted ID against authenticated optimization history before unlocking recovered state; retain the same valid local optimization when it exists in history; otherwise restore the newest completed backend item; lock and offer retry on a recovery failure rather than trusting an unverified local ID; emit `optimization_state_recovered` with `optimization_id` only.
+**Next Recommended Action:** After explicit user confirmation, implement Release A Story 4 shared job-input policy. Do not begin Release B or C.
+
+**Date:** 2026-07-14
+**Task:** Implement Release A Story 1, the first-session golden-path regression harness.
+**Files Changed:** `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift`, `ResumeBuilder IOS APP.xcodeproj/project.pbxproj`, the three first-time-journey draft docs, `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md`.
+**Decisions Made:** Keep Story 1 test-only; capture the current competing-navigation precondition without changing production routing; use Accept/Skip only because the apply endpoint has no text override; treat saved résumés as live and verify real route field names in Story 6; leave Releases B/C untouched.
+**Next Recommended Action:** After explicit user confirmation, implement Story 2 deterministic Apply-to-preview routing using the Story 1 regression harness.
+
+**Date:** 2026-07-13
+**Task:** Plan the Resumely first-time journey upgrade and plot the audit in FigJam.
+**Files Changed:** `docs/specs/drafts/first-time-user-journey-upgrade-brief.md`, `docs/specs/drafts/first-time-user-journey-upgrade-spec.md`, `docs/specs/drafts/first-time-user-journey-upgrade-stories.md`, `docs/specs/drafts/first-time-user-journey-upgrade-figma-board.md`, `docs/audits/first-time-user-journey-figma-contact-sheet.jpg`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Sequence Release A around trustworthy completion/recovery, Release B around continuity and evidence-backed control, and Release C around accessibility/retention; keep monetization, paid acquisition, full résumé creation, and broad redesign out of the upgrade; define activation as a successfully rendered optimized preview.
+**Next Recommended Action:** Review and approve the draft scope, then begin Story 1 regression coverage followed by Story 2 deterministic Apply-to-preview navigation.
+
+**Date:** 2026-07-13
+**Task:** Conduct a first-time-user product and UX audit of the Resumely iOS journey without changing production code.
+**Files Changed:** `docs/audits/first-time-user-journey-audit.md`, `docs/audits/first-time-user-journey-evidence/`, `tasks/progress.md`, `tasks/todo.md`, `tasks/session-log.md`.
+**Decisions Made:** Preserve guest-first diagnosis as the product advantage; define activation as an optimized résumé successfully viewed rather than backend optimization completion; keep monetization disabled until Apply-to-preview, recovery, export, and AI fact-safety are reliable.
+**Next Recommended Action:** Fix the critical post-Apply blank/locked state and add safety gates for placeholders, factual changes, and non-positive predicted score deltas, then rerun the same fresh-user smoke through PDF export and relaunch recovery.
+
 **Date:** 2026-06-28
 **Task:** Execute approved product-marketing recommendations after 1.2 (7) was sent for App Store review.
 **Files Changed:** `.agents/product-marketing.md`, `docs/product/product-vision.md`, `docs/product/current-product-state.md`, `docs/app-store/he-metadata.md`, `dist/app-store-screenshots/rb-aso-002/upload-manifest.md`, `dist/app-store-screenshots/app-store-v1/upload-manifest.md`, `tasks/progress.md`, `tasks/session-log.md`.
@@ -681,3 +719,24 @@
 **Files Changed:** 49 new markdown files created. No Swift files changed.
 **Decisions Made:** Thin router design — AGENTS.md/CLAUDE.md/CODEX.md route to detail files in .agent-os/. Task memory lives in tasks/. Product + architecture docs in docs/.
 **Next Recommended Action:** Read `tasks/lessons.md` + `tasks/progress.md`, then plan the next story from `plan-phases-3-5-6.md` using the feature-planning workflow.
+### 2026-07-14
+**Task:** Release A Story 2 — deterministic Apply-to-preview route
+**Files Changed:**
+- `Features/V2/Home/FirstSessionJourneyRoute.swift` — added the single Sendable Home destination and ordered Apply transition.
+- `Features/V2/Home/HomeTabView.swift` — replaced competing review/diagnosis Boolean destinations and sends Apply success to one optimized preview.
+- `Features/V2/History/OptimizationReviewView.swift` — made completion handling trimmed and idempotent.
+- `App/MainTabViewV2.swift` — guards that the optimization ID is persisted before selecting Optimized.
+- `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift` and `ResumeOptimizationParsingTests.swift` — cover route identity, success ordering, one preview, and retryable 503 failure.
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/lessons.md`, `tasks/session-log.md` — updated project memory.
+**Decisions Made:**
+- Keep direct optimize → diagnosis behavior, but represent it and review with one Home route state.
+- Review Apply success skips the diagnosis detour and selects Optimized once after persistence.
+- Keep Release A recommendation controls accept/skip only; no backend text-override contract was added.
+**Validation:**
+- Focused red compile failure confirmed missing Story 2 route/transition types.
+- Focused final tests passed 6/6 on iPhone 17, including a simulated 503 retry case.
+- Debug iPhone 17 simulator build and Release generic iOS build succeeded.
+- iPhone 17 and iPhone SE smoke launches rendered the Optimized surface without blank UI or crash.
+**Next Recommended Action:** Begin Story 3 only after explicit user confirmation.
+
+---

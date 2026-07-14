@@ -7,6 +7,9 @@ struct ResumeDiagnosisView: View {
     var onImprove: () -> Void
     var onEditTargetJob: () -> Void
 
+    @State private var viewedRewriteIds: Set<UUID> = []
+    @State private var blockedRewriteIds: Set<UUID> = []
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -71,9 +74,27 @@ struct ResumeDiagnosisView: View {
 
             if let rewrite = diagnosis.beforeAfter.first {
                 BeforeAfterRewriteCard(rewrite: rewrite)
+                    .onAppear { markRecommendationViewed(rewrite) }
             }
 
             ResumeConfidenceChecklist(items: diagnosis.confidenceChecklist)
+        }
+    }
+
+    private func markRecommendationViewed(_ rewrite: BulletRewrite) {
+        guard viewedRewriteIds.insert(rewrite.id).inserted else { return }
+        let safety = RecommendationSafetyPolicy.assess(
+            before: rewrite.before,
+            after: rewrite.after,
+            context: rewrite.explanation
+        )
+        AnalyticsService.shared.track(
+            .recommendationViewed(surface: "diagnosis", safetyState: safety.analyticsState)
+        )
+        if safety.isSuppressed, blockedRewriteIds.insert(rewrite.id).inserted {
+            AnalyticsService.shared.track(
+                .recommendationBlocked(surface: "diagnosis", reason: safety.analyticsReason)
+            )
         }
     }
 

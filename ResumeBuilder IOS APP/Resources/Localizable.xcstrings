@@ -1,6 +1,66 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld of 100 words required when pasting" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מתוך 100 מילים נדרשות בהדבקה"
+          }
+        }
+      }
+    },
+    "Add a job link or paste at least 100 words from the job description." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסיפו קישור למשרה או הדביקו לפחות 100 מילים מתיאור המשרה."
+          }
+        }
+      }
+    },
+    "Check the job link or paste at least 100 words from the job description, then try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו את קישור המשרה או הדביקו לפחות 100 מילים מתיאור המשרה, ונסו שוב."
+          }
+        }
+      }
+    },
+    "Enter a complete job link beginning with http:// or https://, or paste at least 100 words." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הזינו קישור מלא למשרה שמתחיל ב-http:// או https://, או הדביקו לפחות 100 מילים."
+          }
+        }
+      }
+    },
+    "Job link ready · %lld pasted words (optional)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור המשרה מוכן · %lld מילים הודבקו (לא חובה)"
+          }
+        }
+      }
+    },
+    "Paste at least 100 words from the job description (%lld of 100 words)." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו לפחות 100 מילים מתיאור המשרה (%lld מתוך 100 מילים)."
+          }
+        }
+      }
+    },
     "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer." : {
       "localizations" : {
         "he" : {

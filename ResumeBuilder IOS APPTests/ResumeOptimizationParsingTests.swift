@@ -151,6 +151,38 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(viewModel.envelope?.review.optimizationId, "opt-after-timeout")
     }
 
+    func testOptimizationReviewApplyFailureKeepsSelectionRetryableWithoutFalseSuccess() async {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
+        let api = APIClient(
+            baseURL: URL(string: "https://example.test")!,
+            session: URLSession(configuration: config),
+            longRunningSession: URLSession(configuration: config),
+            requestTimeout: 1
+        )
+        let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
+        viewModel.includedGroupIds = ["group-1"]
+
+        OptimizationReviewMockURLProtocol.handler = { request in
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 503,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, #"{"error":"temporary outage"}"#.data(using: .utf8)!)
+        }
+        defer { OptimizationReviewMockURLProtocol.handler = nil }
+
+        await viewModel.apply(token: "token")
+
+        XCTAssertNil(viewModel.applySuccessOptimizationId)
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.includedGroupIds, ["group-1"])
+        XCTAssertFalse(viewModel.isSubmitting)
+        XCTAssertFalse(viewModel.serverRequiresMigration)
+    }
+
     func testOptimizationDetailDecodesContactAndFlexibleScoreKeys() throws {
         let json = """
         {

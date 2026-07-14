@@ -103,15 +103,14 @@ final class TailorViewModel {
             return nil
         }
 
-        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let jobInput = JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
         let currentUploadSignature = [
             selectedResumeURL.path,
-            trimmedDescription,
-            trimmedURL,
+            jobInput.normalizedDescription ?? "",
+            jobInput.normalizedURL ?? "",
         ].joined(separator: "\u{1F}")
-        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
-            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
+        guard jobInput.isReady else {
+            errorMessage = jobInput.validationMessage
             return nil
         }
 
@@ -133,8 +132,8 @@ final class TailorViewModel {
         let upload = try await appState.callWithFreshToken { token in
             try await self.apiClient.uploadResume(
                 fileURL: selectedResumeURL,
-                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
-                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                jobDescription: jobInput.normalizedDescription,
+                jobDescriptionURL: jobInput.normalizedURL,
                 token: token,
                 deferOptimization: true
             )
@@ -159,10 +158,9 @@ final class TailorViewModel {
             return
         }
 
-        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
-            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
+        let jobInput = JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
+        guard jobInput.isReady else {
+            errorMessage = jobInput.validationMessage
             return
         }
 
@@ -229,7 +227,7 @@ final class TailorViewModel {
             }
         } catch let apiError as APIClientError {
             if case .serverError(let status, let message) = apiError {
-                errorMessage = enhancedError(message)
+                errorMessage = status == 400 ? JobInputPolicy.friendlyInputError() : enhancedError(message)
                 if !didUpload {
                     AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "\(status)"))
                 }
@@ -263,10 +261,9 @@ final class TailorViewModel {
             errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return
         }
-        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedDescription.isEmpty || !trimmedURL.isEmpty else {
-            errorMessage = NSLocalizedString("Paste a job description or add a job link.", comment: "")
+        let jobInput = JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
+        guard jobInput.isReady else {
+            errorMessage = jobInput.validationMessage
             return
         }
         isRunningFreeATS = true
@@ -277,12 +274,19 @@ final class TailorViewModel {
         do {
             let response = try await apiClient.runPublicATSCheck(
                 resumeURL: selectedResumeURL,
-                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
-                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                jobDescription: jobInput.normalizedDescription,
+                jobDescriptionURL: jobInput.normalizedURL,
                 sessionId: appState.anonymousATSSessionId
             )
             atsResult = response
             appState.storeAnonymousATSSessionId(response.sessionId)
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 400 {
+                errorMessage = JobInputPolicy.friendlyInputError()
+            } else {
+                errorMessage = apiError.userFacingMessage
+            }
+            isConnectionError = false
         } catch {
             errorMessage = error.localizedDescription
             isConnectionError = Self.isConnectivityError(error)

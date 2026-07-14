@@ -8,11 +8,10 @@ struct HomeTabView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var viewModel: TailorViewModel
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
+    var onShowOptimizedPreview: (String) -> Void = { _ in }
 
     @State private var isImporterPresented = false
-    @State private var shouldNavigate = false
-    @State private var showDiagnosis = false
-    @State private var pendingDiagnosisOptimizationId: String? = nil
+    @State private var journeyRoute: FirstSessionJourneyRoute?
     @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
@@ -28,8 +27,7 @@ struct HomeTabView: View {
     private var activationState: HomeActivationState {
         HomeActivationState.derive(from: .init(
             hasResume: viewModel.selectedResumeName?.isEmpty == false,
-            hasJob: !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                || !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            hasJob: jobInputEvaluation.isReady,
             isAuthenticated: appState.isAuthenticated,
             isOptimizing: viewModel.isOptimizing || viewModel.isRunningFreeATS,
             hasATSResult: viewModel.atsResult != nil,
@@ -239,38 +237,39 @@ struct HomeTabView: View {
                     trackImporterCancellationIfNeeded()
                 }
             }
-            .navigationDestination(isPresented: $shouldNavigate) {
-                if let reviewId = viewModel.reviewId {
+            .navigationDestination(item: $journeyRoute) { route in
+                switch route {
+                case .optimizationReview(let reviewId):
                     OptimizationReviewView(
                         viewModel: OptimizationReviewViewModel(reviewId: reviewId),
                         onAppliedOptimization: { optId in
-                            appState.latestOptimizationId = optId
-                            appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
-                            viewModel.pendingSaveResumeId = optId
-                            shouldNavigate = false
-                            pendingDiagnosisOptimizationId = optId
-                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                            showDiagnosis = true
+                            FirstSessionJourneyTransition.completeApply(
+                                optimizationId: optId,
+                                persist: { optimizationId in
+                                    appState.latestOptimizationId = optimizationId
+                                    appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+                                    viewModel.pendingSaveResumeId = optimizationId
+                                    journeyRoute = nil
+                                },
+                                showPreview: onShowOptimizedPreview
+                            )
                         }
                     )
-                }
-            }
-            .navigationDestination(isPresented: $showDiagnosis) {
-                if let diagnosisViewModel {
-                    ResumeDiagnosisView(
-                        viewModel: diagnosisViewModel,
-                        onImprove: {
-                            showDiagnosis = false
-                            pendingDiagnosisOptimizationId = nil
-                            self.diagnosisViewModel = nil
-                            onSwitchTab(.optimized)
-                        },
-                        onEditTargetJob: {
-                            showDiagnosis = false
-                            pendingDiagnosisOptimizationId = nil
-                            self.diagnosisViewModel = nil
-                        }
-                    )
+                case .diagnosis:
+                    if let diagnosisViewModel {
+                        ResumeDiagnosisView(
+                            viewModel: diagnosisViewModel,
+                            onImprove: {
+                                journeyRoute = nil
+                                self.diagnosisViewModel = nil
+                                onSwitchTab(.optimized)
+                            },
+                            onEditTargetJob: {
+                                journeyRoute = nil
+                                self.diagnosisViewModel = nil
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -287,9 +286,15 @@ struct HomeTabView: View {
         return types
     }()
 
+    private var jobInputEvaluation: JobInputPolicy.Evaluation {
+        JobInputPolicy.evaluate(
+            description: viewModel.jobDescription,
+            urlString: viewModel.jobDescriptionURL
+        )
+    }
+
     private var hasJobInput: Bool {
-        !viewModel.jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || !viewModel.jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        jobInputEvaluation.isReady
     }
 
     private func scrollToJobInput(using proxy: ScrollViewProxy) {
@@ -383,6 +388,13 @@ struct HomeTabView: View {
                 openUploadPicker()
             }
             showFitCheck = true
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 400 {
+                viewModel.errorMessage = JobInputPolicy.friendlyInputError()
+            } else {
+                viewModel.errorMessage = apiError.userFacingMessage
+            }
+            viewModel.isConnectionError = false
         } catch {
             viewModel.errorMessage = error.localizedDescription
             viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
@@ -397,11 +409,10 @@ struct HomeTabView: View {
             appState.latestOptimizationId = optId
             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
             viewModel.pendingSaveResumeId = optId
-            pendingDiagnosisOptimizationId = optId
             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-            showDiagnosis = true
-        } else if viewModel.reviewId != nil {
-            shouldNavigate = true
+            journeyRoute = .diagnosis(optimizationId: optId)
+        } else if let reviewId = viewModel.reviewId {
+            journeyRoute = .optimizationReview(reviewId: reviewId)
         }
     }
 
@@ -840,6 +851,14 @@ struct HomeTabView: View {
                         .tint(Theme.accent)
                 }
                 .frame(minHeight: 110)
+
+                HStack(spacing: 6) {
+                    Image(systemName: jobInputEvaluation.isReady ? "checkmark.circle.fill" : "info.circle.fill")
+                    Text(jobInputEvaluation.inlineGuidance)
+                }
+                .font(.caption)
+                .foregroundStyle(jobInputEvaluation.isReady ? Color.green : Theme.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
