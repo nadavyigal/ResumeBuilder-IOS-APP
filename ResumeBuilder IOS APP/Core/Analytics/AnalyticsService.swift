@@ -78,6 +78,11 @@ enum AnalyticsEvent: Sendable {
     case exportSuccess
     case exportFailed(errorCode: String)
     case diagnosisViewed(matchScore: Int)
+    case recommendationViewed(surface: String, safetyState: String)
+    case recommendationIncluded(surface: String, safetyState: String)
+    case recommendationEdited(surface: String, safetyState: String)
+    case recommendationSkipped(surface: String, safetyState: String)
+    case recommendationBlocked(surface: String, reason: String)
     case atsImproveTapped(currentScore: Int)
     case exportPdfTapped
     case exportCTASeen
@@ -118,6 +123,11 @@ enum AnalyticsEvent: Sendable {
         case .exportSuccess: return "export_success"
         case .exportFailed: return "export_failed"
         case .diagnosisViewed: return "diagnosis_viewed"
+        case .recommendationViewed: return "recommendation_viewed"
+        case .recommendationIncluded: return "recommendation_included"
+        case .recommendationEdited: return "recommendation_edited"
+        case .recommendationSkipped: return "recommendation_skipped"
+        case .recommendationBlocked: return "recommendation_blocked"
         case .atsImproveTapped: return "ats_improve_tapped"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .exportCTASeen: return "export_cta_seen"
@@ -174,6 +184,13 @@ enum AnalyticsEvent: Sendable {
             return ["error_code": errorCode]
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]
+        case .recommendationViewed(let surface, let safetyState),
+             .recommendationIncluded(let surface, let safetyState),
+             .recommendationEdited(let surface, let safetyState),
+             .recommendationSkipped(let surface, let safetyState):
+            return ["surface": surface, "safety_state": safetyState]
+        case .recommendationBlocked(let surface, let reason):
+            return ["surface": surface, "reason": reason]
         case .atsImproveTapped(let currentScore):
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):

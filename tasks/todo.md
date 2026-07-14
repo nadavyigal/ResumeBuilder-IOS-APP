@@ -1,3 +1,16 @@
+# Story 5: Recommendation presentation safety gate (Release A, 2026-07-14)
+
+Decision: when backend evidence metadata is absent, the iOS client applies a conservative local safety policy; placeholders are hidden, factual changes require explicit inclusion, and non-improving reviews start with no selected changes.
+
+## Implementation plan
+- [x] Add focused fixtures for placeholders, title inflation, removed dates, factual metrics, and a 53 → 52 score regression; confirm red first.
+- [x] Add a pure Sendable recommendation safety policy with safe analytics categories only.
+- [x] Gate optimization-review and diagnosis rendering, default factual changes off, and require deliberate inclusion when the score does not improve.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 6.
+
+---
+
 # Story 4: Shared job-input policy and friendly errors (Release A, 2026-07-14)
 
 Decision: Home, guest ATS, and Fit use one local 100-word fallback for pasted descriptions while a valid HTTP(S) job URL remains independently sufficient.

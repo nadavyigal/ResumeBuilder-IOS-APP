@@ -471,3 +471,28 @@
 **Category:** Shared validation
 **Rule:** When replacing an input-readiness Boolean with a shared policy, search every derived UI state—not only the submit button and API guard—and route all completion/progress state through the policy.
 **Why:** Story 4 initially updated Home cards and submission but left `HomeActivationState` deriving job readiness from raw nonempty input, which could mark an invalid job as complete.
+
+### 2026-07-14
+**Category:** Shell commands
+**Rule:** Prefer separate command invocations when reading multiple paths containing spaces; avoid composing long, mixed-quote shell commands.
+**Why:** Story 5 inspection used an unmatched quote in a combined read command, causing an avoidable interruption before any source changes occurred.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** Re-read Xcode's available destinations at the start of each story instead of carrying a simulator UDID forward from an earlier story.
+**Why:** Story 5's first red-test attempt used an iPhone 17 identifier that Xcode had replaced, so destination resolution failed before compilation.
+
+### 2026-07-14
+**Category:** Xcode test targets
+**Rule:** After adding a test file, verify it is explicitly present in the test target's group and Sources build phase; treat “Executed 0 tests” as a failed verification, never a pass.
+**Why:** The test folder is a manual PBX group, so Story 5's new file was not auto-enrolled and the first focused invocation ran no fixtures.
+
+### 2026-07-14
+**Category:** SwiftUI cleanup
+**Rule:** When moving derived display data into a view model, replace conditional value bindings with Boolean presence checks if the bound model is no longer read.
+**Why:** Story 5 moved the review footer count behind `selectableGroupCount` but initially left an unused `env` binding, producing a new compiler warning.
+
+### 2026-07-14
+**Category:** Release builds
+**Rule:** For this project’s first optimized simulator build, use direct `xcodebuild` when the XcodeBuildMCP call approaches its fixed 300-second tool timeout.
+**Why:** Story 5's Release build produced no source error but the MCP transport timed out before returning a result, so the run could not be counted as verification.

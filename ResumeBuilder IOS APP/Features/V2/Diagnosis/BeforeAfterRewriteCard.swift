@@ -4,6 +4,14 @@ import SwiftUI
 struct BeforeAfterRewriteCard: View {
     let rewrite: BulletRewrite
 
+    private var safety: RecommendationSafetyPolicy.Assessment {
+        RecommendationSafetyPolicy.assess(
+            before: rewrite.before,
+            after: rewrite.after,
+            context: rewrite.explanation
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             Label("Before / after rewrite", systemImage: "arrow.triangle.2.circlepath")
@@ -19,24 +27,35 @@ struct BeforeAfterRewriteCard: View {
                     isPlaceholder: !rewrite.hasOriginalBullet
                 )
 
-                Divider()
-                    .background(AppColors.glassStroke)
+                if !safety.isSuppressed {
+                    Divider()
+                        .background(AppColors.glassStroke)
 
-                bulletBlock(
-                    label: "After",
-                    text: rewrite.after,
-                    icon: "checkmark.circle.fill",
-                    color: AppColors.accentTeal,
-                    isPlaceholder: false
-                )
+                    bulletBlock(
+                        label: "After",
+                        text: rewrite.after,
+                        icon: "checkmark.circle.fill",
+                        color: AppColors.accentTeal,
+                        isPlaceholder: false
+                    )
+                }
             }
             .padding(AppSpacing.md)
             .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
 
-            Text(rewrite.explanation)
-                .font(.appCaption)
-                .foregroundStyle(AppColors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            if let warning = safety.primaryReason?.userMessage {
+                Label(warning, systemImage: "exclamationmark.shield.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if !safety.isSuppressed {
+                Text(rewrite.explanation)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
