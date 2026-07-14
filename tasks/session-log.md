@@ -16,6 +16,13 @@
 ## Sessions
 
 **Date:** 2026-07-14
+**Task:** Fix physical-device Optimization Review blank screen after a successful review fetch.
+**Files Changed:** `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Improve/ImproveView.swift`, `Features/V2/History/HistoryView.swift`, `Features/V2/History/OptimizationReviewView.swift`, `ResumeOptimizationParsingTests.swift`, and task memory.
+**Decisions Made:** Keep review data fetching intact; give every navigation entry point a stable `@State`-owned review destination model, replacing it only for a different review ID. Do not attach résumé, job, email, or generated content to analytics.
+**Validation:** Confirmed the regression test could not compile before the state owner was implemented; then passed 19/19 focused tests, Debug iPhone 17 and iPhone SE launch/smokes, and a generic-device Release build.
+**Next Recommended Action:** Rebuild this branch on the physical device, submit a job, confirm cards and Apply render on Optimization Review, then apply and verify the optimized résumé.
+
+**Date:** 2026-07-14
 **Task:** Investigate and fix the optimized résumé appearing missing after a rebuild.
 **Files Changed:** `Features/V2/Improve/OptimizedResumeView.swift`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/todo.md`, and `tasks/session-log.md`.
 **Decisions Made:** Treat the rendered document as the primary output and place it immediately after the score; leave the review/apply contract unchanged because the reported new run has a review ID but no Apply response or new optimization ID; ignore unrelated keyboard and LaunchServices warnings.

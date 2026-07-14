@@ -10,6 +10,18 @@ Decision: the résumé is the primary deliverable and must be visible in the ini
 
 ---
 
+# Bug: Optimization Review renders blank after successful review fetch (2026-07-14)
+
+Decision: navigation destinations retain their review model across parent refreshes and only replace it for a different review ID.
+
+- [x] Read the physical-device logs in full and confirm the review response succeeds and decodes.
+- [x] Add a focused model-lifetime regression test and confirm the missing state owner is red first.
+- [x] Add a stable state-owned review destination across Home, Tailor, Improve, and History.
+- [x] Pass focused tests, Debug iPhone 17 + smallest supported iPhone SE smoke, and generic-device Release build.
+- [x] Update project memory, commit, push, and open a focused follow-up PR.
+
+---
+
 # Story 6: Preview-owned save, export, and relaunch continuity (Release A, 2026-07-14)
 
 Decision: the optimized preview owns saved-résumé state; successful saves persist the live API response locally by optimization ID, failures keep the preview visible and retryable, and every shared PDF must contain an extractable text layer.

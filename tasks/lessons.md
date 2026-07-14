@@ -531,3 +531,8 @@
 **Category:** GitHub API updates
 **Rule:** When building a JSON object from a raw string in `jq`, parenthesize string concatenation inside the object value: `{body: (. + $addition)}`.
 **Why:** The first PR-body update used `{body: . + ...}`, which failed `jq` parsing and sent no update to GitHub.
+
+### 2026-07-14
+**Category:** SwiftUI
+**Rule:** Do not construct an `@Observable` screen model inline inside a navigation destination; give the destination a stable `@State` owner for the model.
+**Why:** A parent refresh replaced `OptimizationReviewViewModel` after its GET completed, discarding the loaded review and leaving the physical app on a blank Optimization Review screen.
