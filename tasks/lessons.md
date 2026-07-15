@@ -15,6 +15,16 @@
 
 ## Lessons
 
+**Date:** 2026-07-15
+**Category:** General
+**Rule:** Never pass Markdown containing backticks to a shell command through interpolated double-quoted arguments; write the body with `apply_patch` and pass it through a `--body-file` option.
+**Why:** An inline `gh pr create --body` command allowed zsh to execute Markdown code spans, creating PR #97 with damaged prose even though the repository and release artifacts were unaffected.
+
+**Date:** 2026-07-15
+**Category:** General
+**Rule:** In zsh inventory loops, never use `path` as a local variable because it is tied to `PATH`; use a neutral name such as `file_path`, and use plain `git apply` when an exact-base bulk patch does not need three-way fallback.
+**Why:** A read-only dirty-file fingerprint command temporarily hid shell commands inside its process, and an unnecessary three-way patch attempt rejected an otherwise exact Release A source delta before the plain application succeeded.
+
 **Date:** 2026-07-11
 **Category:** General
 **Rule:** When the connected PostHog plugin advertises `read-data-warehouse-schema` but returns `Tool read-data-warehouse-schema not found`, use verified narrow `events`/`system.*` HogQL probes and `read-data-schema` rather than guessing columns.

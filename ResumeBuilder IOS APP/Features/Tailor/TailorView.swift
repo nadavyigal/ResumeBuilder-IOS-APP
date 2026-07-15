@@ -214,8 +214,8 @@ struct TailorView: View {
             }
             .navigationDestination(isPresented: $shouldNavigate) {
                 if let reviewId = viewModel.reviewId {
-                    OptimizationReviewView(
-                        viewModel: OptimizationReviewViewModel(reviewId: reviewId),
+                    OptimizationReviewDestination(
+                        reviewId: reviewId,
                         onAppliedOptimization: { optId in
                             appState.latestOptimizationId = optId
                             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)

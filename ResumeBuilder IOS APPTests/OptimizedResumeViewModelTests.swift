@@ -4,6 +4,69 @@ import XCTest
 @MainActor
 final class OptimizedResumeViewModelTests: XCTestCase {
 
+    // MARK: - Story 6 saved-resume continuity
+
+    func testSaveOptimizedResumePersistsLiveResponseForRelaunch() async throws {
+        let optimizationId = "story-6-\(UUID().uuidString)"
+        let saved = SavedResume(
+            id: "saved-1",
+            filename: "resume.pdf",
+            displayName: "Optimized Resume",
+            createdAt: "2026-07-14T12:00:00Z",
+            sizeBytes: 42_000
+        )
+        let service = Story6ResumeLibrarySpy(results: [.success(saved)])
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        defer { UserDefaults.standard.removeObject(forKey: AppState.savedResumeRecordsKey) }
+        let vm = OptimizedResumeViewModel(
+            optimizationId: optimizationId,
+            sections: [OptimizedResumeSection(id: "s1", type: .summary, body: "Grounded summary", status: "optimized")],
+            optimizationService: MockResumeOptimizationService(),
+            libraryService: service
+        )
+
+        await vm.saveOptimizedResume(appState: appState)
+
+        XCTAssertEqual(vm.savedResumeState, .saved(saved))
+        XCTAssertEqual(appState.savedResumeRecord(for: optimizationId)?.resume, saved)
+
+        let relaunched = AppState()
+        relaunched.bootstrap()
+        XCTAssertEqual(relaunched.savedResumeRecord(for: optimizationId)?.resume, saved)
+    }
+
+    func testFailedSaveKeepsPreviewAndCanRetry() async {
+        let saved = SavedResume(id: "saved-2", filename: "resume.pdf", displayName: "Optimized Resume", createdAt: "2026-07-14T12:00:00Z", sizeBytes: nil)
+        let service = Story6ResumeLibrarySpy(results: [.failure(URLError(.notConnectedToInternet)), .success(saved)])
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        defer { UserDefaults.standard.removeObject(forKey: AppState.savedResumeRecordsKey) }
+        let section = OptimizedResumeSection(id: "s1", type: .summary, body: "Still visible", status: "optimized")
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-retry",
+            sections: [section],
+            optimizationService: MockResumeOptimizationService(),
+            libraryService: service
+        )
+
+        await vm.saveOptimizedResume(appState: appState)
+        guard case .failed = vm.savedResumeState else { return XCTFail("Expected retryable failure") }
+        XCTAssertEqual(vm.sections.count, 1)
+        XCTAssertEqual(vm.sections.first?.body, section.body)
+
+        await vm.saveOptimizedResume(appState: appState)
+        XCTAssertEqual(vm.savedResumeState, .saved(saved))
+        XCTAssertEqual(vm.sections.count, 1)
+        XCTAssertEqual(vm.sections.first?.body, section.body)
+    }
+
+    func testPDFValidationRequiresExtractableTextLayer() throws {
+        XCTAssertThrowsError(
+            try PDFDownloadValidator.validatePDFData(Data("%PDF-1.4\n%header-only".utf8), statusCode: 200)
+        )
+    }
+
     // MARK: - loadSections
 
     func testLoadSectionsIsNoOpWhenSectionsAlreadyPresent() async {
@@ -78,6 +141,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         let data = try Data(contentsOf: url)
         XCTAssertEqual(data.prefix(5), Data("%PDF-".utf8))
         XCTAssertGreaterThan(data.count, 100)
+        XCTAssertNoThrow(try PDFDownloadValidator.validatePDFData(data, statusCode: 200))
     }
 
     // MARK: - rejectRefine
@@ -610,6 +674,32 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.package?.screeningAnswers.last?.question, "Expected salary?")
         XCTAssertEqual(vm.package?.screeningAnswers.last?.confidenceNote, "Market rate")
         XCTAssertEqual(vm.package?.coverLetterText, "Dear Hiring Manager,\nI am excited to apply.")
+    }
+}
+
+@MainActor
+private final class Story6ResumeLibrarySpy: ResumeLibraryServiceProtocol, @unchecked Sendable {
+    private var results: [Result<SavedResume, Error>]
+
+    init(results: [Result<SavedResume, Error>]) {
+        self.results = results
+    }
+
+    func listSavedResumes(token: String) async throws -> [SavedResume] { [] }
+
+    func saveResume(id: String, displayName: String, token: String) async throws -> SavedResume {
+        guard !results.isEmpty else { throw URLError(.badServerResponse) }
+        return try results.removeFirst().get()
+    }
+
+    func deleteResume(id: String, token: String) async throws {}
+
+    func renameResume(id: String, displayName: String, token: String) async throws -> SavedResume {
+        throw URLError(.unsupportedURL)
+    }
+
+    func downloadResumePDF(id: String, token: String) async throws -> URL {
+        throw URLError(.unsupportedURL)
     }
 }
 

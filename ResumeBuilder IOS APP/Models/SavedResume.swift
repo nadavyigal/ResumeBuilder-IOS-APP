@@ -1,6 +1,6 @@
 import Foundation
 
-struct SavedResume: Identifiable, Codable, Sendable {
+struct SavedResume: Identifiable, Codable, Sendable, Equatable {
     let id: String
     let filename: String
     let displayName: String?

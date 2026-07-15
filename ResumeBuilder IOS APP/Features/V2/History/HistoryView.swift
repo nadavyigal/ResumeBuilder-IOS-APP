@@ -33,9 +33,7 @@ struct HistoryView: View {
                 HistoryShareSheet(activityItems: [pdf.url])
             }
             .navigationDestination(item: $reviewDestination) { dest in
-                OptimizationReviewView(
-                    viewModel: OptimizationReviewViewModel(reviewId: dest.reviewId)
-                )
+                OptimizationReviewDestination(reviewId: dest.reviewId)
             }
         }
     }

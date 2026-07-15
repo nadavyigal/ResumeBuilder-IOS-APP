@@ -9,6 +9,13 @@ struct ATSInsightRow: Identifiable, Sendable, Equatable {
     let reason: String
 }
 
+enum OptimizedResumeSaveState: Sendable, Equatable {
+    case idle
+    case saving
+    case saved(SavedResume)
+    case failed(String)
+}
+
 @Observable
 @MainActor
 final class OptimizedResumeViewModel {
@@ -44,12 +51,14 @@ final class OptimizedResumeViewModel {
     var applicationId: String?
     var isImprovingATS = false
     var atsUpliftMessage: String?
+    var savedResumeState: OptimizedResumeSaveState = .idle
 
     private let optimizationId: String?
     private let optimizationService: any ResumeOptimizationServiceProtocol
     private let analysisService: any ResumeAnalysisServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
     private let chatService: any ChatMessaging
+    private let libraryService: any ResumeLibraryServiceProtocol
     private var didAttemptInitialSectionLoad: Bool
     private static let detailCache = OptimizationDetailCacheActor()
 
@@ -66,7 +75,8 @@ final class OptimizedResumeViewModel {
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
         analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
         expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
-        chatService: any ChatMessaging = ChatService()
+        chatService: any ChatMessaging = ChatService(),
+        libraryService: any ResumeLibraryServiceProtocol = ResumeLibraryService()
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -81,11 +91,51 @@ final class OptimizedResumeViewModel {
         self.analysisService = analysisService
         self.expertService = expertService
         self.chatService = chatService
+        self.libraryService = libraryService
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
     /// Exposed for downstream tools (e.g. chat) that share the same optimization id.
     var optimizationIdentifier: String? { optimizationId }
+
+    var hasVisibleAppliedChanges: Bool {
+        sections.contains { !$0.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    func restoreSavedResumeState(appState: AppState) {
+        if let resume = appState.savedResumeRecord(for: optimizationId)?.resume {
+            savedResumeState = .saved(resume)
+        } else if case .saved = savedResumeState {
+            savedResumeState = .idle
+        }
+    }
+
+    func saveOptimizedResume(appState: AppState) async {
+        guard let optimizationId, hasVisibleAppliedChanges else {
+            savedResumeState = .failed(NSLocalizedString("Your optimized resume is not ready to save yet.", comment: ""))
+            return
+        }
+        if appState.savedResumeRecord(for: optimizationId) != nil {
+            restoreSavedResumeState(appState: appState)
+            return
+        }
+        savedResumeState = .saving
+        do {
+            let resume = try await appState.callWithFreshToken { token in
+                try await self.libraryService.saveResume(
+                    id: optimizationId,
+                    displayName: NSLocalizedString("Optimized Resume", comment: ""),
+                    token: token
+                )
+            }
+            appState.rememberSavedResume(resume, for: optimizationId)
+            savedResumeState = .saved(resume)
+            AnalyticsService.shared.track(.saveSuccess)
+        } catch {
+            savedResumeState = .failed(NSLocalizedString("Couldn’t save this resume. Your preview is still here — try again.", comment: ""))
+            AnalyticsService.shared.track(.saveFailed(errorCode: ExportFailureCode.code(for: error)))
+        }
+    }
 
     var isAwaitingInitialSections: Bool {
         optimizationId != nil && sections.isEmpty && !didAttemptInitialSectionLoad
@@ -281,11 +331,7 @@ final class OptimizedResumeViewModel {
             Self.downloadLogger.error("HTTP failure status=\(http.statusCode) message=\(message)")
             throw APIClientError.serverError(status: http.statusCode, message: message)
         }
-        guard PDFDownloadValidator.looksLikePDF(data) else {
-            let message = Self.downloadErrorMessage(from: data)
-            Self.downloadLogger.error("HTTP download returned non-PDF data: \(message)")
-            throw APIClientError.serverError(status: http.statusCode, message: message)
-        }
+        try PDFDownloadValidator.validatePDFData(data, statusCode: http.statusCode)
         return try ExportFileStore.writePDFData(data, optimizationId: optId)
     }
 

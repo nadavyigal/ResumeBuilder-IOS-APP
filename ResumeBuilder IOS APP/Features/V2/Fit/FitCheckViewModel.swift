@@ -31,17 +31,16 @@ final class FitCheckViewModel {
 
     var isInVerdictState: Bool { result != nil }
 
+    var jobInputEvaluation: JobInputPolicy.Evaluation {
+        JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
+    }
+
     var canCheck: Bool {
-        let trimmed = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedURL.isEmpty || trimmed.split(separator: " ").count >= 50
+        jobInputEvaluation.isReady
     }
 
     var jobDescriptionTooShort: Bool {
-        let trimmed = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedURL.isEmpty else { return false }
-        return !trimmed.isEmpty && !canCheck
+        jobInputEvaluation.blockingReason == .descriptionTooShort
     }
 
     func checkFit() async {
@@ -55,13 +54,9 @@ final class FitCheckViewModel {
             return
         }
 
-        let trimmedDescription = jobDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedURL = jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedURL.isEmpty || trimmedDescription.split(separator: " ").count >= 50 else {
-            errorMessage = NSLocalizedString(
-                "Paste the full job description or add a job link so we can check your fit accurately.",
-                comment: ""
-            )
+        let evaluation = jobInputEvaluation
+        guard evaluation.isReady else {
+            errorMessage = evaluation.validationMessage
             return
         }
 
@@ -74,8 +69,8 @@ final class FitCheckViewModel {
         do {
             let checkResult = try await fitCheckService.checkFit(
                 resumeId: resumeId,
-                jobDescription: trimmedDescription.isEmpty ? nil : trimmedDescription,
-                jobDescriptionURL: trimmedURL.isEmpty ? nil : trimmedURL,
+                jobDescription: evaluation.normalizedDescription,
+                jobDescriptionURL: evaluation.normalizedURL,
                 accessToken: accessToken,
                 sessionId: nil
             )
@@ -86,6 +81,12 @@ final class FitCheckViewModel {
                     matchScore: checkResult.verdict.score
                 )
             )
+        } catch let apiError as APIClientError {
+            if case .serverError(let status, _) = apiError, status == 400 {
+                errorMessage = JobInputPolicy.friendlyInputError()
+            } else {
+                errorMessage = apiError.userFacingMessage
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

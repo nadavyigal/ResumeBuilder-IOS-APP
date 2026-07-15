@@ -39,9 +39,7 @@ struct FitCheckView: View {
 
                 jobDescriptionInput
 
-                if viewModel.jobDescriptionTooShort {
-                    shortJDWarning
-                }
+                jobInputGuidance
 
                 if let error = viewModel.errorMessage {
                     errorBanner(error)
@@ -141,15 +139,12 @@ struct FitCheckView: View {
         }
     }
 
-    private var shortJDWarning: some View {
+    private var jobInputGuidance: some View {
         HStack(spacing: AppSpacing.sm) {
-            Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(Color.orange)
+            Image(systemName: viewModel.canCheck ? "checkmark.circle.fill" : "info.circle.fill")
+                .foregroundStyle(viewModel.canCheck ? Color.green : Color.orange)
                 .imageScale(.small)
-            Text(NSLocalizedString(
-                "Paste the complete job description for an accurate result.",
-                comment: ""
-            ))
+            Text(viewModel.jobInputEvaluation.inlineGuidance)
             .font(.appCaption)
             .foregroundStyle(AppColors.textSecondary)
         }
@@ -172,6 +167,8 @@ struct FitCheckView: View {
         GradientButton(title: "Check Fit", isLoading: viewModel.isLoading) {
             Task { await viewModel.checkFit() }
         }
+        .disabled(!viewModel.canCheck || viewModel.isLoading)
+        .opacity(viewModel.canCheck ? 1 : 0.55)
     }
 
     private var explainerNote: some View {

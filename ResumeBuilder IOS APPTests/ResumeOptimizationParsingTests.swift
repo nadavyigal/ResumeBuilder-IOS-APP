@@ -98,6 +98,22 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertEqual(envelope.review.appliedAt, "2026-06-26T14:53:35Z")
     }
 
+    @MainActor
+    func testReviewDestinationStateRetainsItsViewModelForTheSameReview() {
+        let state = OptimizationReviewDestinationState(reviewId: "review-1")
+        let originalModel = state.viewModel
+
+        state.activate(reviewId: "review-1")
+
+        XCTAssertTrue(originalModel === state.viewModel)
+
+        state.activate(reviewId: "review-2")
+
+        XCTAssertEqual(state.reviewId, "review-2")
+        XCTAssertFalse(originalModel === state.viewModel)
+        XCTAssertEqual(state.viewModel.reviewId, "review-2")
+    }
+
     func testOptimizationReviewApplyTimeoutRecoversAppliedOptimizationId() async {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
@@ -149,6 +165,38 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertEqual(viewModel.applySuccessOptimizationId, "opt-after-timeout")
         XCTAssertEqual(viewModel.envelope?.review.optimizationId, "opt-after-timeout")
+    }
+
+    func testOptimizationReviewApplyFailureKeepsSelectionRetryableWithoutFalseSuccess() async {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
+        let api = APIClient(
+            baseURL: URL(string: "https://example.test")!,
+            session: URLSession(configuration: config),
+            longRunningSession: URLSession(configuration: config),
+            requestTimeout: 1
+        )
+        let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
+        viewModel.includedGroupIds = ["group-1"]
+
+        OptimizationReviewMockURLProtocol.handler = { request in
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 503,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, #"{"error":"temporary outage"}"#.data(using: .utf8)!)
+        }
+        defer { OptimizationReviewMockURLProtocol.handler = nil }
+
+        await viewModel.apply(token: "token")
+
+        XCTAssertNil(viewModel.applySuccessOptimizationId)
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.includedGroupIds, ["group-1"])
+        XCTAssertFalse(viewModel.isSubmitting)
+        XCTAssertFalse(viewModel.serverRequiresMigration)
     }
 
     func testOptimizationDetailDecodesContactAndFlexibleScoreKeys() throws {

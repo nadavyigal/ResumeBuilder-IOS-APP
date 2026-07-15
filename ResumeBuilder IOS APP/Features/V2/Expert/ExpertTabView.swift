@@ -29,7 +29,7 @@ struct ExpertTabView: View {
     }
 
     private func syncVM() {
-        guard let id = appState.latestOptimizationId, !id.hasPrefix("mock-") else {
+        guard let id = appState.latestOptimizationId else {
             expertVM = nil
             return
         }
@@ -45,7 +45,6 @@ struct ExpertTabView: View {
 
     private func linkCurrentOptimizationToApplicationIfAvailable() async {
         guard let id = appState.latestOptimizationId,
-              !id.hasPrefix("mock-"),
               let token = appState.session?.accessToken,
               let vm = expertVM else {
             return
@@ -73,10 +72,16 @@ struct ExpertTabView: View {
             ],
             ctaTitle: "Upload résumé on Home",
             systemImage: "rectangle.stack.badge.person.crop",
+            recoveryState: appState.optimizationRecoveryState,
+            onRetryRecovery: retryRecovery,
             onCTA: { onSwitchTab(.tailor) }
         ) {
             LockedExpertPreview()
         }
+    }
+
+    private func retryRecovery() {
+        Task { await appState.reconcileLatestOptimization() }
     }
 }
 

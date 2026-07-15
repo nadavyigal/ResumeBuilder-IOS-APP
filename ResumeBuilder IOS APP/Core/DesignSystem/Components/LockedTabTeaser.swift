@@ -14,6 +14,8 @@ struct LockedTabTeaser<Preview: View>: View {
     let checklist: [ChecklistItem]
     let ctaTitle: LocalizedStringKey
     let systemImage: String
+    var recoveryState: OptimizationRecoveryState = .idle
+    var onRetryRecovery: () -> Void = {}
     let onCTA: () -> Void
     @ViewBuilder let preview: () -> Preview
 
@@ -34,6 +36,8 @@ struct LockedTabTeaser<Preview: View>: View {
                         .foregroundStyle(AppColors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+
+                recoveryCard
 
                 previewCard
 
@@ -56,6 +60,41 @@ struct LockedTabTeaser<Preview: View>: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .resumelyBackground(glow: AppColors.accentSky)
+    }
+
+    @ViewBuilder
+    private var recoveryCard: some View {
+        switch recoveryState {
+        case .loading:
+            HStack(spacing: AppSpacing.md) {
+                ProgressView()
+                    .tint(AppColors.accentCyan)
+                Text("Checking your saved optimizations…")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(AppSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassCard(cornerRadius: AppRadii.lg)
+            .accessibilityLabel("Checking your saved optimizations")
+        case .failed:
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                Label("We couldn't restore your latest optimization.", systemImage: "arrow.clockwise.circle.fill")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Check your connection, then try again.")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+                Button("Try restoring again", action: onRetryRecovery)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColors.accentSky)
+            }
+            .padding(AppSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassCard(cornerRadius: AppRadii.lg)
+        case .idle, .ready, .recovered, .empty:
+            EmptyView()
+        }
     }
 
     private var previewCard: some View {
