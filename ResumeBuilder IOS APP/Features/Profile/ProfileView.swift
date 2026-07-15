@@ -14,8 +14,6 @@ struct ProfileView: View {
     @Environment(LocalizationManager.self) private var localization
     @State private var showPaywall = false
     @State private var showOnboarding = false
-    @State private var latestOptimization: OptimizationHistoryItem?
-    @State private var profileMessage: String?
     @State private var appeared = false
     @State private var navigateToLatestResume = false
 
@@ -32,6 +30,24 @@ struct ProfileView: View {
             isAuthenticated: appState.isAuthenticated,
             email: appState.session?.email
         )
+    }
+
+    private var latestOptimization: OptimizationHistoryItem? {
+        appState.latestOptimization
+    }
+
+    private var profileMessage: String {
+        guard appState.isAuthenticated else {
+            return NSLocalizedString("Sign in and optimize a resume to see it here.", comment: "")
+        }
+        switch appState.optimizationRecoveryState {
+        case .loading:
+            return NSLocalizedString("Checking your saved optimizations…", comment: "")
+        case .failed:
+            return NSLocalizedString("Couldn't restore your latest optimization. Check your connection and try again.", comment: "")
+        case .idle, .ready, .recovered, .empty:
+            return NSLocalizedString("Tailor a resume to a job to see it here.", comment: "")
+        }
     }
 
     var body: some View {
@@ -74,14 +90,15 @@ struct ProfileView: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .navigationDestination(isPresented: $navigateToLatestResume) {
-                    if let opt = latestOptimization {
+                    if let optimizationId = appState.latestOptimizationId {
+                        let opt = latestOptimization
                         OptimizedResumeView(
                             viewModel: OptimizedResumeViewModel(
-                                optimizationId: opt.id,
-                                atsScoreAfter: opt.matchScorePercent,
-                                jobTitle: opt.jobTitle,
-                                company: opt.company,
-                                jobURLString: opt.jobUrl
+                                optimizationId: optimizationId,
+                                atsScoreAfter: opt?.matchScorePercent,
+                                jobTitle: opt?.jobTitle,
+                                company: opt?.company,
+                                jobURLString: opt?.jobUrl ?? appState.jobURL(for: optimizationId)
                             ),
                             onSwitchTab: onSwitchTab
                         )
@@ -91,7 +108,7 @@ struct ProfileView: View {
             .navigationBarHidden(true)
             .task(id: isActive) {
                 guard isActive else { return }
-                async let optimization: Void = loadLatestOptimization()
+                async let optimization: Void = appState.reconcileLatestOptimization()
                 async let apps: Void = applicationsViewModel.load(token: appState.session?.accessToken)
                 _ = await (optimization, apps)
                 if !appeared {
@@ -226,7 +243,7 @@ struct ProfileView: View {
     private var statsRow: some View {
         HStack(spacing: 12) {
             statCell(
-                value: latestOptimization != nil ? "1+" : "0",
+                value: appState.latestOptimizationId != nil ? "1+" : "0",
                 label: NSLocalizedString("Optimized", comment: "Me stats: count of optimized resumes"),
                 icon: "wand.and.stars",
                 color: Theme.accent
@@ -271,9 +288,9 @@ struct ProfileView: View {
 
     private var latestResumeSection: some View {
         ProfileSection(title: "Latest Resume", icon: "doc.text.fill", iconColor: Theme.accent) {
-            if let opt = latestOptimization {
+            if appState.latestOptimizationId != nil {
+                let opt = latestOptimization
                 Button {
-                    appState.latestOptimizationId = opt.id
                     navigateToLatestResume = true
                 } label: {
                     HStack(spacing: 12) {
@@ -286,17 +303,19 @@ struct ProfileView: View {
                                 .foregroundStyle(Theme.accent)
                         }
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(opt.jobTitle ?? NSLocalizedString("Optimized resume", comment: ""))
+                            Text(opt?.jobTitle ?? NSLocalizedString("Optimized resume", comment: ""))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Theme.textPrimary)
                                 .lineLimit(1)
-                            Text(opt.company ?? NSLocalizedString("Tap to preview", comment: ""))
+                            Text(latestResumeSubtitle(opt))
                                 .font(.caption)
                                 .foregroundStyle(Theme.textSecondary)
                                 .lineLimit(1)
                         }
                         Spacer()
-                        ATSScorePill(score: opt.matchScorePercent)
+                        if let score = opt?.matchScorePercent {
+                            ATSScorePill(score: score)
+                        }
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Theme.textTertiary)
@@ -305,17 +324,38 @@ struct ProfileView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                HStack(spacing: 12) {
-                    Image(systemName: "doc.text")
-                        .font(.title3)
-                        .foregroundStyle(Theme.textTertiary)
-                    Text(profileMessage ?? NSLocalizedString("No optimized resume yet.", comment: ""))
-                        .font(.subheadline)
-                        .foregroundStyle(Theme.textTertiary)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 12) {
+                        if appState.optimizationRecoveryState == .loading {
+                            ProgressView()
+                                .tint(Theme.accent)
+                        } else {
+                            Image(systemName: "doc.text")
+                                .font(.title3)
+                                .foregroundStyle(Theme.textTertiary)
+                        }
+                        Text(profileMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                    if appState.optimizationRecoveryState == .failed {
+                        Button("Try restoring again") {
+                            Task { await appState.reconcileLatestOptimization() }
+                        }
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Theme.accentBlue)
+                    }
                 }
                 .padding(14)
             }
         }
+    }
+
+    private func latestResumeSubtitle(_ optimization: OptimizationHistoryItem?) -> String {
+        if appState.savedResumeRecord(for: appState.latestOptimizationId) != nil {
+            return NSLocalizedString("Saved in My Resumes · Tap to preview", comment: "")
+        }
+        return optimization?.company ?? NSLocalizedString("Tap to preview", comment: "")
     }
 
     // MARK: - Section: Applications
@@ -616,29 +656,6 @@ struct ProfileView: View {
         .padding(14)
     }
 
-    // MARK: - Data
-
-    @MainActor
-    private func loadLatestOptimization() async {
-        guard appState.session?.accessToken != nil else {
-            profileMessage = NSLocalizedString("Sign in and optimize a resume to see it here.", comment: "")
-            return
-        }
-        do {
-            let response: OptimizationHistoryResponse = try await appState.callWithFreshToken { token in
-                try await appState.apiClient.get(
-                    endpoint: .optimizations,
-                    token: token
-                )
-            }
-            latestOptimization = response.allItems.first
-            if latestOptimization == nil {
-                profileMessage = NSLocalizedString("Tailor a resume to a job to see it here.", comment: "")
-            }
-        } catch {
-            profileMessage = error.localizedDescription
-        }
-    }
 }
 
 // MARK: - ATS Score Pill (inline)

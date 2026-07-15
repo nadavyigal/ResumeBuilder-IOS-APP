@@ -30,6 +30,8 @@ struct DesignTabView: View {
             ],
             ctaTitle: "Upload résumé on Home",
             systemImage: "paintbrush.fill",
+            recoveryState: appState.optimizationRecoveryState,
+            onRetryRecovery: retryRecovery,
             onCTA: { onSwitchTab(.tailor) }
         ) {
             HStack(spacing: AppSpacing.md) {
@@ -38,6 +40,10 @@ struct DesignTabView: View {
                 TemplateThumbnail(name: "Creative", category: "creative", templateId: "creative")
             }
         }
+    }
+
+    private func retryRecovery() {
+        Task { await appState.reconcileLatestOptimization() }
     }
 }
 

@@ -115,8 +115,8 @@ struct ImproveView: View {
             }
             .navigationDestination(isPresented: $navigateToReview) {
                 if let reviewId = pendingReviewId {
-                    OptimizationReviewView(
-                        viewModel: OptimizationReviewViewModel(reviewId: reviewId),
+                    OptimizationReviewDestination(
+                        reviewId: reviewId,
                         onAppliedOptimization: { optId in
                             onOptimized?(optId)
                         }

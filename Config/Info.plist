@@ -45,11 +45,6 @@
 	<array>
 		<string>arm64</string>
 	</array>
-	<key>UIDeviceFamily</key>
-	<array>
-		<integer>1</integer>
-		<integer>2</integer>
-	</array>
 	<key>NSAccentColorName</key>
 	<string>AccentColor</string>
 

@@ -24,7 +24,9 @@ enum ResumeExportAction {
                 // Generate PDF from the already-rendered styled HTML so the exported
                 // PDF matches the design template the user applied in the Design tab.
                 do {
-                    url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+                    let styledURL = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+                    try PDFDownloadValidator.validatePDF(at: styledURL)
+                    url = styledURL
                 } catch {
                     styledHTMLFailureCode = ExportFailureCode.code(for: error)
                     url = try await viewModel.downloadPDF(appState: appState)
@@ -32,6 +34,7 @@ enum ResumeExportAction {
             } else {
                 url = try await viewModel.downloadPDF(appState: appState)
             }
+            try PDFDownloadValidator.validatePDF(at: url)
             appState.markExportComplete(for: optimizationId)
             analytics.track(.exportSuccess)
             return Result(fileURL: url, optimizationId: optimizationId)
@@ -60,6 +63,7 @@ enum ExportFailureCode {
             case .timedOut: return "html_pdf_timed_out"
             }
         }
+        if error is PDFValidationError { return "missing_text_layer" }
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain {
             return "network_\(abs(nsError.code))"

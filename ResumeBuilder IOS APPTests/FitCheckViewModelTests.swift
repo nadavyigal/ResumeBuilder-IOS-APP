@@ -41,6 +41,74 @@ final class FitCheckViewModelTests: XCTestCase {
         XCTAssertFalse(vm.jobDescriptionTooShort)
     }
 
+    func testSharedPolicyTreatsWhitespaceAsEmpty() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: "  \n\t  ",
+            urlString: "   "
+        )
+
+        XCTAssertEqual(evaluation.wordCount, 0)
+        XCTAssertFalse(evaluation.isReady)
+    }
+
+    func testSharedPolicyAcceptsValidHTTPURLOnly() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: "",
+            urlString: " https://example.com/jobs/ios-engineer "
+        )
+
+        XCTAssertTrue(evaluation.isReady)
+        XCTAssertEqual(evaluation.normalizedURL, "https://example.com/jobs/ios-engineer")
+        XCTAssertNil(evaluation.normalizedDescription)
+    }
+
+    func testSharedPolicyRejectsIncompleteURLOnly() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: "",
+            urlString: "linkedin.com/jobs/123"
+        )
+
+        XCTAssertFalse(evaluation.isReady)
+        XCTAssertEqual(evaluation.blockingReason, .invalidURL)
+        XCTAssertTrue(evaluation.inlineGuidance.contains("http://"))
+    }
+
+    func testSharedPolicyRejectsNinetyNineWords() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: words(count: 99),
+            urlString: ""
+        )
+
+        XCTAssertEqual(evaluation.wordCount, 99)
+        XCTAssertFalse(evaluation.isReady)
+    }
+
+    func testSharedPolicyAcceptsOneHundredWords() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: words(count: 100),
+            urlString: ""
+        )
+
+        XCTAssertEqual(evaluation.wordCount, 100)
+        XCTAssertTrue(evaluation.isReady)
+        XCTAssertNotNil(evaluation.normalizedDescription)
+    }
+
+    func testInvalidPastedTextCannotCallFitAPI() async {
+        let recorder = FitCheckRequestRecorder()
+        let vm = FitCheckViewModel(fitCheckService: RecordingFitCheckService(recorder: recorder))
+        vm.resumeId = "resume-1"
+        vm.accessToken = "token-1"
+        vm.jobDescription = words(count: 99)
+
+        await vm.checkFit()
+
+        let recordedRequest = await recorder.request
+        XCTAssertNil(recordedRequest)
+        XCTAssertEqual(vm.errorMessage, "Paste at least 100 words from the job description (99 of 100 words).")
+        XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("HTTP") ?? true)
+    }
+
     // MARK: - Missing resume
 
     func testCheckFitCallsOnNeedResumeWhenResumeIdIsNil() async {
@@ -131,6 +199,29 @@ final class FitCheckViewModelTests: XCTestCase {
         XCTAssertNil(vm.result)
     }
 
+    func testCheckFitNormalizesExpectedServerValidationError() async {
+        let vm = FitCheckViewModel(
+            fitCheckService: MockFitCheckService(
+                error: APIClientError.serverError(
+                    status: 400,
+                    message: "jobDescription must contain at least 100 words"
+                )
+            )
+        )
+        vm.resumeId = "resume-1"
+        vm.accessToken = "token-1"
+        vm.jobDescription = longJD()
+
+        await vm.checkFit()
+
+        XCTAssertEqual(
+            vm.errorMessage,
+            "Check the job link or paste at least 100 words from the job description, then try again."
+        )
+        XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("HTTP") ?? true)
+        XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("server error") ?? true)
+    }
+
     // MARK: - Reset
 
     func testResetToEntryClearsResultAndError() async {
@@ -205,7 +296,11 @@ final class FitCheckViewModelTests: XCTestCase {
     // MARK: - Helpers
 
     private func longJD() -> String {
-        Array(repeating: "engineer required skills experience building distributed scalable systems", count: 8).joined(separator: " ")
+        words(count: 104)
+    }
+
+    private func words(count: Int) -> String {
+        Array(repeating: "engineer", count: count).joined(separator: " ")
     }
 }
 

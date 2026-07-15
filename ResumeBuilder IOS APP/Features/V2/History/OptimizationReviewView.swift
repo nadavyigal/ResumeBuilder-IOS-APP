@@ -17,6 +17,8 @@ final class OptimizationReviewViewModel {
 
     private let api: APIClient
     private let applyTimeout: TimeInterval = 120
+    private var viewedGroupIds: Set<String> = []
+    private var blockedGroupIds: Set<String> = []
 
     init(reviewId: String, api: APIClient = RuntimeServices.sharedAPIClient) {
         self.reviewId = reviewId
@@ -26,6 +28,25 @@ final class OptimizationReviewViewModel {
     var isAlreadyApplied: Bool {
         guard let applied = envelope?.review.appliedAt else { return false }
         return !applied.isEmpty
+    }
+
+    var scoreAssessment: RecommendationSafetyPolicy.ScoreAssessment {
+        RecommendationSafetyPolicy.assessScore(
+            before: envelope?.review.atsPreview?.before,
+            after: envelope?.review.atsPreview?.after
+        )
+    }
+
+    var selectableGroupCount: Int {
+        envelope?.review.groupedChanges.filter { assessment(for: $0).canSelect }.count ?? 0
+    }
+
+    func assessment(for group: ReviewChangeGroupDTO) -> RecommendationSafetyPolicy.Assessment {
+        RecommendationSafetyPolicy.assess(
+            before: group.beforeExcerpt,
+            after: group.afterExcerpt,
+            context: [group.section, group.title, group.summary].joined(separator: "\n")
+        )
     }
 
     func load(token: String?) async {
@@ -57,10 +78,33 @@ final class OptimizationReviewViewModel {
     }
 
     func toggleInclude(groupId: String) {
+        guard let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
+        let safety = assessment(for: group)
+        guard safety.canSelect else { return }
         if includedGroupIds.contains(groupId) {
             includedGroupIds.remove(groupId)
+            AnalyticsService.shared.track(
+                .recommendationSkipped(surface: "optimization_review", safetyState: safety.analyticsState)
+            )
         } else {
             includedGroupIds.insert(groupId)
+            AnalyticsService.shared.track(
+                .recommendationIncluded(surface: "optimization_review", safetyState: safety.analyticsState)
+            )
+        }
+    }
+
+    func markViewed(groupId: String) {
+        guard viewedGroupIds.insert(groupId).inserted,
+              let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
+        let safety = assessment(for: group)
+        AnalyticsService.shared.track(
+            .recommendationViewed(surface: "optimization_review", safetyState: safety.analyticsState)
+        )
+        if safety.isSuppressed, blockedGroupIds.insert(groupId).inserted {
+            AnalyticsService.shared.track(
+                .recommendationBlocked(surface: "optimization_review", reason: safety.analyticsReason)
+            )
         }
     }
 
@@ -130,7 +174,7 @@ final class OptimizationReviewViewModel {
             token: token
         )
         envelope = data
-        includedGroupIds = Set(data.review.groupedChanges.map(\.id))
+        initializeSelections(for: data)
     }
 
     private func apply(with token: String) async throws {
@@ -173,7 +217,7 @@ final class OptimizationReviewViewModel {
         }
 
         envelope = data
-        includedGroupIds = Set(data.review.groupedChanges.map(\.id))
+        initializeSelections(for: data)
 
         if let optimizationId = data.review.optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
            !optimizationId.isEmpty {
@@ -199,9 +243,68 @@ final class OptimizationReviewViewModel {
         return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorTimedOut
     }
 
+    private func initializeSelections(for data: OptimizationReviewEnvelope) {
+        let nonPositive = RecommendationSafetyPolicy.assessScore(
+            before: data.review.atsPreview?.before,
+            after: data.review.atsPreview?.after
+        ).isNonPositive
+        includedGroupIds = Set(data.review.groupedChanges.compactMap { group in
+            assessment(for: group).defaultIncluded(reviewHasNonPositiveDelta: nonPositive) ? group.id : nil
+        })
+        viewedGroupIds.removeAll()
+        blockedGroupIds.removeAll()
+    }
+
     private static func isAlreadyApplied(_ error: Error) -> Bool {
         guard case .serverError(_, let message) = error as? APIClientError else { return false }
         return message.lowercased().contains("already") && message.lowercased().contains("applied")
+    }
+}
+
+/// Keeps a review fetch alive when SwiftUI refreshes the presenting screen.
+/// Navigation destinations are value views, so constructing a model inline there
+/// can replace the instance that just received the review response.
+@Observable
+@MainActor
+final class OptimizationReviewDestinationState {
+    private(set) var reviewId: String
+    private(set) var viewModel: OptimizationReviewViewModel
+
+    init(reviewId: String) {
+        self.reviewId = reviewId
+        self.viewModel = OptimizationReviewViewModel(reviewId: reviewId)
+    }
+
+    func activate(reviewId: String) {
+        guard self.reviewId != reviewId else { return }
+        self.reviewId = reviewId
+        viewModel = OptimizationReviewViewModel(reviewId: reviewId)
+    }
+}
+
+/// Stable owner for an optimization-review model used from navigation destinations.
+struct OptimizationReviewDestination: View {
+    let reviewId: String
+    let onAppliedOptimization: ((String) -> Void)?
+    @State private var state: OptimizationReviewDestinationState
+
+    init(
+        reviewId: String,
+        onAppliedOptimization: ((String) -> Void)? = nil
+    ) {
+        self.reviewId = reviewId
+        self.onAppliedOptimization = onAppliedOptimization
+        _state = State(initialValue: OptimizationReviewDestinationState(reviewId: reviewId))
+    }
+
+    var body: some View {
+        OptimizationReviewView(
+            viewModel: state.viewModel,
+            onAppliedOptimization: onAppliedOptimization
+        )
+        .onChange(of: reviewId) { _, newReviewId in
+            state.activate(reviewId: newReviewId)
+        }
     }
 }
 
@@ -212,6 +315,7 @@ struct OptimizationReviewView: View {
     var onAppliedOptimization: ((String) -> Void)? = nil
 
     @State private var navigateToDetail = false
+    @State private var handledAppliedOptimizationId: String?
 
     var body: some View {
         ScrollView {
@@ -228,12 +332,17 @@ struct OptimizationReviewView: View {
                     if viewModel.serverRequiresMigration {
                         migrationBanner
                     }
+                    if viewModel.scoreAssessment.isNonPositive {
+                        nonImprovingScoreBanner
+                    }
                     ForEach(env.review.groupedChanges) { group in
                         ReviewChangeCard(
                             group: group,
+                            safety: viewModel.assessment(for: group),
                             isIncluded: viewModel.includedGroupIds.contains(group.id),
                             isLocked: viewModel.isAlreadyApplied,
-                            onToggle: { viewModel.toggleInclude(groupId: group.id) }
+                            onToggle: { viewModel.toggleInclude(groupId: group.id) },
+                            onViewed: { viewModel.markViewed(groupId: group.id) }
                         )
                     }
                 }
@@ -254,11 +363,11 @@ struct OptimizationReviewView: View {
         .navigationTitle("Optimization Review")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            if let env = viewModel.envelope, !viewModel.isAlreadyApplied,
+            if viewModel.envelope != nil, !viewModel.isAlreadyApplied,
                viewModel.applySuccessOptimizationId == nil {
                 VStack(spacing: AppSpacing.sm) {
                     Text(
-                        "\(viewModel.includedGroupIds.count) of \(env.review.groupedChanges.count) changes selected"
+                        "\(viewModel.includedGroupIds.count) of \(viewModel.selectableGroupCount) available changes selected"
                     )
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
@@ -272,7 +381,11 @@ struct OptimizationReviewView: View {
                             await viewModel.apply(appState: appState)
                         }
                     }
-                    .disabled(viewModel.serverRequiresMigration || viewModel.isSubmitting)
+                    .disabled(
+                        viewModel.serverRequiresMigration
+                        || viewModel.isSubmitting
+                        || viewModel.includedGroupIds.isEmpty
+                    )
                 }
                 .padding(AppSpacing.lg)
                 .background(.ultraThinMaterial.opacity(0.9))
@@ -296,16 +409,26 @@ struct OptimizationReviewView: View {
             }
         }
         .onChange(of: viewModel.applySuccessOptimizationId) { _, newId in
-            if let newId {
-                appState.latestOptimizationId = newId
-                onAppliedOptimization?(newId)
-                if onAppliedOptimization == nil {
-                    navigateToDetail = true
-                }
-            }
+            handleAppliedOptimization(newId)
         }
         .task {
             await viewModel.load(appState: appState)
+        }
+    }
+
+    private func handleAppliedOptimization(_ candidate: String?) {
+        guard let optimizationId = candidate?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !optimizationId.isEmpty,
+              handledAppliedOptimizationId != optimizationId else {
+            return
+        }
+
+        handledAppliedOptimizationId = optimizationId
+        appState.latestOptimizationId = optimizationId
+        if let onAppliedOptimization {
+            onAppliedOptimization(optimizationId)
+        } else {
+            navigateToDetail = true
         }
     }
 
@@ -361,6 +484,18 @@ struct OptimizationReviewView: View {
             .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: AppRadii.md))
     }
 
+    private var nonImprovingScoreBanner: some View {
+        Label(
+            "The projected score does not improve. No changes are selected by default—review each suggestion and include only changes you trust.",
+            systemImage: "exclamationmark.shield.fill"
+        )
+        .font(.appCaption)
+        .foregroundStyle(.orange)
+        .padding(AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: AppRadii.md))
+    }
+
     private func percentLabel(_ value: Double) -> String {
         let p = value <= 1 ? value * 100 : value
         return "\(Int(p.rounded()))%"
@@ -369,33 +504,49 @@ struct OptimizationReviewView: View {
 
 private struct ReviewChangeCard: View {
     let group: ReviewChangeGroupDTO
+    let safety: RecommendationSafetyPolicy.Assessment
     let isIncluded: Bool
     let isLocked: Bool
     let onToggle: () -> Void
+    let onViewed: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text(group.section.uppercased())
+                Text(safety.isSuppressed ? "SAFETY CHECK" : group.section.uppercased())
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textTertiary)
                 Spacer()
                 if !isLocked {
-                    Button(isIncluded ? "Skip" : "Include") {
+                    Button(buttonTitle) {
                         onToggle()
                     }
                     .font(.appCaption)
                     .foregroundStyle(AppColors.gradientMid)
+                    .disabled(!safety.canSelect)
                 }
             }
 
-            Text(group.title)
-                .font(.appSubheadline)
-                .foregroundStyle(AppColors.textPrimary)
+            if safety.isSuppressed {
+                Text("Suggestion hidden for safety")
+                    .font(.appSubheadline)
+                    .foregroundStyle(AppColors.textPrimary)
+            } else {
+                Text(group.title)
+                    .font(.appSubheadline)
+                    .foregroundStyle(AppColors.textPrimary)
 
-            Text(group.summary)
-                .font(.appCaption)
-                .foregroundStyle(AppColors.textSecondary)
+                Text(group.summary)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            if let warning = safety.primaryReason?.userMessage {
+                Label(warning, systemImage: "exclamationmark.shield.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Before")
@@ -406,18 +557,30 @@ private struct ReviewChangeCard: View {
                     .foregroundStyle(.red.opacity(0.9))
                     .strikethrough(true, color: .red.opacity(0.45))
 
-                Text("After")
-                    .font(.appCaption)
-                    .foregroundStyle(AppColors.textTertiary)
-                    .padding(.top, AppSpacing.xs)
-                Text(group.afterExcerpt)
-                    .font(.appBody)
-                    .foregroundStyle(AppColors.accentTeal)
+                if !safety.isSuppressed {
+                    Text("After")
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textTertiary)
+                        .padding(.top, AppSpacing.xs)
+                    Text(group.afterExcerpt)
+                        .font(.appBody)
+                        .foregroundStyle(AppColors.accentTeal)
+                }
             }
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
-        .opacity(isIncluded ? 1 : 0.55)
+        .opacity(isIncluded || safety.isSuppressed ? 1 : 0.68)
+        .onAppear(perform: onViewed)
+    }
+
+    private var buttonTitle: String {
+        if !safety.canSelect { return NSLocalizedString("Blocked", comment: "Unsafe recommendation") }
+        if isIncluded { return NSLocalizedString("Skip", comment: "Exclude recommendation") }
+        if safety.requiresExplicitConfirmation {
+            return NSLocalizedString("Confirm & include", comment: "Explicitly include factual recommendation")
+        }
+        return NSLocalizedString("Include", comment: "Include recommendation")
     }
 }
 

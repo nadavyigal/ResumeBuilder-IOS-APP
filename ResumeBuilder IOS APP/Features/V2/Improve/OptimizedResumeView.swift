@@ -29,6 +29,8 @@ struct OptimizedResumeView: View {
     @State private var showExportSuccess = false
     @State private var didTrackOptimizedViewed = false
     @State private var didTrackExportCTASeen = false
+    @State private var didTrackPreviewRendered = false
+    @State private var didTrackSavePromptViewed = false
 
     // Target-reached celebration + save-account handoff (fires on a real
     // ATS score crossing the target band, never a fabricated value).
@@ -55,25 +57,18 @@ struct OptimizedResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
-                if shouldShowATSInsightPanel {
-                    atsInsightPanel
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                if shouldShowDiagnosisPanels {
-                    diagnosisSnapshotPanel
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                // Improve actions — above the resume so they are easy to reach
-                if viewModel.optimizationIdentifier != nil {
-                    improveActionsRow
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
-                }
-
-                // Inline resume preview — the main content
+                // The resume is the primary deliverable. Keep it ahead of the
+                // supporting ATS/diagnosis panels so opening this tab never looks
+                // like the optimized document is missing on a phone-sized screen.
                 if let optId = viewModel.optimizationIdentifier {
+                    if viewModel.hasVisibleAppliedChanges {
+                        Label("Applied changes are ready to preview", systemImage: "checkmark.seal.fill")
+                            .font(.appSubheadline.weight(.semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, AppSpacing.lg)
+                    }
+
                     ResumePreviewWebView(
                         optimizationId: optId,
                         sections: viewModel.sections,
@@ -86,10 +81,31 @@ struct OptimizedResumeView: View {
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
                     .padding(.horizontal, AppSpacing.lg)
+                    .accessibilityIdentifier("optimized-resume-preview")
+
+                    savedResumePanel
+                        .padding(.horizontal, AppSpacing.lg)
                 } else if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
                         .padding(.top, AppSpacing.xl)
+                }
+
+                if shouldShowATSInsightPanel {
+                    atsInsightPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
+                if shouldShowDiagnosisPanels {
+                    diagnosisSnapshotPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
+                // Improvement tools follow the primary preview and supporting evidence.
+                if viewModel.optimizationIdentifier != nil {
+                    improveActionsRow
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
                 }
 
                 if viewModel.optimizationIdentifier != nil {
@@ -122,6 +138,7 @@ struct OptimizedResumeView: View {
             async let assignmentLoad: Void = currentDesignVM?.loadCurrentAssignment(token: appState.session?.accessToken) ?? ()
             await sectionLoad
             await assignmentLoad
+            viewModel.restoreSavedResumeState(appState: appState)
         }
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {
@@ -134,12 +151,20 @@ struct OptimizedResumeView: View {
             pdfTempURL = nil
             showPDFShare = false
             showExportSuccess = appState.isExportComplete(for: newId)
+            viewModel.restoreSavedResumeState(appState: appState)
             if let newId {
                 designVM = DesignViewModel(optimizationId: newId)
                 Task { await designVM?.loadCurrentAssignment(token: appState.session?.accessToken) }
             } else {
                 designVM = nil
             }
+        }
+        .onChange(of: renderedPreviewHTML) { _, html in
+            guard !didTrackPreviewRendered,
+                  html?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+                  viewModel.hasVisibleAppliedChanges else { return }
+            AnalyticsService.shared.track(.optimizedPreviewRendered)
+            didTrackPreviewRendered = true
         }
         .onChange(of: viewModel.atsScoreAfter) { oldValue, newValue in
             // A nil oldValue means this is the initial load (including viewing an
@@ -706,6 +731,55 @@ struct OptimizedResumeView: View {
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.8))
+    }
+
+    private var savedResumePanel: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            switch viewModel.savedResumeState {
+            case .idle:
+                Text("Keep this optimized resume in Saved Resumes so you can reuse it later.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+                Button {
+                    Task { await viewModel.saveOptimizedResume(appState: appState) }
+                } label: {
+                    Label("Save to My Resumes", systemImage: "bookmark.fill")
+                        .font(.appSubheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .glassCard(cornerRadius: AppRadii.md)
+                }
+                .buttonStyle(GradientButtonStyle())
+                .disabled(!viewModel.hasVisibleAppliedChanges)
+            case .saving:
+                HStack(spacing: AppSpacing.sm) {
+                    ProgressView().tint(AppColors.accentViolet)
+                    Text("Saving resume…")
+                        .font(.appSubheadline.weight(.semibold))
+                }
+            case .saved(let resume):
+                Label(resume.displayName ?? resume.filename, systemImage: "checkmark.circle.fill")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+                Text("Saved in My Resumes")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+            case .failed(let message):
+                Text(message)
+                    .font(.appCaption)
+                    .foregroundStyle(.red)
+                Button("Try Save Again") {
+                    Task { await viewModel.saveOptimizedResume(appState: appState) }
+                }
+                .font(.appSubheadline.weight(.semibold))
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+        .onAppear {
+            guard !didTrackSavePromptViewed else { return }
+            AnalyticsService.shared.track(.savedResumePromptViewed)
+            didTrackSavePromptViewed = true
+        }
     }
 
     private var improveActionsRow: some View {
