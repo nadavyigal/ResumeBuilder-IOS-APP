@@ -183,6 +183,13 @@ struct FitVerdictView: View {
                 viewModel.optimizeForThisJob()
             }
 
+            // The target stays changeable right up to the moment of optimizing.
+            Button(NSLocalizedString("Edit target job", comment: "")) {
+                viewModel.editTarget()
+            }
+            .font(.appBody)
+            .foregroundStyle(AppColors.accentSky)
+
             Button(NSLocalizedString("Skip — Browse Other Jobs", comment: "")) {
                 viewModel.skip()
             }

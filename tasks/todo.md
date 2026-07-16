@@ -1,3 +1,22 @@
+# Story 8: Merge Fit into the diagnosis continuation (Release B, 2026-07-16)
+
+Decision: a job the user already entered on Home is not a question to ask again. Fit runs on the carried target directly; the target stays editable right up to the moment of optimizing.
+
+## Implementation plan
+
+- [x] Write focused red-to-green coverage first (11 tests); red state observed by removing the implementation and rebuilding.
+- [x] Add `FitContinuation` — a `nonisolated Sendable` policy resolving runAutomatically / askForJob / editTarget / showVerdict / showFailure, with editing taking precedence.
+- [x] `FitCheckViewModel`: `beginCarriedFitCheck()` (guarded, runs once), `editTarget()`, `applyEditedTarget()`; `resetToEntry()` clears the new guards.
+- [x] `FitCheckView`: drive presentation from `continuationStep`; auto-run via `.task`; add an in-place failure state instead of falling back to the entry form.
+- [x] `FitVerdictView`: add "Edit target job" so the target is changeable before optimization.
+- [x] Verify: 11 focused tests, full suite 172/1 skip/0 failures, Debug + generic-device Release builds (both succeeded), iPhone 17 + SE smokes.
+
+## Remaining manual acceptance
+
+- [ ] Drive the real authenticated Home → Fit continuation with a live résumé, job, and credentials, and confirm no second Check Fit form appears. Simulator tooling cannot supply these.
+
+---
+
 # Story 7: Preserve guest context through authentication (Release B, 2026-07-16)
 
 Decision: a diagnosis describes the résumé and job it was computed from, not the auth state. Signing in changes neither, so the diagnosis survives; changing an input invalidates the diagnosis alone, never the user's own selections.
