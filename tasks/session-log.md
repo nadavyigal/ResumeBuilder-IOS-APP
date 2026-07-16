@@ -16,6 +16,14 @@
 ## Sessions
 
 **Date:** 2026-07-16
+**Task:** Resume WP-46 Story 9 from the handoff; complete builds, dual-simulator smokes, final inspection, and open the review PR.
+**Files Changed:** `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md` for closeout evidence; implementation/test files were unchanged from handoff commit `f72927a`.
+**Decisions Made:** Kept validation on iOS 26.5 only; treated the iPhone SE's first black capture as unproven and required a clean relaunch/longer wait before counting it; excluded one manually interrupted Release run from evidence and accepted only the subsequent explicit `BUILD SUCCEEDED`; opened PR #104 as draft for the review gate.
+**Validation:** Existing handoff evidence retained: focused 16/16, focused evidence + analytics + safety 35/35, full suite 188 tests / 1 intentional skip / 0 failures. This continuation: Debug simulator build passed; iPhone 17 + SE install/launch/render smokes passed; generic-device Release build with `CODE_SIGNING_ALLOWED=NO` passed; final tree inspection found no unrelated/version/secret/credential/content-analytics changes; `git diff --check` passed.
+**Review Gate:** CodeRabbit reviewed all 10 remote Story 9 files, returned no actionable comments, and passed 5/5 pre-merge checks. PR #104 was marked ready; it was not merged.
+**Next Recommended Action:** Merge PR #104 when approved. Before Story 10, reconcile local-only `codex/wp45-s0-measurement-contract` (`d53d091`).
+
+**Date:** 2026-07-16
 **Task:** WP-46 continued — founder approved the evidence contract (alternative B); Story 9 implemented test-first; session stopped by founder mid-validation.
 **Files Changed:** `Features/V2/History/RecommendationEvidence.swift` (new), `Core/API/Models/DomainModels.swift`, `Features/V2/History/OptimizationReviewView.swift`, `Core/Analytics/AnalyticsService.swift`, `ResumeBuilder IOS APPTests/RecommendationEvidenceTests.swift` (new), `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`, `project.pbxproj` (test entries), `docs/specs/drafts/recommendation-evidence-backend-contract.md` (approval recorded, merged via PR #103), `tasks/progress.md`, `tasks/session-log.md`.
 **Decisions Made:** Contract delivery = alternative B: v1 deterministic on-device extraction from text the review endpoint already returns; backend §2 schema kept as the v2 upgrade path the client already prefers when present. Include button renamed Accept per the story. Evidence analytics carry counts and fixed states only, never quote content. Evidence never changes selection defaults or the Story 5 safety policy.
