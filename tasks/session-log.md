@@ -15,6 +15,13 @@
 
 ## Sessions
 
+**Date:** 2026-07-16
+**Task:** WP-46 — integrate Stories 7-8 into `main` and execute the Story 9 backend-contract gate.
+**Files Changed:** `docs/specs/drafts/recommendation-evidence-backend-contract.md` (new), `tasks/progress.md`, `tasks/session-log.md`. GitHub-side: merged PRs #98, #99 (conflict resolved as union), #101, #102; closed #93; retargeted #101/#102 to `main` after base-branch deletion closed #102 mid-chain.
+**Decisions Made:** Merge order #98 → #99 → #101 → #102 per the prior session's reconciliation; #98's live-status entry is authoritative in the `progress.md` union. The Story 9 contract did not exist anywhere (iOS repo, web repo, DECISIONS.md carries only the requirement), so per WP-46 Start Gate 4 the contract was authored as PROPOSED — additive per-group `evidence` in `grouped_changes_json`, verbatim-substring quotes, no migration, Story 5 `RecommendationSafetyPolicy` as the unchanged no-evidence fallback — and the session STOPPED for founder approval before any Story 9 code.
+**Validation:** docs-only; `git diff --check` clean; `main` version state verified 1.4.2 (12) after all four merges.
+**Next Recommended Action:** Founder reviews the approval checklist in `docs/specs/drafts/recommendation-evidence-backend-contract.md`. On approval: implement Story 9 per WP-46, then Stories 10-13 sequentially toward 1.5.0.
+
 **Date:** 2026-07-14
 **Task:** Fix physical-device Optimization Review blank screen after a successful review fetch.
 **Files Changed:** `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `Features/V2/Improve/ImproveView.swift`, `Features/V2/History/HistoryView.swift`, `Features/V2/History/OptimizationReviewView.swift`, `ResumeOptimizationParsingTests.swift`, and task memory.
