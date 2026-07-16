@@ -103,27 +103,31 @@ struct HomeTabView: View {
                                 errorBanner(error)
                             }
 
-                            if let atsResult = viewModel.atsResult, !appState.isAuthenticated {
-                                ScoreResultView(result: atsResult, isAuthenticated: false)
+                            // The diagnosis outlives sign-in: it describes the résumé and
+                            // job on screen, and authenticating changes neither.
+                            if let atsResult = viewModel.atsResult {
+                                ScoreResultView(result: atsResult, isAuthenticated: appState.isAuthenticated)
                                     .transition(.scale(scale: 0.95).combined(with: .opacity))
 
-                                privacyReassurance
+                                if !appState.isAuthenticated {
+                                    privacyReassurance
 
-                                Button {
-                                    showOnboarding = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "person.crop.circle.badge.plus")
-                                            .font(.system(size: 14, weight: .semibold))
-                                        Text("Sign in to Optimize")
-                                            .fontWeight(.bold)
+                                    Button {
+                                        showOnboarding = true
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "person.crop.circle.badge.plus")
+                                                .font(.system(size: 14, weight: .semibold))
+                                            Text("Sign in to Optimize")
+                                                .fontWeight(.bold)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 50)
+                                        .foregroundStyle(.white)
+                                        .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .foregroundStyle(.white)
-                                    .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -159,6 +163,10 @@ struct HomeTabView: View {
                 if isAuthenticated {
                     showOnboarding = false
                 }
+                // Authentication does not touch the résumé or job, so this keeps the
+                // guest diagnosis on both sign-in and cancellation. Optimization is
+                // never started here — the user chooses the next step.
+                viewModel.invalidateGuestDiagnosisIfInputsChanged()
             }
             .sheet(isPresented: $showLibraryPicker) {
                 SavedResumePickerSheet(
@@ -205,8 +213,17 @@ struct HomeTabView: View {
                     appState.hasUploadedResumeThisSession = true
                 }
             }
-            .onChange(of: viewModel.jobDescription) { _, _ in trackJobAddedIfNeeded() }
-            .onChange(of: viewModel.jobDescriptionURL) { _, _ in trackJobAddedIfNeeded() }
+            .onChange(of: viewModel.jobDescription) { _, _ in
+                trackJobAddedIfNeeded()
+                viewModel.invalidateGuestDiagnosisIfInputsChanged()
+            }
+            .onChange(of: viewModel.jobDescriptionURL) { _, _ in
+                trackJobAddedIfNeeded()
+                viewModel.invalidateGuestDiagnosisIfInputsChanged()
+            }
+            .onChange(of: viewModel.selectedResumeURL) { _, _ in
+                viewModel.invalidateGuestDiagnosisIfInputsChanged()
+            }
             .fileImporter(
                 isPresented: $isImporterPresented,
                 allowedContentTypes: Self.resumeImportContentTypes,
@@ -866,6 +883,32 @@ struct HomeTabView: View {
         .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
+    /// True once a signed-in user still has the diagnosis they ran as a guest —
+    /// the step in front of them is continuing from it, not producing it again.
+    private var isContinuingFromGuestDiagnosis: Bool {
+        appState.isAuthenticated && viewModel.postAuthStep == .continueToOptimize
+    }
+
+    private var optimizeCardTitle: LocalizedStringKey {
+        if isContinuingFromGuestDiagnosis { return "Optimize" }
+        return appState.isAuthenticated ? "Analyze" : "Free ATS Check"
+    }
+
+    private var optimizeCardSubtitle: LocalizedStringKey {
+        if isContinuingFromGuestDiagnosis { return "Continue from the diagnosis you already ran" }
+        return appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your score before signing in"
+    }
+
+    private var optimizeCardActionTitle: LocalizedStringKey {
+        if isContinuingFromGuestDiagnosis { return "Continue to optimize" }
+        return appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check"
+    }
+
+    private var optimizeCardIcon: String {
+        if isContinuingFromGuestDiagnosis { return "arrow.forward.circle.fill" }
+        return appState.isAuthenticated ? "wand.and.stars" : "gauge.medium"
+    }
+
     private var optimizeCard: some View {
         let canOptimize = viewModel.selectedResumeName?.isEmpty == false && hasJobInput
         return VStack(spacing: 0) {
@@ -879,10 +922,10 @@ struct HomeTabView: View {
                         .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
                 }
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(appState.isAuthenticated ? "Analyze" : "Free ATS Check")
+                    Text(optimizeCardTitle)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.textPrimary)
-                    Text(appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your score before signing in")
+                    Text(optimizeCardSubtitle)
                         .font(.caption)
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -901,8 +944,8 @@ struct HomeTabView: View {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
-                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check")
+                            Image(systemName: optimizeCardIcon)
+                            Text(optimizeCardActionTitle)
                                 .fontWeight(.bold)
                         }
                     }
