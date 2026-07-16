@@ -16,6 +16,13 @@
 ## Sessions
 
 **Date:** 2026-07-16
+**Task:** WP-46 continued — founder approved the evidence contract (alternative B); Story 9 implemented test-first; session stopped by founder mid-validation.
+**Files Changed:** `Features/V2/History/RecommendationEvidence.swift` (new), `Core/API/Models/DomainModels.swift`, `Features/V2/History/OptimizationReviewView.swift`, `Core/Analytics/AnalyticsService.swift`, `ResumeBuilder IOS APPTests/RecommendationEvidenceTests.swift` (new), `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`, `project.pbxproj` (test entries), `docs/specs/drafts/recommendation-evidence-backend-contract.md` (approval recorded, merged via PR #103), `tasks/progress.md`, `tasks/session-log.md`.
+**Decisions Made:** Contract delivery = alternative B: v1 deterministic on-device extraction from text the review endpoint already returns; backend §2 schema kept as the v2 upgrade path the client already prefers when present. Include button renamed Accept per the story. Evidence analytics carry counts and fixed states only, never quote content. Evidence never changes selection defaults or the Story 5 safety policy.
+**Validation:** Red state observed; focused 16/16; full suite 188 tests / 1 intentional skip / 0 failures on iPhone 17 iOS 26.5. NOT yet run: Debug build, Release build, dual-simulator smokes, final diff inspection, PR. Environment lesson: the iOS 26.3.1 simulator runtime crashes the XCTest host (malloc double-free) on clean `main` too — validate on iOS 26.5.
+**Next Recommended Action:** Resume the "STORY 9 HANDOFF" checklist in `tasks/progress.md` from step 1 (Debug build). Branch `claude/release-b-story-9` is pushed; work from it, do not rebuild the implementation.
+
+**Date:** 2026-07-16
 **Task:** WP-46 — integrate Stories 7-8 into `main` and execute the Story 9 backend-contract gate.
 **Files Changed:** `docs/specs/drafts/recommendation-evidence-backend-contract.md` (new), `tasks/progress.md`, `tasks/session-log.md`. GitHub-side: merged PRs #98, #99 (conflict resolved as union), #101, #102; closed #93; retargeted #101/#102 to `main` after base-branch deletion closed #102 mid-chain.
 **Decisions Made:** Merge order #98 → #99 → #101 → #102 per the prior session's reconciliation; #98's live-status entry is authoritative in the `progress.md` union. The Story 9 contract did not exist anywhere (iOS repo, web repo, DECISIONS.md carries only the requirement), so per WP-46 Start Gate 4 the contract was authored as PROPOSED — additive per-group `evidence` in `grouped_changes_json`, verbatim-substring quotes, no migration, Story 5 `RecommendationSafetyPolicy` as the unchanged no-evidence fallback — and the session STOPPED for founder approval before any Story 9 code.

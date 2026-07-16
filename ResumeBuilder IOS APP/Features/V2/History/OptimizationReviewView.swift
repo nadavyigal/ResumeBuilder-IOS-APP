@@ -19,6 +19,9 @@ final class OptimizationReviewViewModel {
     private let applyTimeout: TimeInterval = 120
     private var viewedGroupIds: Set<String> = []
     private var blockedGroupIds: Set<String> = []
+    /// Story 9: evidence resolved once per load — quotes are verbatim substrings
+    /// of the delivered résumé/job text, never fabricated (see contract doc).
+    private var evidenceByGroupId: [String: RecommendationEvidence] = [:]
 
     init(reviewId: String, api: APIClient = RuntimeServices.sharedAPIClient) {
         self.reviewId = reviewId
@@ -47,6 +50,10 @@ final class OptimizationReviewViewModel {
             after: group.afterExcerpt,
             context: [group.section, group.title, group.summary].joined(separator: "\n")
         )
+    }
+
+    func evidence(for group: ReviewChangeGroupDTO) -> RecommendationEvidence {
+        evidenceByGroupId[group.id] ?? .empty
     }
 
     func load(token: String?) async {
@@ -81,15 +88,24 @@ final class OptimizationReviewViewModel {
         guard let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
         let safety = assessment(for: group)
         guard safety.canSelect else { return }
+        let evidenceState = evidence(for: group).isEmpty ? "without_evidence" : "with_evidence"
         if includedGroupIds.contains(groupId) {
             includedGroupIds.remove(groupId)
             AnalyticsService.shared.track(
-                .recommendationSkipped(surface: "optimization_review", safetyState: safety.analyticsState)
+                .recommendationSkipped(
+                    surface: "optimization_review",
+                    safetyState: safety.analyticsState,
+                    evidenceState: evidenceState
+                )
             )
         } else {
             includedGroupIds.insert(groupId)
             AnalyticsService.shared.track(
-                .recommendationIncluded(surface: "optimization_review", safetyState: safety.analyticsState)
+                .recommendationIncluded(
+                    surface: "optimization_review",
+                    safetyState: safety.analyticsState,
+                    evidenceState: evidenceState
+                )
             )
         }
     }
@@ -101,6 +117,16 @@ final class OptimizationReviewViewModel {
         AnalyticsService.shared.track(
             .recommendationViewed(surface: "optimization_review", safetyState: safety.analyticsState)
         )
+        let groupEvidence = evidence(for: group)
+        if !groupEvidence.isEmpty, !safety.isSuppressed {
+            AnalyticsService.shared.track(
+                .recommendationEvidenceShown(
+                    surface: "optimization_review",
+                    jobQuoteCount: groupEvidence.jobQuotes.count,
+                    resumeQuoteCount: groupEvidence.resumeQuotes.count
+                )
+            )
+        }
         if safety.isSuppressed, blockedGroupIds.insert(groupId).inserted {
             AnalyticsService.shared.track(
                 .recommendationBlocked(surface: "optimization_review", reason: safety.analyticsReason)
@@ -253,6 +279,28 @@ final class OptimizationReviewViewModel {
         })
         viewedGroupIds.removeAll()
         blockedGroupIds.removeAll()
+        resolveEvidence(for: data)
+    }
+
+    /// Evidence never affects selection defaults or the safety policy — it only
+    /// informs the user (contract §5: evidence never auto-approves).
+    private func resolveEvidence(for data: OptimizationReviewEnvelope) {
+        let jobText = data.jobDescription.flatMap { $0.cleanText ?? $0.rawText }
+        let resumeText = data.resume?.rawText
+        evidenceByGroupId = Dictionary(
+            data.review.groupedChanges.map { group in
+                (
+                    group.id,
+                    RecommendationEvidence.resolve(
+                        backend: group.evidence,
+                        afterExcerpt: group.afterExcerpt,
+                        jobText: jobText,
+                        resumeText: resumeText
+                    )
+                )
+            },
+            uniquingKeysWith: { first, _ in first }
+        )
     }
 
     private static func isAlreadyApplied(_ error: Error) -> Bool {
@@ -339,6 +387,7 @@ struct OptimizationReviewView: View {
                         ReviewChangeCard(
                             group: group,
                             safety: viewModel.assessment(for: group),
+                            evidence: viewModel.evidence(for: group),
                             isIncluded: viewModel.includedGroupIds.contains(group.id),
                             isLocked: viewModel.isAlreadyApplied,
                             onToggle: { viewModel.toggleInclude(groupId: group.id) },
@@ -505,6 +554,7 @@ struct OptimizationReviewView: View {
 private struct ReviewChangeCard: View {
     let group: ReviewChangeGroupDTO
     let safety: RecommendationSafetyPolicy.Assessment
+    let evidence: RecommendationEvidence
     let isIncluded: Bool
     let isLocked: Bool
     let onToggle: () -> Void
@@ -567,11 +617,50 @@ private struct ReviewChangeCard: View {
                         .foregroundStyle(AppColors.accentTeal)
                 }
             }
+
+            if !safety.isSuppressed, !evidence.isEmpty {
+                evidenceSection
+            }
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
         .opacity(isIncluded || safety.isSuppressed ? 1 : 0.68)
         .onAppear(perform: onViewed)
+    }
+
+    /// Read-only by design: quotes are verbatim excerpts of the user's own
+    /// résumé and target job. Nothing here is editable or submittable — the
+    /// apply contract only ever receives group IDs.
+    private var evidenceSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("Why this change")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .padding(.top, AppSpacing.xs)
+
+            ForEach(evidence.jobQuotes, id: \.self) { quote in
+                evidenceQuote(quote, label: NSLocalizedString("From the job post", comment: "Evidence quote source"))
+            }
+            ForEach(evidence.resumeQuotes, id: \.self) { quote in
+                evidenceQuote(quote, label: NSLocalizedString("From your resume", comment: "Evidence quote source"))
+            }
+        }
+    }
+
+    private func evidenceQuote(_ quote: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+            Text("\u{201C}\(quote)\u{201D}")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(AppSpacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.accentTeal.opacity(0.08), in: RoundedRectangle(cornerRadius: AppRadii.md))
+        .accessibilityElement(children: .combine)
     }
 
     private var buttonTitle: String {
@@ -580,7 +669,7 @@ private struct ReviewChangeCard: View {
         if safety.requiresExplicitConfirmation {
             return NSLocalizedString("Confirm & include", comment: "Explicitly include factual recommendation")
         }
-        return NSLocalizedString("Include", comment: "Include recommendation")
+        return NSLocalizedString("Accept", comment: "Accept recommendation")
     }
 }
 
