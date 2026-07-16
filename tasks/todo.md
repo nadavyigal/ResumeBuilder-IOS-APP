@@ -1,3 +1,28 @@
+# Story 7: Preserve guest context through authentication (Release B, 2026-07-16)
+
+Decision: a diagnosis describes the résumé and job it was computed from, not the auth state. Signing in changes neither, so the diagnosis survives; changing an input invalidates the diagnosis alone, never the user's own selections.
+
+## Implementation plan
+
+- [x] Confirm the Release B branch point: #97 is the Release A merge point, so Release B branches from `main`.
+- [x] Write focused red-to-green coverage first: 11 policy tests + 4 view-model tests.
+- [x] Add `GuestDiagnosisContinuity` — pure fingerprint of (résumé path + normalized job input), carrying no résumé or job content.
+- [x] Pair `atsResult` with its fingerprint in `TailorViewModel`; make `atsResult` `private(set)` so the two cannot drift.
+- [x] Stop Home gating the diagnosis on `!isAuthenticated`; re-check continuity on every auth transition and input edit.
+- [x] Relabel the optimize CTA to "Continue to optimize" when a carried diagnosis stands; never auto-start optimization.
+- [x] Verify: 15 focused tests, full suite 161/1 skip/0 failures, Debug + generic Release builds, iPhone 17 + SE smokes.
+
+## Remaining manual acceptance
+
+- [ ] Drive the real guest → ATS → sign-in → continue path with a live résumé, job, and credentials. The available simulator tooling cannot supply these, so the end-to-end continuity is proven by tests and not yet by observation.
+
+## Out of scope (flagged, not fixed)
+
+- `ScoreResultView`'s authenticated copy still says "Use Tailor to generate the full optimized resume" — legacy wording for a tab the V2 flow no longer has. `ScoreResultView` is outside Story 7's file scope; belongs to the Release C copy/localization pass.
+- New Home strings ("Optimize", "Continue from the diagnosis you already ran", "Continue to optimize") have no Hebrew translation yet and will fall back to English. Release C Story 11 is the localization pass.
+
+---
+
 # Bug: Optimized résumé appears missing after rebuild (2026-07-14)
 
 Decision: the résumé is the primary deliverable and must be visible in the initial Optimized viewport; supporting insights follow it.
