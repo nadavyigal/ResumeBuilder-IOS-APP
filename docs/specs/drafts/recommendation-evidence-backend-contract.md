@@ -1,15 +1,24 @@
-# Recommendation Evidence Backend Contract — PROPOSED, awaiting founder approval
+# Recommendation Evidence Contract — APPROVED 2026-07-16 (v1 client-side, v2 backend)
 
-- Status: **PROPOSED 2026-07-16 — not approved. Story 9 code must not start until the founder approves this document.**
+- Status: **APPROVED by the founder on 2026-07-16** (checklist items 1 and 5 approved directly; items 2 and 4 delegated and approved as written; item 3 decided as **alternative B** — v1 evidence extraction runs client-side in iOS from text the endpoint already delivers, and the backend schema in §2 becomes the approved **v2 upgrade path**, not a Story 9 prerequisite).
 - Required by: WP-46 Start Gate 4; DECISIONS.md "2026-07-16: FTUX Evidence And Release Decisions Cleared", item 7
 - Consumer: Resumely iOS 1.5.0, Story 9 (evidence-backed Accept/Skip recommendations)
-- Producer: ResumeBuilder Web (`new-ResumeBuilder-ai-`), Next.js API
+- Producer v1: Resumely iOS itself (on-device extraction). Producer v2: ResumeBuilder Web (`new-ResumeBuilder-ai-`), Next.js API
 
 ## 1. Owner
 
-**Proposed owner: Nadav Yigal (founder), implementing in the ResumeBuilder Web repository** (`/Users/nadavyigal/Documents/Projects /ResumeBuilder/new-ResumeBuilder-ai-`), delivered as a separate scoped web work packet. The iOS repository owns only the consuming decoder and fallback behavior. No other backend exists for this endpoint, so ownership cannot sit anywhere else; what needs founder approval is committing web-repo capacity for the producing work packet.
+**Owner: Nadav Yigal (founder).** v1 is implemented and owned entirely in the Resumely iOS repository — extraction, rendering, fallback, and analytics. The v2 backend producer, when scheduled, is a separate scoped work packet in the ResumeBuilder Web repository (`/Users/nadavyigal/Documents/Projects /ResumeBuilder/new-ResumeBuilder-ai-`); nothing in 1.5.0 waits on it.
 
-## 2. Additive response schema
+## 1a. v1 — client-side extraction (what Story 9 ships)
+
+The authenticated `GET /api/v1/optimization-reviews/{id}` response **already** delivers `resume.raw_text` and `jobDescription.raw_text`/`clean_text` to the owning user. v1 computes evidence on-device from that delivered text:
+
+- Extraction is **deterministic verbatim-substring matching** — a quote is shown only if it is an exact substring of the delivered job text (job evidence) or resume text (résumé evidence). The client can never fabricate evidence, by construction.
+- Same bounds as §2: max 3 quotes per side, max 280 characters per quote.
+- Groups where nothing verbatim supports the change show **no** evidence — weak evidence is worse than none for a trust feature. This satisfies Story 9's acceptance criterion, which requires evidence "when available".
+- **Forward compatibility:** if a future response carries the §2 `evidence` object, the client prefers backend evidence (after the same verbatim re-validation) and uses local extraction only as fallback. That is the v2 upgrade path; it requires no client rework.
+
+## 2. Additive response schema (v2 — approved upgrade path, not a Story 9 prerequisite)
 
 Evidence attaches per change group inside the existing `grouped_changes_json` array on `optimization_review_runs`. Every new field is optional. A group without `evidence` is a valid group with no evidence.
 
@@ -53,10 +62,14 @@ Rules:
 
 ## 3. Endpoint delivery plan
 
-1. **Generation** — extend the review-creation path in the web repo: `createReviewChangeGroups` (`src/lib/optimization-review/index.ts:173`) stays deterministic; a new post-processing step in `createOptimizationReviewRun` (`src/lib/optimization-review/service.ts:96`), which already holds the resume raw text and job description row, attaches `evidence` per group by verbatim-substring extraction (v1 is deterministic matching — no new AI call, no new dependency). Groups where nothing verbatim supports the change get **no** evidence object, by design.
+**v1 (approved, Story 9):** no backend change at all. iOS decodes the job text the endpoint already returns (additive client decoder change only) and extracts evidence on-device per §1a. Ships entirely inside the 1.5.0 release.
+
+**v2 (approved as the upgrade path, scheduled separately):**
+
+1. **Generation** — extend the review-creation path in the web repo: `createReviewChangeGroups` (`src/lib/optimization-review/index.ts:173`) stays deterministic; a new post-processing step in `createOptimizationReviewRun` (`src/lib/optimization-review/service.ts:96`), which already holds the resume raw text and job description row, attaches `evidence` per group — at which point the optimizer's own reasoning can inform quote selection, the one capability the client can never have. Server-side verbatim validation still applies before persisting.
 2. **Persistence** — stored inside the existing `grouped_changes_json` JSONB column. **No database migration.**
 3. **Serving** — `GET /api/v1/optimization-reviews/{id}` (`src/app/api/v1/optimization-reviews/[id]/route.ts`) already returns the row as stored; no route change.
-4. **Rollout order** — web work packet ships first (additive, safe for all existing clients); iOS Story 9 ships against it and treats pre-contract reviews (created before the web deploy) as no-evidence.
+4. **Rollout order** — v2 can deploy any time after 1.5.0; the v1 client automatically prefers backend evidence when present and keeps local extraction as fallback. Pre-v2 reviews keep local evidence.
 5. **Out of scope** — edit-and-resubmit of recommendation text, new endpoints, auth changes, production data backfill (old review runs keep no evidence).
 
 ## 4. Compatibility behavior
@@ -75,12 +88,12 @@ When evidence is absent for a group (missing field, empty arrays, failed validat
 - Accept/Skip remains fully functional; absence of evidence never blocks review, apply, or export.
 - Evidence **presence** may relax nothing automatically: factual-category changes still require explicit confirmation even with evidence attached. Evidence informs the user; it does not auto-approve.
 
-## Approval checklist (founder)
+## Approval checklist (founder) — completed 2026-07-16
 
-- [ ] Owner confirmed: web repo work packet, founder-owned
-- [ ] Schema approved as specified (additive `evidence` object, verbatim-substring rule, bounds)
-- [ ] Delivery plan approved (deterministic v1 extraction, no migration, web-first rollout)
-- [ ] Compatibility behavior approved
-- [ ] No-evidence fallback approved (Story 5 policy authoritative, evidence never auto-approves)
+- [x] Owner confirmed: founder-owned; v1 in the iOS repo, v2 as a later web work packet ("1. yes")
+- [x] Schema approved as specified — additive `evidence` object, verbatim-substring rule, bounds (delegated: "choose yourself"; approved as written)
+- [x] Delivery plan approved — **alternative B**: v1 client-side extraction from already-delivered text, backend §2/§3 schema as the v2 upgrade path (delegated: "decide yourself and proceed")
+- [x] Compatibility behavior approved (delegated: "choose yourself"; approved as written)
+- [x] No-evidence fallback approved — Story 5 policy authoritative, evidence never auto-approves ("5. ok approved")
 
-Once every box is checked, Story 9 implementation may begin per WP-46. Until then, Story 9 and everything behind it (Stories 10-13) stay blocked.
+Approval source: founder message, 2026-07-16, in the WP-46 execution session ("i chooses alternative B"). Story 9 implementation is unblocked.
