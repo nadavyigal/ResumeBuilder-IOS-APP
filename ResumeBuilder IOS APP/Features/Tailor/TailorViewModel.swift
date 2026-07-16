@@ -24,8 +24,18 @@ final class TailorViewModel {
     var isConnectionError = false
 
     /// Set when an unauthenticated free ATS check completes.
-    var atsResult: ATSScoreResult?
+    private(set) var atsResult: ATSScoreResult?
     var isRunningFreeATS = false
+
+    /// The inputs `atsResult` was computed from. Always written together with
+    /// `atsResult` so that a diagnosis can never outlive the inputs it describes.
+    private(set) var guestDiagnosisFingerprint: GuestDiagnosisContinuity.InputFingerprint?
+
+    /// True when a guest diagnosis is still valid for the inputs on screen —
+    /// including after signing in.
+    var hasCarriedGuestDiagnosis: Bool {
+        atsResult != nil && guestDiagnosisFingerprint != nil
+    }
 
     /// Set after a successful upload — triggers the "Save this resume?" prompt.
     /// Cleared after the user responds.
@@ -270,6 +280,7 @@ final class TailorViewModel {
         errorMessage = nil
         isConnectionError = false
         atsResult = nil
+        guestDiagnosisFingerprint = nil
         defer { isRunningFreeATS = false }
         do {
             let response = try await apiClient.runPublicATSCheck(
@@ -278,7 +289,7 @@ final class TailorViewModel {
                 jobDescriptionURL: jobInput.normalizedURL,
                 sessionId: appState.anonymousATSSessionId
             )
-            atsResult = response
+            recordGuestDiagnosis(response)
             appState.storeAnonymousATSSessionId(response.sessionId)
         } catch let apiError as APIClientError {
             if case .serverError(let status, _) = apiError, status == 400 {
@@ -291,6 +302,47 @@ final class TailorViewModel {
             errorMessage = error.localizedDescription
             isConnectionError = Self.isConnectivityError(error)
         }
+    }
+
+    /// Records a completed diagnosis together with the inputs it describes, so the
+    /// two can never drift apart.
+    func recordGuestDiagnosis(_ result: ATSScoreResult) {
+        atsResult = result
+        guestDiagnosisFingerprint = currentInputFingerprint()
+    }
+
+    /// Drops the guest diagnosis only when the inputs it was computed from have
+    /// changed. Safe to call on every authentication transition: signing in and
+    /// cancelling sign-in both leave the inputs alone, so both preserve the result.
+    func invalidateGuestDiagnosisIfInputsChanged() {
+        switch GuestDiagnosisContinuity.decide(
+            capturedAt: guestDiagnosisFingerprint,
+            current: currentInputFingerprint()
+        ) {
+        case .carryForward, .noDiagnosis:
+            return
+        case .invalidateDiagnosis:
+            atsResult = nil
+            guestDiagnosisFingerprint = nil
+        }
+    }
+
+    /// The step Home offers once authenticated — never an automatic optimization.
+    var postAuthStep: GuestDiagnosisContinuity.PostAuthStep {
+        GuestDiagnosisContinuity.postAuthStep(
+            for: GuestDiagnosisContinuity.decide(
+                capturedAt: guestDiagnosisFingerprint,
+                current: currentInputFingerprint()
+            )
+        )
+    }
+
+    private func currentInputFingerprint() -> GuestDiagnosisContinuity.InputFingerprint? {
+        GuestDiagnosisContinuity.InputFingerprint.make(
+            resumeURL: selectedResumeURL,
+            description: jobDescription,
+            urlString: jobDescriptionURL
+        )
     }
 
     func useSharedJobURLIfNeeded(from appState: AppState) {
