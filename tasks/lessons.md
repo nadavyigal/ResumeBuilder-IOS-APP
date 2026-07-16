@@ -25,6 +25,51 @@
 **Rule:** In zsh inventory loops, never use `path` as a local variable because it is tied to `PATH`; use a neutral name such as `file_path`, and use plain `git apply` when an exact-base bulk patch does not need three-way fallback.
 **Why:** A read-only dirty-file fingerprint command temporarily hid shell commands inside its process, and an unnecessary three-way patch attempt rejected an otherwise exact Release A source delta before the plain application succeeded.
 
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** XcodeBuildMCP simulator gesture presets accept a maximum `delta` of 200 pixels; use repeated 200-pixel gestures for longer scrolls.
+**Why:** The first optimized-preview diagnostic gesture requested 500 pixels and was rejected by tool validation before interacting with the app.
+
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** `devicectl device process terminate` accepts `--pid`, not a bundle identifier; resolve the app PID from `device info processes` before requesting a physical-device relaunch.
+**Why:** Story 6's first relaunch command passed the bundle identifier to an unsupported `--process` option, so termination did not occur even though the following launch request succeeded.
+
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** Before physical-device automation, verify the connected iPhone is unlocked; signed build and installation can succeed while CoreDevice still denies launch with a locked-device error.
+**Why:** Story 6 installed successfully on the connected iPhone 13, but the launch request was rejected by SpringBoard because the phone was locked.
+
+**Date:** 2026-07-14
+**Category:** Build
+**Rule:** When a `let` result is assigned inside `do/catch`, complete every throwing validation before the assignment so the catch fallback is not treated as a possible second initialization.
+**Why:** Story 6's first green build assigned the styled PDF URL and then ran a throwing text-layer check, so Swift correctly rejected assigning the fallback URL from the catch path.
+
+**Date:** 2026-07-14
+**Category:** General
+**Rule:** If `gh pr edit` fails while querying deprecated Projects Classic cards, update the pull request title/body with the REST `repos/{owner}/{repo}/pulls/{number}` endpoint instead.
+**Why:** Story 2 was pushed successfully, but `gh pr edit 94` aborted on the Projects Classic GraphQL deprecation before changing the PR metadata.
+
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** Capture simulator screenshots with `xcrun simctl io <device> screenshot <path>`; `simctl screenshot` is not a valid top-level command.
+**Why:** Story 2's first smoke evidence command used the obsolete command shape, so no screenshot was produced until the operation was routed through `simctl io`.
+
+**Date:** 2026-07-14
+**Category:** Test
+**Rule:** When a Swift test harness has private stored state but tests need to construct it, provide an explicit initializer for the fixture inputs instead of relying on the synthesized memberwise initializer.
+**Why:** Story 1's first green attempt failed to compile because private navigation flags made `FirstSessionJourneyHarness`'s synthesized initializer inaccessible, which also erased contextual typing in the stage assertion.
+
+**Date:** 2026-07-14
+**Category:** Build
+**Rule:** If a focused build stalls at `ValidateCAS` while another repository owns a long-running `xcodebuild -list`, stop only the current build and retry after Xcode project coordination clears; do not terminate unrelated workspace processes.
+**Why:** Story 1's first red test run reached `ValidateCAS` but never compiled while a separate RunSmart worktree held an `xcodebuild -list` process, so it could not provide valid red-state evidence.
+
+**Date:** 2026-07-13
+**Category:** General
+**Rule:** On Figma's free FigJam plan, keep audit evidence and the roadmap on one page, use a single labeled contact sheet for large screenshot sets, and verify creation through the file URL/selection state when canvas capture times out.
+**Why:** The direct new-board navigation completed despite a navigation timeout, canvas screenshots repeatedly timed out, and attempting a second page triggered the plan-upgrade gate; a one-page roadmap plus a 20-screen contact sheet remained reliable.
+
 **Date:** 2026-07-11
 **Category:** General
 **Rule:** When the connected PostHog plugin advertises `read-data-warehouse-schema` but returns `Tool read-data-warehouse-schema not found`, use verified narrow `events`/`system.*` HogQL probes and `read-data-schema` rather than guessing columns.
@@ -427,3 +472,77 @@
 **Category:** Build
 **Rule:** Do not add Swift Package Manager dependencies without explicit approval. The project uses only system frameworks.
 **Why:** There is no Package.swift in this project. Adding SPM packages requires Xcode project changes and team sign-off.
+### 2026-07-14
+**Category:** Repository navigation
+**Rule:** Resolve source paths with `rg --files` before opening files in this repository; the filesystem source root is `ResumeBuilder IOS APP/`, not the Xcode product name `ResumeBuilder/`.
+**Why:** Story 3 inspection initially used logical Xcode paths and failed to find the files, creating an avoidable tool round trip.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** When multiple simulator runtimes contain a device with the same name, target the already-booted simulator by UDID instead of using `destination name=...`.
+**Why:** Story 3's focused test built successfully but stalled before launching tests because `name=iPhone 17` was ambiguous across installed iOS runtimes.
+
+### 2026-07-14
+**Category:** Xcode testing
+**Rule:** Reuse a built test bundle only with a simulator on the same runtime; switching an existing DerivedData directory from iOS 26.5 to 26.3 can force a new thinned asset compile that stalls in `actool`.
+**Why:** Story 3's retry targeted the older booted iPhone 17 runtime with a 26.5-derived bundle and hung rebuilding device-thinned assets; using the exact 26.5 simulator with `test-without-building` avoids that mismatch.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** If an exact-UDID `test-without-building` never starts XCTest and `simctl bootstatus` also stops responding, restart the simulator fleet before retrying.
+**Why:** Story 3's already-built focused bundle could not launch on the booted iPhone SE because CoreSimulator was wedged, not because the test binary failed.
+
+### 2026-07-14
+**Category:** Swift concurrency tests
+**Rule:** Read actor-isolated values into a local variable before passing them to XCTest assertion autoclosures.
+**Why:** `XCTAssertNil(await actor.value)` is invalid because XCTest autoclosures are synchronous and do not support `await`.
+
+### 2026-07-14
+**Category:** Shared validation
+**Rule:** When replacing an input-readiness Boolean with a shared policy, search every derived UI state—not only the submit button and API guard—and route all completion/progress state through the policy.
+**Why:** Story 4 initially updated Home cards and submission but left `HomeActivationState` deriving job readiness from raw nonempty input, which could mark an invalid job as complete.
+
+### 2026-07-14
+**Category:** Shell commands
+**Rule:** Prefer separate command invocations when reading multiple paths containing spaces; avoid composing long, mixed-quote shell commands.
+**Why:** Story 5 inspection used an unmatched quote in a combined read command, causing an avoidable interruption before any source changes occurred.
+
+### 2026-07-14
+**Category:** Simulator testing
+**Rule:** Re-read Xcode's available destinations at the start of each story instead of carrying a simulator UDID forward from an earlier story.
+**Why:** Story 5's first red-test attempt used an iPhone 17 identifier that Xcode had replaced, so destination resolution failed before compilation.
+
+### 2026-07-14
+**Category:** Xcode test targets
+**Rule:** After adding a test file, verify it is explicitly present in the test target's group and Sources build phase; treat “Executed 0 tests” as a failed verification, never a pass.
+**Why:** The test folder is a manual PBX group, so Story 5's new file was not auto-enrolled and the first focused invocation ran no fixtures.
+
+### 2026-07-14
+**Category:** SwiftUI cleanup
+**Rule:** When moving derived display data into a view model, replace conditional value bindings with Boolean presence checks if the bound model is no longer read.
+**Why:** Story 5 moved the review footer count behind `selectableGroupCount` but initially left an unused `env` binding, producing a new compiler warning.
+
+### 2026-07-14
+**Category:** Release builds
+**Rule:** For this project’s first optimized simulator build, use direct `xcodebuild` when the XcodeBuildMCP call approaches its fixed 300-second tool timeout.
+**Why:** Story 5's Release build produced no source error but the MCP transport timed out before returning a result, so the run could not be counted as verification.
+
+### 2026-07-14
+**Category:** Optimized résumé UX
+**Rule:** Keep the rendered optimized résumé ahead of supporting insight and diagnosis panels so the primary deliverable is visible in the initial viewport.
+**Why:** The optimization and preview APIs were healthy, but placing the document after the full analysis stack made a successfully rendered résumé appear missing until the user scrolled twice.
+
+### 2026-07-14
+**Category:** Simulator tooling
+**Rule:** Use XcodeBuildMCP's individual UI actions unless the current `batch` schema has been inspected; its steps are action records, not nested tool-and-arguments objects.
+**Why:** A smallest-screen smoke step used an assumed batch shape and failed validation before interacting with the simulator.
+
+### 2026-07-14
+**Category:** GitHub API updates
+**Rule:** When building a JSON object from a raw string in `jq`, parenthesize string concatenation inside the object value: `{body: (. + $addition)}`.
+**Why:** The first PR-body update used `{body: . + ...}`, which failed `jq` parsing and sent no update to GitHub.
+
+### 2026-07-14
+**Category:** SwiftUI
+**Rule:** Do not construct an `@Observable` screen model inline inside a navigation destination; give the destination a stable `@State` owner for the model.
+**Why:** A parent refresh replaced `OptimizationReviewViewModel` after its GET completed, discarding the loaded review and leaving the physical app on a blank Optimization Review screen.
