@@ -16,6 +16,11 @@
 ## Lessons
 
 **Date:** 2026-07-16
+**Category:** Build
+**Rule:** Do not infer that a long `xcodebuild` has finished from a transient process-list gap; wait for the original terminal session to return an explicit build result, because Xcode can move between child processes while post-compile work is still active.
+**Why:** During Story 9 Release validation, a quiet whole-module build briefly showed no matching compiler process and was mistakenly interrupted while Xcode was still linking assets and finalizing the app, producing `BUILD INTERRUPTED` instead of valid pass/fail evidence.
+
+**Date:** 2026-07-16
 **Category:** Test
 **Rule:** Run the test suite on the **iOS 26.5** simulator runtime, not 26.3.1. On 26.3.1 the XCTest host crashes with `malloc: pointer being freed was not allocated` (SIGABRT) in `ResumeDiagnosisViewModelTests.testViewModelStartsEmptyWithoutOptimizationId` and `OptimizedResumeViewModelTests.testATSInsightsExplainLowScoreAndExposeActions` — reproduced identically on clean `main`, so it is a runtime defect, not a code regression. Before blaming your diff for a signal-crash test failure, rerun the same tests on a clean `main` worktree as a control.
 **Why:** The 2026-07-16 Story 9 session picked the *booted* iPhone 17 (iOS 26.3.1) by default, got 3 crash failures unrelated to the diff, and nearly misattributed them. Same classes passed 35/35 and the full suite 188/1/0 on the iOS 26.5 iPhone 17.
