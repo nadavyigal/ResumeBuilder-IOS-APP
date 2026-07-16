@@ -9,7 +9,7 @@ Decision: a job the user already entered on Home is not a question to ask again.
 - [x] `FitCheckViewModel`: `beginCarriedFitCheck()` (guarded, runs once), `editTarget()`, `applyEditedTarget()`; `resetToEntry()` clears the new guards.
 - [x] `FitCheckView`: drive presentation from `continuationStep`; auto-run via `.task`; add an in-place failure state instead of falling back to the entry form.
 - [x] `FitVerdictView`: add "Edit target job" so the target is changeable before optimization.
-- [x] Verify: 11 focused tests, full suite 172/1 skip/0 failures, Debug + generic Release builds, iPhone 17 + SE smokes.
+- [x] Verify: 11 focused tests, full suite 172/1 skip/0 failures, Debug + generic-device Release builds (both succeeded), iPhone 17 + SE smokes.
 
 ## Remaining manual acceptance
 
