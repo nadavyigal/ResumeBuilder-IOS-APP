@@ -1,3 +1,146 @@
+# Bug: Optimized résumé appears missing after rebuild (2026-07-14)
+
+Decision: the résumé is the primary deliverable and must be visible in the initial Optimized viewport; supporting insights follow it.
+
+- [x] Read the supplied log in full and separate API failures from unrelated simulator warnings.
+- [x] Reproduce the missing-looking state on iPhone 17 and confirm the document renders below the fold.
+- [x] Move the existing preview directly below the score without changing optimization/review state or analytics payloads.
+- [x] Pass focused tests and Debug build; smoke iPhone 17 and the smallest supported iPhone SE.
+- [x] Complete Release build, commit, push, and update PR #94.
+
+---
+
+# Bug: Optimization Review renders blank after successful review fetch (2026-07-14)
+
+Decision: navigation destinations retain their review model across parent refreshes and only replace it for a different review ID.
+
+- [x] Read the physical-device logs in full and confirm the review response succeeds and decodes.
+- [x] Add a focused model-lifetime regression test and confirm the missing state owner is red first.
+- [x] Add a stable state-owned review destination across Home, Tailor, Improve, and History.
+- [x] Pass focused tests, Debug iPhone 17 + smallest supported iPhone SE smoke, and generic-device Release build.
+- [x] Update project memory, commit, push, and open a focused follow-up PR.
+
+---
+
+# Story 6: Preview-owned save, export, and relaunch continuity (Release A, 2026-07-14)
+
+Decision: the optimized preview owns saved-résumé state; successful saves persist the live API response locally by optimization ID, failures keep the preview visible and retryable, and every shared PDF must contain an extractable text layer.
+
+## Implementation plan
+- [x] Add focused save/retry/relaunch/text-layer tests to the real test target and confirm red first.
+- [x] Add preview-owned save state using the verified live fields (`filename`, `display_name`, `size_bytes`, `created_at`) and safe lifecycle analytics.
+- [x] Persist the saved-résumé link across relaunch and expose it consistently in the saved picker/account history.
+- [x] Validate backend, styled, and local PDFs for an extractable text layer before sharing.
+- [ ] Run focused tests, Debug + Release builds, iPhone 17 + smallest supported simulator smoke, and physical-device smoke if a device is available. Tests/builds/simulators plus physical build/install/launch/relaunch passed; physical preview/save/export taps remain manual because device UI automation is unavailable.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 7 / Release B.
+
+---
+
+# Story 5: Recommendation presentation safety gate (Release A, 2026-07-14)
+
+Decision: when backend evidence metadata is absent, the iOS client applies a conservative local safety policy; placeholders are hidden, factual changes require explicit inclusion, and non-improving reviews start with no selected changes.
+
+## Implementation plan
+- [x] Add focused fixtures for placeholders, title inflation, removed dates, factual metrics, and a 53 → 52 score regression; confirm red first.
+- [x] Add a pure Sendable recommendation safety policy with safe analytics categories only.
+- [x] Gate optimization-review and diagnosis rendering, default factual changes off, and require deliberate inclusion when the score does not improve.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 6.
+
+---
+
+# Story 4: Shared job-input policy and friendly errors (Release A, 2026-07-14)
+
+Decision: Home, guest ATS, and Fit use one local 100-word fallback for pasted descriptions while a valid HTTP(S) job URL remains independently sufficient.
+
+## Implementation plan
+- [x] Add focused policy/view-model tests for whitespace, URL-only, 99/100-word boundaries, API blocking, and friendly input errors; confirm red first.
+- [x] Add a pure Sendable `JobInputPolicy` with normalized text/URL readiness and localized guidance.
+- [x] Drive Home, Fit, and Tailor submission gates from the shared policy and show live word-count guidance before submission.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 5.
+
+---
+
+# Story 3: One optimization source of truth (Release A, 2026-07-14)
+
+Decision: `AppState` owns the only valid optimization ID and reconciles it with authenticated `GET /api/optimizations` history before every tab derives its completion state.
+
+## Implementation plan
+- [x] Add focused recovery/source-of-truth tests and confirm the missing recovery API fails first.
+- [x] Add Sendable recovery state and authenticated history reconciliation to `AppState`, including rejection of blank/mock/stale IDs and a PII-safe recovery event.
+- [x] Make Main, Optimized, Design, Expert, and Account render from the same AppState ID, with loading, restored, empty, and retryable failure UI.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update PR #94, and stop before Story 4.
+
+---
+
+# Story 2: Deterministic Apply-to-preview route (Release A, 2026-07-14)
+
+Decision: Home owns one Sendable first-session destination; a successful Apply persists the optimization ID before requesting one Optimized-tab preview, while failures remain on the review.
+
+## Implementation plan
+- [x] Add focused route/transition tests and confirm the missing production route fails first.
+- [x] Add `Features/V2/Home/FirstSessionJourneyRoute.swift` with one Sendable destination model and an ordered Apply transition.
+- [x] Replace Home's competing review/diagnosis booleans and wire Main to one optimized-preview handoff; make review completion idempotent.
+- [x] Run focused tests, Debug + Release builds, then smoke iPhone 17 and the smallest supported simulator.
+- [x] Update project memory, commit, push, update the open PR, and stop before Story 3.
+
+---
+
+# Story 1: Golden-path regression harness (Release A, 2026-07-14)
+
+Decision: pin the existing first-session state transitions and competing-navigation precondition before Story 2 changes production routing.
+
+## Implementation plan
+- [x] Add a synthetic, no-network first-session fixture covering guest check → auth → review → apply → preview.
+- [x] Confirm a focused red test before adding the harness implementation.
+- [x] Assert the current two-destination Apply transition and one optimization ID across Home, Optimized, Design, Expert, and Account wrappers.
+- [x] Run focused tests, Debug + Release builds, then launch smoke on iPhone 17 and the smallest supported simulator.
+- [x] Update project memory and report Story 1 only; do not begin Story 2 without confirmation.
+
+---
+
+# Story: Trustworthy first-time journey upgrade planning (2026-07-13)
+
+Decision: ship completion and trust repairs before continuity polish, reach experiments, or monetization.
+
+## Planning completed
+- [x] Draft product brief: `docs/specs/drafts/first-time-user-journey-upgrade-brief.md`.
+- [x] Draft feature spec: `docs/specs/drafts/first-time-user-journey-upgrade-spec.md`.
+- [x] Thirteen independently testable development stories: `docs/specs/drafts/first-time-user-journey-upgrade-stories.md`.
+- [x] FigJam board created with the audit journey, failures, proposed flow, roadmap, and 20-screen evidence sheet.
+- [x] No production code or dependencies changed.
+
+## Approval gate
+- [x] Founder approved Release A and its story order on 2026-07-14; Q1 backend evidence ownership and Q4 fallback simulator availability remain open only if a story blocks on them.
+- [ ] After approval, move the spec to `docs/specs/`, add it to `docs/specs/README.md`, and set it as Active Spec.
+- [x] Implement Story 1 golden-path regression harness.
+- [x] Implement Story 2 deterministic Apply-to-preview route.
+- [x] Implement Story 3 optimization source-of-truth reconciliation.
+- [x] Implement Story 4 shared job-input policy and friendly errors.
+
+---
+
+# Story: First-time-user product and UX audit (2026-07-13)
+
+Decision: keep monetization disabled and prioritize a deterministic, credible completion path before scaling acquisition.
+
+## Completed
+- [x] Fresh-install iPhone 17 Pro simulator walkthrough with synthetic résumé and job content.
+- [x] Evidence captured for Home, upload/job input, guest diagnosis, signup, fit, optimization review, broken completion, return state, and Hebrew localization.
+- [x] Relevant implementation inspected to separate observed behavior from likely causes.
+- [x] Audit saved to `docs/audits/first-time-user-journey-audit.md` with prioritized risks, bugs, instrumentation gaps, experiments, and scorecard.
+- [x] Debug simulator build succeeded; no production code changed.
+
+## Next
+- [ ] P0: replace the post-Apply competing navigation states with one deterministic optimized-preview route.
+- [ ] P0: recover the latest optimization consistently across Optimized, Design, Expert, Account, and Saved Résumés.
+- [ ] P0: reject placeholder, fact-changing, and non-improving AI output before it reaches users.
+- [ ] P0: unify client/server job-description validation and replace technical 400 copy with inline guidance.
+
+---
+
 # Story: Supabase + PostHog post-live current-state review (2026-07-06)
 
 Decision: do not make paid acquisition, monetization, or export-UX calls from the current data; production usage is too small and too QA-heavy, while backend optimization completion is healthy once reached.
