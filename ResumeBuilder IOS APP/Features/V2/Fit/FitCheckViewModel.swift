@@ -31,6 +31,23 @@ final class FitCheckViewModel {
 
     var isInVerdictState: Bool { result != nil }
 
+    /// Set while the user is deliberately changing the target job.
+    private(set) var isEditingTarget = false
+
+    /// Guards the automatic run so continuing into Fit checks the carried job once,
+    /// not on every re-render.
+    private(set) var hasAttemptedCarriedCheck = false
+
+    /// What the Fit surface should show right now.
+    var continuationStep: FitContinuation.Step {
+        FitContinuation.step(
+            carriedJobIsReady: canCheck,
+            hasVerdict: result != nil,
+            hasFailed: errorMessage != nil,
+            isEditingTarget: isEditingTarget
+        )
+    }
+
     var jobInputEvaluation: JobInputPolicy.Evaluation {
         JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
     }
@@ -104,8 +121,35 @@ final class FitCheckViewModel {
         onSkip?()
     }
 
+    /// Continues the journey into Fit: checks the job carried from Home directly
+    /// instead of asking the user to confirm it in a second form. Does nothing when
+    /// no usable job was carried, or once the carried target has already been checked.
+    func beginCarriedFitCheck() async {
+        guard !hasAttemptedCarriedCheck else { return }
+        guard continuationStep == .runAutomatically else { return }
+        hasAttemptedCarriedCheck = true
+        await checkFit()
+    }
+
+    /// Lets the user change the target job at any point before optimizing.
+    /// Clears any stale verdict/failure so the next check describes the new target.
+    func editTarget() {
+        isEditingTarget = true
+        result = nil
+        errorMessage = nil
+    }
+
+    /// Re-checks Fit against the edited target.
+    func applyEditedTarget() async {
+        isEditingTarget = false
+        hasAttemptedCarriedCheck = true
+        await checkFit()
+    }
+
     func resetToEntry() {
         result = nil
         errorMessage = nil
+        isEditingTarget = false
+        hasAttemptedCarriedCheck = false
     }
 }

@@ -15,6 +15,21 @@
 
 ## Lessons
 
+**Date:** 2026-07-16
+**Category:** Test
+**Rule:** Only the **app** target uses a `PBXFileSystemSynchronizedRootGroup`; the test target has an explicit file list. A new test file needs 4 `project.pbxproj` entries (PBXBuildFile, PBXFileReference, PBXGroup child, Sources build phase) or it is silently never compiled — and the build still reports **success**. Never accept a green build as proof a new test ran; confirm the red state first, or grep the build log for the test file name.
+**Why:** A new `GuestDiagnosisContinuityTests.swift` referencing a type that did not exist yet still produced `** TEST BUILD SUCCEEDED **`. `grep -c PBXFileSystemSynchronizedRootGroup` returned 3 and was misread as "3 sync groups"; it was counting the section begin/end markers plus one `isa` line for the single app-target group. App sources (e.g. `JobInputPolicy.swift`) are genuinely auto-discovered and appear nowhere in the pbxproj, which makes the test-target exception easy to miss.
+
+**Date:** 2026-07-16
+**Category:** Test
+**Rule:** Wait ~10 seconds before trusting a simulator screenshot of this app, and never call a partial-looking Home a regression without a re-shot.
+**Why:** Two SE screenshots showed a blank or header-less Home and looked like a rendering regression. Both were captured mid-launch before Home's `withAnimation(.easeOut(duration: 0.55)) { appeared = true }` fade-in ran — `pageHeader` and `progressPath` are `.opacity(appeared ? 1 : 0)`, so they are genuinely invisible until it fires. A 10-second wait rendered Home correctly; there was no defect.
+
+**Date:** 2026-07-16
+**Category:** General
+**Rule:** Compare branches with a two-dot tree diff (`git diff A B`) before believing a branch still has work to land. Three-dot (`git diff A...B`) shows what B changed since the merge base, which says nothing about whether A already contains that content.
+**Why:** `git diff origin/main...codex/first-time-journey-release-a` showed 43 files and ~2958 insertions, implying Release A was unlanded. The two-dot diff showed **zero Swift differences** — PR #97 had already landed every line, and the branch was actually *behind* main (1.4.1/11 vs the submitted 1.4.2/12). Merging it as instructed would have regressed the version and re-added the removed `UIDeviceFamily` key.
+
 **Date:** 2026-07-15
 **Category:** General
 **Rule:** Never pass Markdown containing backticks to a shell command through interpolated double-quoted arguments; write the body with `apply_patch` and pass it through a `--body-file` option.

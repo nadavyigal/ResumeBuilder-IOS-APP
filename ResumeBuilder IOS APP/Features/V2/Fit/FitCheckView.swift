@@ -12,18 +12,72 @@ struct FitCheckView: View {
             if viewModel.isLoading {
                 ResumeOptimizationLoadingView(mode: .fitCheck)
                     .transition(.opacity)
-            } else if viewModel.isInVerdictState, let result = viewModel.result {
-                FitVerdictView(result: result, viewModel: viewModel)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
             } else {
-                entryContent
-                    .transition(.opacity)
+                switch viewModel.continuationStep {
+                case .showVerdict:
+                    if let result = viewModel.result {
+                        FitVerdictView(result: result, viewModel: viewModel)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+                case .showFailure:
+                    failureContent
+                        .transition(.opacity)
+                // A job carried from Home needs no confirmation form — the
+                // automatic check is kicked off by .task below.
+                case .runAutomatically:
+                    ResumeOptimizationLoadingView(mode: .fitCheck)
+                        .transition(.opacity)
+                case .askForJob, .editTarget:
+                    entryContent
+                        .transition(.opacity)
+                }
             }
         }
+        .task { await viewModel.beginCarriedFitCheck() }
         .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.isInVerdictState)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.continuationStep)
         .navigationTitle(NSLocalizedString("Check Fit", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// A failed fit explains itself and offers the target back to the user —
+    /// it never silently reverts to the confirmation form Story 8 removes.
+    private var failureContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                heroHeader
+
+                if let error = viewModel.errorMessage {
+                    errorBanner(error)
+                }
+
+                Text("Your résumé and diagnosis are untouched. You can adjust the target job and try again, or skip fit and optimize anyway.")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                GradientButton(title: "Edit target job", isLoading: false) {
+                    viewModel.editTarget()
+                }
+
+                Button {
+                    viewModel.skip()
+                } label: {
+                    Text("Skip fit and optimize")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.accentBlue)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                }
+                .buttonStyle(.plain)
+
+                explainerNote
+            }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, AppSpacing.xl)
+            .padding(.bottom, AppSpacing.xxl)
+        }
+        .scrollIndicators(.hidden)
     }
 
     // MARK: - Entry view
@@ -165,7 +219,14 @@ struct FitCheckView: View {
 
     private var checkFitButton: some View {
         GradientButton(title: "Check Fit", isLoading: viewModel.isLoading) {
-            Task { await viewModel.checkFit() }
+            Task {
+                // While editing, this re-checks the new target and leaves edit mode.
+                if viewModel.isEditingTarget {
+                    await viewModel.applyEditedTarget()
+                } else {
+                    await viewModel.checkFit()
+                }
+            }
         }
         .disabled(!viewModel.canCheck || viewModel.isLoading)
         .opacity(viewModel.canCheck ? 1 : 0.55)
