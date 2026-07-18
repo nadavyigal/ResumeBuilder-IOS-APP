@@ -107,13 +107,16 @@ final class FirstSessionJourneyTests: XCTestCase {
             "Connection dropped",
             "Continue with Apple",
             "Continue with email",
+            "Couldn’t reuse your saved résumé. Choose it again to continue.",
             "Create a free account so this never disappears.",
             "Most recruiters scan a resume in about 7 seconds — here's what they'd notice.",
             "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does.",
+            "Optimize for another job",
             "Retry now",
             "Scanning like a recruiter would",
             "See what a recruiter notices in the first 7 seconds — then fix it.",
             "These appear in the job description but not your resume. Review the proposed wording before adding it.",
+            "Using %@. Add the next job to create a new match.",
             "You're offline",
             "Your résumé and job details are still here — nothing's lost. Retry when you're back online."
         ]
