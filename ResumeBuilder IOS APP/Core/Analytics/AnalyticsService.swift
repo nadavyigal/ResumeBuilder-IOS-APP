@@ -83,10 +83,12 @@ enum AnalyticsEvent: Sendable {
     case exportFailed(errorCode: String)
     case diagnosisViewed(matchScore: Int)
     case recommendationViewed(surface: String, safetyState: String)
-    case recommendationIncluded(surface: String, safetyState: String)
+    case recommendationIncluded(surface: String, safetyState: String, evidenceState: String)
     case recommendationEdited(surface: String, safetyState: String)
-    case recommendationSkipped(surface: String, safetyState: String)
+    case recommendationSkipped(surface: String, safetyState: String, evidenceState: String)
     case recommendationBlocked(surface: String, reason: String)
+    /// Counts only — quote content never leaves the device.
+    case recommendationEvidenceShown(surface: String, jobQuoteCount: Int, resumeQuoteCount: Int)
     case atsImproveTapped(currentScore: Int)
     case exportPdfTapped
     case exportCTASeen
@@ -136,6 +138,7 @@ enum AnalyticsEvent: Sendable {
         case .recommendationEdited: return "recommendation_edited"
         case .recommendationSkipped: return "recommendation_skipped"
         case .recommendationBlocked: return "recommendation_blocked"
+        case .recommendationEvidenceShown: return "recommendation_evidence_shown"
         case .atsImproveTapped: return "ats_improve_tapped"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .exportCTASeen: return "export_cta_seen"
@@ -196,12 +199,19 @@ enum AnalyticsEvent: Sendable {
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]
         case .recommendationViewed(let surface, let safetyState),
-             .recommendationIncluded(let surface, let safetyState),
-             .recommendationEdited(let surface, let safetyState),
-             .recommendationSkipped(let surface, let safetyState):
+             .recommendationEdited(let surface, let safetyState):
             return ["surface": surface, "safety_state": safetyState]
+        case .recommendationIncluded(let surface, let safetyState, let evidenceState),
+             .recommendationSkipped(let surface, let safetyState, let evidenceState):
+            return ["surface": surface, "safety_state": safetyState, "evidence_state": evidenceState]
         case .recommendationBlocked(let surface, let reason):
             return ["surface": surface, "reason": reason]
+        case .recommendationEvidenceShown(let surface, let jobQuoteCount, let resumeQuoteCount):
+            return [
+                "surface": surface,
+                "job_quote_count": "\(jobQuoteCount)",
+                "resume_quote_count": "\(resumeQuoteCount)",
+            ]
         case .atsImproveTapped(let currentScore):
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):

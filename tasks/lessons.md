@@ -17,6 +17,11 @@
 
 **Date:** 2026-07-16
 **Category:** Test
+**Rule:** Run the test suite on the **iOS 26.5** simulator runtime, not 26.3.1. On 26.3.1 the XCTest host crashes with `malloc: pointer being freed was not allocated` (SIGABRT) in `ResumeDiagnosisViewModelTests.testViewModelStartsEmptyWithoutOptimizationId` and `OptimizedResumeViewModelTests.testATSInsightsExplainLowScoreAndExposeActions` — reproduced identically on clean `main`, so it is a runtime defect, not a code regression. Before blaming your diff for a signal-crash test failure, rerun the same tests on a clean `main` worktree as a control.
+**Why:** The 2026-07-16 Story 9 session picked the *booted* iPhone 17 (iOS 26.3.1) by default, got 3 crash failures unrelated to the diff, and nearly misattributed them. Same classes passed 35/35 and the full suite 188/1/0 on the iOS 26.5 iPhone 17.
+
+**Date:** 2026-07-16
+**Category:** Test
 **Rule:** Only the **app** target uses a `PBXFileSystemSynchronizedRootGroup`; the test target has an explicit file list. A new test file needs 4 `project.pbxproj` entries (PBXBuildFile, PBXFileReference, PBXGroup child, Sources build phase) or it is silently never compiled — and the build still reports **success**. Never accept a green build as proof a new test ran; confirm the red state first, or grep the build log for the test file name.
 **Why:** A new `GuestDiagnosisContinuityTests.swift` referencing a type that did not exist yet still produced `** TEST BUILD SUCCEEDED **`. `grep -c PBXFileSystemSynchronizedRootGroup` returned 3 and was misread as "3 sync groups"; it was counting the section begin/end markers plus one `isa` line for the single app-target group. App sources (e.g. `JobInputPolicy.swift`) are genuinely auto-discovered and appear nowhere in the pbxproj, which makes the test-target exception easy to miss.
 

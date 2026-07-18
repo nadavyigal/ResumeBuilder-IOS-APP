@@ -1665,6 +1665,15 @@ struct OptimizationReviewResumeDTO: Decodable, Sendable {
 struct OptimizationReviewJobDescriptionDTO: Decodable, Sendable {
     let title: String?
     let company: String?
+    let rawText: String?
+    let cleanText: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case title
+        case company
+        case rawText = "raw_text"
+        case cleanText = "clean_text"
+    }
 }
 
 struct OptimizationReviewRunDTO: Decodable, Sendable {
@@ -1708,12 +1717,29 @@ struct ReviewChangeGroupDTO: Decodable, Identifiable, Sendable {
     let summary: String
     let beforeExcerpt: String
     let afterExcerpt: String
+    /// Optional backend evidence (contract v2). Absent on pre-contract reviews.
+    let evidence: ReviewEvidenceDTO?
 
     private enum CodingKeys: String, CodingKey {
-        case id, section, title, summary
+        case id, section, title, summary, evidence
         case beforeExcerpt = "before_excerpt"
         case afterExcerpt = "after_excerpt"
     }
+}
+
+/// Additive per-group evidence, per
+/// `docs/specs/drafts/recommendation-evidence-backend-contract.md` §2.
+/// Quotes are re-validated client-side as verbatim substrings of the delivered
+/// source texts before anything renders.
+struct ReviewEvidenceDTO: Decodable, Sendable {
+    let version: Int?
+    let job: [ReviewEvidenceQuoteDTO]?
+    let resume: [ReviewEvidenceQuoteDTO]?
+}
+
+struct ReviewEvidenceQuoteDTO: Decodable, Sendable {
+    let quote: String
+    let source: String?
 }
 
 struct OptimizationReviewApplyResponseDTO: Decodable, Sendable {
