@@ -155,10 +155,6 @@ final class TailorViewModel {
         print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
         #endif
 
-        let fileExt = selectedResumeURL.pathExtension.lowercased()
-        let fileType = fileExt.isEmpty ? "unknown" : fileExt
-        AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
-
         return upload
     }
 

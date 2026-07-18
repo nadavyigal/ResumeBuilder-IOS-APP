@@ -16,7 +16,7 @@ enum ResumeExportAction {
         guard let optimizationId = viewModel.optimizationIdentifier else {
             throw APIClientError.invalidResponse
         }
-        analytics.track(.exportStarted)
+        analytics.track(.exportStarted(optimizationId: optimizationId))
         var styledHTMLFailureCode: String?
         do {
             let url: URL
@@ -36,12 +36,12 @@ enum ResumeExportAction {
             }
             try PDFDownloadValidator.validatePDF(at: url)
             appState.markExportComplete(for: optimizationId)
-            analytics.track(.exportSuccess)
+            analytics.track(.exportSuccess(optimizationId: optimizationId))
             return Result(fileURL: url, optimizationId: optimizationId)
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
-            analytics.track(.exportFailed(errorCode: code))
+            analytics.track(.exportFailed(optimizationId: optimizationId, errorCode: code))
             throw error
         }
     }

@@ -74,6 +74,9 @@ final class FitCheckViewModel {
         let evaluation = jobInputEvaluation
         guard evaluation.isReady else {
             errorMessage = evaluation.validationMessage
+            if let reason = evaluation.blockingReason?.analyticsValue {
+                AnalyticsService.shared.track(.jobInputValidationShown(surface: "fit", reason: reason))
+            }
             return
         }
 

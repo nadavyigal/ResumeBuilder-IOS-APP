@@ -207,9 +207,6 @@ struct HomeTabView: View {
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
-                    let ext = viewModel.selectedResumeURL?.pathExtension.lowercased()
-                    let fileType = (ext?.isEmpty == false) ? ext! : "unknown"
-                    AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
                     appState.hasUploadedResumeThisSession = true
                 }
             }
@@ -377,6 +374,23 @@ struct HomeTabView: View {
                 ))
             }
         }
+    }
+
+    private func trackAnalysisIntent() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: viewModel.jobDescription,
+            urlString: viewModel.jobDescriptionURL
+        )
+        if let reason = evaluation.blockingReason?.analyticsValue {
+            AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
+        }
+        guard appState.isAuthenticated else { return }
+        AnalyticsService.shared.track(.analysisCTATapped(
+            source: "home",
+            flowVersion: .fitGateV1,
+            hasURL: evaluation.hasURLInput,
+            hasPaste: evaluation.hasDescriptionInput
+        ))
     }
 
     private func prepareFitCheck() async {
@@ -937,6 +951,7 @@ struct HomeTabView: View {
             Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
 
             Button {
+                trackAnalysisIntent()
                 Task { await runAnalysis() }
             } label: {
                 Group {
