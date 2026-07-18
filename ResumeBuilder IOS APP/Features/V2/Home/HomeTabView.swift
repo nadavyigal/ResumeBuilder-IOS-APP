@@ -189,6 +189,7 @@ struct HomeTabView: View {
                 SavedResumePickerSheet(
                     libraryViewModel: libraryViewModel,
                     onSelect: { localURL, displayName in
+                        secondJobContext = nil
                         viewModel.useLibraryResume(localURL: localURL, displayName: displayName)
                         showLibraryPicker = false
                     }
@@ -357,10 +358,11 @@ struct HomeTabView: View {
         didTrackJobAdded = false
         jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
 
-        if let savedResume = request.savedResume,
-           let token = appState.session?.accessToken {
+        if let savedResume = request.savedResume {
             do {
-                let localURL = try await libraryViewModel.downloadToCache(resume: savedResume, token: token)
+                let localURL = try await appState.callWithFreshToken { token in
+                    try await libraryViewModel.downloadToCache(resume: savedResume, token: token)
+                }
                 viewModel.useLibraryResume(
                     localURL: localURL,
                     displayName: savedResume.displayName ?? savedResume.filename
@@ -399,6 +401,7 @@ struct HomeTabView: View {
     }
 
     private func openResumeImporter() {
+        secondJobContext = nil
         isImporterFlowActive = true
         AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
         isImporterPresented = true
