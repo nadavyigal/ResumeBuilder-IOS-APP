@@ -136,6 +136,7 @@ struct TailorView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 100)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .scrollBounceBehavior(.basedOnSize)
             }
             .navigationBarHidden(true)
@@ -465,6 +466,7 @@ struct TailorView: View {
                         .foregroundStyle(Theme.textPrimary)
                         .tint(Theme.accent)
                         .font(.subheadline)
+                        .accessibilityLabel(Text("Job Link"))
                 }
                 .padding(12)
                 .background(Theme.bgPrimary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -510,6 +512,7 @@ struct TailorView: View {
                         .foregroundStyle(Theme.textPrimary)
                         .tint(Theme.accent)
                         .font(.subheadline)
+                        .accessibilityLabel(Text("Or paste job description here"))
                 }
                 .frame(minHeight: 110)
             }

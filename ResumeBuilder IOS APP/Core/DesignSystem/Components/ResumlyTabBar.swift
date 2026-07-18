@@ -44,7 +44,7 @@ enum ResumlyTab: Int, CaseIterable {
 
 struct ResumlyTabBar: View {
     @Binding var selection: ResumlyTab
-    @Namespace private var pill
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 4) {
@@ -65,8 +65,12 @@ struct ResumlyTabBar: View {
         Button {
             let impact = UIImpactFeedbackGenerator(style: .light)
             impact.impactOccurred()
-            withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+            if reduceMotion {
                 selection = tab
+            } else {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+                    selection = tab
+                }
             }
         } label: {
             HStack(spacing: isActive ? 6 : 0) {
@@ -95,13 +99,12 @@ struct ResumlyTabBar: View {
                     Capsule()
                         .fill(Theme.brandGradient)
                         .shadow(color: Theme.accent.opacity(0.45), radius: 10, y: 4)
-                        .matchedGeometryEffect(id: "pill", in: pill)
                 }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .animation(.spring(response: 0.38, dampingFraction: 0.72), value: selection)
+        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.72), value: selection)
         .accessibilityLabel(Text(tab.label))
         .accessibilityValue(tab.accessibilityValue)
         .accessibilityAddTraits(isActive ? [.isSelected] : [])

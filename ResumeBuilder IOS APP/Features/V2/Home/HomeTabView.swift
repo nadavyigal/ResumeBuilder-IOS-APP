@@ -6,6 +6,7 @@ struct HomeTabView: View {
     @Environment(AppState.self) private var appState
     @Environment(LocalizationManager.self) private var localization
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Bindable var viewModel: TailorViewModel
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
     var onShowOptimizedPreview: (String) -> Void = { _ in }
@@ -135,6 +136,7 @@ struct HomeTabView: View {
                         .padding(.top, 8)
                         .padding(.bottom, 100)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .scrollBounceBehavior(.basedOnSize)
                     .onChange(of: viewModel.selectedResumeName) { _, newName in
                         guard newName?.isEmpty == false else { return }
@@ -148,7 +150,11 @@ struct HomeTabView: View {
             .navigationBarHidden(true)
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
-                withAnimation(.easeOut(duration: 0.55)) { appeared = true }
+                if reduceMotion {
+                    appeared = true
+                } else {
+                    withAnimation(.easeOut(duration: 0.55)) { appeared = true }
+                }
             }
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
@@ -464,22 +470,17 @@ struct HomeTabView: View {
 
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("GET STARTED")
-                    .font(.caption2.weight(.black))
-                    .kerning(1.1)
-                    .foregroundStyle(AppColors.accentSky)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(AppColors.accentSky.opacity(0.12), in: Capsule())
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(AppColors.accentSky.opacity(0.3), lineWidth: 1)
-                    )
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    getStartedBadge
+                    Spacer()
+                    languageSwitcher
+                }
 
-                Spacer()
-
-                languageSwitcher
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    getStartedBadge
+                    languageSwitcher
+                }
             }
 
             Text("Step 1 of 3")
@@ -497,6 +498,21 @@ struct HomeTabView: View {
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var getStartedBadge: some View {
+        Text("GET STARTED")
+            .font(.caption2.weight(.black))
+            .kerning(1.1)
+            .foregroundStyle(AppColors.accentSky)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(AppColors.accentSky.opacity(0.12), in: Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(AppColors.accentSky.opacity(0.3), lineWidth: 1)
+            )
+            .fixedSize()
     }
 
     private var languageSwitcher: some View {
@@ -520,8 +536,15 @@ struct HomeTabView: View {
             localization.setLanguage(language)
         } label: {
             Text(language.rawValue.uppercased())
-                .font(.caption2.weight(.black))
-                .frame(minWidth: 34, minHeight: 28)
+                // The two-letter language code is a compact control label, not
+                // reading content. Keep it stable while VoiceOver exposes the
+                // fully localized language name at every Dynamic Type size.
+                .font(.system(size: 14, weight: .black))
+                .fixedSize()
+                .frame(
+                    minWidth: dynamicTypeSize.isAccessibilitySize ? 44 : 34,
+                    minHeight: dynamicTypeSize.isAccessibilitySize ? 44 : 28
+                )
                 .foregroundStyle(isSelected ? Color.white : AppColors.textSecondary)
                 .background(
                     isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(Color.clear),
@@ -534,15 +557,53 @@ struct HomeTabView: View {
     }
 
     private var progressPath: some View {
-        HStack(spacing: AppSpacing.sm) {
-            progressChip(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
-            progressConnector(isComplete: viewModel.selectedResumeName?.isEmpty == false)
-            progressChip(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
-            progressConnector(isComplete: hasJobInput)
-            progressChip(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: AppSpacing.sm) {
+                    progressRow(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
+                    progressRow(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
+                    progressRow(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                }
+            } else {
+                HStack(spacing: AppSpacing.sm) {
+                    progressChip(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
+                    progressConnector(isComplete: viewModel.selectedResumeName?.isEmpty == false)
+                    progressChip(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
+                    progressConnector(isComplete: hasJobInput)
+                    progressChip(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                }
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Progress path. Upload, add job, ATS score.")
+    }
+
+    private func progressRow(index: Int, title: LocalizedStringKey, isActive: Bool, isComplete: Bool) -> some View {
+        HStack(spacing: AppSpacing.md) {
+            ZStack {
+                Circle()
+                    .fill(isComplete || isActive ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint))
+                    .frame(width: 44, height: 44)
+                if isComplete {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.black))
+                        .foregroundStyle(.white)
+                } else {
+                    Text("\(index)")
+                        .font(.body.weight(.black))
+                        .foregroundStyle(isActive ? .white : AppColors.textTertiary)
+                }
+            }
+            Text(title)
+                .font(.body.weight(.bold))
+                .foregroundStyle(isActive || isComplete ? AppColors.textPrimary : AppColors.textTertiary)
+            Spacer()
+        }
+        .padding(AppSpacing.md)
+        .background(
+            isActive ? AppColors.accentSky.opacity(0.1) : AppColors.glassTint,
+            in: RoundedRectangle(cornerRadius: 13, style: .continuous)
+        )
     }
 
     private func progressChip(index: Int, title: LocalizedStringKey, isActive: Bool, isComplete: Bool) -> some View {
@@ -596,8 +657,6 @@ struct HomeTabView: View {
                             .fill(AppGradients.primary)
                             .frame(width: 58, height: 58)
                             .shadow(color: AppColors.accentSky.opacity(reduceMotion ? 0.32 : 0.55), radius: reduceMotion ? 14 : 22, y: 8)
-                            .scaleEffect(appeared && !reduceMotion ? 1.03 : 1)
-                            .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: appeared && !reduceMotion)
 
                         Image(systemName: viewModel.selectedResumeName?.isEmpty == false ? "checkmark" : "square.and.arrow.up")
                             .font(.system(size: 25, weight: .bold))
@@ -872,6 +931,7 @@ struct HomeTabView: View {
                         .keyboardType(.URL)
                         .foregroundStyle(Theme.textPrimary)
                         .tint(Theme.accent)
+                        .accessibilityLabel(Text("Job Link"))
                 }
                 .padding(12)
                 .background(Theme.bgPrimary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -893,6 +953,7 @@ struct HomeTabView: View {
                         .padding(8)
                         .foregroundStyle(Theme.textPrimary)
                         .tint(Theme.accent)
+                        .accessibilityLabel(Text("Or paste job description here"))
                 }
                 .frame(minHeight: 110)
 

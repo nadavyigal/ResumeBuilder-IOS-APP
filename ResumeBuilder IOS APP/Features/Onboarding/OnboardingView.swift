@@ -3,6 +3,13 @@ import AuthenticationServices
 
 struct OnboardingView: View {
     @Bindable var viewModel: OnboardingViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var focusedField: CredentialField?
+
+    private enum CredentialField: Hashable {
+        case email
+        case password
+    }
 
     var body: some View {
         NavigationStack {
@@ -60,19 +67,37 @@ struct OnboardingView: View {
                     }
 
                     // Email form
-                    VStack(spacing: AppSpacing.md) {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        Text("Email")
+                            .font(.appSubheadline)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .accessibilityHidden(true)
+
                         TextField("Email", text: $viewModel.email)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .keyboardType(.emailAddress)
                             .textContentType(.emailAddress)
+                            .submitLabel(.next)
+                            .focused($focusedField, equals: .email)
+                            .onSubmit { focusedField = .password }
+                            .accessibilityLabel(Text("Email"))
                             .font(.appBody)
                             .foregroundStyle(AppColors.textPrimary)
                             .padding(AppSpacing.lg)
                             .glassCard(cornerRadius: AppRadii.md)
 
+                        Text("Password")
+                            .font(.appSubheadline)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .accessibilityHidden(true)
+
                         SecureField("Password", text: $viewModel.password)
                             .textContentType(viewModel.isSignUp ? .newPassword : .password)
+                            .submitLabel(.done)
+                            .focused($focusedField, equals: .password)
+                            .onSubmit { focusedField = nil }
+                            .accessibilityLabel(Text("Password"))
                             .font(.appBody)
                             .foregroundStyle(AppColors.textPrimary)
                             .padding(AppSpacing.lg)
@@ -95,7 +120,11 @@ struct OnboardingView: View {
 
                     // Toggle sign-in / sign-up
                     Button {
-                        withAnimation { viewModel.isSignUp.toggle() }
+                        if reduceMotion {
+                            viewModel.isSignUp.toggle()
+                        } else {
+                            withAnimation { viewModel.isSignUp.toggle() }
+                        }
                     } label: {
                         HStack(spacing: 4) {
                             Text(viewModel.isSignUp ? "Already have an account?" : "Don't have an account?")
@@ -119,6 +148,7 @@ struct OnboardingView: View {
                 .padding(.bottom, AppSpacing.xxxl)
             }
             .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.interactively)
             .screenBackground(showRadialGlow: true)
             .navigationBarTitleDisplayMode(.inline)
         }

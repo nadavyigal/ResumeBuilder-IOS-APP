@@ -97,6 +97,33 @@ private final class FirstSessionJourneyHarness {
 
 @MainActor
 final class FirstSessionJourneyTests: XCTestCase {
+    func testTouchedJourneyStringsCompileWithHebrewLocalization() throws {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let hebrewBundle = try XCTUnwrap(Bundle(path: path))
+        let requiredKeys = [
+            "Add your résumé",
+            "Browse Files",
+            "Choose another file",
+            "Connection dropped",
+            "Continue with Apple",
+            "Continue with email",
+            "Create a free account so this never disappears.",
+            "Most recruiters scan a resume in about 7 seconds — here's what they'd notice.",
+            "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does.",
+            "Retry now",
+            "Scanning like a recruiter would",
+            "See what a recruiter notices in the first 7 seconds — then fix it.",
+            "These appear in the job description but not your resume. Review the proposed wording before adding it.",
+            "You're offline",
+            "Your résumé and job details are still here — nothing's lost. Retry when you're back online."
+        ]
+
+        let fallbacks = requiredKeys.filter {
+            hebrewBundle.localizedString(forKey: $0, value: nil, table: nil) == $0
+        }
+        XCTAssertEqual(fallbacks, [], "Hebrew falls back to English for: \(fallbacks)")
+    }
+
     func testSyntheticGoldenPathCoversGuestCheckThroughPreviewWithoutNetwork() async {
         let harness = FirstSessionJourneyHarness(fixture: .synthetic)
         let expectedStages: [FirstSessionStage] = [

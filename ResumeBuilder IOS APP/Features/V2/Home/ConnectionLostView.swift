@@ -61,8 +61,6 @@ struct ConnectionLostView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(Color(hex: "FFD479").opacity(0.18), lineWidth: 1)
         )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Connection dropped. Your résumé and job details are still here. Retry now.")
     }
 }
 

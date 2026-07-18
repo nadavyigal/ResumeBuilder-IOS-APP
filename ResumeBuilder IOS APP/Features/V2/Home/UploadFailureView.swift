@@ -162,7 +162,6 @@ struct UploadFailureView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .strokeBorder(Color(hex: "FFD479").opacity(0.18), lineWidth: 1)
         )
-        .accessibilityElement(children: .combine)
     }
 
     private func disabledAction(_ title: LocalizedStringKey, systemImage: String) -> some View {
