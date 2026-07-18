@@ -65,6 +65,10 @@ enum AnalyticsError: Error, Equatable {
 enum AnalyticsFlowVersion: String, Sendable {
     case fitGateV1 = "fit_gate_v1"
     case directOptimizeV2 = "direct_optimize_v2"
+
+    static func current(isFitCheckEnabled: Bool) -> Self {
+        isFitCheckEnabled ? .fitGateV1 : .directOptimizeV2
+    }
 }
 
 enum AnalyticsEvent: Sendable {

@@ -132,3 +132,13 @@ struct JobInputPolicy: Sendable {
         return components.url?.absoluteString
     }
 }
+
+struct JobInputValidationTrackingPolicy: Sendable {
+    private var lastReason: JobInputPolicy.BlockingReason?
+
+    mutating func consume(_ reason: JobInputPolicy.BlockingReason?) -> String? {
+        defer { lastReason = reason }
+        guard let reason, reason != lastReason else { return nil }
+        return reason.analyticsValue
+    }
+}

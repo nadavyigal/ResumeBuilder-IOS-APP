@@ -21,6 +21,7 @@ struct HomeTabView: View {
     @State private var appeared = false
     @State private var didTrackUploadCTASeen = false
     @State private var didTrackJobAdded = false
+    @State private var jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
 
@@ -218,6 +219,10 @@ struct HomeTabView: View {
                 trackJobAddedIfNeeded()
                 viewModel.invalidateGuestDiagnosisIfInputsChanged()
             }
+            .task(id: jobInputValidationTrackingKey) {
+                guard viewModel.selectedResumeName?.isEmpty == false else { return }
+                trackJobInputValidationIfNeeded()
+            }
             .onChange(of: viewModel.selectedResumeURL) { _, _ in
                 viewModel.invalidateGuestDiagnosisIfInputsChanged()
             }
@@ -311,6 +316,12 @@ struct HomeTabView: View {
         jobInputEvaluation.isReady
     }
 
+    private var jobInputValidationTrackingKey: String {
+        let hasResume = viewModel.selectedResumeName?.isEmpty == false
+        let reason = jobInputEvaluation.blockingReason?.analyticsValue ?? "ready"
+        return "\(hasResume):\(reason)"
+    }
+
     private func scrollToJobInput(using proxy: ScrollViewProxy) {
         if reduceMotion {
             proxy.scrollTo(ScrollAnchor.jobInput, anchor: .top)
@@ -381,16 +392,18 @@ struct HomeTabView: View {
             description: viewModel.jobDescription,
             urlString: viewModel.jobDescriptionURL
         )
-        if let reason = evaluation.blockingReason?.analyticsValue {
-            AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
-        }
         guard appState.isAuthenticated else { return }
         AnalyticsService.shared.track(.analysisCTATapped(
             source: "home",
-            flowVersion: .fitGateV1,
+            flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
             hasURL: evaluation.hasURLInput,
             hasPaste: evaluation.hasDescriptionInput
         ))
+    }
+
+    private func trackJobInputValidationIfNeeded() {
+        guard let reason = jobInputValidationTrackingPolicy.consume(jobInputEvaluation.blockingReason) else { return }
+        AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
     }
 
     private func prepareFitCheck() async {

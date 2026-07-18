@@ -569,7 +569,7 @@ struct TailorView: View {
                 if appState.isAuthenticated {
                     AnalyticsService.shared.track(.analysisCTATapped(
                         source: "tailor",
-                        flowVersion: .fitGateV1,
+                        flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
                         hasURL: evaluation.hasURLInput,
                         hasPaste: evaluation.hasDescriptionInput
                     ))
