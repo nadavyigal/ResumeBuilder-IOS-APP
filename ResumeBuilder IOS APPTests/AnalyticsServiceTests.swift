@@ -169,6 +169,7 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_sheet_dismissed",
             "resume_upload_coming_soon_tapped",
             "resume_upload_cta_seen",
+            "second_job_started",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -234,6 +235,7 @@ final class AnalyticsServiceTests: XCTestCase {
             ["source": "home"],
             ["route": "scan"],
             ["source": "home"],
+            [:],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -475,6 +477,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadSheetDismissed(source: "home"),
         .resumeUploadComingSoonTapped(route: "scan"),
         .resumeUploadCTASeen(source: "home"),
+        .secondJobStarted,
     ]
 
     private func resetAnalyticsDefaults() {

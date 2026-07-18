@@ -12,6 +12,12 @@ struct SavedResumeLinkRecord: Codable, Sendable, Equatable {
     let savedAt: Date
 }
 
+struct SecondJobRequest: Identifiable, Sendable, Equatable {
+    let id: UUID
+    let previousOptimizationId: String
+    let savedResume: SavedResume?
+}
+
 struct SubmitPackageCachedScreeningAnswer: Codable, Sendable, Equatable, Identifiable {
     let id: Int
     let question: String
@@ -47,6 +53,7 @@ final class AppState {
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
     var applicationsRefreshToken: Int = 0
+    private(set) var pendingSecondJobRequest: SecondJobRequest?
     var hasBootstrappedSession = false
     var exportCompletion: ExportCompletionRecord?
     private(set) var latestOptimization: OptimizationHistoryItem?
@@ -141,6 +148,7 @@ final class AppState {
         optimizationJobURLs = [:]
         submitPackageRecords = [:]
         savedResumeRecords = [:]
+        pendingSecondJobRequest = nil
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
@@ -187,6 +195,20 @@ final class AppState {
     func savedResumeRecord(for optimizationId: String?) -> SavedResumeLinkRecord? {
         guard let optimizationId else { return nil }
         return savedResumeRecords[optimizationId]
+    }
+
+    func requestSecondJob(from optimizationId: String) {
+        guard !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        pendingSecondJobRequest = SecondJobRequest(
+            id: UUID(),
+            previousOptimizationId: optimizationId,
+            savedResume: savedResumeRecord(for: optimizationId)?.resume
+        )
+    }
+
+    func completeSecondJobRequest(_ requestId: UUID) {
+        guard pendingSecondJobRequest?.id == requestId else { return }
+        pendingSecondJobRequest = nil
     }
 
     func rememberJobURL(_ urlString: String?, for optimizationId: String) {

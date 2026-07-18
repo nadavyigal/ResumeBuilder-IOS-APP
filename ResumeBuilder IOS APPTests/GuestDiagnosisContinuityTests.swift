@@ -218,4 +218,25 @@ final class TailorViewModelGuestContinuityTests: XCTestCase {
         XCTAssertNotNil(vm.atsResult, "A fresh diagnosis must be valid for the inputs it was computed from.")
         XCTAssertTrue(vm.hasCarriedGuestDiagnosis)
     }
+
+    func testPreparingForAnotherJobKeepsResumeAndClearsOnlyJobDependentState() {
+        let vm = makeGuestDiagnosedViewModel()
+        vm.jobDescription = "Existing job description"
+        vm.reviewId = "review-1"
+        vm.optimizationId = "optimization-1"
+        vm.errorMessage = "Old failure"
+        vm.isConnectionError = true
+
+        vm.prepareForAnotherJob()
+
+        XCTAssertEqual(vm.selectedResumeURL, resumeURL)
+        XCTAssertEqual(vm.selectedResumeName, "picked_resume.pdf")
+        XCTAssertEqual(vm.jobDescription, "")
+        XCTAssertEqual(vm.jobDescriptionURL, "")
+        XCTAssertNil(vm.atsResult)
+        XCTAssertNil(vm.reviewId)
+        XCTAssertNil(vm.optimizationId)
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertFalse(vm.isConnectionError)
+    }
 }

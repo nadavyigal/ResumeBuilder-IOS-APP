@@ -6,6 +6,30 @@ final class OptimizedResumeViewModelTests: XCTestCase {
 
     // MARK: - Story 6 saved-resume continuity
 
+    func testSecondJobRequestPreservesPreviousOptimizationAndCarriesSavedResume() {
+        let optimizationId = "previous-opt"
+        let saved = SavedResume(
+            id: "saved-previous",
+            filename: "resume.pdf",
+            displayName: "Product Resume",
+            createdAt: "2026-07-18T12:00:00Z",
+            sizeBytes: 42_000
+        )
+        let appState = AppState()
+        appState.latestOptimizationId = optimizationId
+        appState.rememberSavedResume(saved, for: optimizationId)
+        defer {
+            UserDefaults.standard.removeObject(forKey: AppState.latestOptimizationKey)
+            UserDefaults.standard.removeObject(forKey: AppState.savedResumeRecordsKey)
+        }
+
+        appState.requestSecondJob(from: optimizationId)
+
+        XCTAssertEqual(appState.latestOptimizationId, optimizationId)
+        XCTAssertEqual(appState.pendingSecondJobRequest?.previousOptimizationId, optimizationId)
+        XCTAssertEqual(appState.pendingSecondJobRequest?.savedResume, saved)
+    }
+
     func testSaveOptimizedResumePersistsLiveResponseForRelaunch() async throws {
         let optimizationId = "story-6-\(UUID().uuidString)"
         let saved = SavedResume(

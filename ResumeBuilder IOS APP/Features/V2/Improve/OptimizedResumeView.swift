@@ -1135,9 +1135,12 @@ struct OptimizedResumeView: View {
                 .buttonStyle(GradientButtonStyle())
 
                 Button {
+                    guard let optimizationId = viewModel.optimizationIdentifier else { return }
+                    appState.requestSecondJob(from: optimizationId)
+                    AnalyticsService.shared.track(.secondJobStarted)
                     onSwitchTab(.tailor)
                 } label: {
-                    Label("New job", systemImage: "plus.circle")
+                    Label("Optimize for another job", systemImage: "plus.circle")
                         .font(.appCaption.weight(.semibold))
                         .frame(maxWidth: .infinity, minHeight: 40)
                         .glassCard(cornerRadius: AppRadii.md)
