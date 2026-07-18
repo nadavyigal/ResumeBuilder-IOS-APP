@@ -18,12 +18,12 @@ enum AppTypography {
 }
 
 extension Font {
-    static let appLargeNumeric  = AppTypography.numeric(64)
-    static let appMedNumeric    = AppTypography.numeric(32)
-    static let appSmallNumeric  = AppTypography.numeric(20)
-    static let appTitle         = AppTypography.heading(28)
-    static let appHeadline      = AppTypography.heading(20)
-    static let appSubheadline   = AppTypography.body(15, weight: .medium)
-    static let appBody          = AppTypography.body(15)
-    static let appCaption       = AppTypography.body(12)
+    static let appLargeNumeric  = Font.system(.largeTitle, design: .rounded, weight: .bold)
+    static let appMedNumeric    = Font.system(.title, design: .rounded, weight: .bold)
+    static let appSmallNumeric  = Font.system(.title3, design: .rounded, weight: .bold)
+    static let appTitle         = Font.system(.title2, design: .default, weight: .semibold)
+    static let appHeadline      = Font.system(.title3, design: .default, weight: .semibold)
+    static let appSubheadline   = Font.system(.subheadline, design: .default, weight: .medium)
+    static let appBody          = Font.system(.body, design: .default, weight: .regular)
+    static let appCaption       = Font.system(.caption, design: .default, weight: .regular)
 }
