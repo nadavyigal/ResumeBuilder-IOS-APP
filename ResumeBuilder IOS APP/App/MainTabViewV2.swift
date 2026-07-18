@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabViewV2: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedTab: ResumlyTab = MainTabViewV2.initialTab
 
     // Stable VM instances — created once, survive tab switches.
@@ -55,7 +56,7 @@ struct MainTabViewV2: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .animation(.easeOut(duration: 0.25), value: appState.optimizationRecoveryState)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: appState.optimizationRecoveryState)
         .onChange(of: appState.latestOptimizationId) { _, newId in
             syncDesignViewModel(to: newId)
         }
@@ -70,8 +71,12 @@ struct MainTabViewV2: View {
     }
 
     private func switchTab(_ tab: ResumlyTab) {
-        withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+        if reduceMotion {
             selectedTab = tab
+        } else {
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) {
+                selectedTab = tab
+            }
         }
     }
 

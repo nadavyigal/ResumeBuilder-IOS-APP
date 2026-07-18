@@ -1,3 +1,22 @@
+# Story 11: Touched-screen localization and accessibility (Release C, 2026-07-18)
+
+Decision: close Hebrew fallback at the catalog boundary and make the upgraded journey adapt through semantic typography and explicit accessibility behavior; keep rendered résumé/PDF RTL as a separate physical-device gate.
+
+## Implementation and validation
+
+- [x] Observe the red catalog gate with 99 missing Hebrew localizations; add compiled-bundle regression coverage for touched FTUX strings.
+- [x] Translate every catalog entry with no Hebrew value and verify placeholder parity.
+- [x] Keep visible signup labels outside placeholders; add Email → Password focus order and keyboard dismissal.
+- [x] Add explicit job-field names, preserve actionable recovery controls in VoiceOver order, and expose tab labels/selected state.
+- [x] Move shared app typography to semantic Dynamic Type styles; reflow Home progress at accessibility sizes.
+- [x] Honor Reduce Motion across Home entrance, signup mode, tab selection, and recovery state.
+- [x] Remove the RTL matched-geometry tab-pill ghost found during Hebrew simulator QA.
+- [x] Document contrast, VoiceOver, keyboard, Dynamic Type, Reduce Motion, and the separate physical PDF RTL gate.
+- [x] Complete final post-fix Debug/Release builds, dual-simulator screenshots, and diff/privacy/version review.
+- [ ] Commit/push/open and review-gate the Story 11 PR.
+
+---
+
 # Story 10: Canonical activation and failure instrumentation (Release B, 2026-07-18)
 
 Decision: activation is measured only after WebKit reports a successful visible preview render; every lifecycle event uses bounded non-content categories plus the stable session/review/optimization IDs already returned by the product contracts.

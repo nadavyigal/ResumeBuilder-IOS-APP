@@ -785,3 +785,10 @@
 **Decisions Made:** Treat all four CodeRabbit comments as valid. A disabled button is not an observable validation interaction; visibility events belong to the active tab and are deduplicated per optimization ID; `flow_version` must describe the feature-flag route actually taken.
 **Validation:** Red compile state observed for the new policy/helper signatures. Focused `AnalyticsServiceTests` passed twice on iPhone 17 / iOS 26.5 after implementation. `git diff --check` passed.
 **Next Recommended Action:** Publish the review-fix commit to PR #105, confirm checks, merge, then start Story 11 from updated `main`.
+# Session Log Entry — 2026-07-18 — Story 11 localization and accessibility
+
+**Task:** Execute WP-46 Story 11 on the FTUX screens stabilized through Story 10.
+**Files Changed:** shared typography/tab bar, MainTabViewV2, Onboarding, Home/Tailor job input, upload/recovery cards, `Localizable.xcstrings`, first-session regression tests, Story 11 QA report, and task memory.
+**Decisions Made:** Enforce zero missing Hebrew entries rather than allow per-screen fallback; keep compact language codes visually fixed at accessible 44-point controls while exposing full localized names; use semantic text styles and an accessibility-size progress layout; remove tab matched geometry and the upload icon pulse after Hebrew QA proved both could leave detached gradient layers under RTL/small-screen compositing; keep generated preview/PDF RTL gated to Story 13 physical-device QA.
+**Validation:** Red catalog gate: 99 missing. Green catalog gate: 0 missing and placeholder parity clean. Compiled Hebrew test passed. Final-tree full suite: 199 passed, 1 intentional skip, 0 failures on dedicated iPhone 17 / iOS 26.5. Final Debug and unsigned generic-iOS Release builds passed. Final Hebrew iPhone 17 + SE captures are clean; diff/privacy/version checks passed.
+**Next Recommended Action:** Publish/review Story 11, then start Story 12 from merged `main`.
