@@ -127,6 +127,7 @@ enum AnalyticsEvent: Sendable {
     case resumeUploadSheetDismissed(source: String)
     case resumeUploadComingSoonTapped(route: String)
     case resumeUploadCTASeen(source: String)
+    case secondJobStarted
 
     nonisolated var name: String {
         switch self {
@@ -182,6 +183,7 @@ enum AnalyticsEvent: Sendable {
         case .resumeUploadSheetDismissed: return "resume_upload_sheet_dismissed"
         case .resumeUploadComingSoonTapped: return "resume_upload_coming_soon_tapped"
         case .resumeUploadCTASeen: return "resume_upload_cta_seen"
+        case .secondJobStarted: return "second_job_started"
         }
     }
 
@@ -190,7 +192,7 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .fitCheckOptimizeTapped, .fitCheckSkipped:
+             .fitCheckOptimizeTapped, .fitCheckSkipped, .secondJobStarted:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):
             return Self.compactProperties([

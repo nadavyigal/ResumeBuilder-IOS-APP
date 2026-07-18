@@ -107,6 +107,25 @@ final class TailorViewModel {
         selectedResumeName = displayName
     }
 
+    /// Starts a fresh job match without discarding the résumé or the previous
+    /// optimization stored in AppState. Every value cleared here was produced
+    /// from the old target job and must not leak into the next analysis.
+    func prepareForAnotherJob() {
+        jobDescriptionURL = ""
+        jobDescription = ""
+        reviewId = nil
+        optimizationId = nil
+        uploadResponse = nil
+        errorMessage = nil
+        uploadFailureReason = nil
+        failedResumeName = nil
+        isConnectionError = false
+        atsResult = nil
+        guestDiagnosisFingerprint = nil
+        pendingSaveResumeId = nil
+        uploadContextSignature = nil
+    }
+
     func ensureUploadedResumeForCurrentJob(appState: AppState) async throws -> ResumeUploadResponse? {
         guard let selectedResumeURL else {
             errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")

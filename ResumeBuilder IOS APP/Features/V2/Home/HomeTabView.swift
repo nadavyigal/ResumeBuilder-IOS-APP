@@ -25,6 +25,8 @@ struct HomeTabView: View {
     @State private var jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
+    @State private var secondJobContext: String?
+    @FocusState private var focusedJobField: JobField?
 
     private var activationState: HomeActivationState {
         HomeActivationState.derive(from: .init(
@@ -40,6 +42,10 @@ struct HomeTabView: View {
 
     private enum ScrollAnchor {
         static let jobInput = "job-input"
+    }
+
+    private enum JobField: Hashable {
+        case description
     }
 
     var body: some View {
@@ -145,6 +151,10 @@ struct HomeTabView: View {
                             scrollToJobInput(using: scrollProxy)
                         }
                     }
+                    .task(id: appState.pendingSecondJobRequest?.id) {
+                        guard let request = appState.pendingSecondJobRequest else { return }
+                        await prepareForSecondJob(request, using: scrollProxy)
+                    }
                 }
             }
             .navigationBarHidden(true)
@@ -179,6 +189,7 @@ struct HomeTabView: View {
                 SavedResumePickerSheet(
                     libraryViewModel: libraryViewModel,
                     onSelect: { localURL, displayName in
+                        secondJobContext = nil
                         viewModel.useLibraryResume(localURL: localURL, displayName: displayName)
                         showLibraryPicker = false
                     }
@@ -338,6 +349,42 @@ struct HomeTabView: View {
         }
     }
 
+    @MainActor
+    private func prepareForSecondJob(_ request: SecondJobRequest, using proxy: ScrollViewProxy) async {
+        viewModel.prepareForAnotherJob()
+        journeyRoute = nil
+        diagnosisViewModel = nil
+        showFitCheck = false
+        didTrackJobAdded = false
+        jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
+
+        if let savedResume = request.savedResume {
+            do {
+                let localURL = try await appState.callWithFreshToken { token in
+                    try await libraryViewModel.downloadToCache(resume: savedResume, token: token)
+                }
+                viewModel.useLibraryResume(
+                    localURL: localURL,
+                    displayName: savedResume.displayName ?? savedResume.filename
+                )
+            } catch {
+                viewModel.errorMessage = NSLocalizedString("Couldn’t reuse your saved résumé. Choose it again to continue.", comment: "")
+            }
+        }
+
+        if let resumeName = viewModel.selectedResumeName, !resumeName.isEmpty {
+            secondJobContext = String(
+                format: NSLocalizedString("Using %@. Add the next job to create a new match.", comment: ""),
+                resumeName
+            )
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            scrollToJobInput(using: proxy)
+            focusedJobField = .description
+        }
+
+        appState.completeSecondJobRequest(request.id)
+    }
+
     private func trackJobAddedIfNeeded() {
         guard hasJobInput, !didTrackJobAdded else { return }
         didTrackJobAdded = true
@@ -354,6 +401,7 @@ struct HomeTabView: View {
     }
 
     private func openResumeImporter() {
+        secondJobContext = nil
         isImporterFlowActive = true
         AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
         isImporterPresented = true
@@ -890,6 +938,15 @@ struct HomeTabView: View {
     private var jobInputCard: some View {
         let jobFilled = hasJobInput
         return VStack(spacing: 0) {
+            if let secondJobContext {
+                Label(secondJobContext, systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 14)
+            }
+
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
@@ -947,6 +1004,7 @@ struct HomeTabView: View {
                             .allowsHitTesting(false)
                     }
                     TextEditor(text: $viewModel.jobDescription)
+                        .focused($focusedJobField, equals: .description)
                         .scrollContentBackground(.hidden)
                         .background(.clear)
                         .frame(minHeight: 110)

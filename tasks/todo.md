@@ -1,3 +1,19 @@
+# Story 12: Optimize another job retention loop (Release C, 2026-07-18)
+
+Decision: the completed-preview action carries the saved optimized résumé into a fresh job match, while AppState keeps the prior optimization recoverable and analytics carries no content properties.
+
+## Implementation and validation
+
+- [x] Add red-first state and analytics contract tests for another-job preparation, saved-résumé association, prior optimization preservation, and `second_job_started`.
+- [x] Replace the post-export “New job” action with “Optimize for another job” and route one explicit request back to Home.
+- [x] Reuse the saved optimized résumé when available, retain the in-memory résumé as a safe fallback, and clear only job-derived analysis/review/upload state.
+- [x] Scroll and focus the fresh job description input with visible résumé context; localize the new path in Hebrew.
+- [x] Pass focused tests, the full iOS 26.5 suite, Debug build, and iPhone 17 + iPhone SE launch/render smokes.
+- [x] Pass the exact final-tree unsigned generic-iOS Release build and final diff/privacy/version checks.
+- [ ] Commit, push, open the Story 12 PR, complete its review gate, and merge before Story 13.
+
+---
+
 # Story 11: Touched-screen localization and accessibility (Release C, 2026-07-18)
 
 Decision: close Hebrew fallback at the catalog boundary and make the upgraded journey adapt through semantic typography and explicit accessibility behavior; keep rendered résumé/PDF RTL as a separate physical-device gate.
