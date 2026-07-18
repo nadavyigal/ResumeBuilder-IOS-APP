@@ -1,3 +1,21 @@
+# Story 13: Release-candidate journey audit (Release C, 2026-07-18)
+
+Decision: release certification requires direct physical preview/export/relaunch/RTL/file-picker/second-job evidence; code and simulator evidence cannot substitute for those taps, and monetization remains deferred until both the journey and clean-cohort gate pass.
+
+## Audit and validation
+
+- [x] Start from merged Stories 1–12 on `main` (`ca64329`) and read the original 20-checkpoint audit from `origin/docs/ftux-audit-rescue`.
+- [x] Erase and freshly boot the dedicated iPhone 17 on iOS 26.5; install/launch the exact candidate and verify clean Home.
+- [x] Pass the exact candidate full suite: 202 total, 1 intentional skip, 0 failures.
+- [x] Confirm Debug simulator and exact-tree generic-device Release builds are green.
+- [x] Detect the connected physical iPhone, compile/link for it, open the project in Xcode, and record the Keychain signing gate accurately.
+- [x] Publish the 20-checkpoint delta, added export/return-loop gates, physical checklist, and monetization decision in the Story 13 QA report.
+- [ ] Founder authorizes signing in Xcode and completes the physical preview, export/share, relaunch, Hebrew/RTL PDF, file-picker, and second-job checklist.
+- [ ] Update the report with pass/fail observations; confirm no critical/high defect remains; complete the final PR review, and merge Story 13.
+- [x] Commit and publish the automated evidence as a draft Story 13 PR while the physical gate remains pending.
+
+---
+
 # Story 12: Optimize another job retention loop (Release C, 2026-07-18)
 
 Decision: the completed-preview action carries the saved optimized résumé into a fresh job match, while AppState keeps the prior optimization recoverable and analytics carries no content properties.
@@ -10,7 +28,7 @@ Decision: the completed-preview action carries the saved optimized résumé into
 - [x] Scroll and focus the fresh job description input with visible résumé context; localize the new path in Hebrew.
 - [x] Pass focused tests, the full iOS 26.5 suite, Debug build, and iPhone 17 + iPhone SE launch/render smokes.
 - [x] Pass the exact final-tree unsigned generic-iOS Release build and final diff/privacy/version checks.
-- [ ] Commit, push, open the Story 12 PR, complete its review gate, and merge before Story 13.
+- [x] Commit, push, open Story 12 PR #107, address both review findings, pass the updated gates, and merge before Story 13.
 
 ---
 
