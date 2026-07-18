@@ -89,11 +89,21 @@ struct ResumeDiagnosisView: View {
             context: rewrite.explanation
         )
         AnalyticsService.shared.track(
-            .recommendationViewed(surface: "diagnosis", safetyState: safety.analyticsState)
+            .recommendationViewed(
+                surface: "diagnosis",
+                safetyState: safety.analyticsState,
+                reviewId: nil,
+                itemId: rewrite.id.uuidString
+            )
         )
         if safety.isSuppressed, blockedRewriteIds.insert(rewrite.id).inserted {
             AnalyticsService.shared.track(
-                .recommendationBlocked(surface: "diagnosis", reason: safety.analyticsReason)
+                .recommendationBlocked(
+                    surface: "diagnosis",
+                    reason: safety.analyticsReason,
+                    reviewId: nil,
+                    itemId: rewrite.id.uuidString
+                )
             )
         }
     }

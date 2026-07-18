@@ -10,6 +10,14 @@ struct JobInputPolicy: Sendable {
         case missing
         case invalidURL
         case descriptionTooShort
+
+        var analyticsValue: String {
+            switch self {
+            case .missing: return "missing"
+            case .invalidURL: return "invalid_url"
+            case .descriptionTooShort: return "description_too_short"
+            }
+        }
     }
 
     struct Evaluation: Equatable, Sendable {

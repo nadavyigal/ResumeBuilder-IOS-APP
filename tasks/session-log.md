@@ -769,3 +769,12 @@
 **Next Recommended Action:** Begin Story 3 only after explicit user confirmation.
 
 ---
+### 2026-07-18 — WP-46 Story 10 canonical activation instrumentation
+
+**Task:** Merge reviewed Story 9 PR #104, reconcile WP-45 S0, and make the first-session value path reproducibly measurable.
+**Files changed:** Analytics event contract and lifecycle call sites across Home, Tailor, Fit, review, preview, save, recovery, and export; `AnalyticsServiceTests.swift`; the Story 10 funnel report; task records.
+**Decisions:** Activation means a successful visible WebKit render with applied content. Stable backend IDs and the anonymous session are allowed correlation, while user content remains prohibited. `resume_file_selected` and `resume_upload_succeeded` are the only current local/server upload milestones.
+**Validation:** Red compile state observed; focused analytics 16/16; full suite 192 tests, 1 skip, 0 failures on iOS 26.5; Debug and generic-device Release builds passed; iPhone 17 and SE launch screenshots passed; diff/privacy checks passed.
+**Next:** Commit, push, and review Story 10; then begin Story 11 localization/accessibility.
+
+---

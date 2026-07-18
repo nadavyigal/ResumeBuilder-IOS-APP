@@ -1,3 +1,17 @@
+# Story 10: Canonical activation and failure instrumentation (Release B, 2026-07-18)
+
+Decision: activation is measured only after WebKit reports a successful visible preview render; every lifecycle event uses bounded non-content categories plus the stable session/review/optimization IDs already returned by the product contracts.
+
+## Implementation plan
+
+- [x] Reconcile the WP-45 `analysis_cta_tapped` baseline and versioned Fit properties against current Story 9 analytics.
+- [x] Add red-first contract coverage for apply, validation, recovery, recommendation, save, export, upload semantics, correlation IDs, and visible-preview activation.
+- [x] Wire the lifecycle call sites; stop emitting ambiguous legacy `resume_uploaded` completion events.
+- [x] Add a reproducible PostHog funnel query and document internal-tester exclusion without reading content fields.
+- [x] Pass focused tests, the full iOS 26.5 suite, Debug and generic-device Release builds, dual-simulator smokes, and diff/privacy review. Commit/push/PR gate follows this task-memory update.
+
+---
+
 # Story 9: Evidence-backed review with Accept and Skip (Release B, 2026-07-16)
 
 Decision: v1 evidence is extracted on-device as bounded verbatim substrings of the delivered job and résumé text; the approved additive backend schema remains the v2 upgrade path. Evidence informs the user but never changes recommendation safety defaults or the group-ID-only apply contract.

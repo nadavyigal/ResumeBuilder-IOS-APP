@@ -16,6 +16,8 @@ struct ResumePreviewWebView: View {
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
     var renderedHTML: Binding<String?> = .constant(nil)
+    /// Fires only after WKWebView confirms the HTML navigation finished.
+    var onVisibleRender: @MainActor () -> Void = {}
 
     @State private var html: String?
     @State private var isLoading = true
@@ -48,7 +50,11 @@ struct ResumePreviewWebView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let html {
-                WebKitHTMLView(html: html, baseURL: BackendConfig.apiBaseURL) { message in
+                WebKitHTMLView(
+                    html: html,
+                    baseURL: BackendConfig.apiBaseURL,
+                    onLoadSuccess: onVisibleRender
+                ) { message in
                     previewLogger.error("Preview WebKit load failed for optimization \(optimizationId, privacy: .public): \(message, privacy: .public)")
                     errorMessage = NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
                     self.html = nil
@@ -222,8 +228,8 @@ struct ResumePreviewWebView: View {
     private func downloadAndShare() async {
         guard let token = appState.session?.accessToken else { return }
         isDownloadingPDF = true
-        AnalyticsService.shared.track(.exportPdfTapped)
-        AnalyticsService.shared.track(.exportStarted)
+        AnalyticsService.shared.track(.exportPdfTapped(optimizationId: optimizationId))
+        AnalyticsService.shared.track(.exportStarted(optimizationId: optimizationId))
         defer { isDownloadingPDF = false }
         // Use the already-rendered styled HTML when available so the exported PDF
         // includes the design template the user selected.
@@ -233,7 +239,7 @@ struct ResumePreviewWebView: View {
                 let dest = try await HTMLPDFExporter.exportPDF(html: styledHTML, optimizationId: optimizationId)
                 pdfURL = dest
                 showSharePDF = true
-                AnalyticsService.shared.track(.exportSuccess)
+                AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId))
                 return
             } catch {
                 styledHTMLFailureCode = ExportFailureCode.code(for: error)
@@ -246,11 +252,11 @@ struct ResumePreviewWebView: View {
             let dest = try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
             pdfURL = dest
             showSharePDF = true
-            AnalyticsService.shared.track(.exportSuccess)
+            AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId))
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
-            AnalyticsService.shared.track(.exportFailed(errorCode: code))
+            AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: code))
             previewLogger.error("Preview backend PDF export failed for optimization \(optimizationId, privacy: .public): \(code, privacy: .public)")
             errorMessage = error.localizedDescription
         }
@@ -314,11 +320,29 @@ struct PreviewRequestPolicy {
     }
 }
 
+struct PreviewActivationPolicy {
+    private var trackedOptimizationIds: Set<String> = []
+
+    mutating func consumeVisibleRender(
+        optimizationId: String?,
+        hasVisibleAppliedChanges: Bool
+    ) -> String? {
+        guard hasVisibleAppliedChanges,
+              let optimizationId = optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !optimizationId.isEmpty,
+              trackedOptimizationIds.insert(optimizationId).inserted else {
+            return nil
+        }
+        return optimizationId
+    }
+}
+
 // MARK: - WKWebView wrapper
 
 private struct WebKitHTMLView: UIViewRepresentable {
     let html: String
     let baseURL: URL?
+    let onLoadSuccess: @MainActor () -> Void
     let onLoadFailure: @MainActor (String) -> Void
 
     func makeUIView(context: Context) -> WKWebView {
@@ -333,10 +357,11 @@ private struct WebKitHTMLView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onLoadFailure: onLoadFailure)
+        Coordinator(onLoadSuccess: onLoadSuccess, onLoadFailure: onLoadFailure)
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        context.coordinator.onLoadSuccess = onLoadSuccess
         context.coordinator.onLoadFailure = onLoadFailure
         guard context.coordinator.lastLoadedHTML != html else { return }
         context.coordinator.lastLoadedHTML = html
@@ -346,10 +371,19 @@ private struct WebKitHTMLView: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate {
         var lastLoadedHTML: String?
+        var onLoadSuccess: @MainActor () -> Void
         var onLoadFailure: @MainActor (String) -> Void
 
-        init(onLoadFailure: @escaping @MainActor (String) -> Void) {
+        init(
+            onLoadSuccess: @escaping @MainActor () -> Void,
+            onLoadFailure: @escaping @MainActor (String) -> Void
+        ) {
+            self.onLoadSuccess = onLoadSuccess
             self.onLoadFailure = onLoadFailure
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            onLoadSuccess()
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {

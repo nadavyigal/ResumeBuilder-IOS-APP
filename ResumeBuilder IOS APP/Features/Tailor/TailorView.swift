@@ -559,6 +559,21 @@ struct TailorView: View {
                 .padding(.horizontal, 16)
 
             Button {
+                let evaluation = JobInputPolicy.evaluate(
+                    description: viewModel.jobDescription,
+                    urlString: viewModel.jobDescriptionURL
+                )
+                if let reason = evaluation.blockingReason?.analyticsValue {
+                    AnalyticsService.shared.track(.jobInputValidationShown(surface: "tailor", reason: reason))
+                }
+                if appState.isAuthenticated {
+                    AnalyticsService.shared.track(.analysisCTATapped(
+                        source: "tailor",
+                        flowVersion: .fitGateV1,
+                        hasURL: evaluation.hasURLInput,
+                        hasPaste: evaluation.hasDescriptionInput
+                    ))
+                }
                 Task {
                     if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
                         do {
