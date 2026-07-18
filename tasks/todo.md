@@ -8,7 +8,8 @@ Decision: activation is measured only after WebKit reports a successful visible 
 - [x] Add red-first contract coverage for apply, validation, recovery, recommendation, save, export, upload semantics, correlation IDs, and visible-preview activation.
 - [x] Wire the lifecycle call sites; stop emitting ambiguous legacy `resume_uploaded` completion events.
 - [x] Add a reproducible PostHog funnel query and document internal-tester exclusion without reading content fields.
-- [x] Pass focused tests, the full iOS 26.5 suite, Debug and generic-device Release builds, dual-simulator smokes, and diff/privacy review. Commit/push/PR gate follows this task-memory update.
+- [x] Pass focused tests, the full iOS 26.5 suite, Debug and generic-device Release builds, dual-simulator smokes, and diff/privacy review.
+- [x] Address PR #105 review findings with red-first coverage: reachable validation transitions, feature-flag route versioning, and active optimization/tab visibility deduplication.
 
 ---
 

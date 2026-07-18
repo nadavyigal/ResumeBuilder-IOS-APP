@@ -320,14 +320,16 @@ struct PreviewRequestPolicy {
     }
 }
 
-struct PreviewActivationPolicy {
+struct PreviewActivationPolicy: Sendable {
     private var trackedOptimizationIds: Set<String> = []
 
     mutating func consumeVisibleRender(
         optimizationId: String?,
-        hasVisibleAppliedChanges: Bool
+        hasVisibleAppliedChanges: Bool,
+        isActive: Bool
     ) -> String? {
-        guard hasVisibleAppliedChanges,
+        guard isActive,
+              hasVisibleAppliedChanges,
               let optimizationId = optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
               !optimizationId.isEmpty,
               trackedOptimizationIds.insert(optimizationId).inserted else {

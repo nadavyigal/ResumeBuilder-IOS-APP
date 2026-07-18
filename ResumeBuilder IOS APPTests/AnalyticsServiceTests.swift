@@ -310,11 +310,27 @@ final class AnalyticsServiceTests: XCTestCase {
     func testPreviewActivationPolicyWaitsForVisibleAppliedContentAndDeduplicatesByOptimization() {
         var policy = PreviewActivationPolicy()
 
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: nil, hasVisibleAppliedChanges: true))
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: false))
-        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true), "opt-1")
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true))
-        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-2", hasVisibleAppliedChanges: true), "opt-2")
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: nil, hasVisibleAppliedChanges: true, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: false, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: false))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true), "opt-1")
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-2", hasVisibleAppliedChanges: true, isActive: true), "opt-2")
+    }
+
+    func testAnalyticsFlowVersionFollowsFitCheckRoute() {
+        XCTAssertEqual(AnalyticsFlowVersion.current(isFitCheckEnabled: true), .fitGateV1)
+        XCTAssertEqual(AnalyticsFlowVersion.current(isFitCheckEnabled: false), .directOptimizeV2)
+    }
+
+    func testJobInputValidationTrackingPolicyEmitsOnReasonTransitions() {
+        var policy = JobInputValidationTrackingPolicy()
+
+        XCTAssertEqual(policy.consume(.missing), "missing")
+        XCTAssertNil(policy.consume(.missing))
+        XCTAssertEqual(policy.consume(.descriptionTooShort), "description_too_short")
+        XCTAssertNil(policy.consume(nil))
+        XCTAssertEqual(policy.consume(.descriptionTooShort), "description_too_short")
     }
 
     // MARK: Score buckets

@@ -778,3 +778,10 @@
 **Next:** Commit, push, and review Story 10; then begin Story 11 localization/accessibility.
 
 ---
+# Session Log Entry — 2026-07-18 — Story 10 PR review fixes
+
+**Task:** Review Story 10 PR #105 and clear its merge gate.
+**Files Changed:** Analytics flow-version helper; Home validation transition policy/call site; Home and Tailor route-version call sites; optimized preview visibility/save-prompt state; preview activation policy; analytics regression tests; task memory.
+**Decisions Made:** Treat all four CodeRabbit comments as valid. A disabled button is not an observable validation interaction; visibility events belong to the active tab and are deduplicated per optimization ID; `flow_version` must describe the feature-flag route actually taken.
+**Validation:** Red compile state observed for the new policy/helper signatures. Focused `AnalyticsServiceTests` passed twice on iPhone 17 / iOS 26.5 after implementation. `git diff --check` passed.
+**Next Recommended Action:** Publish the review-fix commit to PR #105, confirm checks, merge, then start Story 11 from updated `main`.
