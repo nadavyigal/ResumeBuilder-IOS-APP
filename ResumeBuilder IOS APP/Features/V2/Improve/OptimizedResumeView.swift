@@ -27,10 +27,10 @@ struct OptimizedResumeView: View {
     @State private var showPDFShare = false
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
-    @State private var didTrackOptimizedViewed = false
-    @State private var didTrackExportCTASeen = false
-    @State private var didTrackPreviewRendered = false
-    @State private var didTrackSavePromptViewed = false
+    @State private var optimizedViewedIds: Set<String> = []
+    @State private var exportCTASeenIds: Set<String> = []
+    @State private var previewActivationPolicy = PreviewActivationPolicy()
+    @State private var savePromptViewedIds: Set<String> = []
 
     // Target-reached celebration + save-account handoff (fires on a real
     // ATS score crossing the target band, never a fabricated value).
@@ -76,7 +76,18 @@ struct OptimizedResumeView: View {
                         templateId: designVM?.selectedTemplateId,
                         customization: designVM?.customization,
                         isActive: isActive,
-                        renderedHTML: $renderedPreviewHTML
+                        renderedHTML: $renderedPreviewHTML,
+                        onVisibleRender: {
+                            if let optimizationId = previewActivationPolicy.consumeVisibleRender(
+                                optimizationId: viewModel.optimizationIdentifier,
+                                hasVisibleAppliedChanges: viewModel.hasVisibleAppliedChanges,
+                                isActive: isActive
+                            ) {
+                                AnalyticsService.shared.track(
+                                    .optimizedPreviewRendered(optimizationId: optimizationId)
+                                )
+                            }
+                        }
                     )
                     .aspectRatio(8.5 / 11, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
@@ -158,13 +169,6 @@ struct OptimizedResumeView: View {
             } else {
                 designVM = nil
             }
-        }
-        .onChange(of: renderedPreviewHTML) { _, html in
-            guard !didTrackPreviewRendered,
-                  html?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
-                  viewModel.hasVisibleAppliedChanges else { return }
-            AnalyticsService.shared.track(.optimizedPreviewRendered)
-            didTrackPreviewRendered = true
         }
         .onChange(of: viewModel.atsScoreAfter) { oldValue, newValue in
             // A nil oldValue means this is the initial load (including viewing an
@@ -254,6 +258,9 @@ struct OptimizedResumeView: View {
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, _ in
             trackOptimizedAndExportVisibilityIfNeeded()
+        }
+        .task(id: "\(viewModel.optimizationIdentifier ?? "none"):\(isActive)") {
+            trackSavePromptVisibilityIfNeeded()
         }
         .safeAreaInset(edge: .bottom) {
             bottomBar
@@ -775,11 +782,6 @@ struct OptimizedResumeView: View {
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
-        .onAppear {
-            guard !didTrackSavePromptViewed else { return }
-            AnalyticsService.shared.track(.savedResumePromptViewed)
-            didTrackSavePromptViewed = true
-        }
     }
 
     private var improveActionsRow: some View {
@@ -1147,8 +1149,9 @@ struct OptimizedResumeView: View {
 
     @MainActor
     private func performExport() async {
-        guard !isDownloadingPDF else { return }
-        AnalyticsService.shared.track(.exportPdfTapped)
+        guard !isDownloadingPDF,
+              let optimizationId = viewModel.optimizationIdentifier else { return }
+        AnalyticsService.shared.track(.exportPdfTapped(optimizationId: optimizationId))
         isDownloadingPDF = true
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
@@ -1171,15 +1174,20 @@ struct OptimizedResumeView: View {
     }
 
     private func trackOptimizedAndExportVisibilityIfNeeded() {
-        guard viewModel.optimizationIdentifier != nil else { return }
-        if !didTrackOptimizedViewed {
-            AnalyticsService.shared.track(.optimizedViewed)
-            didTrackOptimizedViewed = true
+        guard isActive, let optimizationId = viewModel.optimizationIdentifier else { return }
+        if optimizedViewedIds.insert(optimizationId).inserted {
+            AnalyticsService.shared.track(.optimizedViewed(optimizationId: optimizationId))
         }
-        if !didTrackExportCTASeen {
-            AnalyticsService.shared.track(.exportCTASeen)
-            didTrackExportCTASeen = true
+        if exportCTASeenIds.insert(optimizationId).inserted {
+            AnalyticsService.shared.track(.exportCTASeen(optimizationId: optimizationId))
         }
+    }
+
+    private func trackSavePromptVisibilityIfNeeded() {
+        guard isActive,
+              let optimizationId = viewModel.optimizationIdentifier,
+              savePromptViewedIds.insert(optimizationId).inserted else { return }
+        AnalyticsService.shared.track(.savedResumePromptViewed(optimizationId: optimizationId))
     }
 
     // MARK: - Refine sheet

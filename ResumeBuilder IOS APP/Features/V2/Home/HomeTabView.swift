@@ -21,6 +21,7 @@ struct HomeTabView: View {
     @State private var appeared = false
     @State private var didTrackUploadCTASeen = false
     @State private var didTrackJobAdded = false
+    @State private var jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
 
@@ -207,9 +208,6 @@ struct HomeTabView: View {
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
-                    let ext = viewModel.selectedResumeURL?.pathExtension.lowercased()
-                    let fileType = (ext?.isEmpty == false) ? ext! : "unknown"
-                    AnalyticsService.shared.track(.resumeUploaded(fileType: fileType))
                     appState.hasUploadedResumeThisSession = true
                 }
             }
@@ -220,6 +218,10 @@ struct HomeTabView: View {
             .onChange(of: viewModel.jobDescriptionURL) { _, _ in
                 trackJobAddedIfNeeded()
                 viewModel.invalidateGuestDiagnosisIfInputsChanged()
+            }
+            .task(id: jobInputValidationTrackingKey) {
+                guard viewModel.selectedResumeName?.isEmpty == false else { return }
+                trackJobInputValidationIfNeeded()
             }
             .onChange(of: viewModel.selectedResumeURL) { _, _ in
                 viewModel.invalidateGuestDiagnosisIfInputsChanged()
@@ -314,6 +316,12 @@ struct HomeTabView: View {
         jobInputEvaluation.isReady
     }
 
+    private var jobInputValidationTrackingKey: String {
+        let hasResume = viewModel.selectedResumeName?.isEmpty == false
+        let reason = jobInputEvaluation.blockingReason?.analyticsValue ?? "ready"
+        return "\(hasResume):\(reason)"
+    }
+
     private func scrollToJobInput(using proxy: ScrollViewProxy) {
         if reduceMotion {
             proxy.scrollTo(ScrollAnchor.jobInput, anchor: .top)
@@ -377,6 +385,25 @@ struct HomeTabView: View {
                 ))
             }
         }
+    }
+
+    private func trackAnalysisIntent() {
+        let evaluation = JobInputPolicy.evaluate(
+            description: viewModel.jobDescription,
+            urlString: viewModel.jobDescriptionURL
+        )
+        guard appState.isAuthenticated else { return }
+        AnalyticsService.shared.track(.analysisCTATapped(
+            source: "home",
+            flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
+            hasURL: evaluation.hasURLInput,
+            hasPaste: evaluation.hasDescriptionInput
+        ))
+    }
+
+    private func trackJobInputValidationIfNeeded() {
+        guard let reason = jobInputValidationTrackingPolicy.consume(jobInputEvaluation.blockingReason) else { return }
+        AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
     }
 
     private func prepareFitCheck() async {
@@ -937,6 +964,7 @@ struct HomeTabView: View {
             Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
 
             Button {
+                trackAnalysisIntent()
                 Task { await runAnalysis() }
             } label: {
                 Group {

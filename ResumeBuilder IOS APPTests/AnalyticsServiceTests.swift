@@ -121,15 +121,22 @@ final class AnalyticsServiceTests: XCTestCase {
             "guest_mode_started",
             "resume_uploaded",
             "job_added",
+            "analysis_cta_tapped",
+            "job_input_validation_shown",
             "free_ats_completed",
             "sign_in_completed",
             "account_deleted",
             "optimization_started",
             "optimization_completed",
             "optimization_state_recovered",
+            "optimization_state_recovery_failed",
+            "optimization_apply_started",
+            "optimization_apply_succeeded",
+            "optimization_apply_failed",
             "optimized_viewed",
             "optimized_preview_rendered",
             "saved_resume_prompt_viewed",
+            "save_started",
             "save_success",
             "save_failed",
             "export_started",
@@ -172,33 +179,47 @@ final class AnalyticsServiceTests: XCTestCase {
             [:],
             ["file_type": "pdf"],
             ["has_url": "true", "has_paste": "false"],
+            [
+                "source": "home",
+                "flow_version": "fit_gate_v1",
+                "job_input_source": "url",
+                "extraction_quality": "unknown",
+                "requirement_count_bucket": "unknown",
+                "score_version": "ats_v2_legacy",
+            ],
+            ["surface": "home", "reason": "description_too_short"],
             ["score_bucket": "61-80"],
             [:],
             [:],
             ["resume_id": "resume-1", "job_description_id": "job-1"],
             ["optimization_id": "opt-1", "review_id": "review-1"],
             ["optimization_id": "opt-1"],
-            [:],
-            [:],
-            [:],
-            [:],
             ["error_code": "network_1009"],
-            [:],
-            [:],
-            ["error_code": "unauthorized"],
+            ["review_id": "review-1", "approved_group_count": "2"],
+            ["optimization_id": "opt-1", "review_id": "review-1"],
+            ["review_id": "review-1", "error_code": "server_500"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1", "error_code": "network_1009"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1", "error_code": "unauthorized"],
             ["match_score": "72"],
-            ["surface": "optimization_review", "safety_state": "safe"],
-            ["surface": "optimization_review", "safety_state": "confirmation_required", "evidence_state": "with_evidence"],
-            ["surface": "optimization_review", "safety_state": "confirmation_required"],
-            ["surface": "optimization_review", "safety_state": "safe", "evidence_state": "without_evidence"],
-            ["surface": "optimization_review", "reason": "unresolved_placeholder"],
-            ["surface": "optimization_review", "job_quote_count": "2", "resume_quote_count": "1"],
+            ["surface": "optimization_review", "safety_state": "safe", "review_id": "review-1", "item_id": "item-1"],
+            ["surface": "optimization_review", "safety_state": "confirmation_required", "evidence_state": "with_evidence", "review_id": "review-1", "item_id": "item-1"],
+            ["surface": "optimization_review", "safety_state": "confirmation_required", "review_id": "review-1", "item_id": "item-1"],
+            ["surface": "optimization_review", "safety_state": "safe", "evidence_state": "without_evidence", "review_id": "review-1", "item_id": "item-1"],
+            ["surface": "optimization_review", "reason": "unresolved_placeholder", "review_id": "review-1", "item_id": "item-1"],
+            ["surface": "optimization_review", "job_quote_count": "2", "resume_quote_count": "1", "review_id": "review-1", "item_id": "item-1"],
             ["current_score": "55"],
-            [:],
-            [:],
+            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1"],
             ["has_cover_letter": "true"],
-            [:],
-            ["verdict": "stretch", "match_score": "68"],
+            ["flow_version": "fit_gate_v1", "score_version": "ats_v2_legacy"],
+            ["verdict": "stretch", "match_score": "68", "score_bucket": "61-80", "flow_version": "fit_gate_v1", "score_version": "ats_v2_legacy"],
             [:],
             [:],
             ["source": "home"],
@@ -223,6 +244,93 @@ final class AnalyticsServiceTests: XCTestCase {
         let service = AnalyticsService(transport: SpyTransport())
         XCTAssertTrue(service.isEnabled)
         service.track(.resumeUploaded(fileType: "pdf")) // must not crash
+    }
+
+    func testCanonicalLifecycleEventsCarryOnlyStableNonContentCorrelation() {
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationApplyStarted(reviewId: "review-1", approvedGroupCount: 3).properties,
+            ["review_id": "review-1", "approved_group_count": "3"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationApplyFailed(reviewId: "review-1", errorCode: "network_1009").properties,
+            ["review_id": "review-1", "error_code": "network_1009"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizedPreviewRendered(optimizationId: "opt-1").properties,
+            ["optimization_id": "opt-1"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.saveFailed(optimizationId: "opt-1", errorCode: "server_500").properties,
+            ["optimization_id": "opt-1", "error_code": "server_500"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.exportSuccess(optimizationId: "opt-1").properties,
+            ["optimization_id": "opt-1"]
+        )
+    }
+
+    func testValidationAndRecommendationEventsUseBoundedCategoriesAndIds() {
+        XCTAssertEqual(
+            AnalyticsEvent.jobInputValidationShown(surface: "home", reason: "description_too_short").properties,
+            ["surface": "home", "reason": "description_too_short"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.recommendationIncluded(
+                surface: "optimization_review",
+                safetyState: "safe",
+                evidenceState: "with_evidence",
+                reviewId: "review-1",
+                itemId: "summary-1"
+            ).properties,
+            [
+                "surface": "optimization_review",
+                "safety_state": "safe",
+                "evidence_state": "with_evidence",
+                "review_id": "review-1",
+                "item_id": "summary-1",
+            ]
+        )
+    }
+
+    func testLocalSelectionAndServerUploadCompletionRemainDistinctEvents() {
+        XCTAssertEqual(
+            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            "resume_file_selected"
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.resumeUploadSucceeded(fileType: "pdf").name,
+            "resume_upload_succeeded"
+        )
+        XCTAssertNotEqual(
+            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            AnalyticsEvent.resumeUploadSucceeded(fileType: "pdf").name
+        )
+    }
+
+    func testPreviewActivationPolicyWaitsForVisibleAppliedContentAndDeduplicatesByOptimization() {
+        var policy = PreviewActivationPolicy()
+
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: nil, hasVisibleAppliedChanges: true, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: false, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: false))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true), "opt-1")
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-2", hasVisibleAppliedChanges: true, isActive: true), "opt-2")
+    }
+
+    func testAnalyticsFlowVersionFollowsFitCheckRoute() {
+        XCTAssertEqual(AnalyticsFlowVersion.current(isFitCheckEnabled: true), .fitGateV1)
+        XCTAssertEqual(AnalyticsFlowVersion.current(isFitCheckEnabled: false), .directOptimizeV2)
+    }
+
+    func testJobInputValidationTrackingPolicyEmitsOnReasonTransitions() {
+        var policy = JobInputValidationTrackingPolicy()
+
+        XCTAssertEqual(policy.consume(.missing), "missing")
+        XCTAssertNil(policy.consume(.missing))
+        XCTAssertEqual(policy.consume(.descriptionTooShort), "description_too_short")
+        XCTAssertNil(policy.consume(nil))
+        XCTAssertEqual(policy.consume(.descriptionTooShort), "description_too_short")
     }
 
     // MARK: Score buckets
@@ -319,30 +427,37 @@ final class AnalyticsServiceTests: XCTestCase {
         .guestModeStarted,
         .resumeUploaded(fileType: "pdf"),
         .jobAdded(hasURL: true, hasPaste: false),
+        .analysisCTATapped(source: "home", flowVersion: .fitGateV1, hasURL: true, hasPaste: false),
+        .jobInputValidationShown(surface: "home", reason: "description_too_short"),
         .freeATSCompleted(scoreBucket: "61-80"),
         .signInCompleted,
         .accountDeleted,
         .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1"),
         .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1"),
         .optimizationStateRecovered(optimizationId: "opt-1"),
-        .optimizedViewed,
-        .optimizedPreviewRendered,
-        .savedResumePromptViewed,
-        .saveSuccess,
-        .saveFailed(errorCode: "network_1009"),
-        .exportStarted,
-        .exportSuccess,
-        .exportFailed(errorCode: "unauthorized"),
+        .optimizationStateRecoveryFailed(errorCode: "network_1009"),
+        .optimizationApplyStarted(reviewId: "review-1", approvedGroupCount: 2),
+        .optimizationApplySucceeded(optimizationId: "opt-1", reviewId: "review-1"),
+        .optimizationApplyFailed(reviewId: "review-1", errorCode: "server_500"),
+        .optimizedViewed(optimizationId: "opt-1"),
+        .optimizedPreviewRendered(optimizationId: "opt-1"),
+        .savedResumePromptViewed(optimizationId: "opt-1"),
+        .saveStarted(optimizationId: "opt-1"),
+        .saveSuccess(optimizationId: "opt-1"),
+        .saveFailed(optimizationId: "opt-1", errorCode: "network_1009"),
+        .exportStarted(optimizationId: "opt-1"),
+        .exportSuccess(optimizationId: "opt-1"),
+        .exportFailed(optimizationId: "opt-1", errorCode: "unauthorized"),
         .diagnosisViewed(matchScore: 72),
-        .recommendationViewed(surface: "optimization_review", safetyState: "safe"),
-        .recommendationIncluded(surface: "optimization_review", safetyState: "confirmation_required", evidenceState: "with_evidence"),
-        .recommendationEdited(surface: "optimization_review", safetyState: "confirmation_required"),
-        .recommendationSkipped(surface: "optimization_review", safetyState: "safe", evidenceState: "without_evidence"),
-        .recommendationBlocked(surface: "optimization_review", reason: "unresolved_placeholder"),
-        .recommendationEvidenceShown(surface: "optimization_review", jobQuoteCount: 2, resumeQuoteCount: 1),
+        .recommendationViewed(surface: "optimization_review", safetyState: "safe", reviewId: "review-1", itemId: "item-1"),
+        .recommendationIncluded(surface: "optimization_review", safetyState: "confirmation_required", evidenceState: "with_evidence", reviewId: "review-1", itemId: "item-1"),
+        .recommendationEdited(surface: "optimization_review", safetyState: "confirmation_required", reviewId: "review-1", itemId: "item-1"),
+        .recommendationSkipped(surface: "optimization_review", safetyState: "safe", evidenceState: "without_evidence", reviewId: "review-1", itemId: "item-1"),
+        .recommendationBlocked(surface: "optimization_review", reason: "unresolved_placeholder", reviewId: "review-1", itemId: "item-1"),
+        .recommendationEvidenceShown(surface: "optimization_review", jobQuoteCount: 2, resumeQuoteCount: 1, reviewId: "review-1", itemId: "item-1"),
         .atsImproveTapped(currentScore: 55),
-        .exportPdfTapped,
-        .exportCTASeen,
+        .exportPdfTapped(optimizationId: "opt-1"),
+        .exportCTASeen(optimizationId: "opt-1"),
         .submitPackageSaved(hasCoverLetter: true),
         .fitCheckStarted,
         .fitCheckCompleted(verdict: "stretch", matchScore: 68),

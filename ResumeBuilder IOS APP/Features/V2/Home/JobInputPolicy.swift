@@ -10,6 +10,14 @@ struct JobInputPolicy: Sendable {
         case missing
         case invalidURL
         case descriptionTooShort
+
+        var analyticsValue: String {
+            switch self {
+            case .missing: return "missing"
+            case .invalidURL: return "invalid_url"
+            case .descriptionTooShort: return "description_too_short"
+            }
+        }
     }
 
     struct Evaluation: Equatable, Sendable {
@@ -122,5 +130,15 @@ struct JobInputPolicy: Sendable {
             return nil
         }
         return components.url?.absoluteString
+    }
+}
+
+struct JobInputValidationTrackingPolicy: Sendable {
+    private var lastReason: JobInputPolicy.BlockingReason?
+
+    mutating func consume(_ reason: JobInputPolicy.BlockingReason?) -> String? {
+        defer { lastReason = reason }
+        guard let reason, reason != lastReason else { return nil }
+        return reason.analyticsValue
     }
 }

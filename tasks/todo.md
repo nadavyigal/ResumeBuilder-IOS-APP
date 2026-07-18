@@ -1,3 +1,36 @@
+# Story 10: Canonical activation and failure instrumentation (Release B, 2026-07-18)
+
+Decision: activation is measured only after WebKit reports a successful visible preview render; every lifecycle event uses bounded non-content categories plus the stable session/review/optimization IDs already returned by the product contracts.
+
+## Implementation plan
+
+- [x] Reconcile the WP-45 `analysis_cta_tapped` baseline and versioned Fit properties against current Story 9 analytics.
+- [x] Add red-first contract coverage for apply, validation, recovery, recommendation, save, export, upload semantics, correlation IDs, and visible-preview activation.
+- [x] Wire the lifecycle call sites; stop emitting ambiguous legacy `resume_uploaded` completion events.
+- [x] Add a reproducible PostHog funnel query and document internal-tester exclusion without reading content fields.
+- [x] Pass focused tests, the full iOS 26.5 suite, Debug and generic-device Release builds, dual-simulator smokes, and diff/privacy review.
+- [x] Address PR #105 review findings with red-first coverage: reachable validation transitions, feature-flag route versioning, and active optimization/tab visibility deduplication.
+
+---
+
+# Story 9: Evidence-backed review with Accept and Skip (Release B, 2026-07-16)
+
+Decision: v1 evidence is extracted on-device as bounded verbatim substrings of the delivered job and résumé text; the approved additive backend schema remains the v2 upgrade path. Evidence informs the user but never changes recommendation safety defaults or the group-ID-only apply contract.
+
+## Implementation and validation
+
+- [x] Add additive evidence/job-text DTO decoding and deterministic `RecommendationEvidence` extraction with backend preference, version gating, verbatim re-validation, deduplication, and quote bounds.
+- [x] Render read-only job/résumé evidence per review group when available; rename the normal Include action to Accept; preserve Skip and explicit factual confirmation.
+- [x] Add content-free analytics using fixed `evidence_state` values and evidence quote counts only.
+- [x] Confirm red state, then pass focused evidence tests 16/16, focused evidence + analytics + safety tests 35/35, and the full iOS 26.5 suite 188/1 skip/0 failures.
+- [x] Pass Debug simulator build and launch smokes on iPhone 17 and Resumely Build7 iPhone SE, both iOS 26.5.
+- [x] Pass generic-device Release build with `CODE_SIGNING_ALLOWED=NO`; exclude one earlier manually interrupted run from validation evidence.
+- [x] Pass `git diff --check` and final review for unrelated changes, version drift, secrets, credentials, and content-bearing analytics.
+- [x] Open draft PR #104 to `main`.
+- [x] Complete the PR review gate: CodeRabbit reviewed all 10 remote files with no actionable comments and 5/5 pre-merge checks passed; PR #104 marked ready.
+
+---
+
 # Story 8: Merge Fit into the diagnosis continuation (Release B, 2026-07-16)
 
 Decision: a job the user already entered on Home is not a question to ask again. Fit runs on the carried target directly; the target stays editable right up to the moment of optimizing.

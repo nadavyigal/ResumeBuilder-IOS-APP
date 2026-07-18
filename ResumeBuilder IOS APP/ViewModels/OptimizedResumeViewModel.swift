@@ -120,6 +120,7 @@ final class OptimizedResumeViewModel {
             return
         }
         savedResumeState = .saving
+        AnalyticsService.shared.track(.saveStarted(optimizationId: optimizationId))
         do {
             let resume = try await appState.callWithFreshToken { token in
                 try await self.libraryService.saveResume(
@@ -130,10 +131,12 @@ final class OptimizedResumeViewModel {
             }
             appState.rememberSavedResume(resume, for: optimizationId)
             savedResumeState = .saved(resume)
-            AnalyticsService.shared.track(.saveSuccess)
+            AnalyticsService.shared.track(.saveSuccess(optimizationId: optimizationId))
         } catch {
             savedResumeState = .failed(NSLocalizedString("Couldn’t save this resume. Your preview is still here — try again.", comment: ""))
-            AnalyticsService.shared.track(.saveFailed(errorCode: ExportFailureCode.code(for: error)))
+            AnalyticsService.shared.track(
+                .saveFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error))
+            )
         }
     }
 

@@ -16,6 +16,14 @@
 ## Sessions
 
 **Date:** 2026-07-16
+**Task:** Resume WP-46 Story 9 from the handoff; complete builds, dual-simulator smokes, final inspection, and open the review PR.
+**Files Changed:** `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md` for closeout evidence; implementation/test files were unchanged from handoff commit `f72927a`.
+**Decisions Made:** Kept validation on iOS 26.5 only; treated the iPhone SE's first black capture as unproven and required a clean relaunch/longer wait before counting it; excluded one manually interrupted Release run from evidence and accepted only the subsequent explicit `BUILD SUCCEEDED`; opened PR #104 as draft for the review gate.
+**Validation:** Existing handoff evidence retained: focused 16/16, focused evidence + analytics + safety 35/35, full suite 188 tests / 1 intentional skip / 0 failures. This continuation: Debug simulator build passed; iPhone 17 + SE install/launch/render smokes passed; generic-device Release build with `CODE_SIGNING_ALLOWED=NO` passed; final tree inspection found no unrelated/version/secret/credential/content-analytics changes; `git diff --check` passed.
+**Review Gate:** CodeRabbit reviewed all 10 remote Story 9 files, returned no actionable comments, and passed 5/5 pre-merge checks. PR #104 was marked ready; it was not merged.
+**Next Recommended Action:** Merge PR #104 when approved. Before Story 10, reconcile local-only `codex/wp45-s0-measurement-contract` (`d53d091`).
+
+**Date:** 2026-07-16
 **Task:** WP-46 continued — founder approved the evidence contract (alternative B); Story 9 implemented test-first; session stopped by founder mid-validation.
 **Files Changed:** `Features/V2/History/RecommendationEvidence.swift` (new), `Core/API/Models/DomainModels.swift`, `Features/V2/History/OptimizationReviewView.swift`, `Core/Analytics/AnalyticsService.swift`, `ResumeBuilder IOS APPTests/RecommendationEvidenceTests.swift` (new), `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`, `project.pbxproj` (test entries), `docs/specs/drafts/recommendation-evidence-backend-contract.md` (approval recorded, merged via PR #103), `tasks/progress.md`, `tasks/session-log.md`.
 **Decisions Made:** Contract delivery = alternative B: v1 deterministic on-device extraction from text the review endpoint already returns; backend §2 schema kept as the v2 upgrade path the client already prefers when present. Include button renamed Accept per the story. Evidence analytics carry counts and fixed states only, never quote content. Evidence never changes selection defaults or the Story 5 safety policy.
@@ -761,3 +769,19 @@
 **Next Recommended Action:** Begin Story 3 only after explicit user confirmation.
 
 ---
+### 2026-07-18 — WP-46 Story 10 canonical activation instrumentation
+
+**Task:** Merge reviewed Story 9 PR #104, reconcile WP-45 S0, and make the first-session value path reproducibly measurable.
+**Files changed:** Analytics event contract and lifecycle call sites across Home, Tailor, Fit, review, preview, save, recovery, and export; `AnalyticsServiceTests.swift`; the Story 10 funnel report; task records.
+**Decisions:** Activation means a successful visible WebKit render with applied content. Stable backend IDs and the anonymous session are allowed correlation, while user content remains prohibited. `resume_file_selected` and `resume_upload_succeeded` are the only current local/server upload milestones.
+**Validation:** Red compile state observed; focused analytics 16/16; full suite 192 tests, 1 skip, 0 failures on iOS 26.5; Debug and generic-device Release builds passed; iPhone 17 and SE launch screenshots passed; diff/privacy checks passed.
+**Next:** Commit, push, and review Story 10; then begin Story 11 localization/accessibility.
+
+---
+# Session Log Entry — 2026-07-18 — Story 10 PR review fixes
+
+**Task:** Review Story 10 PR #105 and clear its merge gate.
+**Files Changed:** Analytics flow-version helper; Home validation transition policy/call site; Home and Tailor route-version call sites; optimized preview visibility/save-prompt state; preview activation policy; analytics regression tests; task memory.
+**Decisions Made:** Treat all four CodeRabbit comments as valid. A disabled button is not an observable validation interaction; visibility events belong to the active tab and are deduplicated per optimization ID; `flow_version` must describe the feature-flag route actually taken.
+**Validation:** Red compile state observed for the new policy/helper signatures. Focused `AnalyticsServiceTests` passed twice on iPhone 17 / iOS 26.5 after implementation. `git diff --check` passed.
+**Next Recommended Action:** Publish the review-fix commit to PR #105, confirm checks, merge, then start Story 11 from updated `main`.

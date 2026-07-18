@@ -95,7 +95,9 @@ final class OptimizationReviewViewModel {
                 .recommendationSkipped(
                     surface: "optimization_review",
                     safetyState: safety.analyticsState,
-                    evidenceState: evidenceState
+                    evidenceState: evidenceState,
+                    reviewId: reviewId,
+                    itemId: group.id
                 )
             )
         } else {
@@ -104,7 +106,9 @@ final class OptimizationReviewViewModel {
                 .recommendationIncluded(
                     surface: "optimization_review",
                     safetyState: safety.analyticsState,
-                    evidenceState: evidenceState
+                    evidenceState: evidenceState,
+                    reviewId: reviewId,
+                    itemId: group.id
                 )
             )
         }
@@ -115,7 +119,12 @@ final class OptimizationReviewViewModel {
               let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
         let safety = assessment(for: group)
         AnalyticsService.shared.track(
-            .recommendationViewed(surface: "optimization_review", safetyState: safety.analyticsState)
+            .recommendationViewed(
+                surface: "optimization_review",
+                safetyState: safety.analyticsState,
+                reviewId: reviewId,
+                itemId: group.id
+            )
         )
         let groupEvidence = evidence(for: group)
         if !groupEvidence.isEmpty, !safety.isSuppressed {
@@ -123,13 +132,20 @@ final class OptimizationReviewViewModel {
                 .recommendationEvidenceShown(
                     surface: "optimization_review",
                     jobQuoteCount: groupEvidence.jobQuotes.count,
-                    resumeQuoteCount: groupEvidence.resumeQuotes.count
+                    resumeQuoteCount: groupEvidence.resumeQuotes.count,
+                    reviewId: reviewId,
+                    itemId: group.id
                 )
             )
         }
         if safety.isSuppressed, blockedGroupIds.insert(groupId).inserted {
             AnalyticsService.shared.track(
-                .recommendationBlocked(surface: "optimization_review", reason: safety.analyticsReason)
+                .recommendationBlocked(
+                    surface: "optimization_review",
+                    reason: safety.analyticsReason,
+                    reviewId: reviewId,
+                    itemId: group.id
+                )
             )
         }
     }
@@ -143,12 +159,16 @@ final class OptimizationReviewViewModel {
             errorMessage = NSLocalizedString("Select at least one change to apply.", comment: "")
             return
         }
+        AnalyticsService.shared.track(
+            .optimizationApplyStarted(reviewId: reviewId, approvedGroupCount: includedGroupIds.count)
+        )
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }
         do {
             try await applyOrRecover(with: token)
         } catch let apiError as APIClientError {
+            trackApplyFailure(apiError)
             switch apiError {
             case .serverError(let status, let message) where status >= 500:
                 if message.contains("operation_type") {
@@ -161,6 +181,7 @@ final class OptimizationReviewViewModel {
                 errorMessage = apiError.localizedDescription
             }
         } catch {
+            trackApplyFailure(error)
             errorMessage = error.localizedDescription
         }
     }
@@ -170,6 +191,9 @@ final class OptimizationReviewViewModel {
             errorMessage = NSLocalizedString("Select at least one change to apply.", comment: "")
             return
         }
+        AnalyticsService.shared.track(
+            .optimizationApplyStarted(reviewId: reviewId, approvedGroupCount: includedGroupIds.count)
+        )
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }
@@ -178,6 +202,7 @@ final class OptimizationReviewViewModel {
                 try await self.applyOrRecover(with: token)
             }
         } catch let apiError as APIClientError {
+            trackApplyFailure(apiError)
             switch apiError {
             case .serverError(let status, let message) where status >= 500:
                 if message.contains("operation_type") {
@@ -190,6 +215,7 @@ final class OptimizationReviewViewModel {
                 errorMessage = apiError.localizedDescription
             }
         } catch {
+            trackApplyFailure(error)
             errorMessage = error.localizedDescription
         }
     }
@@ -213,11 +239,17 @@ final class OptimizationReviewViewModel {
         )
         if let err = result.error, result.optimizationId == nil {
             errorMessage = err
+            AnalyticsService.shared.track(
+                .optimizationApplyFailed(reviewId: reviewId, errorCode: "backend_error")
+            )
             return
         }
         applySuccessOptimizationId = result.optimizationId
         if let optimizationId = result.optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
            !optimizationId.isEmpty {
+            AnalyticsService.shared.track(
+                .optimizationApplySucceeded(optimizationId: optimizationId, reviewId: reviewId)
+            )
             AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
         }
     }
@@ -249,6 +281,10 @@ final class OptimizationReviewViewModel {
            !optimizationId.isEmpty {
             applySuccessOptimizationId = optimizationId
             errorMessage = nil
+            AnalyticsService.shared.track(.optimizationStateRecovered(optimizationId: optimizationId))
+            AnalyticsService.shared.track(
+                .optimizationApplySucceeded(optimizationId: optimizationId, reviewId: reviewId)
+            )
             AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
             return true
         }
@@ -259,6 +295,12 @@ final class OptimizationReviewViewModel {
         }
 
         return false
+    }
+
+    private func trackApplyFailure(_ error: Error) {
+        AnalyticsService.shared.track(
+            .optimizationApplyFailed(reviewId: reviewId, errorCode: ExportFailureCode.code(for: error))
+        )
     }
 
     private static func isTimeout(_ error: Error) -> Bool {

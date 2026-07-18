@@ -62,36 +62,52 @@ enum AnalyticsError: Error, Equatable {
     case disabled
 }
 
+enum AnalyticsFlowVersion: String, Sendable {
+    case fitGateV1 = "fit_gate_v1"
+    case directOptimizeV2 = "direct_optimize_v2"
+
+    static func current(isFitCheckEnabled: Bool) -> Self {
+        isFitCheckEnabled ? .fitGateV1 : .directOptimizeV2
+    }
+}
+
 enum AnalyticsEvent: Sendable {
     case appLaunched(isAuthenticated: Bool)
     case guestModeStarted
     case resumeUploaded(fileType: String)
     case jobAdded(hasURL: Bool, hasPaste: Bool)
+    case analysisCTATapped(source: String, flowVersion: AnalyticsFlowVersion, hasURL: Bool, hasPaste: Bool)
+    case jobInputValidationShown(surface: String, reason: String)
     case freeATSCompleted(scoreBucket: String)
     case signInCompleted
     case accountDeleted
     case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
     case optimizationCompleted(optimizationId: String?, reviewId: String?)
     case optimizationStateRecovered(optimizationId: String)
-    case optimizedViewed
-    case optimizedPreviewRendered
-    case savedResumePromptViewed
-    case saveSuccess
-    case saveFailed(errorCode: String)
-    case exportStarted
-    case exportSuccess
-    case exportFailed(errorCode: String)
+    case optimizationStateRecoveryFailed(errorCode: String)
+    case optimizationApplyStarted(reviewId: String, approvedGroupCount: Int)
+    case optimizationApplySucceeded(optimizationId: String, reviewId: String)
+    case optimizationApplyFailed(reviewId: String, errorCode: String)
+    case optimizedViewed(optimizationId: String)
+    case optimizedPreviewRendered(optimizationId: String)
+    case savedResumePromptViewed(optimizationId: String)
+    case saveStarted(optimizationId: String)
+    case saveSuccess(optimizationId: String)
+    case saveFailed(optimizationId: String, errorCode: String)
+    case exportStarted(optimizationId: String)
+    case exportSuccess(optimizationId: String)
+    case exportFailed(optimizationId: String, errorCode: String)
     case diagnosisViewed(matchScore: Int)
-    case recommendationViewed(surface: String, safetyState: String)
-    case recommendationIncluded(surface: String, safetyState: String, evidenceState: String)
-    case recommendationEdited(surface: String, safetyState: String)
-    case recommendationSkipped(surface: String, safetyState: String, evidenceState: String)
-    case recommendationBlocked(surface: String, reason: String)
+    case recommendationViewed(surface: String, safetyState: String, reviewId: String?, itemId: String?)
+    case recommendationIncluded(surface: String, safetyState: String, evidenceState: String, reviewId: String?, itemId: String?)
+    case recommendationEdited(surface: String, safetyState: String, reviewId: String?, itemId: String?)
+    case recommendationSkipped(surface: String, safetyState: String, evidenceState: String, reviewId: String?, itemId: String?)
+    case recommendationBlocked(surface: String, reason: String, reviewId: String?, itemId: String?)
     /// Counts only — quote content never leaves the device.
-    case recommendationEvidenceShown(surface: String, jobQuoteCount: Int, resumeQuoteCount: Int)
+    case recommendationEvidenceShown(surface: String, jobQuoteCount: Int, resumeQuoteCount: Int, reviewId: String?, itemId: String?)
     case atsImproveTapped(currentScore: Int)
-    case exportPdfTapped
-    case exportCTASeen
+    case exportPdfTapped(optimizationId: String)
+    case exportCTASeen(optimizationId: String)
     case submitPackageSaved(hasCoverLetter: Bool)
     // Fit-First Triage (WP-12)
     case fitCheckStarted
@@ -118,15 +134,22 @@ enum AnalyticsEvent: Sendable {
         case .guestModeStarted: return "guest_mode_started"
         case .resumeUploaded: return "resume_uploaded"
         case .jobAdded: return "job_added"
+        case .analysisCTATapped: return "analysis_cta_tapped"
+        case .jobInputValidationShown: return "job_input_validation_shown"
         case .freeATSCompleted: return "free_ats_completed"
         case .signInCompleted: return "sign_in_completed"
         case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
         case .optimizationCompleted: return "optimization_completed"
         case .optimizationStateRecovered: return "optimization_state_recovered"
+        case .optimizationStateRecoveryFailed: return "optimization_state_recovery_failed"
+        case .optimizationApplyStarted: return "optimization_apply_started"
+        case .optimizationApplySucceeded: return "optimization_apply_succeeded"
+        case .optimizationApplyFailed: return "optimization_apply_failed"
         case .optimizedViewed: return "optimized_viewed"
         case .optimizedPreviewRendered: return "optimized_preview_rendered"
         case .savedResumePromptViewed: return "saved_resume_prompt_viewed"
+        case .saveStarted: return "save_started"
         case .saveSuccess: return "save_success"
         case .saveFailed: return "save_failed"
         case .exportStarted: return "export_started"
@@ -167,9 +190,7 @@ enum AnalyticsEvent: Sendable {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
         case .guestModeStarted, .signInCompleted, .accountDeleted,
-             .optimizedViewed, .optimizedPreviewRendered, .savedResumePromptViewed, .saveSuccess,
-             .exportStarted, .exportSuccess,
-             .exportPdfTapped, .exportCTASeen, .fitCheckStarted, .fitCheckOptimizeTapped, .fitCheckSkipped:
+             .fitCheckOptimizeTapped, .fitCheckSkipped:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):
             return Self.compactProperties([
@@ -183,6 +204,24 @@ enum AnalyticsEvent: Sendable {
             ])
         case .optimizationStateRecovered(let optimizationId):
             return ["optimization_id": optimizationId]
+        case .optimizationStateRecoveryFailed(let errorCode):
+            return ["error_code": errorCode]
+        case .optimizationApplyStarted(let reviewId, let approvedGroupCount):
+            return ["review_id": reviewId, "approved_group_count": "\(approvedGroupCount)"]
+        case .optimizationApplySucceeded(let optimizationId, let reviewId):
+            return ["optimization_id": optimizationId, "review_id": reviewId]
+        case .optimizationApplyFailed(let reviewId, let errorCode):
+            return ["review_id": reviewId, "error_code": errorCode]
+        case .optimizedViewed(let optimizationId),
+             .optimizedPreviewRendered(let optimizationId),
+             .savedResumePromptViewed(let optimizationId),
+             .saveStarted(let optimizationId),
+             .saveSuccess(let optimizationId),
+             .exportStarted(let optimizationId),
+             .exportSuccess(let optimizationId),
+             .exportPdfTapped(let optimizationId),
+             .exportCTASeen(let optimizationId):
+            return ["optimization_id": optimizationId]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]
         case .jobAdded(let hasURL, let hasPaste):
@@ -190,34 +229,73 @@ enum AnalyticsEvent: Sendable {
                 "has_url": hasURL ? "true" : "false",
                 "has_paste": hasPaste ? "true" : "false",
             ]
+        case .analysisCTATapped(let source, let flowVersion, let hasURL, let hasPaste):
+            return [
+                "source": source,
+                "flow_version": flowVersion.rawValue,
+                "job_input_source": Self.jobInputSource(hasURL: hasURL, hasPaste: hasPaste),
+                "extraction_quality": "unknown",
+                "requirement_count_bucket": "unknown",
+                "score_version": "ats_v2_legacy",
+            ]
+        case .jobInputValidationShown(let surface, let reason):
+            return ["surface": surface, "reason": reason]
         case .freeATSCompleted(let scoreBucket):
             return ["score_bucket": scoreBucket]
-        case .exportFailed(let errorCode):
-            return ["error_code": errorCode]
-        case .saveFailed(let errorCode):
-            return ["error_code": errorCode]
+        case .exportFailed(let optimizationId, let errorCode),
+             .saveFailed(let optimizationId, let errorCode):
+            return ["optimization_id": optimizationId, "error_code": errorCode]
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]
-        case .recommendationViewed(let surface, let safetyState),
-             .recommendationEdited(let surface, let safetyState):
-            return ["surface": surface, "safety_state": safetyState]
-        case .recommendationIncluded(let surface, let safetyState, let evidenceState),
-             .recommendationSkipped(let surface, let safetyState, let evidenceState):
-            return ["surface": surface, "safety_state": safetyState, "evidence_state": evidenceState]
-        case .recommendationBlocked(let surface, let reason):
-            return ["surface": surface, "reason": reason]
-        case .recommendationEvidenceShown(let surface, let jobQuoteCount, let resumeQuoteCount):
-            return [
+        case .recommendationViewed(let surface, let safetyState, let reviewId, let itemId),
+             .recommendationEdited(let surface, let safetyState, let reviewId, let itemId):
+            return Self.compactProperties([
+                "surface": surface,
+                "safety_state": safetyState,
+                "review_id": reviewId,
+                "item_id": itemId,
+            ])
+        case .recommendationIncluded(let surface, let safetyState, let evidenceState, let reviewId, let itemId),
+             .recommendationSkipped(let surface, let safetyState, let evidenceState, let reviewId, let itemId):
+            return Self.compactProperties([
+                "surface": surface,
+                "safety_state": safetyState,
+                "evidence_state": evidenceState,
+                "review_id": reviewId,
+                "item_id": itemId,
+            ])
+        case .recommendationBlocked(let surface, let reason, let reviewId, let itemId):
+            return Self.compactProperties([
+                "surface": surface,
+                "reason": reason,
+                "review_id": reviewId,
+                "item_id": itemId,
+            ])
+        case .recommendationEvidenceShown(let surface, let jobQuoteCount, let resumeQuoteCount, let reviewId, let itemId):
+            return Self.compactProperties([
                 "surface": surface,
                 "job_quote_count": "\(jobQuoteCount)",
                 "resume_quote_count": "\(resumeQuoteCount)",
-            ]
+                "review_id": reviewId,
+                "item_id": itemId,
+            ])
         case .atsImproveTapped(let currentScore):
             return ["current_score": "\(currentScore)"]
         case .submitPackageSaved(let hasCoverLetter):
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
+        case .fitCheckStarted:
+            return [
+                "flow_version": AnalyticsFlowVersion.fitGateV1.rawValue,
+                "score_version": "ats_v2_legacy",
+            ]
         case .fitCheckCompleted(let verdict, let matchScore):
-            return ["verdict": verdict, "match_score": "\(matchScore)"]
+            return [
+                "verdict": verdict,
+                "match_score": "\(matchScore)",
+                "score_bucket": Self.scoreBucket(for: matchScore),
+                "flow_version": AnalyticsFlowVersion.fitGateV1.rawValue,
+                "score_version": "ats_v2_legacy",
+            ]
         case .resumeUploadCTATapped(let source),
              .resumeUploadCTASeen(let source),
              .resumeFilePickerOpened(let source),
@@ -240,12 +318,21 @@ enum AnalyticsEvent: Sendable {
         }
     }
 
-    static func scoreBucket(for score: Int) -> String {
+    nonisolated static func scoreBucket(for score: Int) -> String {
         switch score {
         case ...40: return "0-40"
         case 41...60: return "41-60"
         case 61...80: return "61-80"
         default: return "81-100"
+        }
+    }
+
+    nonisolated private static func jobInputSource(hasURL: Bool, hasPaste: Bool) -> String {
+        switch (hasURL, hasPaste) {
+        case (true, true): return "url_and_paste"
+        case (true, false): return "url"
+        case (false, true): return "paste"
+        case (false, false): return "none"
         }
     }
 
