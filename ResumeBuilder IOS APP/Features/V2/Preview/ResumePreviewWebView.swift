@@ -26,6 +26,7 @@ struct ResumePreviewWebView: View {
     @State private var showSharePDF = false
     @State private var isDownloadingPDF = false
     @State private var previewPolicy = PreviewRequestPolicy()
+    @State private var downloadError: String?
 
     private let designService: any ResumeDesignServiceProtocol = RuntimeServices.resumeDesignService()
     private var previewRequestKey: String {
@@ -78,6 +79,13 @@ struct ResumePreviewWebView: View {
                     .foregroundStyle(AppColors.accentTeal)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .overlay(alignment: .top) {
+            if let downloadError {
+                errorBanner(downloadError)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
             }
         }
         .screenBackground(showRadialGlow: false)
@@ -226,13 +234,13 @@ struct ResumePreviewWebView: View {
     }
 
     private func downloadAndShare() async {
-        guard let token = appState.session?.accessToken else { return }
         isDownloadingPDF = true
+        downloadError = nil
         AnalyticsService.shared.track(.exportPdfTapped(optimizationId: optimizationId))
         AnalyticsService.shared.track(.exportStarted(optimizationId: optimizationId))
         defer { isDownloadingPDF = false }
         // Use the already-rendered styled HTML when available so the exported PDF
-        // includes the design template the user selected.
+        // includes the design template the user selected. This path needs no token.
         var styledHTMLFailureCode: String?
         if let styledHTML = html {
             do {
@@ -248,7 +256,9 @@ struct ResumePreviewWebView: View {
             }
         }
         do {
-            let data = try await PDFExporter.downloadPDFData(optimizationId: optimizationId, token: token)
+            let data = try await appState.callWithFreshToken { token in
+                try await PDFExporter.downloadPDFData(optimizationId: optimizationId, token: token)
+            }
             let dest = try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
             pdfURL = dest
             showSharePDF = true
@@ -258,8 +268,17 @@ struct ResumePreviewWebView: View {
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
             AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: code))
             previewLogger.error("Preview backend PDF export failed for optimization \(optimizationId, privacy: .public): \(code, privacy: .public)")
-            errorMessage = error.localizedDescription
+            downloadError = NSLocalizedString("Download failed", comment: "")
         }
+    }
+
+    private func errorBanner(_ message: String) -> some View {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+            .font(.footnote)
+            .foregroundStyle(.red)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
 }
