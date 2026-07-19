@@ -106,7 +106,12 @@ final class ResumeLibraryViewModel {
             errorMessage = NSLocalizedString("Resume Library is not available yet.", comment: "")
             throw APIClientError.serverError(status: 404, message: NSLocalizedString("Resume Library is not available yet.", comment: ""))
         }
-        let remoteURL = try await service.downloadResumePDF(id: resume.id, token: token)
+        // /api/download regenerates a PDF from an optimization row, not a saved_resumes
+        // row - the saved-resume id and its source optimization id are different ids.
+        guard let optimizationId = resume.optimizationId else {
+            throw APIClientError.serverError(status: 404, message: NSLocalizedString("Download failed", comment: ""))
+        }
+        let remoteURL = try await service.downloadResumePDF(id: optimizationId, token: token)
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let dest = docs.appendingPathComponent("library_\(resume.id).pdf")
         try? FileManager.default.removeItem(at: dest)
