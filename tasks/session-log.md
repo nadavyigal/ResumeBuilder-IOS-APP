@@ -15,6 +15,14 @@
 
 ## Sessions
 
+**Date:** 2026-07-18
+**Task:** WP-46 Release C — close out Stories 10-13 in sequence (activation instrumentation, localization/accessibility, second-job retention, release-candidate journey audit).
+**Files Changed:** Story 10: `Core/Analytics/AnalyticsService.swift` and related view models/tests (canonical activation + failure lifecycle events), merged via PR #105. Story 11: touched-screen Hebrew translations, Dynamic Type/Reduce Motion/VoiceOver fixes across Home/signup/job-input/recovery, merged via PR #106. Story 12: `Features/V2/Improve/` post-export "Optimize for another job" flow + `second_job_started` analytics, merged via PR #107. Story 13: `docs/qa/reports/wp46-story13-release-candidate-journey-audit-2026-07-18.md` (new), opened as draft PR #108 — no production code.
+**Decisions Made:** Release B closed at 4/4 (Stories 7-10, PRs #101/#102/#104/#105). Release C sequenced Story 11 before Story 12 per WP-46. Story 13 treats the physical-device journey (preview, export/share, relaunch recovery, Hebrew/RTL PDF, file picker, second-job loop) as a hard gate that simulator/test evidence cannot substitute for; PR #108 stays draft and unmerged until that gate passes. Monetization remains deferred pending both this gate and the clean-cohort activation sample.
+**Validation:** Story 10: full suite 192/1 skip/0 failures, review-fix rerun clean. Story 11: full suite 199/1 skip/0 failures, Hebrew catalog missing-count 0. Story 12: full suite 202/1 skip/0 failures. Story 13: exact-candidate full suite 202/1 skip/0 failures on a freshly erased iPhone 17 (iOS 26.5); exact-tree Debug and unsigned generic-iOS Release builds green; physical iPhone 13 compiled/linked but command-line signing stopped at macOS Keychain `errSecInternalComponent` — Xcode is open for founder authorization. Full detail for each story is in `tasks/progress.md`.
+**Review Gate:** PRs #105, #106, #107 merged. PR #108 (Story 13) is open, draft, mergeable, CLEAN — held unmerged pending the physical checklist below.
+**Next Recommended Action:** Founder runs the 8-step physical iPhone checklist in `docs/qa/reports/wp46-story13-release-candidate-journey-audit-2026-07-18.md`. On a pass: update that report, merge PR #108, then bump `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` past 1.4.2 (12) before any archive/ASC submission. Do not submit to ASC before both the physical gate and the merge.
+
 **Date:** 2026-07-16
 **Task:** Resume WP-46 Story 9 from the handoff; complete builds, dual-simulator smokes, final inspection, and open the review PR.
 **Files Changed:** `tasks/lessons.md`, `tasks/todo.md`, `tasks/progress.md`, and `tasks/session-log.md` for closeout evidence; implementation/test files were unchanged from handoff commit `f72927a`.

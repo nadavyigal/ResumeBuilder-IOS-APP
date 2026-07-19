@@ -13,33 +13,13 @@ struct SavedResumePickerSheet: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if libraryViewModel.isLoading {
-                    ProgressView("Loading saved resumes…")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if libraryViewModel.resumes.isEmpty {
-                    ContentUnavailableView(
-                        "No saved resumes",
-                        systemImage: "books.vertical",
-                        description: Text("Optimized resumes you save from Preview will appear here.")
-                    )
-                } else {
-                    List {
-                        ForEach(libraryViewModel.resumes) { resume in
-                            resumeRow(resume)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        if let token = appState.session?.accessToken {
-                                            Task { await libraryViewModel.delete(id: resume.id, token: token) }
-                                        }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                        }
-                    }
-                    .listStyle(.insetGrouped)
+            VStack(spacing: 0) {
+                if let downloadError {
+                    errorBanner(downloadError)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                 }
+                pickerContent
             }
             .navigationTitle("Saved Resumes")
             .navigationBarTitleDisplayMode(.inline)
@@ -52,6 +32,45 @@ struct SavedResumePickerSheet: View {
     }
 
     @ViewBuilder
+    private var pickerContent: some View {
+        if libraryViewModel.isLoading {
+            ProgressView("Loading saved resumes…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if libraryViewModel.resumes.isEmpty {
+            ContentUnavailableView(
+                "No saved resumes",
+                systemImage: "books.vertical",
+                description: Text("Optimized resumes you save from Preview will appear here.")
+            )
+        } else {
+            List {
+                ForEach(libraryViewModel.resumes) { resume in
+                    resumeRow(resume)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                if let token = appState.session?.accessToken {
+                                    Task { await libraryViewModel.delete(id: resume.id, token: token) }
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                }
+            }
+            .listStyle(.insetGrouped)
+        }
+    }
+
+    private func errorBanner(_ message: String) -> some View {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+            .font(.footnote)
+            .foregroundStyle(.red)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    @ViewBuilder
     private func resumeRow(_ resume: SavedResume) -> some View {
         let displayName = resume.displayName ?? resume.filename
         let isThisDownloading = isDownloading == resume.id
@@ -59,16 +78,17 @@ struct SavedResumePickerSheet: View {
         Button {
             guard !isThisDownloading else { return }
             Task {
-                guard let token = appState.session?.accessToken else { return }
                 isDownloading = resume.id
                 downloadError = nil
                 do {
-                    let localURL = try await libraryViewModel.downloadToCache(resume: resume, token: token)
+                    let localURL = try await appState.callWithFreshToken { token in
+                        try await libraryViewModel.downloadToCache(resume: resume, token: token)
+                    }
                     isDownloading = nil
                     onSelect(localURL, displayName)
                 } catch {
                     isDownloading = nil
-                    downloadError = "Download failed: \(error.localizedDescription)"
+                    downloadError = NSLocalizedString("Download failed", comment: "")
                 }
             }
         } label: {
