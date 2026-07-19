@@ -7,7 +7,32 @@
 
 ## Current verdict
 
-**Manual gate pending.** The candidate is code-, test-, build-, localization-, and clean-launch green. It is not yet release-certified because the authenticated 20-checkpoint journey, physical preview/export/share, physical Hebrew/RTL PDF, file picker, relaunch recovery, and second-job return loop require direct UI interaction. No App Store Connect or TestFlight action is authorized by this audit.
+**Physical gate PASS (2026-07-19), with two defects found and fixed during the run.** The founder ran the physical checklist below on Nadav.Yigal's iPhone (iPhone 13). Two real, previously-unverified defects surfaced — both are exactly what this gate exists to catch, since neither was reachable by simulator/automated evidence. Both are fixed, deployed, and reverified live on-device. See "Physical gate result — 2026-07-19" below for the defect record and an honest per-row confirmation status.
+
+## Physical gate result — 2026-07-19
+
+**Defect 1 — saved-résumé download silently no-op'd on a stale token.** `SavedResumePickerSheet`'s row tap and the Story 12 automatic second-job reuse both grabbed `appState.session?.accessToken` directly with no retry and, on failure, set an error `@State` that was never rendered — so a tap did nothing, no error, no feedback. Fixed in `ResumeBuilder IOS APP` commits `9e9337d` (picker) and `ce79d3b` (preview export, same pattern) on this branch: both now retry via `AppState.callWithFreshToken` and render a visible error banner on failure.
+
+**Defect 2 — saved-résumé download used the wrong id, unrelated to auth.** After Defect 1's fix, downloads still failed 100% of the time (confirmed live via a temporary debug print, both on a several-hours-old résumé and a same-session one). Root cause: `downloadToCache` called `/api/download/{id}` with the `saved_resumes` row id, but that endpoint regenerates a PDF from an `optimizations` row by id — a completely different resource. The backend's `saved_resumes.optimization_id` column has always held the correct id but was never returned by the `/api/v1/resumes` list, save, or rename responses, so no client could ever construct a working download. This means saved-résumé reuse likely never worked in production before this fix, for any user, predating Stories 12/13.
+- Backend fix: `new-ResumeBuilder-ai-` PR #116, merged to `main`, deployed to production (`www.resumelybuilderai.com`) 2026-07-19 — adds `optimization_id` to all three response shapes, additive/no schema change.
+- iOS fix: commit `c02089e` on this branch — adds `SavedResume.optimizationId` and switches `downloadToCache` to use it.
+- Reverified live on-device after both deployed: saved-résumé download and the Story 12 "Optimize for another job" auto-reuse both succeed end-to-end, confirmed by the founder.
+
+**Per-row confirmation status** (checklist below, plus the Story 8 leftover item):
+
+| Row | Status |
+|---|---|
+| 1. Signing prompt + Run | Confirmed — run repeatedly across this session's rebuild cycles |
+| 2. Home opens, Files picker selects a résumé | Confirmed |
+| 3. résumé → job → guest diagnosis → sign in → Fit → review → Apply | Confirmed — reached Optimization Review multiple times |
+| 4. No placeholder / unsafe default / regressive default / blank Apply destination / locked-tab contradiction | **Not explicitly re-checked this session** — nothing bad was reported, but the founder was not asked to specifically inspect each condition |
+| 5. Optimized preview, export/share, save to Files, reopen, verify selectable text | Preview and export/share confirmed working; the specific reopen-and-verify-selectable-text step was not separately confirmed |
+| 6. Terminate/relaunch recovers same optimization + saved state | Confirmed — exercised repeatedly via rebuild/relaunch cycles this session, state recovered cleanly each time |
+| 7. Hebrew/RTL preview + export, mixed-language alignment | **Not run this session** |
+| 8. "Optimize for another job" reuses saved résumé, prior output accessible, Home focuses empty job input | Confirmed working after both fixes deployed |
+| Story 8 leftover: Home → Fit opens the carried job directly (not a blank re-entry form) | **Not separately confirmed this session** — Fit was exercised via the upload flow, not a direct Home → Fit tap |
+
+**Founder decision:** proceed with merge and version bump on the strength of the above — the golden path, both new-in-Story-12 flows, and relaunch recovery are confirmed; rows 4, 7, and the Story 8 item remain open, lower-risk items for a follow-up pass rather than blockers.
 
 ## Automated evidence
 
@@ -77,4 +102,4 @@ Monetization remains **deferred/off**. Story 10 established the clean-cohort sam
 
 - **Pass:** every manual row above is observed, exported PDF checks pass, and no critical/high trust or completion defect is found.
 - **Fail:** any blank completion state, contradictory optimization state, fabricated/unsafe recommendation default, missing saved output, unusable export, broken RTL PDF, or broken second-job recovery is observed.
-- **Current:** pending founder physical interaction. Do not submit to ASC from this state.
+- **Current (2026-07-19):** PASS by founder decision — see "Physical gate result — 2026-07-19" above. Golden path, relaunch recovery, and both Story 12 flows (auto-reuse, manual picker) are confirmed after fixing and deploying the two defects found during this run. Rows 4, 7, and the Story 8 leftover item were not independently re-checked this session and remain open as lower-risk follow-up, not blockers. Merge and version bump are authorized; archive/signing/ASC submission is a separate, not-yet-done step.
