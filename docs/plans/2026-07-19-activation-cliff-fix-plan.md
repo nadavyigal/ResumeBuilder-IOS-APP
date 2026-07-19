@@ -1,7 +1,22 @@
 # Resumely Activation Cliff: Evidence and Fix Plan
 
-Date: 2026-07-19
+Date: 2026-07-19 (amended same day after the 1.4.3 submission; see Status below)
 Source: live PostHog reads, project 270848 ("ResumeBuilder AI", web + iOS), 90-day window, read 2026-07-19. All numbers founder/QA/bot-excluded unless labeled RAW. Investigation only; no code changed this session.
+
+## Status vs the submitted build (added 2026-07-19, post-submission)
+
+**1.4.3 (13) is in App Store review (public: 1.4.2 build 12) and it partially ships S1, the top fix.** Verified against `origin/main` (last commit `103bf0f`, WP-46 Release C, 2026-07-19 15:36):
+
+- SHIPPED: a tappable, full-width "Sign in to Optimize" button now renders for guests directly under the score card (`HomeTabView.swift`, guest block after `ScoreResultView`), and the guest diagnosis survives sign-in (invalidated only if inputs change). The old non-tappable caption inside `ScoreResultView.swift` still exists but is no longer the only path.
+- SHIPPED (adjacent, WP-46): upload preflight/error events, `second_job_started` retention loop, FTUX accessibility + Hebrew pass, canonical activation-journey instrumentation.
+- NOT shipped from S1: the sign-in CTA tap itself is not instrumented (no `score_screen_signin_tapped`), and sign-in does not auto-continue into optimization (deliberate per code comment; the user must tap optimize again). Watch whether that second tap becomes the new mini-cliff.
+- S2 status correction: see "Correction" below; score buckets exist, so S2 shrinks to picker telemetry + the CTA tap event.
+
+Measurement window: the uploaded -> optimization_started rate on the 1.4.3+ cohort is the read that judges S1. Predeclared rule: evaluate at >=20 clean post-1.4.3 uploaders (roughly 4 weeks at ~4-5/week); win if >=6/20 (30%) fire `optimization_started` (baseline 2/16, 12.5%); inconclusive below n=20; also track guest->signed-in conversion on the score screen once the tap event ships.
+
+## Correction to the original read (2026-07-19)
+
+The original claim "free_ats_completed carries no score property (all null)" was wrong: the event carries `score_bucket` (the original query used the wrong property names). Live 90d distribution: 10 events, 5 in bucket "0-40" and 5 in "41-60", i.e. **every real free-ATS user saw a score of 60 or below, half saw 40 or below.** This upgrades the score-quality hypothesis: real users hit a low score AND (pre-1.4.3) a dead-end screen at the same moment. The scrape-quality question stays second-order but is now live: low buckets on URL-sourced jobs vs pasted jobs is the comparison to run once post-1.4.3 volume exists.
 
 ## The headline number
 
@@ -45,8 +60,8 @@ We SUSPECT: score quality/legibility discourages the few who see it (no score te
 
 Top 2 (do these, in this order):
 
-1. **S1. Make the free-score screen convert (S/M, 1-2 days).** Replace the passive caption in `ScoreResultView` with a primary "Sign in & get the optimized version" button presenting Sign-in-with-Apple inline, and carry the anonymous upload + job + score through signup so the user lands back on THEIR result, not an empty dashboard (WP-29 S5 carryover). Hypothesis: motivated guests fail to convert because the next step is not tappable where the motivation peaks. Metric moved: uploaded -> optimization_started (12.5% now; target 40%+). Measurement: pre/post funnel by app version; at ~4-5 real uploaders/week a 3x jump is detectable within 3-4 weeks; instrument `score_screen_signin_tapped` for the intermediate signal.
-2. **S2. Score + picker telemetry (S, half day).** Fix `free_ats_completed` to actually carry the score bucket (it is null in live data), add file-picker outcome events (selected / cancelled / error, file type, size), add `signin_from_score` source property. Metric: none directly; it arbitrates the scrape-vs-score-quality question with real distributions and sizes the picker sub-cliff.
+1. **S1. Make the free-score screen convert (S/M, 1-2 days). STATUS: partially shipped in 1.4.3 (13), in review.** The tappable "Sign in to Optimize" button and diagnosis persistence across sign-in are in the submitted build. Remaining: instrument the CTA (`score_screen_signin_tapped`), and decide after the first read whether sign-in should flow straight into optimization (today the user must tap optimize again). Metric moved: uploaded -> optimization_started (12.5% baseline). Measurement: the predeclared rule in the Status section (>=20 clean post-1.4.3 uploaders, win at >=30%).
+2. **S2. Remaining telemetry (S, half day). AMENDED:** `score_bucket` already exists on `free_ats_completed` (see Correction; original claim wrong). Still to add: file-picker outcome events (selected / cancelled / error, file type, size), `score_screen_signin_tapped`, and a `job_source` property on `free_ats_completed`/`optimization_started` (url vs paste) so low-score buckets can be attributed to scrape quality vs resume quality. Metric: none directly; it arbitrates scrape-vs-score-quality and sizes the picker sub-cliff.
 
 Then:
 
