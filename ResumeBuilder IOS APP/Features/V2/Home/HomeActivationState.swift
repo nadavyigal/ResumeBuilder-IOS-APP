@@ -37,7 +37,7 @@ enum HomeActivationState: Equatable, Sendable {
         switch self {
         case .noResume: return "Upload your resume for a recruiter-style read"
         case .resumeNoJob: return "Paste a job to reveal missing keywords"
-        case .readyForFreeATS: return "Ready for a free ATS check"
+        case .readyForFreeATS: return "Ready for a free Match check"
         case .readyToOptimize: return "Ready for your resume diagnosis"
         case .atsComplete: return "Your free Resumely Match Score is in"
         case .optimizing: return "Finding the aha moments…"
@@ -53,7 +53,7 @@ enum HomeActivationState: Equatable, Sendable {
         case .resumeNoJob:
             return "A job description lets us compare keywords, gaps, and role fit."
         case .readyForFreeATS:
-            return "See the first score before signing in, then unlock the full diagnosis."
+            return "See your Match estimate before signing in, then unlock the full diagnosis."
         case .readyToOptimize:
             return "Get your match score, top gaps, missing signals, and a better first rewrite."
         case .atsComplete:

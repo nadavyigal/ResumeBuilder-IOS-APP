@@ -159,7 +159,7 @@ final class OptimizedResumeViewModel {
         case "Strong":
             return NSLocalizedString("Close to high. A focused keyword and metrics pass may lift it further.", comment: "")
         case "Medium":
-            return NSLocalizedString("Useful foundation, but ATS blockers still need attention.", comment: "")
+            return NSLocalizedString("Useful foundation, but match blockers still need attention.", comment: "")
         default:
             return NSLocalizedString("Low match. Improve role keywords, title fit, metrics, and section coverage before submitting.", comment: "")
         }
@@ -244,7 +244,7 @@ final class OptimizedResumeViewModel {
             ]
         }
         return [
-            NSLocalizedString("Run Improve ATS for a focused keyword and metrics pass.", comment: ""),
+            NSLocalizedString("Run Improve match for a focused keyword and metrics pass.", comment: ""),
             NSLocalizedString("Review every edit for factual accuracy before submitting.", comment: ""),
         ]
     }
@@ -640,7 +640,7 @@ final class OptimizedResumeViewModel {
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = nil
-            atsUpliftMessage = NSLocalizedString("ATS improvements applied. Review the resume before submitting.", comment: "")
+            atsUpliftMessage = NSLocalizedString("Match improvements applied. Review the resume before submitting.", comment: "")
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {

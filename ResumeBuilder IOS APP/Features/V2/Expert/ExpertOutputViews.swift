@@ -308,7 +308,7 @@ struct ExpertATSReportView: View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             if let estimate = atsReport.scoreEstimate {
                 HStack {
-                    Text("Estimated ATS impact")
+                    Text("Estimated match impact")
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textSecondary)
                     Spacer()

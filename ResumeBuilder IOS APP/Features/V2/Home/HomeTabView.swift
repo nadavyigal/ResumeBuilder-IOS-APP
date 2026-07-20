@@ -610,7 +610,7 @@ struct HomeTabView: View {
                 VStack(spacing: AppSpacing.sm) {
                     progressRow(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
                     progressRow(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
-                    progressRow(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                    progressRow(index: 3, title: "Match", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
                 }
             } else {
                 HStack(spacing: AppSpacing.sm) {
@@ -618,12 +618,12 @@ struct HomeTabView: View {
                     progressConnector(isComplete: viewModel.selectedResumeName?.isEmpty == false)
                     progressChip(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
                     progressConnector(isComplete: hasJobInput)
-                    progressChip(index: 3, title: "ATS score", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                    progressChip(index: 3, title: "Match", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
                 }
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Progress path. Upload, add job, ATS score.")
+        .accessibilityLabel("Progress path. Upload, add job, match.")
     }
 
     private func progressRow(index: Int, title: LocalizedStringKey, isActive: Bool, isComplete: Bool) -> some View {
@@ -1037,17 +1037,17 @@ struct HomeTabView: View {
 
     private var optimizeCardTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Optimize" }
-        return appState.isAuthenticated ? "Analyze" : "Free ATS Check"
+        return appState.isAuthenticated ? "Analyze" : "Free Match Check"
     }
 
     private var optimizeCardSubtitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue from the diagnosis you already ran" }
-        return appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your score before signing in"
+        return appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your Match Score before signing in"
     }
 
     private var optimizeCardActionTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue to optimize" }
-        return appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check"
+        return appState.isAuthenticated ? "Analyze my resume" : "Run Free Match Check"
     }
 
     private var optimizeCardIcon: String {

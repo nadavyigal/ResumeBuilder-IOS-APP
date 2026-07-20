@@ -173,7 +173,7 @@ struct ImproveView: View {
                     showATSBreakdown = true
                 } label: {
                     HStack(spacing: AppSpacing.xs) {
-                        Text("View ATS breakdown")
+                        Text("View Match breakdown")
                             .font(.appCaption.weight(.semibold))
                             .foregroundStyle(AppColors.accentSky)
                         Image(systemName: "arrow.right.circle.fill")
@@ -183,7 +183,7 @@ struct ImproveView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.isLoading)
-                .accessibilityHint("Opens the four ATS pillars with animations.")
+                .accessibilityHint("Opens the four match pillars with animations.")
             }
         }
         .padding(AppSpacing.xxl)

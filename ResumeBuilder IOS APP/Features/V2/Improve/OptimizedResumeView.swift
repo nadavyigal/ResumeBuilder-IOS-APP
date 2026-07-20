@@ -389,7 +389,7 @@ struct OptimizedResumeView: View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             HStack(alignment: .top, spacing: AppSpacing.md) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("ATS insights")
+                    Text("Match insights")
                         .font(.appCaption.weight(.bold))
                         .foregroundStyle(AppColors.accentTeal)
                     Text("See what's blocking this resume")
@@ -481,7 +481,7 @@ struct OptimizedResumeView: View {
                     } else {
                         Image(systemName: "gauge.with.dots.needle.67percent")
                     }
-                    Text(viewModel.isImprovingATS ? "Improving ATS..." : "Improve ATS")
+                    Text(viewModel.isImprovingATS ? "Improving match…" : "Improve match")
                 }
                 .font(.appSubheadline.weight(.semibold))
                 .foregroundStyle(AppColors.textPrimary)
@@ -832,7 +832,7 @@ struct OptimizedResumeView: View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack(alignment: .center, spacing: AppSpacing.md) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("ATS Match")
+                    Text("Match")
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textTertiary)
                     HStack(spacing: AppSpacing.sm) {

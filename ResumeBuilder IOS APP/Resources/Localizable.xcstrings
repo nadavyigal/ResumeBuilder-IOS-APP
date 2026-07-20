@@ -1,86 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%lld of 100 words required when pasting" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld מתוך 100 מילים נדרשות בהדבקה"
-          }
-        }
-      }
-    },
-    "Add a job link or paste at least 100 words from the job description." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הוסיפו קישור למשרה או הדביקו לפחות 100 מילים מתיאור המשרה."
-          }
-        }
-      }
-    },
-    "Check the job link or paste at least 100 words from the job description, then try again." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בדקו את קישור המשרה או הדביקו לפחות 100 מילים מתיאור המשרה, ונסו שוב."
-          }
-        }
-      }
-    },
-    "Couldn’t reuse your saved résumé. Choose it again to continue." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לא הצלחנו להשתמש שוב בקורות החיים השמורים שלך. בחרו אותם שוב כדי להמשיך."
-          }
-        }
-      }
-    },
-    "Enter a complete job link beginning with http:// or https://, or paste at least 100 words." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הזינו קישור מלא למשרה שמתחיל ב-http:// או https://, או הדביקו לפחות 100 מילים."
-          }
-        }
-      }
-    },
-    "Job link ready · %lld pasted words (optional)" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קישור המשרה מוכן · %lld מילים הודבקו (לא חובה)"
-          }
-        }
-      }
-    },
-    "Paste at least 100 words from the job description (%lld of 100 words)." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדביקו לפחות 100 מילים מתיאור המשרה (%lld מתוך 100 מילים)."
-          }
-        }
-      }
-    },
-    "Optimize for another job" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התאמה למשרה נוספת"
-          }
-        }
-      }
-    },
     "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer." : {
       "localizations" : {
         "he" : {
@@ -108,66 +28,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : " ב-%@"
-          }
-        }
-      }
-    },
-    "--" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "--"
-          }
-        }
-      }
-    },
-    "—" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "—"
-          }
-        }
-      }
-    },
-    "·" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "·"
-          }
-        }
-      }
-    },
-    "· %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "· %1$@"
-          }
-        }
-      }
-    },
-    "/ 100" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "/ 100"
-          }
-        }
-      }
-    },
-    "/100" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "/100"
           }
         }
       }
@@ -210,6 +70,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@, %2$lld אחוז"
+          }
+        }
+      }
+    },
+    "%@. %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@. %2$@"
+          }
+        }
+      }
+    },
+    "%@. %@ %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@ %3$@."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@. %2$@ %3$@."
           }
         }
       }
@@ -286,39 +179,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: נשמר להרצת המומחה הזו. פתח מומחה ממועמדות באזור האישי כדי לצרף אותו שם."
-          }
-        }
-      }
-    },
-    "%@. %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@. %2$@"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@. %2$@"
-          }
-        }
-      }
-    },
-    "%@. %@ %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@. %2$@ %3$@."
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@. %2$@ %3$@."
           }
         }
       }
@@ -415,7 +275,18 @@
         }
       }
     },
+    "%lld of %lld available changes selected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld available changes selected"
+          }
+        }
+      }
+    },
     "%lld of %lld changes selected" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -447,6 +318,17 @@
         }
       }
     },
+    "%lld of 100 words required when pasting" : {
+      "comment" : "Live pasted job description word count",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מתוך 100 מילים נדרשות בהדבקה"
+          }
+        }
+      }
+    },
     "%lld pts" : {
       "localizations" : {
         "he" : {
@@ -473,22 +355,22 @@
         }
       }
     },
-    "%lld." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld."
-          }
-        }
-      }
-    },
     "%lld%%" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld%%"
+          }
+        }
+      }
+    },
+    "%lld%% match" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld%% התאמה"
           }
         }
       }
@@ -509,22 +391,12 @@
         }
       }
     },
-    "%lld%% match" : {
+    "%lld." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$lld%% התאמה"
-          }
-        }
-      }
-    },
-    "• %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• %1$@"
+            "value" : "%1$lld."
           }
         }
       }
@@ -559,12 +431,72 @@
         }
       }
     },
+    "--" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "--"
+          }
+        }
+      }
+    },
+    "/ 100" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/ 100"
+          }
+        }
+      }
+    },
+    "/100" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/100"
+          }
+        }
+      }
+    },
+    "100 credits" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 קרדיטים"
+          }
+        }
+      }
+    },
+    "12 ATS-friendly templates" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 תבניות ידידותיות ל-ATS"
+          }
+        }
+      }
+    },
     "2" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "2"
+          }
+        }
+      }
+    },
+    "2500 credits" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2500 קרדיטים"
           }
         }
       }
@@ -579,12 +511,12 @@
         }
       }
     },
-    "12 ATS-safe templates" : {
+    "500 credits" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "12 תבניות בטוחות ל-ATS"
+            "value" : "500 קרדיטים"
           }
         }
       }
@@ -609,32 +541,12 @@
         }
       }
     },
-    "100 credits" : {
+    "A Resumely Match Score, keyword gaps, and line-by-line fixes — tuned to one target job." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "100 קרדיטים"
-          }
-        }
-      }
-    },
-    "500 credits" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "500 קרדיטים"
-          }
-        }
-      }
-    },
-    "2500 credits" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "2500 קרדיטים"
+            "value" : "ציון ההתאמה של Resumely, פערי מילות מפתח ותיקונים שורה אחר שורה — מותאמים למשרת יעד אחת."
           }
         }
       }
@@ -709,6 +621,88 @@
         }
       }
     },
+    "AI Chat" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צ׳אט AI"
+          }
+        }
+      }
+    },
+    "AI POWERED" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבוסס AI"
+          }
+        }
+      }
+    },
+    "ATS" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATS"
+          }
+        }
+      }
+    },
+    "ATS keywords" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מילות מפתח ATS"
+          }
+        }
+      }
+    },
+    "ATS match" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמת ATS"
+          }
+        }
+      }
+    },
+    "ATS parsing safeguards & readable structure." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגנות פענוח ATS ומבנה קריא."
+          }
+        }
+      }
+    },
+    "ATS safe" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עמיד ב-ATS"
+          }
+        }
+      }
+    },
+    "ATS-friendly formatting" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עיצוב ידידותי ל-ATS"
+          }
+        }
+      }
+    },
     "Above average" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -731,6 +725,7 @@
       }
     },
     "Accept" : {
+      "comment" : "Accept recommendation",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -822,6 +817,58 @@
         }
       }
     },
+    "Add Expert Input" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף קלט מומחה"
+          }
+        }
+      }
+    },
+    "Add Job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף משרה"
+          }
+        }
+      }
+    },
+    "Add Keywords to Skills" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף מילות מפתח לכישורים"
+          }
+        }
+      }
+    },
+    "Add TypeScript" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסף TypeScript"
+          }
+        }
+      }
+    },
+    "Add a job link or paste at least 100 words from the job description." : {
+      "comment" : "Job input is empty",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוסיפו קישור למשרה או הדביקו לפחות 100 מילים מתיאור המשרה."
+          }
+        }
+      }
+    },
     "Add a job to match against" : {
       "localizations" : {
         "he" : {
@@ -872,42 +919,12 @@
         }
       }
     },
-    "Add Expert Input" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הוסף קלט מומחה"
-          }
-        }
-      }
-    },
     "Add job" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הוסף משרה"
-          }
-        }
-      }
-    },
-    "Add Job" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הוסף משרה"
-          }
-        }
-      }
-    },
-    "Add Keywords to Skills" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הוסף מילות מפתח לכישורים"
           }
         }
       }
@@ -1005,17 +1022,6 @@
         }
       }
     },
-    "Add TypeScript" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הוסף TypeScript"
-          }
-        }
-      }
-    },
     "Add your résumé" : {
       "localizations" : {
         "he" : {
@@ -1056,16 +1062,6 @@
         }
       }
     },
-    "After (est.)" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אחרי (משוער)"
-          }
-        }
-      }
-    },
     "After %@" : {
       "localizations" : {
         "he" : {
@@ -1076,32 +1072,22 @@
         }
       }
     },
+    "After (est.)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אחרי (משוער)"
+          }
+        }
+      }
+    },
     "After:" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "אחרי:"
-          }
-        }
-      }
-    },
-    "AI Chat" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צ׳אט AI"
-          }
-        }
-      }
-    },
-    "AI POWERED" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מבוסס AI"
           }
         }
       }
@@ -1138,16 +1124,6 @@
         }
       }
     },
-    "An ATS match score, keyword gaps, and line-by-line fixes — tuned to your target job." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון התאמה ל-ATS, פערי מילות מפתח ותיקונים שורה אחר שורה — מותאמים למשרת היעד שלכם."
-          }
-        }
-      }
-    },
     "Analyze" : {
       "localizations" : {
         "he" : {
@@ -1168,16 +1144,6 @@
         }
       }
     },
-    "Analyze my resume" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נתח את קורות החיים שלי"
-          }
-        }
-      }
-    },
     "Analyze Resume" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1185,6 +1151,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "נתח קורות חיים"
+          }
+        }
+      }
+    },
+    "Analyze my resume" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נתח את קורות החיים שלי"
           }
         }
       }
@@ -1205,23 +1181,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מנתח…"
-          }
-        }
-      }
-    },
-    "app_name" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resumely"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "Resumely"
           }
         }
       }
@@ -1256,22 +1215,13 @@
         }
       }
     },
+    "Applied changes are ready to preview" : {},
     "Applied on %@" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הוגש ב-%@"
-          }
-        }
-      }
-    },
-    "Apply a focused ATS improvement." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "החל שיפור ATS ממוקד."
           }
         }
       }
@@ -1296,16 +1246,6 @@
         }
       }
     },
-    "Apply failed." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ההחלה נכשלה."
-          }
-        }
-      }
-    },
     "Apply Full Rewrite" : {
       "localizations" : {
         "he" : {
@@ -1316,42 +1256,12 @@
         }
       }
     },
-    "Apply improvement" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "החל שיפור"
-          }
-        }
-      }
-    },
-    "Apply is temporarily unavailable — a server update is required. Changes will be available again once the update is complete." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "החלה אינה זמינה זמנית — נדרש עדכון שרת. השינויים יהיו זמינים שוב לאחר שהעדכון יושלם."
-          }
-        }
-      }
-    },
     "Apply Rewrites to Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "החל שכתובים על קורות החיים"
-          }
-        }
-      }
-    },
-    "Apply selected changes" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "החל את השינויים שנבחרו"
           }
         }
       }
@@ -1376,6 +1286,56 @@
         }
       }
     },
+    "Apply a focused match improvement." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החל שיפור התאמה ממוקד."
+          }
+        }
+      }
+    },
+    "Apply failed." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההחלה נכשלה."
+          }
+        }
+      }
+    },
+    "Apply improvement" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החל שיפור"
+          }
+        }
+      }
+    },
+    "Apply is temporarily unavailable — a server update is required. Changes will be available again once the update is complete." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החלה אינה זמינה זמנית — נדרש עדכון שרת. השינויים יהיו זמינים שוב לאחר שהעדכון יושלם."
+          }
+        }
+      }
+    },
+    "Apply selected changes" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החל את השינויים שנבחרו"
+          }
+        }
+      }
+    },
     "Approve" : {
       "localizations" : {
         "he" : {
@@ -1396,125 +1356,12 @@
         }
       }
     },
-    "ATS" : {
+    "Attach Optimized Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ATS"
-          }
-        }
-      }
-    },
-    "ATS breakdown" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פירוט ATS"
-          }
-        }
-      }
-    },
-    "ATS Deep Report" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "דוח ATS מעמיק"
-          }
-        }
-      }
-    },
-    "ATS improvements applied. Review the resume before submitting." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שיפורי ATS הוחלו. סקור את קורות החיים לפני ההגשה."
-          }
-        }
-      }
-    },
-    "ATS insights" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תובנות ATS"
-          }
-        }
-      }
-    },
-    "ATS issue found" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נמצאה בעיית ATS"
-          }
-        }
-      }
-    },
-    "ATS keywords" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מילות מפתח ATS"
-          }
-        }
-      }
-    },
-    "ATS match" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התאמת ATS"
-          }
-        }
-      }
-    },
-    "ATS Match" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התאמת ATS"
-          }
-        }
-      }
-    },
-    "ATS parsing safeguards & readable structure." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הגנות פענוח ATS ומבנה קריא."
-          }
-        }
-      }
-    },
-    "ATS safe" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עמיד ב-ATS"
-          }
-        }
-      }
-    },
-    "ATS score" : {
-      "comment" : "Me stats: latest resume's ATS match score percent",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון ATS"
+            "value" : "צרף קורות חיים מוטבים"
           }
         }
       }
@@ -1525,16 +1372,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "צרף קורות חיים מוטבים לפני השיתוף."
-          }
-        }
-      }
-    },
-    "Attach Optimized Resume" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צרף קורות חיים מוטבים"
           }
         }
       }
@@ -1600,22 +1437,22 @@
         }
       }
     },
-    "Before / after rewrite" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שכתוב לפני / אחרי"
-          }
-        }
-      }
-    },
     "Before %@" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "לפני %1$@"
+          }
+        }
+      }
+    },
+    "Before / after rewrite" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שכתוב לפני / אחרי"
           }
         }
       }
@@ -1641,16 +1478,6 @@
         }
       }
     },
-    "Better ATS formatting" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עיצוב ATS טוב יותר"
-          }
-        }
-      }
-    },
     "Biggest win" : {
       "localizations" : {
         "he" : {
@@ -1670,6 +1497,9 @@
           }
         }
       }
+    },
+    "Blocked" : {
+      "comment" : "Unsafe recommendation"
     },
     "Browse Files" : {
       "localizations" : {
@@ -1711,22 +1541,22 @@
         }
       }
     },
-    "Change from original: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שינוי מהמקור: %1$@"
-          }
-        }
-      }
-    },
     "Change Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "החלף קורות חיים"
+          }
+        }
+      }
+    },
+    "Change from original: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שינוי מהמקור: %1$@"
           }
         }
       }
@@ -1772,6 +1602,18 @@
         }
       }
     },
+    "Check the job link or paste at least 100 words from the job description, then try again." : {
+      "comment" : "Server rejected expected job input validation",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו את קישור המשרה או הדביקו לפחות 100 מילים מתיאור המשרה, ונסו שוב."
+          }
+        }
+      }
+    },
+    "Check your connection, then try again." : {},
     "Check your email to confirm your account, then sign in." : {
       "localizations" : {
         "he" : {
@@ -1804,42 +1646,24 @@
         }
       }
     },
+    "Checking formatting parsers can read" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודקים עיצוב שמערכות סריקה יכולות לקרוא"
+          }
+        }
+      }
+    },
+    "Checking your saved optimizations" : {},
+    "Checking your saved optimizations…" : {},
     "Checks left" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "בדיקות שנותרו"
-          }
-        }
-      }
-    },
-    "Choose a design template first." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בחר קודם תבנית עיצוב."
-          }
-        }
-      }
-    },
-    "Choose a different file" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בחר קובץ אחר"
-          }
-        }
-      }
-    },
-    "Choose a file" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בחר קובץ"
           }
         }
       }
@@ -1885,6 +1709,36 @@
         }
       }
     },
+    "Choose a design template first." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קודם תבנית עיצוב."
+          }
+        }
+      }
+    },
+    "Choose a different file" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קובץ אחר"
+          }
+        }
+      }
+    },
+    "Choose a file" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחר קובץ"
+          }
+        }
+      }
+    },
     "Choose a summary to apply:" : {
       "localizations" : {
         "he" : {
@@ -1905,22 +1759,22 @@
         }
       }
     },
-    "Choose another file" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בחירת קובץ אחר"
-          }
-        }
-      }
-    },
     "Choose another PDF or DOCX from Files and we'll try again." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "בחרו קובץ PDF או DOCX אחר מתוך ״קבצים״ וננסה שוב."
+          }
+        }
+      }
+    },
+    "Choose another file" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחירת קובץ אחר"
           }
         }
       }
@@ -2088,6 +1942,9 @@
         }
       }
     },
+    "Confirm & include" : {
+      "comment" : "Explicitly include factual recommendation"
+    },
     "Congrats! 🎉 One step closer to the job." : {
       "localizations" : {
         "he" : {
@@ -2109,6 +1966,7 @@
       }
     },
     "Connection dropped. Your résumé and job details are still here. Retry now." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -2158,6 +2016,8 @@
         }
       }
     },
+    "Continue from the diagnosis you already ran" : {},
+    "Continue to optimize" : {},
     "Continue with Apple" : {
       "localizations" : {
         "he" : {
@@ -2218,6 +2078,16 @@
         }
       }
     },
+    "Copy Text" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העתק טקסט"
+          }
+        }
+      }
+    },
     "Copy from anywhere — works great" : {
       "localizations" : {
         "he" : {
@@ -2234,16 +2104,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "העתק טקסט לשיתוף"
-          }
-        }
-      }
-    },
-    "Copy Text" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "העתק טקסט"
           }
         }
       }
@@ -2298,6 +2158,18 @@
         }
       }
     },
+    "Couldn't restore your latest optimization. Check your connection and try again." : {},
+    "Couldn’t reuse your saved résumé. Choose it again to continue." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להשתמש שוב בקורות החיים השמורים שלך. בחרו אותם שוב כדי להמשיך."
+          }
+        }
+      }
+    },
+    "Couldn’t save this resume. Your preview is still here — try again." : {},
     "Cover Letter" : {
       "localizations" : {
         "he" : {
@@ -2308,22 +2180,22 @@
         }
       }
     },
-    "Cover letter copied" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מכתב המלווה הועתק"
-          }
-        }
-      }
-    },
     "Cover Letter Notes" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הערות למכתב המלווה"
+          }
+        }
+      }
+    },
+    "Cover letter copied" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מכתב המלווה הועתק"
           }
         }
       }
@@ -2344,6 +2216,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מכתבים מקדימים וחבילות הגשה"
+          }
+        }
+      }
+    },
+    "Create Account" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צור חשבון"
+          }
+        }
+      }
+    },
+    "Create Package" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צור חבילה"
           }
         }
       }
@@ -2369,16 +2261,6 @@
         }
       }
     },
-    "Create Account" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור חשבון"
-          }
-        }
-      }
-    },
     "Create free account" : {
       "comment" : "Guest sign-in primary CTA",
       "localizations" : {
@@ -2386,16 +2268,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "צור חשבון חינמי"
-          }
-        }
-      }
-    },
-    "Create Package" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צור חבילה"
           }
         }
       }
@@ -2562,23 +2434,6 @@
         }
       }
     },
-    "design_apply_cta" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apply Design"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "החל עיצוב"
-          }
-        }
-      }
-    },
     "Diagnose gaps and improve this resume" : {
       "localizations" : {
         "he" : {
@@ -2629,6 +2484,7 @@
         }
       }
     },
+    "Dismiss restored optimization message" : {},
     "Don't have an account?" : {
       "localizations" : {
         "he" : {
@@ -2649,22 +2505,22 @@
         }
       }
     },
-    "Download failed" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ההורדה נכשלה"
-          }
-        }
-      }
-    },
     "Download PDF" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הורד PDF"
+          }
+        }
+      }
+    },
+    "Download failed" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההורדה נכשלה"
           }
         }
       }
@@ -2679,22 +2535,12 @@
         }
       }
     },
-    "Drop it into an ATS-safe template" : {
+    "Drop it into an ATS-friendly template" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "העבירו לתבנית בטוחה ל-ATS"
-          }
-        }
-      }
-    },
-    "e.g. Make it more concise and add leadership examples…" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לדוגמה: הפוך אותו לתמציתי יותר והוסף דוגמאות מנהיגות…"
+            "value" : "העבירו לתבנית ידידותית ל-ATS"
           }
         }
       }
@@ -2709,22 +2555,22 @@
         }
       }
     },
-    "Edit only facts you can verify. Save refreshes the preview and Match Score." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ערוך רק עובדות שאתה יכול לאמת. שמירה מרעננת את התצוגה ואת ציון ההתאמה."
-          }
-        }
-      }
-    },
     "Edit Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "ערוך קורות חיים"
+          }
+        }
+      }
+    },
+    "Edit only facts you can verify. Save refreshes the preview and Match Score." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ערוך רק עובדות שאתה יכול לאמת. שמירה מרעננת את התצוגה ואת ציון ההתאמה."
           }
         }
       }
@@ -2779,12 +2625,13 @@
         }
       }
     },
-    "Estimated ATS impact" : {
+    "Enter a complete job link beginning with http:// or https://, or paste at least 100 words." : {
+      "comment" : "Job URL is invalid",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "השפעת ATS משוערת"
+            "value" : "הזינו קישור מלא למשרה שמתחיל ב-http:// או https://, או הדביקו לפחות 100 מילים."
           }
         }
       }
@@ -2799,13 +2646,12 @@
         }
       }
     },
-    "Estimated fit vs this job. Not affiliated with any ATS vendor. No optimization credit used." : {
-      "comment" : "FitCheckView explainer note (EXD-012 compliance)",
+    "Estimated fit vs this job — Resumely's guidance, not an employer ATS score. No optimization credit used." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אומדן התאמה למשרה זו. ללא שיוך לספק ATS חיצוני. לא מנוכה קרדיט אופטימיזציה."
+            "value" : "אומדן התאמה למשרה זו — הנחיה של Resumely, לא ציון ATS של מעסיק. לא מנוכה קרדיט אופטימיזציה."
           }
         }
       }
@@ -2830,13 +2676,12 @@
         }
       }
     },
-    "Estimated match score" : {
-      "comment" : "FitVerdictView score ring label",
+    "Estimated match impact" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ציון התאמה משוער"
+            "value" : "השפעת התאמה משוערת"
           }
         }
       }
@@ -2931,22 +2776,22 @@
         }
       }
     },
-    "Expert analysis unavailable" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ניתוח המומחה אינו זמין"
-          }
-        }
-      }
-    },
     "Expert Input" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "קלט מומחה"
+          }
+        }
+      }
+    },
+    "Expert analysis unavailable" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניתוח המומחה אינו זמין"
           }
         }
       }
@@ -2991,19 +2836,12 @@
         }
       }
     },
-    "export_download_pdf" : {
-      "extractionState" : "stale",
+    "FIRST READ" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download PDF"
-          }
-        },
         "he" : {
           "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "הורד PDF"
+            "state" : "translated",
+            "value" : "מבט ראשון"
           }
         }
       }
@@ -3034,16 +2872,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מחפש את רגעי התובנה…"
-          }
-        }
-      }
-    },
-    "FIRST READ" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מבט ראשון"
           }
         }
       }
@@ -3108,22 +2936,48 @@
         }
       }
     },
-    "Free ATS Check" : {
+    "Formatting or keyword issue found" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "בדיקת ATS חינם"
+            "value" : "נמצאה בעיית עיצוב או מילות מפתח"
           }
         }
       }
     },
-    "Free ATS Preview" : {
+    "Free Match Check" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "תצוגת ATS חינם"
+            "value" : "בדיקת התאמה חינם"
+          }
+        }
+      }
+    },
+    "Free Match Preview" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תצוגת התאמה חינם"
+          }
+        }
+      }
+    },
+    "From the job post" : {
+      "comment" : "Evidence quote source"
+    },
+    "From your resume" : {
+      "comment" : "Evidence quote source"
+    },
+    "GET STARTED" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בוא נתחיל"
           }
         }
       }
@@ -3158,16 +3012,6 @@
         }
       }
     },
-    "Get a diagnosis, then improve your resume for this specific job." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קבל אבחון, ואז שפר את קורות החיים למשרה הספציפית הזו."
-          }
-        }
-      }
-    },
     "Get Credits" : {
       "localizations" : {
         "he" : {
@@ -3178,12 +3022,12 @@
         }
       }
     },
-    "GET STARTED" : {
+    "Get a diagnosis, then improve your resume for this specific job." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "בוא נתחיל"
+            "value" : "קבל אבחון, ואז שפר את קורות החיים למשרה הספציפית הזו."
           }
         }
       }
@@ -3310,12 +3154,12 @@
         }
       }
     },
-    "High-level gauges from your latest optimization summary. Run Improve with a job description connected for granular ATS wiring." : {
+    "High-level gauges from your latest optimization summary. Run Improve with a job description connected for a granular match breakdown." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מדדים כלליים מתקציר האופטימיזציה האחרון. הפעל שיפור עם תיאור משרה מחובר לקבלת פירוט ATS מדויק."
+            "value" : "מדדים כלליים מתקציר האופטימיזציה האחרון. הפעל שיפור עם תיאור משרה מחובר לקבלת פירוט התאמה מדויק."
           }
         }
       }
@@ -3346,77 +3190,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בית"
-          }
-        }
-      }
-    },
-    "home_score_excellent" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excellent — ready to apply"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "מצוין — מוכן להגשה"
-          }
-        }
-      }
-    },
-    "home_score_good" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Good — a few improvements left"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "טוב — כמה שיפורים נותרו"
-          }
-        }
-      }
-    },
-    "home_score_needs_work" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Needs work — let's improve it"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "דורש שיפור — בואו נשפר"
-          }
-        }
-      }
-    },
-    "https://www.linkedin.com/jobs/view/..." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "https://www.linkedin.com/jobs/view/..."
-          }
-        }
-      }
-    },
-    "iCloud Drive" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iCloud Drive"
           }
         }
       }
@@ -3481,26 +3254,6 @@
         }
       }
     },
-    "Improve ATS" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שפר ATS"
-          }
-        }
-      }
-    },
-    "Improve ATS match" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שפר התאמת ATS"
-          }
-        }
-      }
-    },
     "Improve further" : {
       "localizations" : {
         "he" : {
@@ -3517,6 +3270,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שפר התאמת מילות מפתח"
+          }
+        }
+      }
+    },
+    "Improve match" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שפר התאמה"
           }
         }
       }
@@ -3541,34 +3304,18 @@
         }
       }
     },
-    "improve_optimize_cta" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optimize for This Job"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "אופטימיזציה לתפקיד זה"
-          }
-        }
-      }
-    },
-    "Improving ATS..." : {
+    "Improving match…" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "משפר ATS..."
+            "value" : "משפר התאמה…"
           }
         }
       }
     },
     "Include" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3648,6 +3395,16 @@
         }
       }
     },
+    "Invalid URL for endpoint: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתובת לא תקינה לנקודת קצה: %@"
+          }
+        }
+      }
+    },
     "Invalid auth response." : {
       "localizations" : {
         "he" : {
@@ -3664,16 +3421,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תגובת שרת לא תקינה"
-          }
-        }
-      }
-    },
-    "Invalid URL for endpoint: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "כתובת לא תקינה לנקודת קצה: %@"
           }
         }
       }
@@ -3699,12 +3446,12 @@
         }
       }
     },
-    "It looks like a scanned image — there's no selectable text, so an ATS can't read it either." : {
+    "It looks like a scanned image — there's no selectable text for us (or most parsers) to read." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "נראה שזו תמונה סרוקה — אין בה טקסט שניתן לבחור, ולכן גם מערכת ATS לא יכולה לקרוא אותה."
+            "value" : "נראה שזו תמונה סרוקה — אין בה טקסט שניתן לבחור, כך שגם אנחנו (או רוב מערכות הסריקה) לא נוכל לקרוא אותה."
           }
         }
       }
@@ -3730,16 +3477,6 @@
         }
       }
     },
-    "Job description is required. Please scan your resume first." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נדרש תיאור משרה. סרוק תחילה את קורות החיים שלך."
-          }
-        }
-      }
-    },
     "Job Link" : {
       "localizations" : {
         "he" : {
@@ -3750,12 +3487,43 @@
         }
       }
     },
+    "Job description is required. Please scan your resume first." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נדרש תיאור משרה. סרוק תחילה את קורות החיים שלך."
+          }
+        }
+      }
+    },
+    "Job link ready · %lld pasted words (optional)" : {
+      "comment" : "Valid URL makes pasted job text optional",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור המשרה מוכן · %lld מילים הודבקו (לא חובה)"
+          }
+        }
+      }
+    },
     "Job title" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "תפקיד"
+          }
+        }
+      }
+    },
+    "Keep Editing" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך לערוך"
           }
         }
       }
@@ -3781,16 +3549,7 @@
         }
       }
     },
-    "Keep Editing" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "המשך לערוך"
-          }
-        }
-      }
-    },
+    "Keep this optimized resume in Saved Resumes so you can reuse it later." : {},
     "Key Gaps" : {
       "comment" : "FitVerdictView gaps section header",
       "localizations" : {
@@ -3802,7 +3561,7 @@
         }
       }
     },
-    "Keyword alignment" : {
+    "Keyword Alignment" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3812,7 +3571,7 @@
         }
       }
     },
-    "Keyword Alignment" : {
+    "Keyword alignment" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3852,12 +3611,12 @@
         }
       }
     },
-    "Keyword coverage, compliance, formatting tips." : {
+    "Keyword coverage, parse tips, formatting guidance." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כיסוי מילות מפתח, עמידה בדרישות, טיפים לעיצוב."
+            "value" : "כיסוי מילות מפתח, טיפים לפענוח והנחיות עיצוב."
           }
         }
       }
@@ -3912,6 +3671,7 @@
         }
       }
     },
+    "Latest optimization restored" : {},
     "Leave a review" : {
       "localizations" : {
         "he" : {
@@ -4123,6 +3883,16 @@
         }
       }
     },
+    "Match Deep Report" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוח התאמה מעמיק"
+          }
+        }
+      }
+    },
     "Match Score" : {
       "localizations" : {
         "he" : {
@@ -4139,6 +3909,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ציון התאמה %1$lld אחוז"
+          }
+        }
+      }
+    },
+    "Match breakdown" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פירוט התאמה"
+          }
+        }
+      }
+    },
+    "Match improvements applied. Review the resume before submitting." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שיפורי התאמה הוחלו. סקור את קורות החיים לפני ההגשה."
+          }
+        }
+      }
+    },
+    "Match insights" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תובנות התאמה"
           }
         }
       }
@@ -4224,7 +4024,7 @@
         }
       }
     },
-    "Missing keywords" : {
+    "Missing Keywords" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4234,7 +4034,7 @@
         }
       }
     },
-    "Missing Keywords" : {
+    "Missing keywords" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4295,6 +4095,16 @@
         }
       }
     },
+    "Mobile UX" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חוויית משתמש מובייל"
+          }
+        }
+      }
+    },
     "Mobile ready" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4302,16 +4112,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מוכן למובייל"
-          }
-        }
-      }
-    },
-    "Mobile UX" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "חוויית משתמש מובייל"
           }
         }
       }
@@ -4356,12 +4156,12 @@
         }
       }
     },
-    "More aligned, not guaranteed to pass any ATS." : {
+    "More aligned with this job — not a guarantee of interviews or ATS outcomes." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מותאם יותר, לא מובטח שיעבור כל ATS."
+            "value" : "מותאם יותר למשרה זו — לא הבטחה לראיונות או לתוצאות ATS."
           }
         }
       }
@@ -4407,7 +4207,7 @@
         }
       }
     },
-    "My resume" : {
+    "My Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4417,7 +4217,7 @@
         }
       }
     },
-    "My Resume" : {
+    "My resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4495,6 +4295,7 @@
       }
     },
     "New job" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4541,16 +4342,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אין עדיין ניתוח מומחה"
-          }
-        }
-      }
-    },
-    "no file handy?" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אין קובץ בהישג יד?"
           }
         }
       }
@@ -4637,6 +4428,7 @@
       }
     },
     "No optimized resume yet." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4768,26 +4560,6 @@
         }
       }
     },
-    "Opens the ATS breakdown pillars." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פותח את עמודי פירוט ה-ATS."
-          }
-        }
-      }
-    },
-    "Opens the four ATS pillars with animations." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פותח את ארבעת עמודי ה-ATS עם אנימציות."
-          }
-        }
-      }
-    },
     "Opens the Home tab" : {
       "localizations" : {
         "he" : {
@@ -4798,12 +4570,42 @@
         }
       }
     },
+    "Opens the Match breakdown pillars." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פותח את עמודי פירוט ההתאמה."
+          }
+        }
+      }
+    },
+    "Opens the four match pillars with animations." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פותח את ארבעת עמודי ההתאמה עם אנימציות."
+          }
+        }
+      }
+    },
     "Opens the iOS Files picker" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "פתיחת בורר הקבצים של iOS"
+          }
+        }
+      }
+    },
+    "Optimization Review" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סקירת אופטימיזציה"
           }
         }
       }
@@ -4848,16 +4650,6 @@
         }
       }
     },
-    "Optimization Review" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "סקירת אופטימיזציה"
-          }
-        }
-      }
-    },
     "Optimize" : {
       "localizations" : {
         "he" : {
@@ -4888,6 +4680,16 @@
         }
       }
     },
+    "Optimize for another job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה למשרה נוספת"
+          }
+        }
+      }
+    },
     "Optimized" : {
       "comment" : "Me stats: count of optimized resumes",
       "localizations" : {
@@ -4899,7 +4701,7 @@
         }
       }
     },
-    "Optimized resume" : {
+    "Optimized Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4909,7 +4711,7 @@
         }
       }
     },
-    "Optimized Resume" : {
+    "Optimized resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4929,6 +4731,7 @@
         }
       }
     },
+    "Optimized resumes you save from Preview will appear here." : {},
     "Optimizing your resume" : {
       "localizations" : {
         "he" : {
@@ -4965,16 +4768,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אופציונלי: הוסף העדפת טון, נקודות ספציפיות או נקודות מכירה ייחודיות לכלול"
-          }
-        }
-      }
-    },
-    "or" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "או"
           }
         }
       }
@@ -5019,16 +4812,6 @@
         }
       }
     },
-    "out of 100" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מתוך 100"
-          }
-        }
-      }
-    },
     "Over 5 MB" : {
       "localizations" : {
         "he" : {
@@ -5045,6 +4828,98 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סקירה כללית"
+          }
+        }
+      }
+    },
+    "PDF Ready" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ה-PDF מוכן"
+          }
+        }
+      }
+    },
+    "PDF export" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא PDF"
+          }
+        }
+      }
+    },
+    "PDF export failed: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא PDF נכשל: %@"
+          }
+        }
+      }
+    },
+    "PDF exported successfully" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ה-PDF יוצא בהצלחה"
+          }
+        }
+      }
+    },
+    "PDF generated and ready" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ה-PDF נוצר ומוכן"
+          }
+        }
+      }
+    },
+    "PDF only" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF בלבד"
+          }
+        }
+      }
+    },
+    "PDF or DOCX · up to 5 MB" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF או DOCX · עד 5 MB"
+          }
+        }
+      }
+    },
+    "PDF or DOCX, up to 5 MB. We'll extract the text so it stays readable for common parsers." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF או DOCX, עד 5 MB. נחלץ את הטקסט כדי שיישאר קריא למערכות סריקה נפוצות."
+          }
+        }
+      }
+    },
+    "PDF, up to 5 MB" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF, עד 5 MB"
           }
         }
       }
@@ -5111,6 +4986,7 @@
       }
     },
     "Paste a job description or add a job link." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5126,6 +5002,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הדבק משרה כדי לחשוף מילות מפתח חסרות"
+          }
+        }
+      }
+    },
+    "Paste at least 100 words from the job description (%lld of 100 words)." : {
+      "comment" : "Pasted job description is too short",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו לפחות 100 מילים מתיאור המשרה (%lld מתוך 100 מילים)."
           }
         }
       }
@@ -5153,6 +5040,7 @@
     },
     "Paste the complete job description for an accurate result." : {
       "comment" : "FitCheckView short-JD warning",
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5175,6 +5063,7 @@
       }
     },
     "Paste the full job description or add a job link so we can check your fit accurately." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5234,98 +5123,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מסך תשלום — בקרוב"
-          }
-        }
-      }
-    },
-    "PDF export" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ייצוא PDF"
-          }
-        }
-      }
-    },
-    "PDF export failed: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ייצוא PDF נכשל: %@"
-          }
-        }
-      }
-    },
-    "PDF exported successfully" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ה-PDF יוצא בהצלחה"
-          }
-        }
-      }
-    },
-    "PDF generated and ready" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ה-PDF נוצר ומוכן"
-          }
-        }
-      }
-    },
-    "PDF only" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PDF בלבד"
-          }
-        }
-      }
-    },
-    "PDF or DOCX · up to 5 MB" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PDF או DOCX · עד 5 MB"
-          }
-        }
-      }
-    },
-    "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PDF או DOCX, עד 5 MB. נקרא אותו כפי שמערכת ATS קוראת."
-          }
-        }
-      }
-    },
-    "PDF Ready" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ה-PDF מוכן"
-          }
-        }
-      }
-    },
-    "PDF, up to 5 MB" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PDF, עד 5 MB"
           }
         }
       }
@@ -5510,46 +5307,12 @@
         }
       }
     },
-    "profile_my_applications" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My Applications"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "המועמדויות שלי"
-          }
-        }
-      }
-    },
-    "profile_sign_out" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign Out"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "התנתק"
-          }
-        }
-      }
-    },
-    "Progress path. Upload, add job, ATS score." : {
+    "Progress path. Upload, add job, match." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מסלול התקדמות. העלאה, הוספת משרה, ציון ATS."
+            "value" : "מסלול התקדמות. העלאה, הוספת משרה, התאמה."
           }
         }
       }
@@ -5605,6 +5368,16 @@
         }
       }
     },
+    "Quick Wins" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניצחונות מהירים"
+          }
+        }
+      }
+    },
     "Quick improvement" : {
       "localizations" : {
         "he" : {
@@ -5625,12 +5398,12 @@
         }
       }
     },
-    "Quick Wins" : {
+    "RECRUITER-READY" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ניצחונות מהירים"
+            "value" : "מוכן למגייסים"
           }
         }
       }
@@ -5675,12 +5448,12 @@
         }
       }
     },
-    "Ready for a free ATS check" : {
+    "Ready for a free Match check" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מוכן לבדיקת ATS חינם"
+            "value" : "מוכנים לבדיקת התאמה חינם"
           }
         }
       }
@@ -5765,16 +5538,6 @@
         }
       }
     },
-    "RECRUITER-READY" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מוכן למגייסים"
-          }
-        }
-      }
-    },
     "Recruiter-ready templates, one tap." : {
       "localizations" : {
         "he" : {
@@ -5816,22 +5579,22 @@
         }
       }
     },
-    "Refine failed" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הליטוש נכשל"
-          }
-        }
-      }
-    },
     "Refine Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "לטש קורות חיים"
+          }
+        }
+      }
+    },
+    "Refine failed" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הליטוש נכשל"
           }
         }
       }
@@ -5918,52 +5681,12 @@
         }
       }
     },
-    "Resume diagnosis" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אבחון קורות חיים"
-          }
-        }
-      }
-    },
     "Resume Diagnosis" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "אבחון קורות חיים"
-          }
-        }
-      }
-    },
-    "Resume export — try ResumeBuilder AI: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ייצוא קורות חיים — נסו את ResumeBuilder AI: %@"
-          }
-        }
-      }
-    },
-    "Resume exported successfully" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים יוצאו בהצלחה"
-          }
-        }
-      }
-    },
-    "Resume gap" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פער בקורות החיים"
           }
         }
       }
@@ -6018,32 +5741,52 @@
         }
       }
     },
+    "Resume diagnosis" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אבחון קורות חיים"
+          }
+        }
+      }
+    },
+    "Resume export — try ResumeBuilder AI: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא קורות חיים — נסו את ResumeBuilder AI: %@"
+          }
+        }
+      }
+    },
+    "Resume exported successfully" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים יוצאו בהצלחה"
+          }
+        }
+      }
+    },
+    "Resume gap" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פער בקורות החיים"
+          }
+        }
+      }
+    },
     "Resume section" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "מקטע בקורות החיים"
-          }
-        }
-      }
-    },
-    "Résumé selected" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים נבחרו"
-          }
-        }
-      }
-    },
-    "Résumé selected. Choose a different file." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים נבחרו. בחר קובץ אחר."
           }
         }
       }
@@ -6080,17 +5823,8 @@
         }
       }
     },
-    "Résumés usually live in" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות חיים נמצאים בדרך כלל ב-"
-          }
-        }
-      }
-    },
     "Resumes you save after uploading will appear here." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6272,12 +6006,12 @@
         }
       }
     },
-    "Rewrites the entire resume to match the job description with ATS-safe structure and role-fit language." : {
+    "Rewrites the entire resume to match the job description with ATS-friendly structure and role-fit language." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "משכתב את כל קורות החיים כדי להתאים לתיאור המשרה עם מבנה עמיד ב-ATS ושפה מותאמת לתפקיד."
+            "value" : "משכתב את כל קורות החיים כדי להתאים לתיאור המשרה עם מבנה ידידותי ל-ATS ושפה מותאמת לתפקיד."
           }
         }
       }
@@ -6343,12 +6077,12 @@
         }
       }
     },
-    "Role-fit rewrite with ATS-safe structure." : {
+    "Role-fit rewrite with ATS-friendly structure." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "שכתוב מותאם לתפקיד עם מבנה עמיד ב-ATS."
+            "value" : "שכתוב מותאם לתפקיד עם מבנה ידידותי ל-ATS."
           }
         }
       }
@@ -6373,16 +6107,6 @@
         }
       }
     },
-    "Run a scan and optimization to see it here." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הרץ סריקה ואופטימיזציה כדי לראות זאת כאן."
-          }
-        }
-      }
-    },
     "Run Again" : {
       "localizations" : {
         "he" : {
@@ -6393,32 +6117,22 @@
         }
       }
     },
-    "Run expert workflows for this optimization" : {
+    "Run Free Match Check" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הרץ תהליכי מומחה לאופטימיזציה זו"
+            "value" : "הרץ בדיקת התאמה חינם"
           }
         }
       }
     },
-    "Run Free ATS Check" : {
+    "Run Improve match for a focused keyword and metrics pass." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הרץ בדיקת ATS חינם"
-          }
-        }
-      }
-    },
-    "Run Improve ATS for a focused keyword and metrics pass." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הרץ \"שפר ATS\" למעבר ממוקד של מילות מפתח ומדדים."
+            "value" : "הרץ \"שפר התאמה\" למעבר ממוקד של מילות מפתח ומדדים."
           }
         }
       }
@@ -6464,12 +6178,72 @@
         }
       }
     },
+    "Run a scan and optimization to see it here." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרץ סריקה ואופטימיזציה כדי לראות זאת כאן."
+          }
+        }
+      }
+    },
+    "Run expert workflows for this optimization" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרץ תהליכי מומחה לאופטימיזציה זו"
+          }
+        }
+      }
+    },
     "Running" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "מריץ"
+          }
+        }
+      }
+    },
+    "Résumé selected" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו"
+          }
+        }
+      }
+    },
+    "Résumé selected. Choose a different file." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים נבחרו. בחר קובץ אחר."
+          }
+        }
+      }
+    },
+    "Résumés usually live in" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות חיים נמצאים בדרך כלל ב-"
+          }
+        }
+      }
+    },
+    "SCORE" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון"
           }
         }
       }
@@ -6504,22 +6278,32 @@
         }
       }
     },
-    "Save free so you don't lose this" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שמרו בחינם כדי לא לאבד את זה"
-          }
-        }
-      }
-    },
     "Save Package to Me" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "שמור חבילה לאזור האישי"
+          }
+        }
+      }
+    },
+    "Save Version" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמור גרסה"
+          }
+        }
+      }
+    },
+    "Save free so you don't lose this" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמרו בחינם כדי לא לאבד את זה"
           }
         }
       }
@@ -6544,22 +6328,13 @@
         }
       }
     },
+    "Save to My Resumes" : {},
     "Save to reuse on other jobs without re-uploading." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "שמור כדי להשתמש שוב במשרות אחרות ללא העלאה מחדש."
-          }
-        }
-      }
-    },
-    "Save Version" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שמור גרסה"
           }
         }
       }
@@ -6585,16 +6360,6 @@
         }
       }
     },
-    "Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נשמר פנימית באזור האישי. שום דבר לא נשלח אוטומטית; אפשר לשתף את קורות החיים, להעתיק את המכתב המלווה או לפתוח את קישור המשרה כשתהיה מוכן."
-          }
-        }
-      }
-    },
     "Saved Report" : {
       "localizations" : {
         "he" : {
@@ -6615,7 +6380,7 @@
         }
       }
     },
-    "Saved resume" : {
+    "Saved Resumes" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6625,7 +6390,19 @@
         }
       }
     },
-    "Saved Resumes" : {
+    "Saved in My Resumes" : {},
+    "Saved in My Resumes · Tap to preview" : {},
+    "Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נשמר פנימית באזור האישי. שום דבר לא נשלח אוטומטית; אפשר לשתף את קורות החיים, להעתיק את המכתב המלווה או לפתוח את קישור המשרה כשתהיה מוכן."
+          }
+        }
+      }
+    },
+    "Saved resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6675,46 +6452,13 @@
         }
       }
     },
+    "Saving resume…" : {},
     "Scan Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "סרוק קורות חיים"
-          }
-        }
-      }
-    },
-    "scan_analyze_cta" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyze Resume"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "ניתוח קורות חיים"
-          }
-        }
-      }
-    },
-    "scan_import_resume" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Resume"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "ייבוא קורות חיים"
           }
         }
       }
@@ -6736,16 +6480,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סורק את קורות החיים שלך"
-          }
-        }
-      }
-    },
-    "SCORE" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון"
           }
         }
       }
@@ -6810,12 +6544,12 @@
         }
       }
     },
-    "Section coverage & ATS-parseable layout" : {
+    "Section coverage & simple-to-parse layout" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כיסוי מקטעים ופריסה הניתנת לפענוח ב-ATS"
+            "value" : "כיסוי מקטעים ופריסה פשוטה לפענוח"
           }
         }
       }
@@ -6836,16 +6570,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הציגו את כל %lld התיקונים כדי להמשיך להשתפר."
-          }
-        }
-      }
-    },
-    "See the first score before signing in, then unlock the full diagnosis." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ראה את הציון הראשון לפני התחברות, ואז פתח את האבחון המלא."
           }
         }
       }
@@ -6880,22 +6604,32 @@
         }
       }
     },
+    "See your Match Score before signing in" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראו את ציון ההתאמה שלכם לפני ההתחברות"
+          }
+        }
+      }
+    },
+    "See your Match estimate before signing in, then unlock the full diagnosis." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראו את אומדן ההתאמה שלכם לפני ההתחברות, ואז פתחו את האבחון המלא."
+          }
+        }
+      }
+    },
     "See your résumé like a recruiter does" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "ראה את קורות החיים שלך כמו שמגייס רואה אותם"
-          }
-        }
-      }
-    },
-    "See your score before signing in" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ראה את הציון שלך לפני התחברות"
           }
         }
       }
@@ -6961,6 +6695,26 @@
         }
       }
     },
+    "Server PDF unavailable — generated a local copy from your resume sections." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF מהשרת אינו זמין — נוצר עותק מקומי ממקטעי קורות החיים שלך."
+          }
+        }
+      }
+    },
+    "Server error (%lld). Please try again later." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שגיאת שרת (%lld). נסה שוב מאוחר יותר."
+          }
+        }
+      }
+    },
     "Server error (%lld): %@" : {
       "localizations" : {
         "en" : {
@@ -6977,32 +6731,33 @@
         }
       }
     },
-    "Server error (%lld). Please try again later." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שגיאת שרת (%lld). נסה שוב מאוחר יותר."
-          }
-        }
-      }
-    },
-    "Server PDF unavailable — generated a local copy from your resume sections." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PDF מהשרת אינו זמין — נוצר עותק מקומי ממקטעי קורות החיים שלך."
-          }
-        }
-      }
-    },
     "Share" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "שתף"
+          }
+        }
+      }
+    },
+    "Share PDF" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שתף PDF"
+          }
+        }
+      }
+    },
+    "Share Resume PDF" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שתף PDF קורות חיים"
           }
         }
       }
@@ -7033,27 +6788,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שיתוף ב-LinkedIn"
-          }
-        }
-      }
-    },
-    "Share PDF" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שתף PDF"
-          }
-        }
-      }
-    },
-    "Share Resume PDF" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שתף PDF קורות חיים"
           }
         }
       }
@@ -7109,6 +6843,26 @@
         }
       }
     },
+    "Sign Out" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התנתק"
+          }
+        }
+      }
+    },
+    "Sign Up" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרשמה"
+          }
+        }
+      }
+    },
     "Sign in and optimize a resume to see it here." : {
       "localizations" : {
         "he" : {
@@ -7135,6 +6889,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "נדרשת התחברות."
+          }
+        }
+      }
+    },
+    "Sign in to Optimize" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התחבר כדי לבצע אופטימיזציה"
           }
         }
       }
@@ -7175,16 +6939,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "התחבר כדי לטעון סקירה זו."
-          }
-        }
-      }
-    },
-    "Sign in to Optimize" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התחבר כדי לבצע אופטימיזציה"
           }
         }
       }
@@ -7279,26 +7033,6 @@
         }
       }
     },
-    "Sign Out" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התנתק"
-          }
-        }
-      }
-    },
-    "Sign Up" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הרשמה"
-          }
-        }
-      }
-    },
     "Skill coverage is reasonably aligned" : {
       "localizations" : {
         "he" : {
@@ -7341,6 +7075,7 @@
       }
     },
     "Skip" : {
+      "comment" : "Exclude recommendation",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7350,6 +7085,7 @@
         }
       }
     },
+    "Skip fit and optimize" : {},
     "Skip — Browse Other Jobs" : {
       "comment" : "FitVerdictView skip CTA",
       "localizations" : {
@@ -7494,16 +7230,6 @@
         }
       }
     },
-    "Strong — polish it" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "חזק — נשאר רק ללטש"
-          }
-        }
-      }
-    },
     "Strong Fit" : {
       "comment" : "FitVerdictView band label — strong",
       "localizations" : {
@@ -7521,6 +7247,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "התאמה חזקה לתפקיד זה. שמור על עריכות נכונות לפני ההחלה."
+          }
+        }
+      }
+    },
+    "Strong — polish it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חזק — נשאר רק ללטש"
           }
         }
       }
@@ -7556,22 +7292,22 @@
         }
       }
     },
-    "Submit at Job Link" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הגש בקישור המשרה"
-          }
-        }
-      }
-    },
     "Submit Package" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הגש חבילה"
+          }
+        }
+      }
+    },
+    "Submit at Job Link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגש בקישור המשרה"
           }
         }
       }
@@ -7616,6 +7352,7 @@
         }
       }
     },
+    "Suggestion hidden for safety" : {},
     "Summary" : {
       "localizations" : {
         "he" : {
@@ -7646,12 +7383,12 @@
         }
       }
     },
-    "Swap layouts, colors, and fonts. Every template stays parseable by the bots." : {
+    "Swap layouts, colors, and fonts. Every template stays simple to parse." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "החליפו פריסות, צבעים וגופנים. כל תבנית נשארת קריאה למערכות אוטומטיות."
+            "value" : "החליפו פריסות, צבעים וגופנים. כל תבנית נשארת פשוטה לפענוח."
           }
         }
       }
@@ -7666,87 +7403,12 @@
         }
       }
     },
-    "tab_design" : {
-      "extractionState" : "stale",
+    "Tailor Resume" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Design"
-          }
-        },
         "he" : {
           "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "עיצוב"
-          }
-        }
-      }
-    },
-    "tab_home" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
             "state" : "translated",
-            "value" : "Home"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "בית"
-          }
-        }
-      }
-    },
-    "tab_improve" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Improve"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "שיפור"
-          }
-        }
-      }
-    },
-    "tab_profile" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profile"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "פרופיל"
-          }
-        }
-      }
-    },
-    "tab_scan" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "needs_translation",
-            "value" : "סריקה"
+            "value" : "התאם קורות חיים"
           }
         }
       }
@@ -7767,16 +7429,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "התאם קורות חיים כדי להתחיל לעקוב אחר מועמדויות."
-          }
-        }
-      }
-    },
-    "Tailor Resume" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "התאם קורות חיים"
           }
         }
       }
@@ -7903,6 +7555,7 @@
         }
       }
     },
+    "The PDF has no selectable text. Please try exporting again." : {},
     "The cover letter response was empty. Please try again." : {
       "localizations" : {
         "he" : {
@@ -7933,6 +7586,7 @@
         }
       }
     },
+    "The projected score does not improve. No changes are selected by default—review each suggestion and include only changes you trust." : {},
     "The server encountered an issue saving this change (%lld). Please try again later." : {
       "localizations" : {
         "he" : {
@@ -7953,22 +7607,22 @@
         }
       }
     },
-    "the target role" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תפקיד היעד"
-          }
-        }
-      }
-    },
     "These appear in the job description but not your resume. Review the proposed wording before adding it." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "המילים האלה מופיעות בתיאור המשרה אך לא בקורות החיים שלכם. בדקו את הניסוח המוצע לפני ההוספה."
+          }
+        }
+      }
+    },
+    "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קובץ PDF זה אינו מכיל טקסט קריא. ייצא אותו מחדש מתוכנת העריכה עם קובץ > שמירה כ-PDF, לא סריקה או צילום מסך."
           }
         }
       }
@@ -7993,15 +7647,26 @@
         }
       }
     },
-    "This PDF does not contain readable text. Re-export it from your word processor with File > Save As PDF, not a scan or screenshot." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קובץ PDF זה אינו מכיל טקסט קריא. ייצא אותו מחדש מתוכנת העריכה עם קובץ > שמירה כ-PDF, לא סריקה או צילום מסך."
-          }
-        }
-      }
+    "This may add or change a number or metric. Confirm it is supported by your experience before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may add, remove, or change a date. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may change a company or employer name. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may change a job title or seniority. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may change a location. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may change an education credential. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
+    },
+    "This may change contact information. Confirm it is factually accurate before including it." : {
+      "comment" : "Recommendation factual warning"
     },
     "This permanently deletes your account, resumes, optimizations, and all personal data. This action cannot be undone." : {
       "localizations" : {
@@ -8032,6 +7697,9 @@
           }
         }
       }
+    },
+    "This suggestion contains unfinished template text, so it has been hidden and cannot be applied." : {
+      "comment" : "Blocked recommendation placeholder"
     },
     "Tip %lld" : {
       "localizations" : {
@@ -8073,16 +7741,6 @@
         }
       }
     },
-    "Top blockers" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "חוסמים מובילים"
-          }
-        }
-      }
-    },
     "Top Fixes" : {
       "localizations" : {
         "he" : {
@@ -8099,6 +7757,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בעיות מובילות"
+          }
+        }
+      }
+    },
+    "Top blockers" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חוסמים מובילים"
           }
         }
       }
@@ -8133,6 +7801,17 @@
         }
       }
     },
+    "Try Again" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסה שוב"
+          }
+        }
+      }
+    },
+    "Try Save Again" : {},
     "Try a sample" : {
       "localizations" : {
         "he" : {
@@ -8153,16 +7832,6 @@
         }
       }
     },
-    "Try Again" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נסה שוב"
-          }
-        }
-      }
-    },
     "Try another job title or company." : {
       "localizations" : {
         "he" : {
@@ -8173,6 +7842,7 @@
         }
       }
     },
+    "Try restoring again" : {},
     "Turning resume and job signals into recruiter-style feedback." : {
       "localizations" : {
         "he" : {
@@ -8189,6 +7859,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מקליד…"
+          }
+        }
+      }
+    },
+    "URL or paste description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתובת או הדבק תיאור"
           }
         }
       }
@@ -8376,6 +8056,17 @@
         }
       }
     },
+    "Upload Resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה קורות חיים"
+          }
+        }
+      }
+    },
     "Upload and optimize on Home to see your resume here." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8417,33 +8108,12 @@
         }
       }
     },
-    "Upload Resume" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "העלה קורות חיים"
-          }
-        }
-      }
-    },
     "Upload résumé on Home" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "העלה קורות חיים במסך הבית"
-          }
-        }
-      }
-    },
-    "Upload your résumé" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "העלה את קורות החיים שלך"
           }
         }
       }
@@ -8479,6 +8149,16 @@
         }
       }
     },
+    "Upload your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העלה את קורות החיים שלך"
+          }
+        }
+      }
+    },
     "Upload your résumé. PDF or DOCX up to 5 megabytes." : {
       "localizations" : {
         "he" : {
@@ -8499,12 +8179,12 @@
         }
       }
     },
-    "URL or paste description" : {
+    "Use Tailor to generate the full optimized resume." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כתובת או הדבק תיאור"
+            "value" : "השתמש בהתאמה כדי ליצור את קורות החיים המוטבים המלאים."
           }
         }
       }
@@ -8519,22 +8199,12 @@
         }
       }
     },
-    "Use Tailor to generate the full optimized resume." : {
+    "Useful foundation, but match blockers still need attention." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "השתמש בהתאמה כדי ליצור את קורות החיים המוטבים המלאים."
-          }
-        }
-      }
-    },
-    "Useful foundation, but ATS blockers still need attention." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בסיס שימושי, אך חוסמי ATS עדיין דורשים תשומת לב."
+            "value" : "בסיס שימושי, אך חוסמי התאמה עדיין דורשים תשומת לב."
           }
         }
       }
@@ -8549,22 +8219,22 @@
         }
       }
     },
+    "Using %@. Add the next job to create a new match." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משתמשים ב-%@. הוסיפו את המשרה הבאה כדי ליצור התאמה חדשה."
+          }
+        }
+      }
+    },
     "Using Job Link" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "שימוש בקישור למשרה"
-          }
-        }
-      }
-    },
-    "View ATS breakdown" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הצג פירוט ATS"
           }
         }
       }
@@ -8579,7 +8249,17 @@
         }
       }
     },
-    "View optimized resume" : {
+    "View Match breakdown" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצג פירוט התאמה"
+          }
+        }
+      }
+    },
+    "View Optimized Resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -8589,7 +8269,7 @@
         }
       }
     },
-    "View Optimized Resume" : {
+    "View optimized resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -8639,6 +8319,7 @@
         }
       }
     },
+    "We couldn't restore your latest optimization." : {},
     "We couldn't save that edit. Please try again." : {
       "localizations" : {
         "he" : {
@@ -8671,6 +8352,7 @@
         }
       }
     },
+    "Why this change" : {},
     "Why this version is more aligned before export." : {
       "localizations" : {
         "he" : {
@@ -8687,6 +8369,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "עבד על עיצובי לוח בקרה ושיתף פעולה עם מהנדסים כדי לשפר תהליכי משתמש."
+          }
+        }
+      }
+    },
+    "YOUR FIRST MATCH CHECK" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדיקת ההתאמה הראשונה שלכם"
           }
         }
       }
@@ -8722,16 +8414,6 @@
         }
       }
     },
-    "Using %@. Add the next job to create a new match." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "משתמשים ב-%@. הוסיפו את המשרה הבאה כדי ליצור התאמה חדשה."
-          }
-        }
-      }
-    },
     "You could compete for this role, but there are key gaps to close before applying." : {
       "comment" : "FitVerdictView stretch band description",
       "localizations" : {
@@ -8759,6 +8441,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ניצלת את כל קרדיטי האופטימיזציה שלך. שדרג את התוכנית כדי להמשיך."
+          }
+        }
+      }
+    },
+    "Your Fit" : {
+      "comment" : "FitVerdictView navigation title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההתאמה שלך"
+          }
+        }
+      }
+    },
+    "Your Optimized, Design, Expert, and Account tabs are back in sync." : {},
+    "Your Resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך"
           }
         }
       }
@@ -8794,27 +8499,6 @@
         }
       }
     },
-    "YOUR FIRST DIAGNOSIS" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "האבחון הראשון שלכם"
-          }
-        }
-      }
-    },
-    "Your Fit" : {
-      "comment" : "FitVerdictView navigation title",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ההתאמה שלך"
-          }
-        }
-      }
-    },
     "Your free Resumely Match Score is in" : {
       "localizations" : {
         "he" : {
@@ -8825,16 +8509,7 @@
         }
       }
     },
-    "Your optimized résumé & score history" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים המותאמים והיסטוריית הציונים שלכם"
-          }
-        }
-      }
-    },
+    "Your optimized resume is not ready to save yet." : {},
     "Your optimized resume is ready" : {
       "localizations" : {
         "he" : {
@@ -8855,23 +8530,12 @@
         }
       }
     },
-    "Your Resume" : {
-      "extractionState" : "stale",
+    "Your optimized résumé & score history" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קורות החיים שלך"
-          }
-        }
-      }
-    },
-    "Your résumé and job details are still here — nothing's lost. Retry when you're back online." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים ופרטי המשרה עדיין כאן — דבר לא אבד. נסו שוב כשהחיבור יחזור."
+            "value" : "קורות החיים המותאמים והיסטוריית הציונים שלכם"
           }
         }
       }
@@ -8892,16 +8556,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלך מוצפנים ולעולם לא משותפים."
-          }
-        }
-      }
-    },
-    "Your résumé is ready to send" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים שלכם מוכנים לשליחה"
           }
         }
       }
@@ -8947,6 +8601,27 @@
         }
       }
     },
+    "Your résumé and diagnosis are untouched. You can adjust the target job and try again, or skip fit and optimize anyway." : {},
+    "Your résumé and job details are still here — nothing's lost. Retry when you're back online." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים ופרטי המשרה עדיין כאן — דבר לא אבד. נסו שוב כשהחיבור יחזור."
+          }
+        }
+      }
+    },
+    "Your résumé is ready to send" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלכם מוכנים לשליחה"
+          }
+        }
+      }
+    },
     "Your résumé stays private" : {
       "comment" : "Me trust card title",
       "localizations" : {
@@ -8968,12 +8643,395 @@
         }
       }
     },
-    "Your résumé, scored & rewritten" : {
+    "Your résumé, matched & rewritten" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קורות החיים שלך, עם ציון ושכתוב"
+            "value" : "קורות החיים שלך, מותאמים ומשוכתבים"
+          }
+        }
+      }
+    },
+    "app_name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumely"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "Resumely"
+          }
+        }
+      }
+    },
+    "design_apply_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "החל עיצוב"
+          }
+        }
+      }
+    },
+    "e.g. Make it more concise and add leadership examples…" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לדוגמה: הפוך אותו לתמציתי יותר והוסף דוגמאות מנהיגות…"
+          }
+        }
+      }
+    },
+    "export_download_pdf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download PDF"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "הורד PDF"
+          }
+        }
+      }
+    },
+    "home_score_excellent" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excellent — ready to apply"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "מצוין — מוכן להגשה"
+          }
+        }
+      }
+    },
+    "home_score_good" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good — a few improvements left"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "טוב — כמה שיפורים נותרו"
+          }
+        }
+      }
+    },
+    "home_score_needs_work" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs work — let's improve it"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "דורש שיפור — בואו נשפר"
+          }
+        }
+      }
+    },
+    "https://www.linkedin.com/jobs/view/..." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://www.linkedin.com/jobs/view/..."
+          }
+        }
+      }
+    },
+    "iCloud Drive" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Drive"
+          }
+        }
+      }
+    },
+    "improve_optimize_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimize for This Job"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "אופטימיזציה לתפקיד זה"
+          }
+        }
+      }
+    },
+    "no file handy?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין קובץ בהישג יד?"
+          }
+        }
+      }
+    },
+    "or" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "או"
+          }
+        }
+      }
+    },
+    "out of 100" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתוך 100"
+          }
+        }
+      }
+    },
+    "profile_my_applications" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Applications"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "המועמדויות שלי"
+          }
+        }
+      }
+    },
+    "profile_sign_out" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign Out"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "התנתק"
+          }
+        }
+      }
+    },
+    "scan_analyze_cta" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyze Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ניתוח קורות חיים"
+          }
+        }
+      }
+    },
+    "scan_import_resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Resume"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "ייבוא קורות חיים"
+          }
+        }
+      }
+    },
+    "tab_design" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Design"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "עיצוב"
+          }
+        }
+      }
+    },
+    "tab_home" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "בית"
+          }
+        }
+      }
+    },
+    "tab_improve" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improve"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "שיפור"
+          }
+        }
+      }
+    },
+    "tab_profile" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "פרופיל"
+          }
+        }
+      }
+    },
+    "tab_scan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "needs_translation",
+            "value" : "סריקה"
+          }
+        }
+      }
+    },
+    "the target role" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תפקיד היעד"
+          }
+        }
+      }
+    },
+    "·" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "·"
+          }
+        }
+      }
+    },
+    "· %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· %1$@"
+          }
+        }
+      }
+    },
+    "—" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "—"
+          }
+        }
+      }
+    },
+    "“%@”" : {},
+    "• %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• %1$@"
           }
         }
       }

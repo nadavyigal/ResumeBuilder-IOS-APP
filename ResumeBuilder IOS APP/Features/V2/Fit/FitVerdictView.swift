@@ -98,7 +98,7 @@ struct FitVerdictView: View {
         VStack(spacing: AppSpacing.md) {
             ScoreRingView(score: result.verdict.score, size: 120)
 
-            Text(NSLocalizedString("Estimated match score", comment: ""))
+            Text(NSLocalizedString("Resumely Match Score", comment: ""))
                 .font(.appCaption)
                 .foregroundStyle(AppColors.textSecondary)
         }

@@ -238,7 +238,7 @@ struct FitCheckView: View {
                 .foregroundStyle(AppColors.textTertiary)
                 .imageScale(.small)
             Text(NSLocalizedString(
-                "Estimated fit vs this job. Not affiliated with any ATS vendor. No optimization credit used.",
+                "Estimated fit vs this job — Resumely's guidance, not an employer ATS score. No optimization credit used.",
                 comment: ""
             ))
             .font(.appCaption)

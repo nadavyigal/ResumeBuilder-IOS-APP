@@ -22,8 +22,8 @@ struct DesignTabView: View {
         LockedTabTeaser(
             title: "Design",
             headline: "Recruiter-ready templates, one tap.",
-            previewCaption: "12 ATS-safe templates",
-            subtitle: "Swap layouts, colors, and fonts. Every template stays parseable by the bots.",
+            previewCaption: "12 ATS-friendly templates",
+            subtitle: "Swap layouts, colors, and fonts. Every template stays simple to parse.",
             checklist: [
                 .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
                 .init(title: "Run Optimize once", isComplete: appState.latestOptimizationId != nil)
@@ -36,7 +36,7 @@ struct DesignTabView: View {
         ) {
             HStack(spacing: AppSpacing.md) {
                 TemplateThumbnail(name: "Modern", category: "modern", templateId: "modern")
-                TemplateThumbnail(name: "ATS", category: "traditional", templateId: "ats-safe")
+                TemplateThumbnail(name: "Classic", category: "traditional", templateId: "ats-safe")
                 TemplateThumbnail(name: "Creative", category: "creative", templateId: "creative")
             }
         }

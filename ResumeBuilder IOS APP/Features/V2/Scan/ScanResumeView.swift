@@ -38,7 +38,7 @@ struct ScanResumeView: View {
 
                 // Analyze CTA
                 GradientButton(
-                    title: appState.isAuthenticated ? "Analyze & Optimize" : "Run Free ATS Check",
+                    title: appState.isAuthenticated ? "Analyze & Optimize" : "Run Free Match Check",
                     icon: "wand.and.stars",
                     isLoading: viewModel.isUploading || viewModel.isCheckingATS
                 ) {
@@ -231,7 +231,7 @@ struct ScanResumeView: View {
             HStack {
                 ScoreRingView(score: result.score?.overall ?? 0, size: 96)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Free ATS Preview")
+                    Text("Free Match Preview")
                         .font(.appHeadline)
                         .foregroundStyle(AppColors.textPrimary)
                     Text(appState.isAuthenticated ? "Ready for full optimization." : "Sign in to unlock full optimization.")

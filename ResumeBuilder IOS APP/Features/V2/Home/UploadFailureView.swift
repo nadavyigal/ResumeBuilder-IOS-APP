@@ -49,7 +49,7 @@ enum UploadFailureReason: Equatable, Sendable {
     var message: LocalizedStringKey {
         switch self {
         case .scannedImage:
-            return "It looks like a scanned image — there's no selectable text, so an ATS can't read it either."
+            return "It looks like a scanned image — there's no selectable text for us (or most parsers) to read."
         case .wrongType:
             return "Choose a PDF or DOCX résumé so we can read it reliably."
         case .tooLarge:

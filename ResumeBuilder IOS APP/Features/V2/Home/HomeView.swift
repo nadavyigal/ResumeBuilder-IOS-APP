@@ -79,7 +79,7 @@ struct HomeView: View {
             .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .onTapGesture { showATSBreakdown = true }
             .accessibilityElement(children: .combine)
-            .accessibilityHint("Opens the ATS breakdown pillars.")
+            .accessibilityHint("Opens the Match breakdown pillars.")
             .accessibilityAddTraits(.isButton)
 
             WaveDecorationView()
@@ -90,7 +90,7 @@ struct HomeView: View {
 
     private var metricsGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.md) {
-            MetricCard(icon: "doc.text.magnifyingglass", label: "ATS Match", value: "\(viewModel.overallScore)%", subtitle: "Keyword alignment", accentColor: AppColors.accentTeal)
+            MetricCard(icon: "doc.text.magnifyingglass", label: "Match", value: "\(viewModel.overallScore)%", subtitle: "Keyword alignment", accentColor: AppColors.accentTeal)
             MetricCard(icon: "pencil.and.list.clipboard", label: "Content", value: metricValue(viewModel.contentScore), subtitle: "Clarity & impact", accentColor: AppColors.accentViolet)
             MetricCard(icon: "paintbrush.pointed", label: "Design", value: metricValue(viewModel.designScore), subtitle: "Visual appeal", accentColor: AppColors.accentSky)
             MetricCard(icon: "key.fill", label: "Keywords", value: metricValue(viewModel.keywordScore), subtitle: "Missing terms", accentColor: AppColors.accentTeal)

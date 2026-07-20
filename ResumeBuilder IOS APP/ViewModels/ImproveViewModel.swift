@@ -195,8 +195,8 @@ final class ImproveViewModel {
         improvements = analysis?.authQuickWins.prefix(4).map { quickWin in
             ResumeImprovement(
                 id: quickWin.id,
-                title: quickWin.improvementType ?? NSLocalizedString("Improve ATS match", comment: ""),
-                description: quickWin.rationale ?? quickWin.optimizedText ?? NSLocalizedString("Apply a focused ATS improvement.", comment: ""),
+                title: quickWin.improvementType ?? NSLocalizedString("Improve match", comment: ""),
+                description: quickWin.rationale ?? quickWin.optimizedText ?? NSLocalizedString("Apply a focused match improvement.", comment: ""),
                 impact: (quickWin.estimatedImpact ?? 0) >= 5 ? "high" : "medium"
             )
         } ?? []

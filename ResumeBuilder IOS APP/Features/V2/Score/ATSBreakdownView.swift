@@ -20,7 +20,7 @@ struct ATSBreakdownView: View {
                         .padding(.vertical, AppSpacing.sm)
 
                     if analysis.subscores == nil {
-                        Text("High-level gauges from your latest optimization summary. Run Improve with a job description connected for granular ATS wiring.")
+                        Text("High-level gauges from your latest optimization summary. Run Improve with a job description connected for a granular match breakdown.")
                             .font(.appCaption)
                             .foregroundStyle(AppColors.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -71,7 +71,7 @@ struct ATSBreakdownView: View {
             }
         }
         .scrollIndicators(.hidden)
-        .navigationTitle("ATS breakdown")
+        .navigationTitle("Match breakdown")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             withAnimation(.spring(response: 0.82, dampingFraction: 0.76)) {

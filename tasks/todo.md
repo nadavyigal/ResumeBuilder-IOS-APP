@@ -1,3 +1,19 @@
+# UI/Copy Improvement Plan — 2026-07-20 (7 stories, branch claude/session-ec92e2)
+
+Decision: execute the 2026-07-20 UI/copy audit plan story by story. Grounding: PROMPTS/ios-ui-copy-followup-audit.md, executive-os/research/2026-07-19-resumely-copy-rewrite-v2.md, .agents/product-marketing.md, DECISIONS.md (Resumely Match Score), GLOBAL-TASTE.md. Analytics event names, API fields, and internal ATS identifiers stay unchanged.
+
+## Stories
+
+- [x] Story 1 — Replace user-facing ATS terminology with Match language (Resumely Match Score, Match, Match estimate, Match insights, Improve match, ATS-friendly, simple-to-parse). ~40 strings across 24 files + catalog migration with Hebrew parity. Red-first CopyClaimsTests added (banned-fragment guard). Focused 2/2 green; Home simulator smoke shows Upload · Add job · Match.
+- [ ] Story 2 — Export/share + marketing screenshot claims, branding, URLs.
+- [ ] Story 3 — Create account opens signup, Sign in opens signin, Privacy/Terms links.
+- [ ] Story 4 — Simplify locked Optimized/Design/Expert states (stable tab bar).
+- [ ] Story 5 — Hebrew parity for the 41 missing post-FTUX keys + language-control accessibility.
+- [ ] Story 6 — Small-device, Dynamic Type, VoiceOver, contrast, RTL, tab-bar overlap fixes.
+- [ ] Story 7 — Full-suite QA on iOS 26.5, Debug + Release builds, EN/HE smokes, banned-claim checks, Taste Review, PR.
+
+---
+
 # WP-48: First post-1.4.3 activation cohort read (2026-07-20)
 
 Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-release). Projected maturity **2026-08-18**. Two blocking measurement defects were found that must be fixed before that read, not after. Full evidence: `docs/qa/reports/wp48-post-1.4.3-cohort-read-2026-07-20.md`.
