@@ -13,6 +13,33 @@
 
 ---
 
+## 2026-07-20 — WP-48: first post-1.4.3 activation cohort read
+
+**Date:** 2026-07-20
+**Task:** Read the first activation cohort produced by 1.4.3, verify the Stories 10-12 events fire, scope S2 for 1.4.4. Analysis only — no code, no version bump, no ASC action.
+
+**Files Changed:**
+- `docs/qa/reports/wp48-post-1.4.3-cohort-read-2026-07-20.md` (new)
+- `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md`
+
+**Findings:**
+- **Cohort not mature.** Read taken 9h after release (PostHog server clock 2026-07-20T06:46:55Z vs release 2026-07-19T21:47:02Z). Zero iOS events in that window; the last event of any kind predates the release by ~5.5h. 0 of the required 20 clean uploaders. Projected maturity **2026-08-18** at the measured 4.7 clean file-selectors/week (which independently confirms the fix plan's "~4-5/week" estimate).
+- **Events unconfirmed, not broken.** Only one 1.4.3 session exists (`c7494f9d`, the pre-release Story 13 gate run). It confirms `app_launched`, `guest_mode_started`, `resume_upload_cta_seen/tapped`, `resume_file_picker_opened/cancelled`. It never selected a file, so the four events the packet named remain unobserved on 1.4.3. Packet stop-condition not triggered.
+- **Defect A (blocking).** The 12.5% baseline was computed on the legacy `resume_uploaded` event, whose call site 1.4.3 removed (`31b73b6`/`8277cba`, Story 10). Its successor `resume_upload_succeeded` fires at `TailorViewModel.swift:172`, after the sign-in guard at `:146` — unreachable for guests, so it cannot measure S1, whose entire purpose is converting guests. Measured: 1 of 10 clean file-selectors ever emitted it.
+- **Defect B.** The canonical Story 10 HogQL uses that same auth-gated event as its upload step, so every downstream rate silently excludes guests.
+- **Defect C.** `is_internal_tester = false` on a pre-release Debug/TestFlight 1.4.3 build — gate runs can land in the clean cohort.
+- **S2 rescope.** Picker *outcome* events already ship (`resume_file_picker_opened/cancelled` with `source`, `resume_upload_preflight_rejected` with `reason`). Missing: file type/size on those events, `score_screen_signin_tapped`, `job_source`.
+
+**Decisions Made:**
+- Did not read the cohort early. The packet's rule is explicit and the sample is 0/20.
+- Recommend redesignating `resume_file_selected` as the canonical upload denominator rather than moving the `resume_upload_succeeded` call site — docs + query change, no app risk.
+- Re-baseline to 10.0% (1/10) for like-for-like comparison; the ≥6-of-20 win count is unchanged.
+- Reconciled against Portfolio HQ before publishing: HQ already flags the read as calendar-blocked, so no contradiction. Two stale HQ items to hand back (it still targets a 1.4.1 cohort on 2026-07-25).
+
+**Next Recommended Action:** Land S2-A and S2-B (the two blocking measurement fixes) plus the S2 instrumentation in 1.4.4, then run the corrected Q3/Q4 HogQL on **2026-08-18**. Do not read the cohort before Q4 returns ≥20.
+
+---
+
 ## Sessions
 
 **Date:** 2026-07-19

@@ -1,3 +1,32 @@
+# WP-48: First post-1.4.3 activation cohort read (2026-07-20)
+
+Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-release). Projected maturity **2026-08-18**. Two blocking measurement defects were found that must be fixed before that read, not after. Full evidence: `docs/qa/reports/wp48-post-1.4.3-cohort-read-2026-07-20.md`.
+
+## Read (done)
+
+- [x] Confirm post-release traffic exists — **zero** iOS events in the 9h since 1.4.3 went live; last event of any kind predates the release by ~5.5h.
+- [x] Confirm Stories 10-12 events fire on 1.4.3 — **partially**: pre-selection telemetry confirmed on the one pre-release gate session; `resume_file_selected` / `resume_upload_succeeded` / `optimization_completed` / `export_success` remain unconfirmed (that session never selected a file). Not a failure — not yet observable.
+- [x] Measure the clean arrival rate: 4.7 file-selectors/week → 20 uploaders ≈ 2026-08-18.
+- [x] Reconcile against Portfolio HQ — agrees (read is calendar-blocked, not broken).
+
+## Blocking fixes before the 2026-08-18 read
+
+- [ ] **S2-A.** `resume_upload_succeeded` is emitted after the sign-in guard (`TailorViewModel.swift:146` vs `:172`), so it is unreachable for guests and cannot measure S1. Redesignate `resume_file_selected` as the canonical upload denominator and update the Story 10 contract + canonical HogQL. (Docs/query change, no app risk — preferred over moving the call site.)
+- [ ] **S2-B.** `is_internal_tester` reported `false` on a pre-release 1.4.3 Debug/TestFlight build (person `c7494f9d`). Fix the classifier so gate runs cannot enter the clean cohort.
+- [ ] Re-baseline: the 12.5% figure came from the legacy `resume_uploaded` event that 1.4.3 no longer emits. Like-for-like baseline on `resume_file_selected` is **10.0% (1/10)**. Win threshold stays ≥6 of 20.
+
+## S2 instrumentation for 1.4.4 (after the blocking items)
+
+- [ ] `score_screen_signin_tapped` — absent, build it.
+- [ ] File type + size bucket on `resume_file_picker_opened` / `_cancelled` (outcome events already ship; reuse the `fileSizeBucket` helper at `TailorViewModel.swift:93`).
+- [ ] `job_source` (url vs paste) on `free_ats_completed` and `optimization_started`.
+
+## Hand back to Portfolio HQ
+
+- [ ] HQ's next action still says "re-run on `marketing_version=1.4.1` on 2026-07-25" — stale on both build and date. Retarget to 1.4.3 / 2026-08-18.
+
+---
+
 # Story 13: Release-candidate journey audit (Release C, 2026-07-18)
 
 Decision: release certification requires direct physical preview/export/relaunch/RTL/file-picker/second-job evidence; code and simulator evidence cannot substitute for those taps, and monetization remains deferred until both the journey and clean-cohort gate pass.
