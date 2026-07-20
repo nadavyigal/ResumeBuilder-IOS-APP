@@ -13,8 +13,7 @@ import UIKit
 
 enum LinkedInShareComposer {
 
-    static let appStoreURL = "https://apps.apple.com/app/resumely/id000000000"
-    // Replace id000000000 with real App Store ID when live.
+    static let appStoreURL = "https://apps.apple.com/app/id6776752349"
 
     static func makeActivityController(
         atsScoreBefore: Int,

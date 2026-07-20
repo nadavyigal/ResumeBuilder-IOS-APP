@@ -26,7 +26,7 @@ struct AmbassadorSuccessView: View {
     var body: some View {
         // TODO: Implement
         VStack(spacing: 24) {
-            Text("Congrats! 🎉 One step closer to the job.")
+            Text("Congrats — keep the momentum. 🎉")
                 .font(.title2).bold()
 
             Button("Share on LinkedIn") {

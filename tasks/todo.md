@@ -5,7 +5,7 @@ Decision: execute the 2026-07-20 UI/copy audit plan story by story. Grounding: P
 ## Stories
 
 - [x] Story 1 — Replace user-facing ATS terminology with Match language (Resumely Match Score, Match, Match estimate, Match insights, Improve match, ATS-friendly, simple-to-parse). ~40 strings across 24 files + catalog migration with Hebrew parity. Red-first CopyClaimsTests added (banned-fragment guard). Focused 2/2 green; Home simulator smoke shows Upload · Add job · Match.
-- [ ] Story 2 — Export/share + marketing screenshot claims, branding, URLs.
+- [x] Story 2 — Share strings rebranded (Resumely Match Score line, tailored-export fallback), share/App Store URLs now point at the real listing (id6776752349), marketing screenshot slots rewritten per rewrite v2 §13, Ambassador banner/success softened. Focused 4/4 green; marketing slot 1 smoke verified.
 - [ ] Story 3 — Create account opens signup, Sign in opens signin, Privacy/Terms links.
 - [ ] Story 4 — Simplify locked Optimized/Design/Expert states (stable tab bar).
 - [ ] Story 5 — Hebrew parity for the 41 missing post-FTUX keys + language-control accessibility.

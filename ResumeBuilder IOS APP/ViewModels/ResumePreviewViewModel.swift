@@ -18,7 +18,7 @@ final class ResumePreviewViewModel {
 
     private let exportService: any ResumeExportServiceProtocol
 
-    static let shareAppURL = "https://new-resume-builder-ai.vercel.app"
+    static let shareAppURL = "https://apps.apple.com/app/id6776752349"
 
     init(
         optimizationId: String? = nil,
@@ -33,11 +33,11 @@ final class ResumePreviewViewModel {
     /// Plain-text blurb for `ShareLink` message and copy button.
     var shareScoreLine: String? {
         guard let s = atsScorePercent else { return nil }
-        return String(format: NSLocalizedString("My resume scored %lld%% on ATS — try ResumeBuilder AI: %@", comment: ""), s, Self.shareAppURL)
+        return String(format: NSLocalizedString("My Resumely Match Score was %lld%% for this job — try Resumely: %@", comment: ""), s, Self.shareAppURL)
     }
 
     var shareScoreMessage: String {
-        shareScoreLine ?? String(format: NSLocalizedString("Resume export — try ResumeBuilder AI: %@", comment: ""), Self.shareAppURL)
+        shareScoreLine ?? String(format: NSLocalizedString("I exported a tailored resume with Resumely: %@", comment: ""), Self.shareAppURL)
     }
 
     func downloadPDF(token: String?) async {

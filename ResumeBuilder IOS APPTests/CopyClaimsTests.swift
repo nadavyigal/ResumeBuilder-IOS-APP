@@ -70,4 +70,40 @@ final class CopyClaimsTests: XCTestCase {
                        "Match Deep Report")
         XCTAssertTrue(ExpertWorkflowType.fullResumeRewrite.cardDescription.contains("ATS-friendly"))
     }
+
+    // MARK: - Share copy (Story 2)
+
+    func testShareCopyUsesResumelyBrandingAndRealURLs() async {
+        let scored = ResumePreviewViewModel(optimizationId: nil, atsScorePercent: 72)
+        let line = scored.shareScoreLine ?? ""
+        assertClean(line, context: "shareScoreLine")
+        XCTAssertFalse(line.contains("on ATS"), "share line still claims an ATS score: \(line)")
+        XCTAssertFalse(line.contains("ResumeBuilder AI"), "share line uses stale branding: \(line)")
+        XCTAssertTrue(line.contains("Resumely Match Score"), "share line should name the branded score: \(line)")
+
+        let fallback = ResumePreviewViewModel(optimizationId: nil, atsScorePercent: nil).shareScoreMessage
+        XCTAssertFalse(fallback.contains("ResumeBuilder AI"), "share fallback uses stale branding: \(fallback)")
+        XCTAssertTrue(fallback.contains("Resumely"), "share fallback should carry the brand: \(fallback)")
+
+        XCTAssertFalse(ResumePreviewViewModel.shareAppURL.contains("vercel.app"),
+                       "share URL still points at the internal deploy domain")
+        XCTAssertFalse(LinkedInShareComposer.appStoreURL.contains("id000000000"),
+                       "App Store URL still carries the placeholder id")
+    }
+
+    // MARK: - Marketing screenshot slots (Story 2)
+
+    func testMarketingSlotsUseMatchLanguage() async {
+        let extraBanned = ["ATS checker", "ATS resume score", "ATS safe", "any job"]
+        for slot in MarketingScreenshotSlot.allCases {
+            for text in [slot.headline, slot.subline, slot.caption] {
+                assertClean(text, context: "marketing slot \(slot)")
+                for fragment in extraBanned {
+                    XCTAssertFalse(text.contains(fragment),
+                                   "marketing slot \(slot) contains banned fragment \"\(fragment)\": \(text)")
+                }
+            }
+        }
+        XCTAssertEqual(MarketingScreenshotSlot.tailor.headline, "Your resume, tailored for this job")
+    }
 }

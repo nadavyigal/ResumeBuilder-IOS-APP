@@ -651,16 +651,6 @@
         }
       }
     },
-    "ATS keywords" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מילות מפתח ATS"
-          }
-        }
-      }
-    },
     "ATS match" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -682,13 +672,12 @@
         }
       }
     },
-    "ATS safe" : {
-      "extractionState" : "stale",
+    "ATS-friendly" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "עמיד ב-ATS"
+            "value" : "ידידותי ל-ATS"
           }
         }
       }
@@ -1945,12 +1934,12 @@
     "Confirm & include" : {
       "comment" : "Explicitly include factual recommendation"
     },
-    "Congrats! 🎉 One step closer to the job." : {
+    "Congrats — keep the momentum. 🎉" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "כל הכבוד! 🎉 עוד צעד בדרך למשרה."
+            "value" : "כל הכבוד — שמרו על המומנטום. 🎉"
           }
         }
       }
@@ -2454,12 +2443,12 @@
         }
       }
     },
-    "Did you land the interview? 🎯" : {
+    "Did this application move forward? 🎯" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קיבלתם זימון לראיון? 🎯"
+            "value" : "המועמדות הזו התקדמה? 🎯"
           }
         }
       }
@@ -3190,6 +3179,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בית"
+          }
+        }
+      }
+    },
+    "I exported a tailored resume with Resumely: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצאתי קורות חיים מותאמים עם Resumely: %@"
           }
         }
       }
@@ -3943,6 +3942,16 @@
         }
       }
     },
+    "Match keywords" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מילות מפתח להתאמה"
+          }
+        }
+      }
+    },
     "Matching your experience to this role." : {
       "localizations" : {
         "he" : {
@@ -4217,28 +4226,22 @@
         }
       }
     },
+    "My Resumely Match Score was %lld%% for this job — try Resumely: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה שלי ב-Resumely היה %1$lld%% למשרה הזו — נסו את Resumely: %2$@"
+          }
+        }
+      }
+    },
     "My resume" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלי"
-          }
-        }
-      }
-    },
-    "My resume scored %lld%% on ATS — try ResumeBuilder AI: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "My resume scored %1$lld%% on ATS — try ResumeBuilder AI: %2$@"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים שלי קיבלו %1$lld%% ב-ATS — נסו את ResumeBuilder AI: %2$@"
           }
         }
       }
@@ -5747,16 +5750,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אבחון קורות חיים"
-          }
-        }
-      }
-    },
-    "Resume export — try ResumeBuilder AI: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ייצוא קורות חיים — נסו את ResumeBuilder AI: %@"
           }
         }
       }
