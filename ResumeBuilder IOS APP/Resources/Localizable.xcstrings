@@ -451,16 +451,6 @@
         }
       }
     },
-    "/100" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "/100"
-          }
-        }
-      }
-    },
     "100 credits" : {
       "localizations" : {
         "he" : {
@@ -471,12 +461,12 @@
         }
       }
     },
-    "12 ATS-friendly templates" : {
+    "12 ATS-friendly templates. Swap layouts, colors, and fonts — every one stays simple to parse." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "12 תבניות ידידותיות ל-ATS"
+            "value" : "12 תבניות ידידותיות ל-ATS. החליפו פריסות, צבעים וגופנים — כל אחת נשארת פשוטה לפענוח."
           }
         }
       }
@@ -1477,16 +1467,6 @@
         }
       }
     },
-    "Biggest win: add missing keywords" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השיפור המשמעותי ביותר: הוספת מילות מפתח חסרות"
-          }
-        }
-      }
-    },
     "Blocked" : {
       "comment" : "Unsafe recommendation"
     },
@@ -2199,16 +2179,6 @@
         }
       }
     },
-    "Cover letters & submit packages" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מכתבים מקדימים וחבילות הגשה"
-          }
-        }
-      }
-    },
     "Create Account" : {
       "localizations" : {
         "he" : {
@@ -2885,16 +2855,6 @@
         }
       }
     },
-    "Format" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פורמט"
-          }
-        }
-      }
-    },
     "Format & Structure" : {
       "localizations" : {
         "he" : {
@@ -3199,16 +3159,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תמונה בלבד · ללא שכבת טקסט"
-          }
-        }
-      }
-    },
-    "Impact" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השפעה"
           }
         }
       }
@@ -7386,16 +7336,6 @@
         }
       }
     },
-    "Swap layouts, colors, and fonts. Every template stays simple to parse." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "החליפו פריסות, צבעים וגופנים. כל תבנית נשארת פשוטה לפענוח."
-          }
-        }
-      }
-    },
     "Sync across your iPhone & iPad" : {
       "localizations" : {
         "he" : {
@@ -7952,16 +7892,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ייצואי PDF ללא הגבלה, בכל תבנית"
-          }
-        }
-      }
-    },
-    "Unlock after Optimize" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ייפתח לאחר אופטימיזציה"
           }
         }
       }
@@ -8652,16 +8582,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלך נשארים פרטיים. אנחנו לא מוכרים או משתפים את הנתונים שלך."
-          }
-        }
-      }
-    },
-    "Your résumé, matched & rewritten" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים שלך, מותאמים ומשוכתבים"
           }
         }
       }

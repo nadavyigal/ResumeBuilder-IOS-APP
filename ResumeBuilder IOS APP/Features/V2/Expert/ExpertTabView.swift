@@ -64,7 +64,6 @@ struct ExpertTabView: View {
         LockedTabTeaser(
             title: "Expert",
             headline: "The full submit package, done for you.",
-            previewCaption: "Cover letters & submit packages",
             subtitle: "A tailored cover letter, likely recruiter questions, and an export-ready package for every application.",
             checklist: [
                 .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
@@ -75,9 +74,7 @@ struct ExpertTabView: View {
             recoveryState: appState.optimizationRecoveryState,
             onRetryRecovery: retryRecovery,
             onCTA: { onSwitchTab(.tailor) }
-        ) {
-            LockedExpertPreview()
-        }
+        )
     }
 
     private func retryRecovery() {
