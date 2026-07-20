@@ -835,3 +835,26 @@
 **Decisions Made:** Enforce zero missing Hebrew entries rather than allow per-screen fallback; keep compact language codes visually fixed at accessible 44-point controls while exposing full localized names; use semantic text styles and an accessibility-size progress layout; remove tab matched geometry and the upload icon pulse after Hebrew QA proved both could leave detached gradient layers under RTL/small-screen compositing; keep generated preview/PDF RTL gated to Story 13 physical-device QA.
 **Validation:** Red catalog gate: 99 missing. Green catalog gate: 0 missing and placeholder parity clean. Compiled Hebrew test passed. Final-tree full suite: 199 passed, 1 intentional skip, 0 failures on dedicated iPhone 17 / iOS 26.5. Final Debug and unsigned generic-iOS Release builds passed. Final Hebrew iPhone 17 + SE captures are clean; diff/privacy/version checks passed.
 **Next Recommended Action:** Publish/review Story 11, then start Story 12 from merged `main`.
+
+## 2026-07-20 — WP-50: measurement denominator redesignation (S2-A)
+
+Closed WP-48 Defects A and B. Docs/measurement-definition only; no Swift changed, so the
+full iOS suite was not run (nothing compilable was touched).
+
+- Verified the defect against current source before editing: the `guard appState.session?.accessToken != nil`
+  at `TailorViewModel.swift:146` does precede the `resumeUploadSucceeded` track call at `:172`, so
+  `resume_upload_succeeded` is unreachable for guests by construction.
+- Amended `docs/qa/reports/wp46-story10-activation-funnel-2026-07-18.md`: added a denominator note,
+  relabelled `uploaded_people` → `uploaded_people_post_auth` (diagnostic, not a funnel step), added
+  `optimization_started_from_selected` measured off the pre-auth `resume_file_selected` denominator.
+- Restated the win rule with the baseline recomputed on that same definition: **10.0% (1/10)**,
+  superseding the 12.5% figure, which was computed on the legacy `resume_uploaded` event whose call
+  site Story 10 removed and which 1.4.3 no longer emits. Both sides now share one definition, so a
+  measured lift cannot be pure denominator substitution.
+- Baseline numbers taken from the WP-48 read already in-repo, not a fresh query. They match the
+  independent figure already recorded in `tasks/progress.md` ("Last Validation"), so the two agree.
+
+Cohort deliberately NOT read — not mature until ~2026-08-18 (0 of 20 clean uploaders as of 2026-07-20).
+
+Not done this session: S2 instrumentation implementation, `is_internal_tester` fix (S2-B),
+PR triage (#100, #96, #86), Hebrew/RTL PDF, Story 8 Home→Fit tap-through.

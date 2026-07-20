@@ -28,6 +28,20 @@ The local-only WP-45 S0 commit `d53d091` was reconciled, not replayed. Its `anal
 
 Set `{start}` and `{end}` to the release cohort window in UTC. This query excludes an entire person when any in-window iOS event is marked internal, then counts ordered person-level milestones. It reads only event names, timestamps, IDs used for joining, and the tester flag.
 
+> **Denominator note (amended 2026-07-20, WP-50).** The activation denominator is
+> `resume_file_selected`, not `resume_upload_succeeded`.
+>
+> `resume_upload_succeeded` is emitted at `Features/Tailor/TailorViewModel.swift:172`, *after* the
+> sign-in guard at `:146` (`guard appState.session?.accessToken != nil`). It is therefore
+> unreachable for guests by construction: the step can never exceed `sign_in_completed`, and any
+> rate computed against it silently excludes every guest. Using it as the denominator was WP-48
+> Defect B. Its predecessor `resume_uploaded` — the event the original 12.5% baseline was computed
+> on — had its call site removed by the Story 10 commit (`31b73b6` / `8277cba`) that shipped in
+> 1.4.3, so that baseline is not reproducible on the current build.
+>
+> `resume_file_selected` fires pre-auth and is the earliest point where the user has committed a
+> real résumé, which is what the funnel is trying to measure.
+
 ```sql
 WITH scoped AS (
     SELECT
@@ -73,6 +87,8 @@ paths AS (
     SELECT
         person_id,
         minIf(timestamp, event = 'resume_file_selected') AS selected_at,
+        -- Post-auth diagnostic only. Never use as a funnel denominator: see the
+        -- denominator note above (WP-50 / WP-48 Defect B).
         minIf(timestamp, event = 'resume_upload_succeeded') AS uploaded_at,
         minIf(timestamp, event IN ('free_ats_completed', 'analysis_cta_tapped')) AS intent_at,
         minIf(timestamp, event = 'optimization_started') AS optimization_started_at,
@@ -86,8 +102,12 @@ paths AS (
     GROUP BY person_id
 )
 SELECT
+    -- Canonical denominator. Pre-auth, so it includes guests.
     countIf(selected_at IS NOT NULL) AS selected_people,
-    countIf(uploaded_at >= selected_at) AS uploaded_people,
+    -- Guest-inclusive activation numerator, measured off the same denominator.
+    countIf(optimization_started_at >= selected_at) AS optimization_started_from_selected,
+    -- Diagnostic: post-auth, structurally <= sign_in_completed. Not a funnel step.
+    countIf(uploaded_at >= selected_at) AS uploaded_people_post_auth,
     countIf(intent_at >= selected_at) AS intent_people,
     countIf(optimization_started_at >= intent_at) AS optimization_started_people,
     countIf(apply_started_at >= optimization_started_at) AS apply_started_people,
@@ -104,4 +124,25 @@ FROM paths
 - Primary activation rate: clean people with `optimized_preview_rendered` divided by clean people with `optimization_completed`.
 - Release target: at least 90% once the cohort is meaningful.
 - Do not interpret lift before at least 20 clean intent users or 14 days after release, whichever is later.
+
+### Activation-cliff win rule (redesignated 2026-07-20, WP-50)
+
+Both sides of the comparison are computed on the **same** definition —
+`optimization_started` over `resume_file_selected` people — so the rule is reproducible on 1.4.3.
+
+| | Definition | Value |
+|---|---|---|
+| Baseline (pre-1.4.3, same clean 90-day window) | `optimization_started` / `resume_file_selected` | **10.0%** (1 of 10) |
+| Superseded baseline — do not use | `optimization_started` / `resume_uploaded` (legacy) | 11.8% (2 of 17), quoted as "2/16, 12.5%" |
+
+**Win rule:** post-1.4.3 `optimization_started_from_selected / selected_people` exceeds 10.0%, on at
+least 20 clean file-selectors.
+
+The baseline is deliberately restated on the new denominator. Comparing an auth-gated numerator
+against a guest-inclusive baseline (or the reverse) would declare a win that is pure denominator
+substitution rather than a real behavior change.
+
+**Sample is not yet mature.** Per WP-48, 0 of the required 20 clean uploaders as of 2026-07-20, at a
+measured 4.7 clean file-selectors/week; projected maturity **2026-08-18**. Do not read the cohort
+before then.
 - Keep monetization decisions blocked until the physical journey passes and a clean cohort satisfies the sample gate.
