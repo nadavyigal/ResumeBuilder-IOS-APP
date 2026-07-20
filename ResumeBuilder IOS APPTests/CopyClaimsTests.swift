@@ -107,3 +107,32 @@ final class CopyClaimsTests: XCTestCase {
         XCTAssertEqual(MarketingScreenshotSlot.tailor.headline, "Your resume, tailored for this job")
     }
 }
+
+/// Guards the auth entry points (Story 3): "Create free account" must open the
+/// sheet in sign-up mode, "Sign in" in sign-in mode, and the sheet must link
+/// the live Privacy Policy and Terms pages.
+@MainActor
+final class AuthEntryTests: XCTestCase {
+
+    func testOnboardingModeFollowsEntryPoint() async {
+        let appState = AppState()
+        XCTAssertTrue(OnboardingViewModel(appState: appState, startInSignUp: true).isSignUp,
+                      "Create account entry should start in sign-up mode")
+        XCTAssertFalse(OnboardingViewModel(appState: appState, startInSignUp: false).isSignUp,
+                       "Sign in entry should start in sign-in mode")
+        XCTAssertFalse(OnboardingViewModel(appState: appState).isSignUp,
+                       "Default entry stays sign-in for existing flows")
+    }
+
+    func testLegalLinksPointAtTheProductDomain() async {
+        let apiHost = BackendConfig.apiBaseURL.host()
+        let privacyEN = LegalLinks.privacyURL(language: .english)
+        let termsEN = LegalLinks.termsURL(language: .english)
+        XCTAssertEqual(privacyEN.host(), apiHost)
+        XCTAssertEqual(termsEN.host(), apiHost)
+        XCTAssertTrue(privacyEN.path().hasSuffix("/privacy"))
+        XCTAssertTrue(termsEN.path().hasSuffix("/terms"))
+        XCTAssertTrue(LegalLinks.privacyURL(language: .hebrew).path().hasPrefix("/he/"),
+                      "Hebrew UI should open the Hebrew legal pages")
+    }
+}

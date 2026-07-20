@@ -5300,6 +5300,16 @@
         }
       }
     },
+    "Privacy Policy" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מדיניות פרטיות"
+          }
+        }
+      }
+    },
     "Product is not available." : {
       "localizations" : {
         "he" : {
@@ -7524,6 +7534,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תבניות"
+          }
+        }
+      }
+    },
+    "Terms of Use" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תנאי שימוש"
           }
         }
       }

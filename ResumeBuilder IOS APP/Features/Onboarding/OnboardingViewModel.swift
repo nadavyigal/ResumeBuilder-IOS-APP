@@ -13,8 +13,9 @@ final class OnboardingViewModel {
 
     private let appState: AppState
 
-    init(appState: AppState) {
+    init(appState: AppState, startInSignUp: Bool = false) {
         self.appState = appState
+        self.isSignUp = startInSignUp
     }
 
     func signInWithEmail() async {
