@@ -578,3 +578,13 @@
 **Category:** SwiftUI
 **Rule:** Do not construct an `@Observable` screen model inline inside a navigation destination; give the destination a stable `@State` owner for the model.
 **Why:** A parent refresh replaced `OptimizationReviewViewModel` after its GET completed, discarding the loaded review and leaving the physical app on a blank Optimization Review screen.
+
+### 2026-07-20
+**Category:** Analytics / measurement contracts
+**Rule:** When a release renames or removes an analytics event, re-derive the baseline on the successor event before comparing against it. Check where the successor is emitted relative to any auth or feature guard — an event behind a sign-in guard measures a strictly smaller population than a pre-auth one.
+**Why:** The activation-cliff baseline (12.5%) was computed on the legacy `resume_uploaded`, whose call site 1.4.3 removed. Its designated successor `resume_upload_succeeded` fires after the sign-in guard (`TailorViewModel.swift:146` vs `:172`), so it is unreachable for guests — 1 of 10 clean file-selectors ever emitted it. Reading the post-1.4.3 cohort against the old baseline would have shown a large "win" that was pure denominator substitution, on the exact metric meant to judge a guest-conversion fix. The guest-reachable equivalent is `resume_file_selected` (10.0%, 1/10).
+
+### 2026-07-20
+**Category:** Analytics / cohort hygiene
+**Rule:** Verify `is_internal_tester` actually resolves true on Debug and TestFlight builds; do not assume the classifier works because the rule exists in the contract.
+**Why:** The pre-release 1.4.3 physical-gate session (person `c7494f9d`) reported `is_internal_tester = false`. That session was a 10-open / 0-select picker loop, so miscounting it would not merely add noise — it would drag the clean picker→select rate toward zero on a ~20-person sample.
