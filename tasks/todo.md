@@ -11,9 +11,9 @@ Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-releas
 
 ## Blocking fixes before the 2026-08-18 read
 
-- [ ] **S2-A.** `resume_upload_succeeded` is emitted after the sign-in guard (`TailorViewModel.swift:146` vs `:172`), so it is unreachable for guests and cannot measure S1. Redesignate `resume_file_selected` as the canonical upload denominator and update the Story 10 contract + canonical HogQL. (Docs/query change, no app risk — preferred over moving the call site.)
+- [x] **S2-A.** `resume_upload_succeeded` is emitted after the sign-in guard (`TailorViewModel.swift:146` vs `:172`), so it is unreachable for guests and cannot measure S1. Redesignate `resume_file_selected` as the canonical upload denominator and update the Story 10 contract + canonical HogQL. (Docs/query change, no app risk — preferred over moving the call site.)
 - [ ] **S2-B.** `is_internal_tester` reported `false` on a pre-release 1.4.3 Debug/TestFlight build (person `c7494f9d`). Fix the classifier so gate runs cannot enter the clean cohort.
-- [ ] Re-baseline: the 12.5% figure came from the legacy `resume_uploaded` event that 1.4.3 no longer emits. Like-for-like baseline on `resume_file_selected` is **10.0% (1/10)**. Win threshold stays ≥6 of 20.
+- [x] Re-baseline: the 12.5% figure came from the legacy `resume_uploaded` event that 1.4.3 no longer emits. Like-for-like baseline on `resume_file_selected` is **10.0% (1/10)**. Win threshold stays ≥6 of 20.
 
 ## S2 instrumentation for 1.4.4 (after the blocking items)
 
