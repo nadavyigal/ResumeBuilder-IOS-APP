@@ -77,10 +77,10 @@ struct OptimizedResumeView: View {
                         customization: designVM?.customization,
                         isActive: isActive,
                         renderedHTML: $renderedPreviewHTML,
-                        onVisibleRender: {
+                        onVisibleRender: { displayedHTML in
                             if let optimizationId = previewActivationPolicy.consumeVisibleRender(
                                 optimizationId: viewModel.optimizationIdentifier,
-                                hasVisibleAppliedChanges: viewModel.hasVisibleAppliedChanges,
+                                renderedHTML: displayedHTML,
                                 isActive: isActive
                             ) {
                                 AnalyticsService.shared.track(

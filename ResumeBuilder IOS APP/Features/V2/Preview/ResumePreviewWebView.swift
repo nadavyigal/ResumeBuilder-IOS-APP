@@ -16,8 +16,9 @@ struct ResumePreviewWebView: View {
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
     var renderedHTML: Binding<String?> = .constant(nil)
-    /// Fires only after WKWebView confirms the HTML navigation finished.
-    var onVisibleRender: @MainActor () -> Void = {}
+    /// Fires only after WKWebView confirms the HTML navigation finished, carrying the
+    /// markup that was actually displayed so the caller can judge what the user saw.
+    var onVisibleRender: @MainActor (String) -> Void = { _ in }
 
     @State private var html: String?
     @State private var isLoading = true
@@ -54,7 +55,7 @@ struct ResumePreviewWebView: View {
                 WebKitHTMLView(
                     html: html,
                     baseURL: BackendConfig.apiBaseURL,
-                    onLoadSuccess: onVisibleRender
+                    onLoadSuccess: { onVisibleRender(html) }
                 ) { message in
                     previewLogger.error("Preview WebKit load failed for optimization \(optimizationId, privacy: .public): \(message, privacy: .public)")
                     errorMessage = NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
@@ -340,21 +341,44 @@ struct PreviewRequestPolicy {
 }
 
 struct PreviewActivationPolicy: Sendable {
+    /// Minimum visible characters that count as "a résumé is on screen". A rendered
+    /// résumé always carries at least a name and one section heading; chrome-only
+    /// markup carries none.
+    private static let minimumVisibleCharacters = 40
+
     private var trackedOptimizationIds: Set<String> = []
 
     mutating func consumeVisibleRender(
         optimizationId: String?,
-        hasVisibleAppliedChanges: Bool,
+        renderedHTML: String?,
         isActive: Bool
     ) -> String? {
         guard isActive,
-              hasVisibleAppliedChanges,
+              Self.hasVisibleRenderedContent(renderedHTML),
               let optimizationId = optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
               !optimizationId.isEmpty,
               trackedOptimizationIds.insert(optimizationId).inserted else {
             return nil
         }
         return optimizationId
+    }
+
+    /// Judges visibility from the markup that actually loaded, not from the separately
+    /// fetched `sections` array. The preview renders from the optimization id alone, so
+    /// `sections` is empty whenever the detail fetch is slow, empty, or failing — while a
+    /// real résumé is on screen. Gating on it suppressed the milestone (WP-51).
+    static func hasVisibleRenderedContent(_ renderedHTML: String?) -> Bool {
+        guard let renderedHTML else { return false }
+        let withoutHeadContent = renderedHTML.replacingOccurrences(
+            of: "<(style|script|head)\\b[^>]*>[\\s\\S]*?</\\1>",
+            with: " ",
+            options: [.regularExpression, .caseInsensitive]
+        )
+        let visibleText = withoutHeadContent
+            .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "&nbsp;", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return visibleText.count >= Self.minimumVisibleCharacters
     }
 }
 

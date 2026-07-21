@@ -6,7 +6,17 @@
 
 ## Measurement contract
 
-The activation milestone is `optimized_preview_rendered`, not backend completion. It fires once per optimization only after `WKWebView` reports a successful visible HTML navigation and the optimized résumé has visible applied changes.
+The activation milestone is `optimized_preview_rendered`, not backend completion. It fires once per optimization only after `WKWebView` reports a successful visible HTML navigation and the markup that loaded carries visible résumé text.
+
+### Amendment 2026-07-21 (WP-51) — emission repaired; all pre-1.4.4 readings of this event are invalid
+
+The milestone was gated on `OptimizedResumeViewModel.hasVisibleAppliedChanges`, which inspects the separately fetched `sections` array. That was never a valid proxy for "the user sees a résumé": the preview's primary path renders from the backend using `optimization_id` alone (`resumeData: nil`), so whenever the optimization-detail fetch was slow, empty, or failing, a real résumé was on screen while `sections` was empty and the milestone was suppressed. Export runs off the same rendered HTML, which is how the 2026-07-21 read returned a non-monotonic funnel — 12 `resume_file_selected` → 7 `optimization_completed` → **1** `optimized_preview_rendered`, with **3** `export_success`.
+
+The gate now judges visibility from the markup actually displayed (`PreviewActivationPolicy.hasVisibleRenderedContent`), which strips `<style>`/`<script>`/`<head>` content and requires ≥40 visible characters, so a chrome-only render still does not count. The once-per-optimization guarantee and the `optimization_id` correlation field are unchanged.
+
+**This gate shipped with the event's original 1.4.1 form (`738da5a`, 2026-07-14); Story 10 (`31b73b6`/`8277cba`) only added `optimization_id` and moved emission onto `didFinish`. The event has therefore never fired reliably, and no activation figure computed on it before 1.4.4 is trustworthy — including any prior preview-based rate.** The WP-50 denominator decision (`resume_file_selected`) is unaffected and remains settled.
+
+Success signal for this repair: `optimized_preview_rendered` person-count ≥ `export_success` person-count over the same window, and the ordered funnel monotonic non-increasing on a fresh 14-day read after 1.4.4 reaches users. The tell for over-firing is its person-count exceeding `optimization_completed`.
 
 The stable correlation fields are:
 

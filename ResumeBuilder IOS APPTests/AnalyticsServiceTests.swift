@@ -309,16 +309,65 @@ final class AnalyticsServiceTests: XCTestCase {
         )
     }
 
-    func testPreviewActivationPolicyWaitsForVisibleAppliedContentAndDeduplicatesByOptimization() {
+    /// WP-51 regression. The preview renders from the optimization id alone, so a real
+    /// résumé is on screen while `sections` — and therefore the old
+    /// `hasVisibleAppliedChanges` gate — is still empty. The milestone must fire anyway,
+    /// otherwise `export_success` outruns it and the activation funnel is non-monotonic.
+    func testPreviewActivationPolicyFiresOnBackendRenderWithoutLoadedSections() {
         var policy = PreviewActivationPolicy()
 
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: nil, hasVisibleAppliedChanges: true, isActive: true))
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: false, isActive: true))
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: false))
-        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true), "opt-1")
-        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", hasVisibleAppliedChanges: true, isActive: true))
-        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-2", hasVisibleAppliedChanges: true, isActive: true), "opt-2")
+        XCTAssertEqual(
+            policy.consumeVisibleRender(
+                optimizationId: "opt-1",
+                renderedHTML: Self.backendRenderedResumeHTML,
+                isActive: true
+            ),
+            "opt-1"
+        )
     }
+
+    /// The gate still has to reject a webview that finished loading chrome with no
+    /// résumé in it — otherwise the fix trades under-firing for over-firing.
+    func testPreviewActivationPolicyIgnoresRendersWithNoVisibleText() {
+        var policy = PreviewActivationPolicy()
+
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", renderedHTML: nil, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", renderedHTML: "", isActive: true))
+        XCTAssertNil(
+            policy.consumeVisibleRender(
+                optimizationId: "opt-1",
+                renderedHTML: Self.styleOnlyHTML,
+                isActive: true
+            )
+        )
+    }
+
+    func testPreviewActivationPolicyGatesInactiveTabAndDeduplicatesByOptimization() {
+        var policy = PreviewActivationPolicy()
+        let html = Self.backendRenderedResumeHTML
+
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: nil, renderedHTML: html, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "   ", renderedHTML: html, isActive: true))
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", renderedHTML: html, isActive: false))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-1", renderedHTML: html, isActive: true), "opt-1")
+        XCTAssertNil(policy.consumeVisibleRender(optimizationId: "opt-1", renderedHTML: html, isActive: true))
+        XCTAssertEqual(policy.consumeVisibleRender(optimizationId: "opt-2", renderedHTML: html, isActive: true), "opt-2")
+    }
+
+    private static let backendRenderedResumeHTML = """
+    <html><head><style>body{font-family:-apple-system;margin:0}</style></head>
+    <body><h1>Dana Cohen</h1><h2>Experience</h2>
+    <p>Led the migration of a payments platform serving 2M monthly users.</p></body></html>
+    """
+
+    /// Long enough to pass a naive length check, but carries no visible résumé text.
+    private static let styleOnlyHTML = """
+    <html><head><style>
+    body{font-family:-apple-system;margin:0;padding:48px;color:#111}
+    h1{font-size:28px;letter-spacing:-0.02em;margin-bottom:4px}
+    section{page-break-inside:avoid;margin-bottom:24px}
+    </style></head><body></body></html>
+    """
 
     func testAnalyticsFlowVersionFollowsFitCheckRoute() {
         XCTAssertEqual(AnalyticsFlowVersion.current(isFitCheckEnabled: true), .fitGateV1)

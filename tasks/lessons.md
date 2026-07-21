@@ -23,6 +23,20 @@
 ## Lessons
 
 **Date:** 2026-07-21
+**Category:** Analytics / measurement contracts
+**Rule:** Gate a "user saw X" milestone on the thing the user actually saw, never on a sibling data fetch that merely usually accompanies it. When a screen has two independent paths to the same visible result, the milestone must be satisfiable by both. Sanity-check any new funnel event against a downstream event that depends on the same surface — if the downstream event can outrun it, the gate is wrong.
+**Why:** `optimized_preview_rendered` was gated on `hasVisibleAppliedChanges`, i.e. the separately fetched `sections` array. But the preview's primary path renders from the backend using `optimization_id` alone (`resumeData: nil`), so a real résumé was on screen with `sections` empty whenever the detail fetch was slow, empty, or failing — a condition this codebase already had two lessons about (2026-05-26, 2026-05-24). The milestone was suppressed while `export_success`, which runs off the same rendered HTML, still fired: 1 preview vs 3 exports over 60 days, an impossible funnel. The gate shipped in the event's original 1.4.1 form and survived a Story 10 rewrite, so the event never worked and every activation figure derived from it was invalid. Fixed in WP-51 by judging visibility from the displayed markup (`PreviewActivationPolicy.hasVisibleRenderedContent`), stripping `<style>`/`<script>`/`<head>` so a chrome-only render still does not count. **Non-monotonicity in a funnel is a measurement bug until proven otherwise — an event that a later step outruns cannot be correct.**
+
+---
+
+**Date:** 2026-07-21
+**Category:** General
+**Rule:** Before working in a path advertised as a git worktree, confirm it with `git worktree list`. A directory under `.claude/worktrees/` may be a stale, gitignored partial copy rather than a registered worktree.
+**Why:** WP-51 opened in `.claude/worktrees/reverent-buck-a366b2`, which looked like a worktree and contained 133 Swift files, but `git worktree list` did not include it and its copy predated the fix target by a month — `grep` for the emission site returned nothing there while the real repo had it. The real checkout was already on the task branch. Grepping a stale copy silently produces "the code doesn't exist" conclusions.
+
+---
+
+**Date:** 2026-07-21
 **Category:** Test
 **Rule:** Before blaming your diff for a blank/partial simulator screenshot, re-capture the same binary on a second simulator. The iPhone 17 sim returned black, then Home-with-invisible-hero, then fully-white frames for a build that rendered correctly on the SE, with the app process alive and no crash report.
 **Why:** The invisible-hero frame mimics a real bug exactly — Home's `pageHeader`/`progressPath` are `.opacity(appeared ? 1 : 0)`, so a genuine failure to set `appeared` looks identical. Waiting longer made it worse, not better, so the existing 10-second-wait lesson is necessary but not sufficient. A second device is the cheap control.
