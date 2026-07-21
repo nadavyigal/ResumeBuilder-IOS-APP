@@ -542,7 +542,7 @@ struct OptimizationReviewView: View {
                             .font(.appCaption)
                             .foregroundStyle(AppColors.textSecondary)
                     }
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "arrow.forward")
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textTertiary)
                     if let after = preview.after {

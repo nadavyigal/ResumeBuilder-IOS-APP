@@ -31,7 +31,7 @@ struct GradientButton: View {
                 }
 
                 if icon != nil && !isLoading {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.system(size: 13, weight: .semibold))
                         .opacity(0.7)
                 }

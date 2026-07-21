@@ -52,7 +52,7 @@ struct LockedTabTeaser: View {
             }
             .padding(.horizontal, Theme.pagePadding)
             .padding(.top, AppSpacing.xl)
-            .padding(.bottom, Theme.tabBarClearance)
+            .padding(.bottom, AppSpacing.xl)
         }
         .scrollBounceBehavior(.basedOnSize)
         .resumelyBackground(glow: AppColors.accentSky)

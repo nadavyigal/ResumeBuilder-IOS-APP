@@ -355,7 +355,7 @@ struct OptimizedResumeView: View {
                             .font(.appHeadline)
                             .foregroundStyle(AppColors.textSecondary)
                     }
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "arrow.forward")
                         .foregroundStyle(AppColors.textTertiary)
                         .imageScale(.small)
                 }
@@ -419,7 +419,7 @@ struct OptimizedResumeView: View {
             if let delta = viewModel.atsScoreDelta {
                 HStack(spacing: AppSpacing.md) {
                     scoreDeltaTile(title: "Before", value: viewModel.atsScoreBefore)
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "arrow.forward")
                         .font(.appSubheadline.weight(.semibold))
                         .foregroundStyle(AppColors.accentSky)
                     scoreDeltaTile(title: "Optimized", value: viewModel.atsScoreAfter)

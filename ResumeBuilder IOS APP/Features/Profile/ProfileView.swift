@@ -319,7 +319,7 @@ struct ProfileView: View {
                         if let score = opt?.matchScorePercent {
                             ATSScorePill(score: score)
                         }
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Theme.textTertiary)
                     }
@@ -474,7 +474,7 @@ struct ProfileView: View {
                 ATSScorePill(score: score)
             }
             if !appSelectionMode {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.textTertiary)
             }
@@ -652,7 +652,7 @@ struct ProfileView: View {
                 .foregroundStyle(isDestructive ? .red : Theme.textPrimary)
             Spacer()
             if !isDestructive {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.textTertiary)
             }

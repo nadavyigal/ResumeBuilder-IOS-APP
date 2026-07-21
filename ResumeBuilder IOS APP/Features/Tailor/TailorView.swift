@@ -279,7 +279,7 @@ struct TailorView: View {
                 }
                 Spacer()
                 if RuntimeFeatures.isResumeLibraryEnabled {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.textTertiary)
                 }

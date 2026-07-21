@@ -74,7 +74,7 @@ struct TargetReachedView: View {
                 )
             }
 
-            Spacer(minLength: Theme.tabBarClearance)
+            Spacer(minLength: AppSpacing.xl)
         }
         .padding(.horizontal, Theme.pagePadding)
         .resumelyBackground(glow: AppColors.accentCyan)
@@ -106,7 +106,7 @@ struct TargetReachedView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(AppColors.textTertiary)
             }

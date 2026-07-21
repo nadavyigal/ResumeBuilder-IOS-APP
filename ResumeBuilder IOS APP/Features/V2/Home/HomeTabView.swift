@@ -839,7 +839,7 @@ struct HomeTabView: View {
                             .foregroundStyle(Theme.textSecondary)
                     }
                     Spacer()
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -874,7 +874,7 @@ struct HomeTabView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.textTertiary)
             }

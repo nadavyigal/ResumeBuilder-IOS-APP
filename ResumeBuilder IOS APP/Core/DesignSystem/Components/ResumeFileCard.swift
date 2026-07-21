@@ -4,7 +4,7 @@ struct ResumeFileCard: View {
     let filename: String
     let metadata: String
     var onAction: (() -> Void)? = nil
-    var actionIcon: String = "chevron.right"
+    var actionIcon: String = "chevron.forward"
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
