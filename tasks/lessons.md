@@ -609,3 +609,13 @@
 **Category:** Analytics / cohort hygiene
 **Rule:** Verify `is_internal_tester` actually resolves true on Debug and TestFlight builds; do not assume the classifier works because the rule exists in the contract.
 **Why:** The pre-release 1.4.3 physical-gate session (person `c7494f9d`) reported `is_internal_tester = false`. That session was a 10-open / 0-select picker loop, so miscounting it would not merely add noise — it would drag the clean picker→select rate toward zero on a ~20-person sample.
+
+### 2026-07-21
+**Category:** Testing / simulator state
+**Rule:** Pin the test locale (`-testLanguage en -testRegion US`) and erase the simulator before treating a localized-assertion failure as a code defect.
+**Why:** The 1.4.4 release gate's first run reported 5 failures in `CopyClaimsTests` and `FitCheckViewModelTests`, all `XCTAssertEqual` mismatches where `NSLocalizedString` returned Hebrew against English assertions. The device locale was `en-IL`, not Hebrew — the app's own `LocalizationManager` selection had persisted in the simulator's UserDefaults from an earlier Hebrew smoke, so the app overrode the device language. Erasing the simulator and pinning the locale gave 205/1 skip/0 failures on identical code. Reverting the "failing" copy assertions would have silently undone Story 1.
+
+### 2026-07-21
+**Category:** Release / App Store Connect
+**Rule:** This machine has **no** App Store Connect upload credential — no API key in `~/.appstoreconnect/private_keys/`, no `notarytool`/`altool` keychain profile, no upload automation in `scripts/`. Any agent-driven release can get as far as a signed, distribution-signed IPA and no further. Plan the founder's manual Xcode Organizer step into every release; do not promise submission.
+**Why:** The 1.4.4 release ran the full automated gate and produced a verified upload-ready IPA (1.4.4/14, Apple Distribution 8VC4R5M425, `get-task-allow` false), then stopped dead at upload. Signing was never the blocker — the distribution certificate is present and valid, and export compliance is pre-declared in `Config/Info.plist`. If unattended releases are wanted, the fix is to create an ASC API key (`.p8`) and store it in `~/.appstoreconnect/private_keys/`; then `xcrun altool --upload-app` becomes scriptable.
