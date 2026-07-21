@@ -168,7 +168,7 @@ Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026
 Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
 Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
 Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
-Last Updated: 2026-07-16
+Last Updated: 2026-07-19
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -201,7 +201,7 @@ Next Recommended Story: After 1.2 (7) is approved and live, verify production Po
 Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
 Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
 Last Validation: 2026-06-28 — `git diff --check` clean; targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. Full `OptimizedResumeViewModelTests` also hit 4 existing locale-sensitive Hebrew simulator assertions, not package regressions.
-Last Updated: 2026-07-16
+Last Updated: 2026-07-19
 Current Branch: main
 Latest Base Commit: pending Submit Package job-link commit
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md
