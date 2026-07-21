@@ -124,6 +124,15 @@ final class AuthEntryTests: XCTestCase {
                        "Default entry stays sign-in for existing flows")
     }
 
+    func testAuthSheetLegalStringsHaveHebrew() async throws {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let hebrew = try XCTUnwrap(Bundle(path: path))
+        for key in ["Terms of Use", "Privacy Policy"] {
+            XCTAssertNotEqual(hebrew.localizedString(forKey: key, value: nil, table: nil), key,
+                              "\(key) falls back to English in Hebrew")
+        }
+    }
+
     func testLegalLinksPointAtTheProductDomain() async {
         let apiHost = BackendConfig.apiBaseURL.host()
         let privacyEN = LegalLinks.privacyURL(language: .english)
@@ -134,5 +143,65 @@ final class AuthEntryTests: XCTestCase {
         XCTAssertTrue(termsEN.path().hasSuffix("/terms"))
         XCTAssertTrue(LegalLinks.privacyURL(language: .hebrew).path().hasPrefix("/he/"),
                       "Hebrew UI should open the Hebrew legal pages")
+    }
+}
+
+/// Guards Hebrew parity for the post-FTUX strings the 2026-07-20 audit found
+/// English-only (Story 5). Every key must resolve to a real Hebrew value in
+/// the compiled he.lproj, not fall back to the English key.
+@MainActor
+final class HebrewParityTests: XCTestCase {
+
+    func testPostFTUXStringsResolveInHebrew() throws {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let hebrew = try XCTUnwrap(Bundle(path: path))
+        let keys = [
+            "%lld of %lld available changes selected",
+            "Applied changes are ready to preview",
+            "Blocked",
+            "Check your connection, then try again.",
+            "Checking your saved optimizations",
+            "Checking your saved optimizations…",
+            "Confirm & include",
+            "Continue from the diagnosis you already ran",
+            "Continue to optimize",
+            "Couldn't restore your latest optimization. Check your connection and try again.",
+            "Couldn’t save this resume. Your preview is still here — try again.",
+            "Dismiss restored optimization message",
+            "From the job post",
+            "From your resume",
+            "Keep this optimized resume in Saved Resumes so you can reuse it later.",
+            "Latest optimization restored",
+            "Optimized resumes you save from Preview will appear here.",
+            "Save to My Resumes",
+            "Saved in My Resumes",
+            "Saved in My Resumes · Tap to preview",
+            "Saving resume…",
+            "Skip fit and optimize",
+            "Suggestion hidden for safety",
+            "The PDF has no selectable text. Please try exporting again.",
+            "The projected score does not improve. No changes are selected by default—review each suggestion and include only changes you trust.",
+            "This may add or change a number or metric. Confirm it is supported by your experience before including it.",
+            "This may add, remove, or change a date. Confirm it is factually accurate before including it.",
+            "This may change a company or employer name. Confirm it is factually accurate before including it.",
+            "This may change a job title or seniority. Confirm it is factually accurate before including it.",
+            "This may change a location. Confirm it is factually accurate before including it.",
+            "This may change an education credential. Confirm it is factually accurate before including it.",
+            "This may change contact information. Confirm it is factually accurate before including it.",
+            "This suggestion contains unfinished template text, so it has been hidden and cannot be applied.",
+            "Try Save Again",
+            "Try restoring again",
+            "We couldn't restore your latest optimization.",
+            "Why this change",
+            "Your Optimized, Design, Expert, and Account tabs are back in sync.",
+            "Your optimized resume is not ready to save yet.",
+            "Your résumé and diagnosis are untouched. You can adjust the target job and try again, or skip fit and optimize anyway.",
+            "“%@”"
+        ]
+        let fallbacks = keys.filter {
+            hebrew.localizedString(forKey: $0, value: nil, table: nil) == $0
+        }
+        XCTAssertTrue(fallbacks.isEmpty,
+                      "\(fallbacks.count) post-FTUX keys fall back to English: \(fallbacks)")
     }
 }

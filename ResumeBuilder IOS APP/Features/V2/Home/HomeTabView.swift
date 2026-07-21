@@ -575,6 +575,7 @@ struct HomeTabView: View {
             Capsule()
                 .strokeBorder(AppColors.glassStroke, lineWidth: 1)
         )
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("Language")
     }
 
@@ -598,6 +599,10 @@ struct HomeTabView: View {
                     isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(Color.clear),
                     in: Capsule()
                 )
+                // Keep the compact pill visual, but give the control the full
+                // 44pt minimum touch target at every Dynamic Type size.
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(language.displayName)

@@ -110,7 +110,7 @@ final class FirstSessionJourneyTests: XCTestCase {
             "Couldn’t reuse your saved résumé. Choose it again to continue.",
             "Create a free account so this never disappears.",
             "Most recruiters scan a resume in about 7 seconds — here's what they'd notice.",
-            "PDF or DOCX, up to 5 MB. We'll read it the way an ATS does.",
+            "PDF or DOCX, up to 5 MB. We'll extract the text so it stays readable for common parsers.",
             "Optimize for another job",
             "Retry now",
             "Scanning like a recruiter would",

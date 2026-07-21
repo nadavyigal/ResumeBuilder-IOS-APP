@@ -282,6 +282,12 @@
             "state" : "new",
             "value" : "%1$lld of %2$lld available changes selected"
           }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld מתוך %2$lld שינויים זמינים נבחרו"
+          }
         }
       }
     },
@@ -1194,7 +1200,16 @@
         }
       }
     },
-    "Applied changes are ready to preview" : {},
+    "Applied changes are ready to preview" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינויים שהוחלו מוכנים לתצוגה מקדימה"
+          }
+        }
+      }
+    },
     "Applied on %@" : {
       "localizations" : {
         "he" : {
@@ -1468,7 +1483,15 @@
       }
     },
     "Blocked" : {
-      "comment" : "Unsafe recommendation"
+      "comment" : "Unsafe recommendation",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חסום"
+          }
+        }
+      }
     },
     "Browse Files" : {
       "localizations" : {
@@ -1582,7 +1605,16 @@
         }
       }
     },
-    "Check your connection, then try again." : {},
+    "Check your connection, then try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
     "Check your email to confirm your account, then sign in." : {
       "localizations" : {
         "he" : {
@@ -1625,8 +1657,26 @@
         }
       }
     },
-    "Checking your saved optimizations" : {},
-    "Checking your saved optimizations…" : {},
+    "Checking your saved optimizations" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודקים את האופטימיזציות השמורות שלך"
+          }
+        }
+      }
+    },
+    "Checking your saved optimizations…" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודקים את האופטימיזציות השמורות שלך…"
+          }
+        }
+      }
+    },
     "Checks left" : {
       "localizations" : {
         "he" : {
@@ -1912,7 +1962,15 @@
       }
     },
     "Confirm & include" : {
-      "comment" : "Explicitly include factual recommendation"
+      "comment" : "Explicitly include factual recommendation",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אשרו וכללו"
+          }
+        }
+      }
     },
     "Congrats — keep the momentum. 🎉" : {
       "localizations" : {
@@ -1985,8 +2043,26 @@
         }
       }
     },
-    "Continue from the diagnosis you already ran" : {},
-    "Continue to optimize" : {},
+    "Continue from the diagnosis you already ran" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשיכו מהאבחון שכבר הרצתם"
+          }
+        }
+      }
+    },
+    "Continue to optimize" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשיכו לאופטימיזציה"
+          }
+        }
+      }
+    },
     "Continue with Apple" : {
       "localizations" : {
         "he" : {
@@ -2127,7 +2203,16 @@
         }
       }
     },
-    "Couldn't restore your latest optimization. Check your connection and try again." : {},
+    "Couldn't restore your latest optimization. Check your connection and try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לשחזר את האופטימיזציה האחרונה שלך. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
     "Couldn’t reuse your saved résumé. Choose it again to continue." : {
       "localizations" : {
         "he" : {
@@ -2138,7 +2223,16 @@
         }
       }
     },
-    "Couldn’t save this resume. Your preview is still here — try again." : {},
+    "Couldn’t save this resume. Your preview is still here — try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לשמור את קורות החיים. התצוגה המקדימה עדיין כאן — נסו שוב."
+          }
+        }
+      }
+    },
     "Cover Letter" : {
       "localizations" : {
         "he" : {
@@ -2443,7 +2537,16 @@
         }
       }
     },
-    "Dismiss restored optimization message" : {},
+    "Dismiss restored optimization message" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סגירת הודעת שחזור האופטימיזציה"
+          }
+        }
+      }
+    },
     "Don't have an account?" : {
       "localizations" : {
         "he" : {
@@ -2916,10 +3019,26 @@
       }
     },
     "From the job post" : {
-      "comment" : "Evidence quote source"
+      "comment" : "Evidence quote source",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתוך מודעת המשרה"
+          }
+        }
+      }
     },
     "From your resume" : {
-      "comment" : "Evidence quote source"
+      "comment" : "Evidence quote source",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתוך קורות החיים שלך"
+          }
+        }
+      }
     },
     "GET STARTED" : {
       "localizations" : {
@@ -3498,7 +3617,16 @@
         }
       }
     },
-    "Keep this optimized resume in Saved Resumes so you can reuse it later." : {},
+    "Keep this optimized resume in Saved Resumes so you can reuse it later." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמרו את קורות החיים המותאמים ב'קורות חיים שמורים' כדי להשתמש בהם שוב."
+          }
+        }
+      }
+    },
     "Key Gaps" : {
       "comment" : "FitVerdictView gaps section header",
       "localizations" : {
@@ -3620,7 +3748,16 @@
         }
       }
     },
-    "Latest optimization restored" : {},
+    "Latest optimization restored" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "האופטימיזציה האחרונה שוחזרה"
+          }
+        }
+      }
+    },
     "Leave a review" : {
       "localizations" : {
         "he" : {
@@ -4684,7 +4821,16 @@
         }
       }
     },
-    "Optimized resumes you save from Preview will appear here." : {},
+    "Optimized resumes you save from Preview will appear here." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות חיים מותאמים שתשמרו מהתצוגה המקדימה יופיעו כאן."
+          }
+        }
+      }
+    },
     "Optimizing your resume" : {
       "localizations" : {
         "he" : {
@@ -6281,7 +6427,16 @@
         }
       }
     },
-    "Save to My Resumes" : {},
+    "Save to My Resumes" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמירה לקורות החיים שלי"
+          }
+        }
+      }
+    },
     "Save to reuse on other jobs without re-uploading." : {
       "localizations" : {
         "he" : {
@@ -6343,8 +6498,26 @@
         }
       }
     },
-    "Saved in My Resumes" : {},
-    "Saved in My Resumes · Tap to preview" : {},
+    "Saved in My Resumes" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נשמר בקורות החיים שלי"
+          }
+        }
+      }
+    },
+    "Saved in My Resumes · Tap to preview" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נשמר בקורות החיים שלי · הקישו לתצוגה מקדימה"
+          }
+        }
+      }
+    },
     "Saved internally in Me. Nothing was sent automatically; you can share the resume, copy the cover letter, or open the job link when you are ready." : {
       "localizations" : {
         "he" : {
@@ -6405,7 +6578,16 @@
         }
       }
     },
-    "Saving resume…" : {},
+    "Saving resume…" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שומרים קורות חיים…"
+          }
+        }
+      }
+    },
     "Scan Resume" : {
       "localizations" : {
         "he" : {
@@ -7038,7 +7220,16 @@
         }
       }
     },
-    "Skip fit and optimize" : {},
+    "Skip fit and optimize" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דלגו על בדיקת ההתאמה ועברו לאופטימיזציה"
+          }
+        }
+      }
+    },
     "Skip — Browse Other Jobs" : {
       "comment" : "FitVerdictView skip CTA",
       "localizations" : {
@@ -7305,7 +7496,16 @@
         }
       }
     },
-    "Suggestion hidden for safety" : {},
+    "Suggestion hidden for safety" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההצעה הוסתרה מטעמי זהירות"
+          }
+        }
+      }
+    },
     "Summary" : {
       "localizations" : {
         "he" : {
@@ -7508,7 +7708,16 @@
         }
       }
     },
-    "The PDF has no selectable text. Please try exporting again." : {},
+    "The PDF has no selectable text. Please try exporting again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ב-PDF אין טקסט שניתן לבחור. נסו לייצא שוב."
+          }
+        }
+      }
+    },
     "The cover letter response was empty. Please try again." : {
       "localizations" : {
         "he" : {
@@ -7539,7 +7748,16 @@
         }
       }
     },
-    "The projected score does not improve. No changes are selected by default—review each suggestion and include only changes you trust." : {},
+    "The projected score does not improve. No changes are selected by default—review each suggestion and include only changes you trust." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הציון הצפוי אינו משתפר. שום שינוי לא נבחר כברירת מחדל — עברו על כל הצעה וכללו רק שינויים שאתם סומכים עליהם."
+          }
+        }
+      }
+    },
     "The server encountered an issue saving this change (%lld). Please try again later." : {
       "localizations" : {
         "he" : {
@@ -7601,25 +7819,81 @@
       }
     },
     "This may add or change a number or metric. Confirm it is supported by your experience before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה יוסיף או ישנה מספר או מדד. ודאו שהניסיון שלכם תומך בכך לפני שתכללו אותו."
+          }
+        }
+      }
     },
     "This may add, remove, or change a date. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה יוסיף, יסיר או ישנה תאריך. ודאו שהוא מדויק עובדתית לפני שתכללו אותו."
+          }
+        }
+      }
     },
     "This may change a company or employer name. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה ישנה שם חברה או מעסיק. ודאו שהוא מדויק עובדתית לפני שתכללו אותו."
+          }
+        }
+      }
     },
     "This may change a job title or seniority. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה ישנה תפקיד או דרגת בכירות. ודאו שהם מדויקים עובדתית לפני שתכללו אותם."
+          }
+        }
+      }
     },
     "This may change a location. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה ישנה מיקום. ודאו שהוא מדויק עובדתית לפני שתכללו אותו."
+          }
+        }
+      }
     },
     "This may change an education credential. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה ישנה פרט השכלה. ודאו שהוא מדויק עובדתית לפני שתכללו אותו."
+          }
+        }
+      }
     },
     "This may change contact information. Confirm it is factually accurate before including it." : {
-      "comment" : "Recommendation factual warning"
+      "comment" : "Recommendation factual warning",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייתכן שזה ישנה פרטי התקשרות. ודאו שהם מדויקים עובדתית לפני שתכללו אותם."
+          }
+        }
+      }
     },
     "This permanently deletes your account, resumes, optimizations, and all personal data. This action cannot be undone." : {
       "localizations" : {
@@ -7652,7 +7926,15 @@
       }
     },
     "This suggestion contains unfinished template text, so it has been hidden and cannot be applied." : {
-      "comment" : "Blocked recommendation placeholder"
+      "comment" : "Blocked recommendation placeholder",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצעה זו מכילה טקסט תבנית לא גמור, ולכן הוסתרה ולא ניתן להחיל אותה."
+          }
+        }
+      }
     },
     "Tip %lld" : {
       "localizations" : {
@@ -7764,7 +8046,16 @@
         }
       }
     },
-    "Try Save Again" : {},
+    "Try Save Again" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסו לשמור שוב"
+          }
+        }
+      }
+    },
     "Try a sample" : {
       "localizations" : {
         "he" : {
@@ -7795,7 +8086,16 @@
         }
       }
     },
-    "Try restoring again" : {},
+    "Try restoring again" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסו לשחזר שוב"
+          }
+        }
+      }
+    },
     "Turning resume and job signals into recruiter-style feedback." : {
       "localizations" : {
         "he" : {
@@ -8262,7 +8562,16 @@
         }
       }
     },
-    "We couldn't restore your latest optimization." : {},
+    "We couldn't restore your latest optimization." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לשחזר את האופטימיזציה האחרונה שלך."
+          }
+        }
+      }
+    },
     "We couldn't save that edit. Please try again." : {
       "localizations" : {
         "he" : {
@@ -8295,7 +8604,16 @@
         }
       }
     },
-    "Why this change" : {},
+    "Why this change" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "למה השינוי הזה"
+          }
+        }
+      }
+    },
     "Why this version is more aligned before export." : {
       "localizations" : {
         "he" : {
@@ -8399,7 +8717,16 @@
         }
       }
     },
-    "Your Optimized, Design, Expert, and Account tabs are back in sync." : {},
+    "Your Optimized, Design, Expert, and Account tabs are back in sync." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הלשוניות אופטימיזציה, עיצוב, מומחה וחשבון מסונכרנות שוב."
+          }
+        }
+      }
+    },
     "Your Resume" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8452,7 +8779,16 @@
         }
       }
     },
-    "Your optimized resume is not ready to save yet." : {},
+    "Your optimized resume is not ready to save yet." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים המותאמים עדיין לא מוכנים לשמירה."
+          }
+        }
+      }
+    },
     "Your optimized resume is ready" : {
       "localizations" : {
         "he" : {
@@ -8544,7 +8880,16 @@
         }
       }
     },
-    "Your résumé and diagnosis are untouched. You can adjust the target job and try again, or skip fit and optimize anyway." : {},
+    "Your résumé and diagnosis are untouched. You can adjust the target job and try again, or skip fit and optimize anyway." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים והאבחון שלך לא השתנו. אפשר לעדכן את משרת היעד ולנסות שוב, או לדלג על בדיקת ההתאמה ולעבור לאופטימיזציה."
+          }
+        }
+      }
+    },
     "Your résumé and job details are still here — nothing's lost. Retry when you're back online." : {
       "localizations" : {
         "he" : {
@@ -8958,7 +9303,16 @@
         }
       }
     },
-    "“%@”" : {},
+    "“%@”" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\""
+          }
+        }
+      }
+    },
     "• %@" : {
       "localizations" : {
         "he" : {
