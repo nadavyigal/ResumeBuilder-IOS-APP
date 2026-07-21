@@ -22,6 +22,13 @@
 
 ## Lessons
 
+**Date:** 2026-07-21
+**Category:** Test
+**Rule:** Before blaming your diff for a blank/partial simulator screenshot, re-capture the same binary on a second simulator. The iPhone 17 sim returned black, then Home-with-invisible-hero, then fully-white frames for a build that rendered correctly on the SE, with the app process alive and no crash report.
+**Why:** The invisible-hero frame mimics a real bug exactly — Home's `pageHeader`/`progressPath` are `.opacity(appeared ? 1 : 0)`, so a genuine failure to set `appeared` looks identical. Waiting longer made it worse, not better, so the existing 10-second-wait lesson is necessary but not sufficient. A second device is the cheap control.
+
+---
+
 **Date:** 2026-07-16
 **Category:** Build
 **Rule:** Do not infer that a long `xcodebuild` has finished from a transient process-list gap; wait for the original terminal session to return an explicit build result, because Xcode can move between child processes while post-compile work is still active.
