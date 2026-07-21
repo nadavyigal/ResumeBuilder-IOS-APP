@@ -59,7 +59,7 @@ struct TargetReachedView: View {
             VStack(spacing: AppSpacing.md) {
                 nextMoveCard(
                     title: "Make it look the part",
-                    subtitle: "Drop it into an ATS-safe template",
+                    subtitle: "Drop it into an ATS-friendly template",
                     systemImage: "paintbrush.fill",
                     tint: AppColors.accentViolet,
                     action: onOpenDesign
@@ -74,7 +74,7 @@ struct TargetReachedView: View {
                 )
             }
 
-            Spacer(minLength: Theme.tabBarClearance)
+            Spacer(minLength: AppSpacing.xl)
         }
         .padding(.horizontal, Theme.pagePadding)
         .resumelyBackground(glow: AppColors.accentCyan)
@@ -106,7 +106,7 @@ struct TargetReachedView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(AppColors.textTertiary)
             }

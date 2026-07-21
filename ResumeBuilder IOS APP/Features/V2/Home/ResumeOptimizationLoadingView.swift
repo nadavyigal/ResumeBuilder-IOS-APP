@@ -46,7 +46,7 @@ struct ResumeOptimizationLoadingView: View {
             case .atsCheck:
                 return [
                     "Extracting your text",
-                    "Checking formatting an ATS can parse",
+                    "Checking formatting parsers can read",
                     "Comparing your keywords to the role",
                     "Finding your strongest lines"
                 ]

@@ -393,7 +393,7 @@ struct ApplicationDetailView: View {
                             .foregroundStyle(AppColors.textTertiary)
                         }
                         Spacer()
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(.appCaption.weight(.bold))
                             .foregroundStyle(AppColors.textTertiary)
                     }

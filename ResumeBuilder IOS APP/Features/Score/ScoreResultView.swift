@@ -8,7 +8,7 @@ struct ScoreResultView: View {
         let score = result.score?.overall ?? 0
 
         VStack(alignment: .leading, spacing: 20) {
-            Text("YOUR FIRST DIAGNOSIS")
+            Text("YOUR FIRST MATCH CHECK")
                 .font(.caption.weight(.black))
                 .kerning(1.1)
                 .foregroundStyle(AppColors.accentSky)
@@ -83,7 +83,7 @@ struct ScoreResultView: View {
                                 .fill(Theme.accent)
                                 .frame(width: 6, height: 6)
                                 .padding(.top, 6)
-                            Text(issue.message ?? issue.text ?? issue.suggestion ?? NSLocalizedString("ATS issue found", comment: ""))
+                            Text(issue.message ?? issue.text ?? issue.suggestion ?? NSLocalizedString("Formatting or keyword issue found", comment: ""))
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.textSecondary)
                         }

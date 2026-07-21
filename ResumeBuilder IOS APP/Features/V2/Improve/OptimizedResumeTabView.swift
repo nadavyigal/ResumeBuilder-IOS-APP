@@ -50,8 +50,7 @@ struct OptimizedResumeTabView: View {
         LockedTabTeaser(
             title: "Optimized",
             headline: "Here's what you'll unlock.",
-            previewCaption: "Your résumé, scored & rewritten",
-            subtitle: "An ATS match score, keyword gaps, and line-by-line fixes — tuned to your target job.",
+            subtitle: "A Resumely Match Score, keyword gaps, and line-by-line fixes — tuned to one target job.",
             checklist: [
                 .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
                 .init(title: "Add a job to match against", isComplete: appState.hasAddedJobThisSession)
@@ -61,9 +60,7 @@ struct OptimizedResumeTabView: View {
             recoveryState: appState.optimizationRecoveryState,
             onRetryRecovery: retryRecovery,
             onCTA: { onSwitchTab(.tailor) }
-        ) {
-            LockedScorePreview()
-        }
+        )
     }
 
     private func retryRecovery() {

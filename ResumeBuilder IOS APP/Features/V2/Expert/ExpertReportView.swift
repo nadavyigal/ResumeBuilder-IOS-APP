@@ -133,7 +133,7 @@ struct ExpertReportView: View {
                     .font(.caption2)
                     .foregroundStyle(AppColors.textTertiary)
             }
-            Image(systemName: "arrow.right")
+            Image(systemName: "arrow.forward")
                 .foregroundStyle(AppColors.accentSky)
             VStack(spacing: 2) {
                 Text(pct(impact.after))

@@ -4,6 +4,7 @@ import AuthenticationServices
 struct OnboardingView: View {
     @Bindable var viewModel: OnboardingViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var localization: LocalizationManager { .shared }
     @FocusState private var focusedField: CredentialField?
 
     private enum CredentialField: Hashable {
@@ -135,6 +136,19 @@ struct OnboardingView: View {
                         }
                         .font(.appCaption)
                     }
+
+                    // Legal
+                    HStack(spacing: AppSpacing.sm) {
+                        Link(destination: LegalLinks.termsURL(language: localization.language)) {
+                            Text("Terms of Use")
+                        }
+                        Text(verbatim: "·")
+                        Link(destination: LegalLinks.privacyURL(language: localization.language)) {
+                            Text("Privacy Policy")
+                        }
+                    }
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
 
                     // Error
                     if let errorMessage = viewModel.errorMessage {

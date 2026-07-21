@@ -1,3 +1,19 @@
+# UI/Copy Improvement Plan — 2026-07-20 (7 stories, branch claude/session-ec92e2)
+
+Decision: execute the 2026-07-20 UI/copy audit plan story by story. Grounding: PROMPTS/ios-ui-copy-followup-audit.md, executive-os/research/2026-07-19-resumely-copy-rewrite-v2.md, .agents/product-marketing.md, DECISIONS.md (Resumely Match Score), GLOBAL-TASTE.md. Analytics event names, API fields, and internal ATS identifiers stay unchanged.
+
+## Stories
+
+- [x] Story 1 — Replace user-facing ATS terminology with Match language (Resumely Match Score, Match, Match estimate, Match insights, Improve match, ATS-friendly, simple-to-parse). ~40 strings across 24 files + catalog migration with Hebrew parity. Red-first CopyClaimsTests added (banned-fragment guard). Focused 2/2 green; Home simulator smoke shows Upload · Add job · Match.
+- [x] Story 2 — Share strings rebranded (Resumely Match Score line, tailored-export fallback), share/App Store URLs now point at the real listing (id6776752349), marketing screenshot slots rewritten per rewrite v2 §13, Ambassador banner/success softened. Focused 4/4 green; marketing slot 1 smoke verified.
+- [x] Story 3 — OnboardingViewModel takes startInSignUp; Me-tab Create free account opens sign-up, both Sign in entries open sign-in; auth sheet links live Terms/Privacy pages (locale-aware, derived from API_BASE_URL, verified 200 on resumelybuilderai.com). AuthEntryTests added; 6/6 focused green.
+- [x] Story 4 — LockedTabTeaser simplified: removed the blurred mock preview with fabricated scores (68/100, fake sub-scores, fake deep-report lines) per GLOBAL-TASTE (no fake confidence scores) and the 2026-06-25 honesty lesson. Locked tabs now show headline, subtitle, real-state unlock checklist, and one CTA; tab bar untouched. Orphaned strings and keys cleaned. Build green. Named limitation: no simulator tap tooling in this session, so locked-tab screenshots deferred to the physical/QA gate.
+- [x] Story 5 — All 41 post-FTUX keys translated (catalog now 900/900 Hebrew, 0 fallbacks). HebrewParityTests added red-first (exact 41 failures observed -> green). Language switcher: full 44pt touch target at every Dynamic Type size, container marked .accessibilityElement(children: .contain) so each language button keeps its own localized VoiceOver name. Placeholder parity verified across all 900 keys; 3 pre-existing plural-suffix mismatches confirmed unchanged from base (out of scope, no crash risk).
+- [x] Story 6 — Tab-bar overlap fixed centrally: MainTabViewV2 reserves the floating bar's height via safeAreaInset for all five tabs, so no individual tab can forget to pad (previously only 2 of 5 did); removed the now-double manual clearance in LockedTabTeaser and TargetReachedView. RTL: 18 hardcoded chevron.right/arrow.right replaced with auto-mirroring .forward variants across 14 files. Contrast computed from tokens against the background: textPrimary 18.96:1, textSecondary 9.98:1, textTertiary 5.33:1, accentSky 7.96:1, accentCyan 12.17:1, gradientStart 4.63:1 - all pass WCAG AA, no change needed. No hardcoded .left/.right padding found. Build green; Hebrew RTL SE smoke confirms mirrored layout and Match progress step.
+- [ ] Story 7 — Full-suite QA on iOS 26.5, Debug + Release builds, EN/HE smokes, banned-claim checks, Taste Review, PR.
+
+---
+
 # WP-48: First post-1.4.3 activation cohort read (2026-07-20)
 
 Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-release). Projected maturity **2026-08-18**. Two blocking measurement defects were found that must be fixed before that read, not after. Full evidence: `docs/qa/reports/wp48-post-1.4.3-cohort-read-2026-07-20.md`.

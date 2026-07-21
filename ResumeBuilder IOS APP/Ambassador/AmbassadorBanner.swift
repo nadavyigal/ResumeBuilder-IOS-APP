@@ -21,7 +21,7 @@ struct AmbassadorBanner: View {
     var body: some View {
         // TODO: Implement
         VStack {
-            Text("Did you land the interview? 🎯")
+            Text("Did this application move forward? 🎯")
             HStack {
                 Button("Yes!") {
                     showSuccessView = true

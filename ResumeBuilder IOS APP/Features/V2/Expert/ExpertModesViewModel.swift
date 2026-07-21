@@ -264,7 +264,7 @@ extension ExpertWorkflowType {
         case .achievementQuantifier:
             return NSLocalizedString("Achievement Quantifier", comment: "")
         case .atsOptimizationReport:
-            return NSLocalizedString("ATS Deep Report", comment: "")
+            return NSLocalizedString("Match Deep Report", comment: "")
         case .professionalSummaryLab:
             return NSLocalizedString("Summary Lab", comment: "")
         case .coverLetterArchitect:
@@ -277,11 +277,11 @@ extension ExpertWorkflowType {
     var cardDescription: String {
         switch self {
         case .fullResumeRewrite:
-            return NSLocalizedString("Role-fit rewrite with ATS-safe structure.", comment: "")
+            return NSLocalizedString("Role-fit rewrite with ATS-friendly structure.", comment: "")
         case .achievementQuantifier:
             return NSLocalizedString("Upgrade bullets with measurable outcomes.", comment: "")
         case .atsOptimizationReport:
-            return NSLocalizedString("Keyword coverage, compliance, formatting tips.", comment: "")
+            return NSLocalizedString("Keyword coverage, parse tips, formatting guidance.", comment: "")
         case .professionalSummaryLab:
             return NSLocalizedString("Five summary angles with recommendations.", comment: "")
         case .coverLetterArchitect:
@@ -311,7 +311,7 @@ extension ExpertWorkflowType {
     var purposeText: String {
         switch self {
         case .fullResumeRewrite:
-            return NSLocalizedString("Rewrites the entire resume to match the job description with ATS-safe structure and role-fit language.", comment: "")
+            return NSLocalizedString("Rewrites the entire resume to match the job description with ATS-friendly structure and role-fit language.", comment: "")
         case .achievementQuantifier:
             return NSLocalizedString("Upgrades experience bullets with measurable outcomes. Add concrete metrics in Expert Input for better rewrites.", comment: "")
         case .atsOptimizationReport:

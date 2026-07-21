@@ -168,7 +168,7 @@ struct OptimizationDesignSheet: View {
                         Text("\(ats)")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(AppColors.gradientStart)
-                        Text("ATS")
+                        Text("Match")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(AppColors.textSecondary)
                     }

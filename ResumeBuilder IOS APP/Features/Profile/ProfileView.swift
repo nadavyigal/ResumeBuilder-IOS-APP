@@ -14,6 +14,7 @@ struct ProfileView: View {
     @Environment(LocalizationManager.self) private var localization
     @State private var showPaywall = false
     @State private var showOnboarding = false
+    @State private var onboardingStartsInSignUp = false
     @State private var appeared = false
     @State private var navigateToLatestResume = false
 
@@ -122,7 +123,7 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
-                    OnboardingView(viewModel: OnboardingViewModel(appState: appState))
+                    OnboardingView(viewModel: OnboardingViewModel(appState: appState, startInSignUp: onboardingStartsInSignUp))
                 }
             }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
@@ -209,6 +210,7 @@ struct ProfileView: View {
             .fixedSize(horizontal: false, vertical: true)
 
             Button {
+                onboardingStartsInSignUp = true
                 showOnboarding = true
             } label: {
                 Text(NSLocalizedString("Create free account", comment: "Guest sign-in primary CTA"))
@@ -221,6 +223,7 @@ struct ProfileView: View {
             .buttonStyle(.plain)
 
             Button {
+                onboardingStartsInSignUp = false
                 showOnboarding = true
             } label: {
                 Text(NSLocalizedString("Already have one? Sign in", comment: "Guest sign-in secondary CTA"))
@@ -250,7 +253,7 @@ struct ProfileView: View {
             )
             statCell(
                 value: latestOptimization.map { "\($0.matchScorePercent)%" } ?? "—",
-                label: NSLocalizedString("ATS score", comment: "Me stats: latest resume's ATS match score percent"),
+                label: NSLocalizedString("Match Score", comment: "Me stats: latest resume's Resumely Match Score percent"),
                 icon: "gauge.medium",
                 color: Theme.accentBlue
             )
@@ -316,7 +319,7 @@ struct ProfileView: View {
                         if let score = opt?.matchScorePercent {
                             ATSScorePill(score: score)
                         }
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Theme.textTertiary)
                     }
@@ -471,7 +474,7 @@ struct ProfileView: View {
                 ATSScorePill(score: score)
             }
             if !appSelectionMode {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.textTertiary)
             }
@@ -546,6 +549,7 @@ struct ProfileView: View {
                     Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
 
                     Button {
+                        onboardingStartsInSignUp = false
                         showOnboarding = true
                     } label: {
                         profileRow(icon: "person.crop.circle.badge.plus", label: "Sign In", color: Theme.accent, isAction: true)
@@ -648,7 +652,7 @@ struct ProfileView: View {
                 .foregroundStyle(isDestructive ? .red : Theme.textPrimary)
             Spacer()
             if !isDestructive {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.textTertiary)
             }

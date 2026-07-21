@@ -19,7 +19,7 @@ struct UploadSheetView: View {
                     .font(.system(size: 24, weight: .black, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
-                Text("PDF or DOCX, up to 5 MB. We'll read it the way an ATS does.")
+                Text("PDF or DOCX, up to 5 MB. We'll extract the text so it stays readable for common parsers.")
                     .font(.subheadline)
                     .foregroundStyle(AppColors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)

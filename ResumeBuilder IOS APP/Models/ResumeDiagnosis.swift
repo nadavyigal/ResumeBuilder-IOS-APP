@@ -403,14 +403,14 @@ struct ConfidenceItem: Identifiable, Codable, Equatable, Sendable {
                 explanation: NSLocalizedString("Stronger bullets connect actions to context and impact.", comment: "")
             ),
             ConfidenceItem(
-                title: NSLocalizedString("Better ATS formatting", comment: ""),
+                title: NSLocalizedString("ATS-friendly formatting", comment: ""),
                 isComplete: true,
                 explanation: NSLocalizedString("Uses parseable sections and direct role language.", comment: "")
             ),
             ConfidenceItem(
                 title: NSLocalizedString("Tailored to target role", comment: ""),
                 isComplete: matchScore >= 55,
-                explanation: NSLocalizedString("More aligned, not guaranteed to pass any ATS.", comment: "")
+                explanation: NSLocalizedString("More aligned with this job — not a guarantee of interviews or ATS outcomes.", comment: "")
             ),
         ]
     }

@@ -43,6 +43,13 @@ struct MainTabViewV2: View {
                     .allowsHitTesting(selectedTab == .me)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // The tab bar floats over the tabs, so every tab's scrollable
+            // content needs the same bottom inset to stay reachable. Reserving
+            // it here keeps the glass bar's look and means an individual tab
+            // cannot forget to pad for it.
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: Theme.tabBarClearance)
+            }
 
             ResumlyTabBar(selection: $selectedTab)
         }

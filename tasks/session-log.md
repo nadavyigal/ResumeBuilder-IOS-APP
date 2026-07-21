@@ -3,6 +3,27 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-07-21 — UI/copy improvement plan (7 stories)
+
+**Branch:** `claude/session-ec92e2` (worktree `.claude/worktrees/reverent-buck-a366b2`)
+
+**Files changed:** ~49 across the branch. Swift: `HomeActivationState`, `HomeTabView`, `HomeView`, `UploadSheetView`, `UploadFailureView`, `ResumeOptimizationLoadingView`, `TailorView`, `ScanResumeView`, `ScoreResultView`, `ProfileView`, `OptimizedResumeView`, `OptimizedResumeTabView`, `OptimizedResumeViewModel`, `ImproveView`, `ImproveViewModel`, `ATSBreakdownView`, `OptimizationDesignSheet`, `TargetReachedView`, `DesignTabView`, `ExpertTabView`, `ExpertModesViewModel`, `ExpertOutputViews`, `FitCheckView`, `FitVerdictView`, `MarketingScreenshotView`, `LinkedInShareComposer`, `AmbassadorBanner`, `AmbassadorSuccessView`, `ResumePreviewViewModel`, `ResumeAnalysis`, `ResumeDiagnosis`, `OnboardingView`, `OnboardingViewModel`, `LegalLinks` (new), `LockedTabTeaser`, `MainTabViewV2`, plus 14 files for RTL icon mirroring. Tests: `CopyClaimsTests` (new), `OptimizedResumeViewModelTests`, `FirstSessionJourneyTests`. Resources: `Localizable.xcstrings`. Memory: `tasks/todo.md`, `tasks/progress.md`, `tasks/session-log.md`.
+
+**Decisions made:**
+- Kept "ATS" only where it is process-descriptive (ATS-friendly) or an explicit disavowal ("not an employer ATS score"), per the 2026-06-20 claims decision. Internal identifiers, analytics events, and API fields were deliberately left alone — `Core/Analytics/` and `Core/API/` have zero diff lines.
+- Removed the locked-tab mock preview outright rather than relabeling it. A blurred fake 68/100 is fake precision regardless of the label, and the taste profile rejects it.
+- Fixed tab-bar clearance centrally in `MainTabViewV2` instead of adding padding to three more views, so a future tab cannot forget it.
+- Updated the one stale test assertion to the new copy rather than reverting the copy; the test encoded old wording, not a behavioral contract.
+
+**Tests run:** full suite 205 tests / 1 intentional skip / 0 failures on iOS 26.5 (iPhone 17, `9E2E82B6…`). Focused red-first states observed before each implementation: CopyClaims 1 failure → 13 failures → green; HebrewParity exactly 41 failures → green. Debug build green; unsigned generic-iOS Release build run.
+
+**Next action:** review and merge the PR. Then WP-48 S2-B (`is_internal_tester` on Debug/TestFlight) for 1.4.4, and the deferred Hebrew/RTL PDF gate.
+
+**NOT done:** no ASC/TestFlight action; no version bump (stays 1.4.3/13); no interactive tap-through of upload → diagnosis → auth → Apply → preview → export → save → relaunch → second-job (no simulator tap tooling this session — deferred to the physical gate); locked-tab screenshots not captured for the same reason.
+
+---
+
+
 ## Entry Format
 
 **Date:** YYYY-MM-DD

@@ -26,31 +26,31 @@ enum MarketingScreenshotSlot: Int, CaseIterable, Identifiable {
 
     var headline: String {
         switch self {
-        case .tailor: return "Your resume, tailored for any job"
+        case .tailor: return "Your resume, tailored for this job"
         case .blockers: return "See exactly what's blocking you"
-        case .aiEdits: return "AI edits that actually fit the role"
-        case .templates: return "ATS-friendly templates that impress recruiters"
+        case .aiEdits: return "Edits that fit the role — in your voice"
+        case .templates: return "ATS-friendly templates, clean export"
         case .expert: return "Expert analysis for every section"
         }
     }
 
     var subline: String {
         switch self {
-        case .tailor: return "Paste a posting. See what's blocking you."
-        case .blockers: return "Scores every section of your resume"
-        case .aiEdits: return "Applied section by section, in one tap"
+        case .tailor: return "Paste one posting. See what's missing."
+        case .blockers: return "Match signals across your resume"
+        case .aiEdits: return "Applied section by section, you approve"
         case .templates: return "Export a polished PDF from your phone"
-        case .expert: return "Targeted rewrites at hiring-manager level"
+        case .expert: return "Targeted rewrites you can stand behind"
         }
     }
 
     var caption: String {
         switch self {
-        case .tailor: return "AI resume tailor and ATS checker for job seekers"
-        case .blockers: return "ATS resume score by section - find the blockers before applying"
-        case .aiEdits: return "AI resume optimization by job description - improve bullets and summary"
-        case .templates: return "Resume design templates - ATS safe and professionally formatted"
-        case .expert: return "Expert resume review with AI rewrite suggestions"
+        case .tailor: return "AI resume tailor and Match check for job seekers"
+        case .blockers: return "Resumely Match Score by section — not an employer ATS"
+        case .aiEdits: return "Targeted resume edits from the job description"
+        case .templates: return "Resume templates built for clean parsing"
+        case .expert: return "Expert review with editable rewrite suggestions"
         }
     }
 }
@@ -246,7 +246,7 @@ private struct AIEditsScreenshotPanel: View {
                     HStack(spacing: 10) {
                         Text("Impact metrics")
                         Text("Mobile UX")
-                        Text("ATS keywords")
+                        Text("Match keywords")
                     }
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(AppColors.accentTeal)
@@ -280,7 +280,7 @@ private struct TemplatesScreenshotPanel: View {
 
             MarketingCard {
                 HStack(spacing: 12) {
-                    ExportChip(title: "ATS safe", tint: AppColors.accentTeal)
+                    ExportChip(title: "ATS-friendly", tint: AppColors.accentTeal)
                     ExportChip(title: "PDF export", tint: AppColors.accentSky)
                     ExportChip(title: "Mobile ready", tint: AppColors.accentViolet)
                 }

@@ -287,7 +287,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.atsScoreBefore, 61)
         XCTAssertEqual(vm.atsScoreAfter, 88)
         XCTAssertEqual(appState.resumePreviewRefreshToken, 1)
-        XCTAssertEqual(vm.atsUpliftMessage, "ATS improvements applied. Review the resume before submitting.")
+        XCTAssertEqual(vm.atsUpliftMessage, "Match improvements applied. Review the resume before submitting.")
     }
 
     func testATSInsightsExplainLowScoreAndExposeActions() {

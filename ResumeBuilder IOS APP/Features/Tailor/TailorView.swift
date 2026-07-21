@@ -279,7 +279,7 @@ struct TailorView: View {
                 }
                 Spacer()
                 if RuntimeFeatures.isResumeLibraryEnabled {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Theme.textTertiary)
                 }
@@ -654,7 +654,7 @@ struct TailorView: View {
                         HStack(spacing: 8) {
                             Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free ATS Check")
+                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free Match Check")
                                 .fontWeight(.bold)
                         }
                     }

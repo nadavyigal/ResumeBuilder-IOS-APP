@@ -178,7 +178,7 @@ struct ATSFourPillarSnapshot: Sendable {
             Row(
                 id: "format_structure",
                 title: NSLocalizedString("Format & Structure", comment: ""),
-                subtitle: NSLocalizedString("Section coverage & ATS-parseable layout", comment: ""),
+                subtitle: NSLocalizedString("Section coverage & simple-to-parse layout", comment: ""),
                 value: format,
                 deltaFromOriginal: d2,
                 iconName: "rectangle.split.3x3.fill"
