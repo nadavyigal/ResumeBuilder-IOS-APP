@@ -3,6 +3,33 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-07-21 — WP-51: repair the activation milestone
+
+**Branch:** `claude/activation-milestone-repair-963fe7` (main checkout, not a worktree — see below)
+
+**Task:** WP-51 — `optimized_preview_rendered` under-fires, producing a non-monotonic activation funnel (12 `resume_file_selected` → 7 `optimization_completed` → **1** `optimized_preview_rendered`, with **3** `export_success`) 11 days before the EXD-015 verdict on 2026-08-01.
+
+**Root cause:** the milestone was gated on `OptimizedResumeViewModel.hasVisibleAppliedChanges`, which inspects the separately fetched `sections` array. That was never a valid proxy for "the user sees a résumé" — the preview's primary path renders from the backend using `optimization_id` alone (`resumeData: nil`, `ResumePreviewWebView.swift:181`), so whenever the optimization-detail fetch was slow, empty, or failing, a real résumé was on screen with `sections` empty and the milestone was suppressed. Export runs off that same rendered HTML, which is exactly how `export_success` outran it.
+
+**Open question resolved:** the gate shipped with the event's original 1.4.1 form (`738da5a`, 2026-07-14) and Story 10 (`31b73b6`/`8277cba`) only added `optimization_id` and moved emission onto `didFinish`. **The event has never fired reliably, so no activation figure computed on it is trustworthy.** The WP-50 denominator decision is unaffected and stays settled.
+
+**Fix:** `PreviewActivationPolicy.consumeVisibleRender` now takes the markup that actually loaded instead of a `hasVisibleAppliedChanges` Bool, and judges visibility via `hasVisibleRenderedContent` — strips `<style>`/`<script>`/`<head>` content, then requires ≥40 visible characters, so a chrome-only render still does not count. `ResumePreviewWebView.onVisibleRender` carries the displayed HTML through the `didFinish` callback. Once-per-optimization dedupe and the `optimization_id` field are unchanged.
+
+**Files changed (3 Swift):** `Features/V2/Preview/ResumePreviewWebView.swift`, `Features/V2/Improve/OptimizedResumeView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`. Docs: `docs/qa/reports/wp46-story10-activation-funnel-2026-07-18.md` (contract amendment), `tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md`.
+
+**Decisions made:**
+- Fixed the emission, not the definition. The packet explicitly ruled the WP-50 contract out of scope and it was not touched.
+- Judged visibility from displayed markup rather than loosening the gate to "any successful navigation". A bare `didFinish` would have fired on chrome-only renders; the `styleOnlyHTML` test exists to hold that line, since the packet names over-firing as the failure mode to avoid.
+- Left the pre-existing `Localizable.xcstrings` diff uncommitted — it was already dirty at session start and is an Xcode re-sort (net +5 lines), unrelated to this packet.
+
+**Tests run:** red state observed first (`Incorrect argument label ... expected 'optimizationId:hasVisibleAppliedChanges:isActive:'`, which also proves the test file reaches the target per the 2026-07-16 lesson). Then focused `AnalyticsServiceTests` 20/20 green, and full suite **207 tests / 1 intentional skip / 0 failures**, `** TEST SUCCEEDED **`, on iPhone 17 iOS 26.5 (`9E2E82B6…`). 207 = the 205 baseline + 2 net new tests (1 replaced by 3).
+
+**Environment finding:** the session opened in `.claude/worktrees/reverent-buck-a366b2`, which is **not** a registered git worktree — `git worktree list` omits it and its copy is a month stale, so grepping there returned "the emission site does not exist". Recorded as a lesson.
+
+**NOT done:** no live PostHog verification — the fix is not in a shipped build, so the success signal (`optimized_preview_rendered` ≥ `export_success`, funnel monotonic on a fresh 14-day read) cannot be checked until 1.4.4 reaches users. No ASC action. No version bump. `is_internal_tester` classifier defect untouched (explicitly out of scope).
+
+---
+
 ## 2026-07-21 — UI/copy improvement plan (7 stories)
 
 **Branch:** `claude/session-ec92e2` (worktree `.claude/worktrees/reverent-buck-a366b2`)
