@@ -331,7 +331,10 @@ final class AppState {
             latestOptimization = nil
             optimizationRecoveryState = .failed
             AnalyticsService.shared.track(
-                .optimizationStateRecoveryFailed(errorCode: ExportFailureCode.code(for: error))
+                .optimizationStateRecoveryFailed(
+                    reason: FailureReason.reason(for: error),
+                    errorCode: ExportFailureCode.code(for: error)
+                )
             )
         }
     }

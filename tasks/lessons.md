@@ -609,3 +609,17 @@
 **Category:** Analytics / cohort hygiene
 **Rule:** Verify `is_internal_tester` actually resolves true on Debug and TestFlight builds; do not assume the classifier works because the rule exists in the contract.
 **Why:** The pre-release 1.4.3 physical-gate session (person `c7494f9d`) reported `is_internal_tester = false`. That session was a 10-open / 0-select picker loop, so miscounting it would not merely add noise — it would drag the clean picker→select rate toward zero on a ~20-person sample.
+
+---
+
+**Date:** 2026-07-21
+**Category:** General
+**Rule:** Before "adding" a missing analytics property, check whether the property already exists in code and simply has not shipped — compare the blame date of the property against the version actually in users' hands, not against the current HEAD.
+**Why:** WP-52 was scoped from a PostHog read showing 57 occurrences of `save_failed` / `optimization_apply_failed` / `optimization_state_recovery_failed` with zero error detail, and the task was written as "add `reason` and `error_code` to each." But `error_code` was already present and populated on all three (`AnalyticsService.swift`, added 2026-07-18 in 31b73b6). Both facts were true: the code has `error_code`, and the live events lack it, because 31b73b6 first ships in 1.4.4 (14) which is still in App Store review — every build in the field is 1.4.3 (13) or older. Re-adding it would have been a no-op dressed up as a fix. Only `reason` was genuinely missing. A "the data says X but the code says Y" contradiction is usually a time-skew between the two, not an error in either; resolve it with `git log -L` on the property line plus `git merge-base --is-ancestor <commit> <version-bump>` before writing code.
+
+---
+
+**Date:** 2026-07-21
+**Category:** General
+**Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
+**Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.

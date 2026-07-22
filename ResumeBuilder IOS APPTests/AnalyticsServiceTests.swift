@@ -195,16 +195,16 @@ final class AnalyticsServiceTests: XCTestCase {
             ["resume_id": "resume-1", "job_description_id": "job-1"],
             ["optimization_id": "opt-1", "review_id": "review-1"],
             ["optimization_id": "opt-1"],
-            ["error_code": "network_1009"],
+            ["reason": "network", "error_code": "network_1009"],
             ["review_id": "review-1", "approved_group_count": "2"],
             ["optimization_id": "opt-1", "review_id": "review-1"],
-            ["review_id": "review-1", "error_code": "server_500"],
+            ["review_id": "review-1", "reason": "server_error", "error_code": "server_500"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1"],
-            ["optimization_id": "opt-1", "error_code": "network_1009"],
+            ["optimization_id": "opt-1", "reason": "network", "error_code": "network_1009"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1", "error_code": "unauthorized"],
@@ -254,16 +254,16 @@ final class AnalyticsServiceTests: XCTestCase {
             ["review_id": "review-1", "approved_group_count": "3"]
         )
         XCTAssertEqual(
-            AnalyticsEvent.optimizationApplyFailed(reviewId: "review-1", errorCode: "network_1009").properties,
-            ["review_id": "review-1", "error_code": "network_1009"]
+            AnalyticsEvent.optimizationApplyFailed(reviewId: "review-1", reason: "network", errorCode: "network_1009").properties,
+            ["review_id": "review-1", "reason": "network", "error_code": "network_1009"]
         )
         XCTAssertEqual(
             AnalyticsEvent.optimizedPreviewRendered(optimizationId: "opt-1").properties,
             ["optimization_id": "opt-1"]
         )
         XCTAssertEqual(
-            AnalyticsEvent.saveFailed(optimizationId: "opt-1", errorCode: "server_500").properties,
-            ["optimization_id": "opt-1", "error_code": "server_500"]
+            AnalyticsEvent.saveFailed(optimizationId: "opt-1", reason: "server_error", errorCode: "server_500").properties,
+            ["optimization_id": "opt-1", "reason": "server_error", "error_code": "server_500"]
         )
         XCTAssertEqual(
             AnalyticsEvent.exportSuccess(optimizationId: "opt-1").properties,
@@ -291,6 +291,56 @@ final class AnalyticsServiceTests: XCTestCase {
                 "review_id": "review-1",
                 "item_id": "summary-1",
             ]
+        )
+    }
+
+    /// WP-52: these three events fired with no diagnostic payload in every build shipped to
+    /// date. `error_code` landed in 31b73b6 but has not reached users yet (it first ships in
+    /// 1.4.4, still in review); `reason` is added here. Both must be present so a failure can
+    /// be read as a groupable bucket and as a specific code.
+    func testFailureEventsCarryBothReasonAndErrorCode() {
+        XCTAssertEqual(
+            AnalyticsEvent.saveFailed(
+                optimizationId: "opt-1", reason: "offline", errorCode: "network_1009"
+            ).properties,
+            ["optimization_id": "opt-1", "reason": "offline", "error_code": "network_1009"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationApplyFailed(
+                reviewId: "review-1", reason: "backend_rejected", errorCode: "backend_error"
+            ).properties,
+            ["review_id": "review-1", "reason": "backend_rejected", "error_code": "backend_error"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationStateRecoveryFailed(
+                reason: "auth", errorCode: "unauthorized"
+            ).properties,
+            ["reason": "auth", "error_code": "unauthorized"]
+        )
+    }
+
+    func testFailureReasonBucketsErrorsIntoGroupableCategories() {
+        XCTAssertEqual(FailureReason.reason(for: APIClientError.unauthorized), "auth")
+        XCTAssertEqual(FailureReason.reason(for: APIClientError.paymentRequired), "entitlement")
+        XCTAssertEqual(
+            FailureReason.reason(for: APIClientError.serverError(status: 500, message: "")),
+            "server_error"
+        )
+        XCTAssertEqual(
+            FailureReason.reason(for: APIClientError.serverError(status: 422, message: "")),
+            "client_rejected"
+        )
+        XCTAssertEqual(
+            FailureReason.reason(for: URLError(.timedOut)),
+            "timeout"
+        )
+        XCTAssertEqual(
+            FailureReason.reason(for: URLError(.notConnectedToInternet)),
+            "offline"
+        )
+        XCTAssertEqual(
+            FailureReason.reason(for: NSError(domain: "com.example.other", code: 7)),
+            "unknown"
         )
     }
 
@@ -486,16 +536,16 @@ final class AnalyticsServiceTests: XCTestCase {
         .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1"),
         .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1"),
         .optimizationStateRecovered(optimizationId: "opt-1"),
-        .optimizationStateRecoveryFailed(errorCode: "network_1009"),
+        .optimizationStateRecoveryFailed(reason: "network", errorCode: "network_1009"),
         .optimizationApplyStarted(reviewId: "review-1", approvedGroupCount: 2),
         .optimizationApplySucceeded(optimizationId: "opt-1", reviewId: "review-1"),
-        .optimizationApplyFailed(reviewId: "review-1", errorCode: "server_500"),
+        .optimizationApplyFailed(reviewId: "review-1", reason: "server_error", errorCode: "server_500"),
         .optimizedViewed(optimizationId: "opt-1"),
         .optimizedPreviewRendered(optimizationId: "opt-1"),
         .savedResumePromptViewed(optimizationId: "opt-1"),
         .saveStarted(optimizationId: "opt-1"),
         .saveSuccess(optimizationId: "opt-1"),
-        .saveFailed(optimizationId: "opt-1", errorCode: "network_1009"),
+        .saveFailed(optimizationId: "opt-1", reason: "network", errorCode: "network_1009"),
         .exportStarted(optimizationId: "opt-1"),
         .exportSuccess(optimizationId: "opt-1"),
         .exportFailed(optimizationId: "opt-1", errorCode: "unauthorized"),
