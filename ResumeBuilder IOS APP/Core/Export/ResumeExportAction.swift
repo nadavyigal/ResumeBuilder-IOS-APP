@@ -71,3 +71,41 @@ enum ExportFailureCode {
         return "unknown"
     }
 }
+
+/// Coarse, groupable failure category that sits alongside `ExportFailureCode`.
+///
+/// `error_code` is the specific mechanical code (`server_500`, `network_1009`) and is high
+/// cardinality; `reason` buckets those into a handful of values you can group a funnel by
+/// without a breakdown exploding. The two are emitted together so a failure can be read at
+/// either altitude (WP-52).
+enum FailureReason {
+    static func reason(for error: Error) -> String {
+        if let apiError = error as? APIClientError {
+            switch apiError {
+            case .unauthorized: return "auth"
+            case .paymentRequired: return "entitlement"
+            case .invalidResponse: return "malformed_response"
+            case .invalidURL: return "client_config"
+            case .serverError(let status, _):
+                return (400...499).contains(status) ? "client_rejected" : "server_error"
+            }
+        }
+        if error is HTMLPDFExporterError { return "timeout" }
+        if error is PDFValidationError { return "validation" }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            switch nsError.code {
+            case NSURLErrorTimedOut:
+                return "timeout"
+            case NSURLErrorNotConnectedToInternet,
+                 NSURLErrorNetworkConnectionLost,
+                 NSURLErrorCannotConnectToHost,
+                 NSURLErrorDataNotAllowed:
+                return "offline"
+            default:
+                return "network"
+            }
+        }
+        return "unknown"
+    }
+}

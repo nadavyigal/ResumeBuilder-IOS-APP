@@ -240,7 +240,11 @@ final class OptimizationReviewViewModel {
         if let err = result.error, result.optimizationId == nil {
             errorMessage = err
             AnalyticsService.shared.track(
-                .optimizationApplyFailed(reviewId: reviewId, errorCode: "backend_error")
+                .optimizationApplyFailed(
+                    reviewId: reviewId,
+                    reason: "backend_rejected",
+                    errorCode: "backend_error"
+                )
             )
             return
         }
@@ -299,7 +303,11 @@ final class OptimizationReviewViewModel {
 
     private func trackApplyFailure(_ error: Error) {
         AnalyticsService.shared.track(
-            .optimizationApplyFailed(reviewId: reviewId, errorCode: ExportFailureCode.code(for: error))
+            .optimizationApplyFailed(
+                reviewId: reviewId,
+                reason: FailureReason.reason(for: error),
+                errorCode: ExportFailureCode.code(for: error)
+            )
         )
     }
 

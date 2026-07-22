@@ -3,6 +3,32 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-07-22 — Merge WP-51 + WP-52 failure diagnostics; prepare 1.4.5 (15)
+
+**Branch:** `claude/resumely-ios-1-4-5-prep-07f44c` (worktree at `.claude/worktrees/resumely-ios-1-4-5-prep-07f44c`)
+
+**Task:** Merge PR #117 (WP-51 activation-milestone repair) to `main`, add `reason` + `error_code` diagnostics to three blind failure events (WP-52), bump to 1.4.5 (15), run the full release checks, and STOP before archive/upload (1.4.4 is still under App Store review).
+
+**What was done:**
+- **PR #117 reviewed and merged** to `main` (`02e28e7`). Confirmed the diff preserves WP-51's once-per-optimization dedupe and `optimization_id`, and leaves the WP-50 denominator untouched. No Finder-duplicate files absorbed.
+- **WP-52:** Added `FailureReason.reason(for:)` in `Core/Export/ResumeExportAction.swift` — a coarse groupable bucket (`auth`, `entitlement`, `server_error`, `client_rejected`, `timeout`, `offline`, `network`, `validation`, `unknown`) that sits alongside the existing high-cardinality `error_code`. Threaded `reason` through the three failure enum cases (`saveFailed`, `optimizationApplyFailed`, `optimizationStateRecoveryFailed`), their `properties`, and all four call sites. **Key reconciliation:** `error_code` was already in code (added 2026-07-18, `31b73b6`) but has NEVER shipped — `31b73b6` first rides 1.4.4, still in review — so the PostHog "zero of 57 carry error detail" read and the code are both right (time-skew, not contradiction). Only `reason` was genuinely missing. Verified via `git log -L` + `git merge-base --is-ancestor 31b73b6 5d9c35b`.
+- **Version bump:** 1.4.4 (14) → **1.4.5 (15)** in `project.pbxproj` (both Debug and Release configs). 1.4.4 was NOT touched.
+- **Tests:** 2 new tests added (`testFailureEventsCarryBothReasonAndErrorCode`, `testFailureReasonBucketsErrorsIntoGroupableCategories`); updated the 3 contract expectations and 3 call-sites in `AnalyticsServiceTests.swift`.
+
+**Validation (all on iPhone 17 `9E2E82B6…` iOS 26.5, `-testLanguage en -testRegion US`):**
+- Full suite: **208 XCTest passed / 1 intentional skip / 0 failures**, plus **5 swift-testing / 0 failures**, `** TEST SUCCEEDED **`. (This run is also the Debug-build evidence.)
+- Unsigned generic-iOS Release build: `** BUILD SUCCEEDED **`, 0 errors.
+- EN launch smoke: PASS (clean Home, English copy, installed bundle confirmed 1.4.5/15).
+- HE launch smoke: PASS (full RTL — mirrored tab bar, right-aligned header, 3-2-1 step flow, all-Hebrew copy, no fallback/placeholder keys).
+
+**Environment lessons (recorded in `tasks/lessons.md`):** (1) the iOS **26.3.1** runtime crashes the XCTest host and reports `** TEST FAILED **` with ZERO assertion failures (~11 cases dropped) — always validate on 26.5. (2) A stale multi-day `CoreSimulatorService` + a wedged iPhone 17 sim (`A24FA1E8…`) hung xcodebuild for 30-60+ min on clean `main`; `killall com.apple.CoreSimulator.CoreSimulatorService` cleared it. (3) `FitCheckViewModelTests` asserts English copy, so it fails when the sim is left in Hebrew — pin `-testLanguage en`.
+
+**NOT done (by design):** no archive, no signing, no ASC upload — founder-gated, and 1.4.5 must not be submitted until 1.4.4 clears review. Live PostHog funnel and physical-device journey remain unverifiable until a build ships.
+
+**Files changed:** `project.pbxproj`, `Core/Analytics/AnalyticsService.swift`, `Core/Export/ResumeExportAction.swift`, `App/AppState.swift`, `Features/V2/History/OptimizationReviewView.swift`, `ViewModels/OptimizedResumeViewModel.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`, `tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md`.
+
+---
+
 ## 2026-07-21 — WP-51: repair the activation milestone
 
 **Branch:** `claude/activation-milestone-repair-963fe7` (main checkout, not a worktree — see below)

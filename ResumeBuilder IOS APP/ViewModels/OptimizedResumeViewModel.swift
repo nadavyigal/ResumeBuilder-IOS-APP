@@ -135,7 +135,11 @@ final class OptimizedResumeViewModel {
         } catch {
             savedResumeState = .failed(NSLocalizedString("Couldn’t save this resume. Your preview is still here — try again.", comment: ""))
             AnalyticsService.shared.track(
-                .saveFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error))
+                .saveFailed(
+                    optimizationId: optimizationId,
+                    reason: FailureReason.reason(for: error),
+                    errorCode: ExportFailureCode.code(for: error)
+                )
             )
         }
     }

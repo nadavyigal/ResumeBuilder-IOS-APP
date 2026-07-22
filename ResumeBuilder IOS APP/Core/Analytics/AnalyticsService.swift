@@ -84,16 +84,16 @@ enum AnalyticsEvent: Sendable {
     case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
     case optimizationCompleted(optimizationId: String?, reviewId: String?)
     case optimizationStateRecovered(optimizationId: String)
-    case optimizationStateRecoveryFailed(errorCode: String)
+    case optimizationStateRecoveryFailed(reason: String, errorCode: String)
     case optimizationApplyStarted(reviewId: String, approvedGroupCount: Int)
     case optimizationApplySucceeded(optimizationId: String, reviewId: String)
-    case optimizationApplyFailed(reviewId: String, errorCode: String)
+    case optimizationApplyFailed(reviewId: String, reason: String, errorCode: String)
     case optimizedViewed(optimizationId: String)
     case optimizedPreviewRendered(optimizationId: String)
     case savedResumePromptViewed(optimizationId: String)
     case saveStarted(optimizationId: String)
     case saveSuccess(optimizationId: String)
-    case saveFailed(optimizationId: String, errorCode: String)
+    case saveFailed(optimizationId: String, reason: String, errorCode: String)
     case exportStarted(optimizationId: String)
     case exportSuccess(optimizationId: String)
     case exportFailed(optimizationId: String, errorCode: String)
@@ -206,14 +206,14 @@ enum AnalyticsEvent: Sendable {
             ])
         case .optimizationStateRecovered(let optimizationId):
             return ["optimization_id": optimizationId]
-        case .optimizationStateRecoveryFailed(let errorCode):
-            return ["error_code": errorCode]
+        case .optimizationStateRecoveryFailed(let reason, let errorCode):
+            return ["reason": reason, "error_code": errorCode]
         case .optimizationApplyStarted(let reviewId, let approvedGroupCount):
             return ["review_id": reviewId, "approved_group_count": "\(approvedGroupCount)"]
         case .optimizationApplySucceeded(let optimizationId, let reviewId):
             return ["optimization_id": optimizationId, "review_id": reviewId]
-        case .optimizationApplyFailed(let reviewId, let errorCode):
-            return ["review_id": reviewId, "error_code": errorCode]
+        case .optimizationApplyFailed(let reviewId, let reason, let errorCode):
+            return ["review_id": reviewId, "reason": reason, "error_code": errorCode]
         case .optimizedViewed(let optimizationId),
              .optimizedPreviewRendered(let optimizationId),
              .savedResumePromptViewed(let optimizationId),
@@ -244,9 +244,10 @@ enum AnalyticsEvent: Sendable {
             return ["surface": surface, "reason": reason]
         case .freeATSCompleted(let scoreBucket):
             return ["score_bucket": scoreBucket]
-        case .exportFailed(let optimizationId, let errorCode),
-             .saveFailed(let optimizationId, let errorCode):
+        case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
+        case .saveFailed(let optimizationId, let reason, let errorCode):
+            return ["optimization_id": optimizationId, "reason": reason, "error_code": errorCode]
         case .diagnosisViewed(let matchScore):
             return ["match_score": "\(matchScore)"]
         case .recommendationViewed(let surface, let safetyState, let reviewId, let itemId),
