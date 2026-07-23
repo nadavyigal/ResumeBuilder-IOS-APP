@@ -3,6 +3,22 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-07-23 — Merge PR #121 and prepare 1.4.6 (16) for founder archive
+
+**Branch:** `codex/resumely-1.4.6-release-prep` in `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP-review-prompt`
+
+**Task:** Review and merge PR #121 when mergeable, then prepare the exact merged 1.4.6 (16) tree for founder-controlled Xcode archive and ASC upload without creating or uploading an archive.
+
+**Review and merge:** Code review found no production blocker. CodeRabbit identified one valid test-coverage nit: the fail-closed path when the Keychain version claim cannot persist. Added a throwing store test double and regression test; focused `ExportCompletionTests` passed 7/7. GitGuardian passed and no review threads remained. GitHub briefly held a stale PR-head snapshot; close/reopen refreshed it to the exact `02a36f2` head, and PR #121 merged to `main` at `b59575d`.
+
+**Release validation:** Loaded the configured gitignored release settings without exposing or committing values. A signed generic-device Release build from the exact merge completed with `BUILD SUCCEEDED` and store validation. The built app reports 1.4.6 (16), bundle `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, production API `https://www.resumelybuilderai.com`, team `8VC4R5M425`, and Sign in with Apple. Both Apple Development and Apple Distribution identities are valid. App icons are 1024×1024 with no alpha; archive action uses Release. No placeholder/localhost strings or config files were found in the app. Production, privacy, and terms endpoints returned HTTP 200.
+
+**Prior validation retained:** Full iOS 26.5 suite 222 passed / 1 intentional skip / 0 failures; EN/HE simulator smokes passed. The post-review commit is test-only, so the production tree is unchanged from that full run.
+
+**Remaining founder action:** Both physical iPhones were offline. Run the combined offline-recovery/export smoke, then Product → Archive → Validate App → Distribute App → App Store Connect. No archive or ASC action was performed in this session.
+
+---
+
 ## 2026-07-23 — WP-53 optimization ID preservation + 1.4.5 operational review
 
 **Branch:** `codex/wp-53-optimization-id-preservation` (main checkout; pre-existing localization and duplicate-doc changes left untouched)
