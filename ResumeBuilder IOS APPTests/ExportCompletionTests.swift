@@ -85,6 +85,16 @@ final class ExportCompletionTests: XCTestCase {
         let recreatedStore = KeychainReviewPromptVersionStore(service: service, account: account)
         XCTAssertEqual(recreatedStore.requestedVersion(), "1.4.6")
     }
+
+    func testReviewPromptDoesNotIssueWhenDurableClaimFails() {
+        let gate = ReviewPromptGate(
+            store: FailingReviewPromptVersionStore(),
+            appVersion: "1.4.6",
+            isInternalTester: false
+        )
+
+        XCTAssertFalse(gate.claimAfterSuccessfulExport(hasCompletedExport: true))
+    }
 }
 
 @MainActor
@@ -97,5 +107,16 @@ private final class InMemoryReviewPromptVersionStore: ReviewPromptVersionStoring
 
     func saveRequestedVersion(_ version: String) throws {
         self.version = version
+    }
+}
+
+@MainActor
+private struct FailingReviewPromptVersionStore: ReviewPromptVersionStoring {
+    func requestedVersion() -> String? {
+        nil
+    }
+
+    func saveRequestedVersion(_ version: String) throws {
+        throw CocoaError(.fileWriteUnknown)
     }
 }
