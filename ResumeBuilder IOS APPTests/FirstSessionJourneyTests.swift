@@ -54,6 +54,34 @@ private struct OptimizationHistoryServiceStub: OptimizationHistoryServiceProtoco
     }
 }
 
+private actor SuspendedOptimizationHistoryService: OptimizationHistoryServiceProtocol {
+    private var continuation: CheckedContinuation<[OptimizationHistoryItem], Error>?
+
+    func list(token: String) async throws -> [OptimizationHistoryItem] {
+        try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+        }
+    }
+
+    func delete(ids: [String], token: String) async throws -> BulkDeleteResponse {
+        BulkDeleteResponse(success: true, deleted: ids.count, errors: nil)
+    }
+
+    func hasPendingRequest() -> Bool {
+        continuation != nil
+    }
+
+    func succeed(with items: [OptimizationHistoryItem]) {
+        continuation?.resume(returning: items)
+        continuation = nil
+    }
+
+    func fail() {
+        continuation?.resume(throwing: URLError(.cannotConnectToHost))
+        continuation = nil
+    }
+}
+
 @MainActor
 private final class FirstSessionJourneyHarness {
     let fixture: FirstSessionJourneyFixture
@@ -271,18 +299,80 @@ final class FirstSessionJourneyTests: XCTestCase {
         XCTAssertEqual(appState.optimizationRecoveryState, .failed)
     }
 
-    func testUnverifiedLocalOptimizationDoesNotUnlockTabsWhenRecoveryFails() async {
+    func testVerifiedLocalOptimizationSurvivesTransientRecoveryFailure() async {
         let appState = AppState(
             optimizationHistoryService: OptimizationHistoryServiceStub(response: .failure)
         )
         appState.session = authenticatedSession
-        appState.latestOptimizationId = "optimization-unverified"
+        appState.latestOptimizationId = "optimization-completed"
 
         await appState.reconcileLatestOptimization()
 
+        XCTAssertEqual(appState.latestOptimizationId, "optimization-completed")
+        XCTAssertEqual(
+            UserDefaults.standard.string(forKey: AppState.latestOptimizationKey),
+            "optimization-completed"
+        )
+        XCTAssertEqual(appState.optimizationRecoveryState, .failed)
+    }
+
+    func testLateRecoveryFailureDoesNotOverwriteNewerOptimization() async {
+        let historyService = SuspendedOptimizationHistoryService()
+        let appState = AppState(optimizationHistoryService: historyService)
+        appState.session = authenticatedSession
+        appState.latestOptimizationId = "optimization-old"
+
+        let recovery = Task { await appState.reconcileLatestOptimization() }
+        guard await waitForPendingRequest(on: historyService) else {
+            recovery.cancel()
+            return XCTFail("Recovery did not reach the suspended history request before timeout")
+        }
+
+        appState.latestOptimizationId = "optimization-new"
+        await historyService.fail()
+        await recovery.value
+
+        XCTAssertEqual(appState.latestOptimizationId, "optimization-new")
+        XCTAssertEqual(
+            UserDefaults.standard.string(forKey: AppState.latestOptimizationKey),
+            "optimization-new"
+        )
+        XCTAssertEqual(appState.optimizationRecoveryState, .idle)
+    }
+
+    func testLateRecoverySuccessDoesNotRestoreOptimizationAfterSignOut() async {
+        let historyService = SuspendedOptimizationHistoryService()
+        let appState = AppState(optimizationHistoryService: historyService)
+        appState.session = authenticatedSession
+        appState.latestOptimizationId = "optimization-old"
+
+        let recovery = Task { await appState.reconcileLatestOptimization() }
+        guard await waitForPendingRequest(on: historyService) else {
+            recovery.cancel()
+            return XCTFail("Recovery did not reach the suspended history request before timeout")
+        }
+
+        appState.signOut()
+        await historyService.succeed(
+            with: [optimizationItem(id: "optimization-old", status: "completed")]
+        )
+        await recovery.value
+
         XCTAssertNil(appState.latestOptimizationId)
         XCTAssertNil(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey))
-        XCTAssertEqual(appState.optimizationRecoveryState, .failed)
+        XCTAssertEqual(appState.optimizationRecoveryState, .idle)
+    }
+
+    private func waitForPendingRequest(
+        on historyService: SuspendedOptimizationHistoryService
+    ) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(2))
+        while !(await historyService.hasPendingRequest()) {
+            guard clock.now < deadline else { return false }
+            await Task.yield()
+        }
+        return true
     }
 
     override func tearDown() {

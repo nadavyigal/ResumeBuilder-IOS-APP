@@ -3,6 +3,28 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-07-23 — WP-53 optimization ID preservation + 1.4.5 operational review
+
+**Branch:** `codex/wp-53-optimization-id-preservation` (main checkout; pre-existing localization and duplicate-doc changes left untouched)
+
+**Task:** Review and amend the external WP-53 plan, execute necessary fixes, and determine whether live 1.4.5 is fully operational.
+
+**Root cause:** `AppState.reconcileLatestOptimization()` set `latestOptimizationId = nil` before its awaited history call. The property setter writes through to UserDefaults, so a transient history failure permanently deleted the last completed optimization ID. The catch path set only `.failed` and never restored the ID.
+
+**Plan amendments:** Executed Task 1 only. Rejected Task 2 because a successful empty/unrecognized history response is authoritative and preserving a local ID there can unlock stale/deleted state. Rejected Task 3 because the current 200-body rejection branch already surfaces the server error, emits one failure event, leaves `applySuccessOptimizationId` nil, and does not navigate; added a regression test instead of rewriting working control flow. Reused existing compiled test files to avoid unnecessary manual test-target membership edits.
+
+**Changes:** Removed the speculative persisted-ID clear and explicitly restore the captured ID on the catch path. Replaced the prior destructive-failure expectation with memory/disk preservation coverage. Added a 200-body apply-rejection no-false-success test. Amended the plan and updated lessons/progress/todo.
+
+**Validation:** Red state reproduced first (both ID assertions nil). Focused `FirstSessionJourneyTests` + `ResumeOptimizationParsingTests`: 21/21. Full iOS 26.5 suite: 214 passed, 1 intentional live-fixture skip, 0 failures. Unsigned generic-iOS Release build succeeded. Debug build/install/launch succeeded and Home rendered correctly in accessibility snapshot and screenshot. A first launch attempt incorrectly used XCTest-only locale flags and was corrected/recorded. The `settled` UI predicate timed out on continuous animation, but stable expected elements and screenshot passed.
+
+**Production check:** PostHog project 270848, UTC, since 1.4.5's public release anchor: one excluded internal/automation person only (3 `app_launched`, 1 `optimization_completed`, 4 `optimization_state_recovery_failed`), zero clean users. Telemetry ingestion works; external-user operation remains traffic-gated.
+
+**Release conclusion:** Live 1.4.5 is not fully operational under transient history-network failure. WP-53 is locally fixed, but the correction requires a hotfix build plus an authenticated physical-device offline cold-launch smoke.
+
+**PR #120 review follow-up:** Addressed all four CodeRabbit threads. Added an optimization recovery generation plus captured user/ID guards so late success, empty, and failure results are discarded after sign-out, session replacement, or a newer optimization. Added deterministic suspended-service tests for newer-optimization/failure and sign-out/success races. Replaced the 675-line contradictory draft with a concise active plan that removes rejected Task 2/3 instructions and satisfies Markdownlint fenced-language/blockquote feedback. CodeRabbit's successful re-review added one nitpick: bound both test polling loops with a two-second deadline and explicit failure so a missing continuation cannot hang the suite. Validation after the substantive review: recovery/journey 13/13, apply parsing 10/10, full suite 216 passed / 1 intentional skip / 0 failures on iOS 26.5.
+
+---
+
 ## 2026-07-22 — Merge WP-51 + WP-52 failure diagnostics; prepare 1.4.5 (15)
 
 **Branch:** `claude/resumely-ios-1-4-5-prep-07f44c` (worktree at `.claude/worktrees/resumely-ios-1-4-5-prep-07f44c`)
