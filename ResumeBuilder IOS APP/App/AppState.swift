@@ -299,7 +299,9 @@ final class AppState {
 
         let localOptimizationId = latestOptimizationId
         optimizationRecoveryState = .loading
-        latestOptimizationId = nil
+        // Keep the persisted identifier until the server has answered. The setter writes
+        // through to UserDefaults, so clearing it before an awaited request made a transient
+        // network failure permanently orphan a completed optimization (WP-53).
         latestOptimization = nil
 
         do {
@@ -328,6 +330,9 @@ final class AppState {
             optimizationRecoveryState = .recovered
             AnalyticsService.shared.track(.optimizationStateRecovered(optimizationId: recovered.id))
         } catch {
+            // Restate the failure-path invariant defensively: a failed validation request
+            // must never mutate the last known optimization identifier.
+            latestOptimizationId = localOptimizationId
             latestOptimization = nil
             optimizationRecoveryState = .failed
             AnalyticsService.shared.track(

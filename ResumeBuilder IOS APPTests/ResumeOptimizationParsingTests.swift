@@ -199,6 +199,37 @@ final class ResumeOptimizationParsingTests: XCTestCase {
         XCTAssertFalse(viewModel.serverRequiresMigration)
     }
 
+    func testOptimizationReviewApplyBodyRejectionSurfacesErrorWithoutFalseSuccess() async {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [OptimizationReviewMockURLProtocol.self]
+        let api = APIClient(
+            baseURL: URL(string: "https://example.test")!,
+            session: URLSession(configuration: config),
+            longRunningSession: URLSession(configuration: config),
+            requestTimeout: 1
+        )
+        let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
+        viewModel.includedGroupIds = ["group-1"]
+
+        OptimizationReviewMockURLProtocol.handler = { request in
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, #"{"error":"no credits"}"#.data(using: .utf8)!)
+        }
+        defer { OptimizationReviewMockURLProtocol.handler = nil }
+
+        await viewModel.apply(token: "token")
+
+        XCTAssertEqual(viewModel.errorMessage, "no credits")
+        XCTAssertNil(viewModel.applySuccessOptimizationId)
+        XCTAssertEqual(viewModel.includedGroupIds, ["group-1"])
+        XCTAssertFalse(viewModel.isSubmitting)
+    }
+
     func testOptimizationDetailDecodesContactAndFlexibleScoreKeys() throws {
         let json = """
         {

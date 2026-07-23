@@ -22,6 +22,21 @@
 
 ## Lessons
 
+**Date:** 2026-07-23
+**Category:** Build
+**Rule:** Pass `-testLanguage` and `-testRegion` only to test actions; use simulator launch arguments or environment for locale-specific build-and-run smoke tests.
+**Why:** WP-53's first `build_run_sim` attempt passed XCTest-only flags to a normal build, and xcodebuild correctly stopped with “The flag -testLanguage is only supported when testing.”
+
+**Date:** 2026-07-23
+**Category:** General
+**Rule:** Never clear a persisted identifier before the network request that validates it; preserve the last known value on thrown requests and mutate only after an authoritative response.
+**Why:** `reconcileLatestOptimization()` cleared `latestOptimizationId` before fetching history, and its setter immediately removed the UserDefaults key. A transient `NSURLErrorCannotConnectToHost` therefore permanently orphaned a completed optimization and locked the user out of preview/export on the next cold launch.
+
+**Date:** 2026-07-23
+**Category:** Test
+**Rule:** Do not use a long `settled` UI predicate as the only smoke gate for continuously animated screens; verify a stable expected element plus a screenshot.
+**Why:** WP-53's Home smoke rendered a complete interactive screen, but the 10-second settled predicate timed out because ambient UI animation kept changing the screen hash.
+
 **Date:** 2026-07-21
 **Category:** Analytics / measurement contracts
 **Rule:** Gate a "user saw X" milestone on the thing the user actually saw, never on a sibling data fetch that merely usually accompanies it. When a screen has two independent paths to the same visible result, the milestone must be satisfiable by both. Sanity-check any new funnel event against a downstream event that depends on the same surface — if the downstream event can outrun it, the gate is wrong.

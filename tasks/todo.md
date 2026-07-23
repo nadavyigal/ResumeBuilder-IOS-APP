@@ -1,3 +1,15 @@
+# WP-53 — Preserve optimization ID on transient recovery failure (2026-07-23)
+
+- [x] Reproduce the destructive UserDefaults clear with a red regression test.
+- [x] Preserve `latestOptimizationId` in memory and on disk when history retrieval throws.
+- [x] Keep successful authoritative empty/replacement behavior unchanged.
+- [x] Verify the existing 200-body apply rejection surfaces an error without false success.
+- [x] Run focused recovery/optimization suites, full iOS 26.5 suite, Release build, and simulator launch smoke.
+- [ ] Merge and ship the WP-53 hotfix.
+- [ ] Run authenticated physical-device offline cold-launch recovery smoke after shipping.
+
+---
+
 # UI/Copy Improvement Plan — 2026-07-20 (7 stories, branch claude/session-ec92e2)
 
 Decision: execute the 2026-07-20 UI/copy audit plan story by story. Grounding: PROMPTS/ios-ui-copy-followup-audit.md, executive-os/research/2026-07-19-resumely-copy-rewrite-v2.md, .agents/product-marketing.md, DECISIONS.md (Resumely Match Score), GLOBAL-TASTE.md. Analytics event names, API fields, and internal ATS identifiers stay unchanged.

@@ -271,17 +271,20 @@ final class FirstSessionJourneyTests: XCTestCase {
         XCTAssertEqual(appState.optimizationRecoveryState, .failed)
     }
 
-    func testUnverifiedLocalOptimizationDoesNotUnlockTabsWhenRecoveryFails() async {
+    func testVerifiedLocalOptimizationSurvivesTransientRecoveryFailure() async {
         let appState = AppState(
             optimizationHistoryService: OptimizationHistoryServiceStub(response: .failure)
         )
         appState.session = authenticatedSession
-        appState.latestOptimizationId = "optimization-unverified"
+        appState.latestOptimizationId = "optimization-completed"
 
         await appState.reconcileLatestOptimization()
 
-        XCTAssertNil(appState.latestOptimizationId)
-        XCTAssertNil(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey))
+        XCTAssertEqual(appState.latestOptimizationId, "optimization-completed")
+        XCTAssertEqual(
+            UserDefaults.standard.string(forKey: AppState.latestOptimizationKey),
+            "optimization-completed"
+        )
         XCTAssertEqual(appState.optimizationRecoveryState, .failed)
     }
 
