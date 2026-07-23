@@ -323,8 +323,9 @@ final class FirstSessionJourneyTests: XCTestCase {
         appState.latestOptimizationId = "optimization-old"
 
         let recovery = Task { await appState.reconcileLatestOptimization() }
-        while !(await historyService.hasPendingRequest()) {
-            await Task.yield()
+        guard await waitForPendingRequest(on: historyService) else {
+            recovery.cancel()
+            return XCTFail("Recovery did not reach the suspended history request before timeout")
         }
 
         appState.latestOptimizationId = "optimization-new"
@@ -346,8 +347,9 @@ final class FirstSessionJourneyTests: XCTestCase {
         appState.latestOptimizationId = "optimization-old"
 
         let recovery = Task { await appState.reconcileLatestOptimization() }
-        while !(await historyService.hasPendingRequest()) {
-            await Task.yield()
+        guard await waitForPendingRequest(on: historyService) else {
+            recovery.cancel()
+            return XCTFail("Recovery did not reach the suspended history request before timeout")
         }
 
         appState.signOut()
@@ -359,6 +361,18 @@ final class FirstSessionJourneyTests: XCTestCase {
         XCTAssertNil(appState.latestOptimizationId)
         XCTAssertNil(UserDefaults.standard.string(forKey: AppState.latestOptimizationKey))
         XCTAssertEqual(appState.optimizationRecoveryState, .idle)
+    }
+
+    private func waitForPendingRequest(
+        on historyService: SuspendedOptimizationHistoryService
+    ) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(2))
+        while !(await historyService.hasPendingRequest()) {
+            guard clock.now < deadline else { return false }
+            await Task.yield()
+        }
+        return true
     }
 
     override func tearDown() {

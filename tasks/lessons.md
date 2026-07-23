@@ -42,6 +42,11 @@
 **Rule:** Any `@MainActor` recovery method that awaits network state must invalidate or discard late results when the session or protected identifier changes while suspended.
 **Why:** CodeRabbit review of WP-53 found that a late history success or failure could restore a signed-out user's optimization or overwrite a newer completion even after the destructive pre-request clear was removed.
 
+**Date:** 2026-07-23
+**Category:** Test
+**Rule:** Bound async test polling with a deadline and fail explicitly; an unbounded `Task.yield()` loop turns a missing callback or continuation into a hung suite.
+**Why:** CodeRabbit's PR #120 re-review found the suspended-history race tests would poll forever if recovery exited before registering the test continuation.
+
 **Date:** 2026-07-21
 **Category:** Analytics / measurement contracts
 **Rule:** Gate a "user saw X" milestone on the thing the user actually saw, never on a sibling data fetch that merely usually accompanies it. When a screen has two independent paths to the same visible result, the milestone must be satisfiable by both. Sanity-check any new funnel event against a downstream event that depends on the same surface — if the downstream event can outrun it, the gate is wrong.
