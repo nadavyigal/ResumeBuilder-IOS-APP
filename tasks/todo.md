@@ -9,8 +9,9 @@
 - [x] Register the previously orphaned `ExportCompletionTests.swift` in the explicit test target.
 - [x] Bump 1.4.5 (15) → 1.4.6 (16).
 - [x] Pass focused tests, full iOS 26.5 suite, and EN/HE simulator smoke.
-- [x] Push branch and open PR #121.
-- [ ] Founder-controlled physical-device regression, archive, upload, and ASC submission.
+- [x] Push, review, and merge PR #121, including the durable-save failure regression test.
+- [x] Prepare the exact merged tree with configured local release settings and pass a signed Release build/store validation.
+- [ ] Founder-controlled physical-device regression, Xcode Organizer archive/validation, upload, and ASC submission.
 
 ---
 
@@ -23,7 +24,8 @@
 - [x] Run focused recovery/optimization suites, full iOS 26.5 suite, Release build, and simulator launch smoke.
 - [x] Address PR #120 CodeRabbit comments: stale-result generation guard, race tests, and active-plan cleanup.
 - [x] Merge PR #120 with the WP-53 hotfix.
-- [ ] Ship WP-53 in 1.4.6.
+- [x] Merge WP-53 and the 1.4.6 release vehicle to `main`.
+- [ ] Archive/upload 1.4.6 so WP-53 reaches users.
 - [ ] Run authenticated physical-device offline cold-launch recovery smoke after shipping.
 
 ---
