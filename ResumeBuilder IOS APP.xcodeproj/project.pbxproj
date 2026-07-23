@@ -24,6 +24,7 @@
 		D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */; };
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
+		EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC120002EC120002EC120002 /* ExportCompletionTests.swift */; };
 		F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +59,7 @@
 		B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitCheckViewModelTests.swift; sourceTree = "<group>"; };
 		C6B6F80A2D3E5F7091A2B4C6 /* RecommendationSafetyPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecommendationSafetyPolicyTests.swift; sourceTree = "<group>"; };
 		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		EC120002EC120002EC120002 /* ExportCompletionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportCompletionTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -147,6 +149,7 @@
 				3C8E0A2F5D7B9F1A3C5E7A9B /* CopyClaimsTests.swift */,
 				A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */,
 				AA11223344556677889900BB /* AnalyticsServiceTests.swift */,
+				EC120002EC120002EC120002 /* ExportCompletionTests.swift */,
 				9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */,
 				1B3D5F7B9D1F3B5D7F9B1D3F /* FitCheckServiceTests.swift */,
 				B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */,
@@ -274,6 +277,7 @@
 				2B7D9F1E4C6A8E0F2B4D6F8A /* CopyClaimsTests.swift in Sources */,
 				F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */,
 				AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */,
+				EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */,
 				0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */,
 				2C4E6A8C0E2A4C6E8A0C2E4A /* FitCheckServiceTests.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* FitCheckViewModelTests.swift in Sources */,
@@ -433,7 +437,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -442,7 +446,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.5;
+				MARKETING_VERSION = 1.4.6;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -466,7 +470,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -475,7 +479,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.5;
+				MARKETING_VERSION = 1.4.6;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";

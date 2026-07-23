@@ -24,6 +24,16 @@
 
 **Date:** 2026-07-23
 **Category:** Build
+**Rule:** Treat an XcodeBuildMCP response timeout as an unknown build state; inspect the original `xcodebuild` process and log before retrying or stopping it.
+**Why:** The 1.4.6 Release simulator build exceeded the tool's five-minute response window but continued normally and ended with explicit `BUILD SUCCEEDED` evidence.
+
+**Date:** 2026-07-23
+**Category:** Build
+**Rule:** Before the first Xcode build in an isolated worktree, create its gitignored `Secrets.xcconfig` from `Secrets.xcconfig.template`; worktrees do not inherit the main checkout's local configuration.
+**Why:** The review-prompt story's first red-test attempt stopped before compilation because the clean worktree had no `Secrets.xcconfig`, so it could not prove the intended missing-contract failure until the placeholder config was restored.
+
+**Date:** 2026-07-23
+**Category:** Build
 **Rule:** Pass `-testLanguage` and `-testRegion` only to test actions; use simulator launch arguments or environment for locale-specific build-and-run smoke tests.
 **Why:** WP-53's first `build_run_sim` attempt passed XCTest-only flags to a normal build, and xcodebuild correctly stopped with “The flag -testLanguage is only supported when testing.”
 
