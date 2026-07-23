@@ -9,7 +9,7 @@
 - [x] Register the previously orphaned `ExportCompletionTests.swift` in the explicit test target.
 - [x] Bump 1.4.5 (15) → 1.4.6 (16).
 - [x] Pass focused tests, full iOS 26.5 suite, and EN/HE simulator smoke.
-- [ ] Push branch and open PR.
+- [x] Push branch and open PR #121.
 - [ ] Founder-controlled physical-device regression, archive, upload, and ASC submission.
 
 ---
