@@ -21,6 +21,8 @@
 
 **Release conclusion:** Live 1.4.5 is not fully operational under transient history-network failure. WP-53 is locally fixed, but the correction requires a hotfix build plus an authenticated physical-device offline cold-launch smoke.
 
+**PR #120 review follow-up:** Addressed all four CodeRabbit threads. Added an optimization recovery generation plus captured user/ID guards so late success, empty, and failure results are discarded after sign-out, session replacement, or a newer optimization. Added deterministic suspended-service tests for newer-optimization/failure and sign-out/success races. Replaced the 675-line contradictory draft with a concise active plan that removes rejected Task 2/3 instructions and satisfies Markdownlint fenced-language/blockquote feedback. Validation after review: recovery/journey 13/13, apply parsing 10/10, full suite 216 passed / 1 intentional skip / 0 failures on iOS 26.5.
+
 ---
 
 ## 2026-07-22 — Merge WP-51 + WP-52 failure diagnostics; prepare 1.4.5 (15)

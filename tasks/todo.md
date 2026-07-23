@@ -5,6 +5,7 @@
 - [x] Keep successful authoritative empty/replacement behavior unchanged.
 - [x] Verify the existing 200-body apply rejection surfaces an error without false success.
 - [x] Run focused recovery/optimization suites, full iOS 26.5 suite, Release build, and simulator launch smoke.
+- [x] Address PR #120 CodeRabbit comments: stale-result generation guard, race tests, and active-plan cleanup.
 - [ ] Merge and ship the WP-53 hotfix.
 - [ ] Run authenticated physical-device offline cold-launch recovery smoke after shipping.
 

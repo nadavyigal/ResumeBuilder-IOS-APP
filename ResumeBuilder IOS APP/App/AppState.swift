@@ -62,6 +62,7 @@ final class AppState {
     private var submitPackageRecords: [String: SubmitPackageCacheRecord] = [:]
     private var savedResumeRecords: [String: SavedResumeLinkRecord] = [:]
     private var latestOptimizationStorage: String?
+    private var optimizationRecoveryGeneration = 0
 
     /// Real, in-session signals for the locked-tab teaser checklists (Optimized/Design/Expert).
     /// Not persisted across launches — only tracks progress made in the current session,
@@ -82,6 +83,12 @@ final class AppState {
             let normalized = Self.normalizedOptimizationId(newValue)
             let didChange = latestOptimizationStorage != normalized
             latestOptimizationStorage = normalized
+            if didChange {
+                optimizationRecoveryGeneration &+= 1
+                if optimizationRecoveryState == .loading {
+                    optimizationRecoveryState = .idle
+                }
+            }
             if didChange, latestOptimization?.id != normalized {
                 latestOptimization = nil
             }
@@ -139,6 +146,7 @@ final class AppState {
 
     func signOut() {
         AuthService.shared.clearSession()
+        optimizationRecoveryGeneration &+= 1
         session = nil
         creditsBalance = 0
         latestOptimizationId = nil
@@ -276,6 +284,8 @@ final class AppState {
     }
 
     func setSession(_ session: AuthSession) async {
+        optimizationRecoveryGeneration &+= 1
+        optimizationRecoveryState = .idle
         self.session = session
         AnalyticsService.shared.identifyAuthenticatedUser(userId: session.userId, email: session.email)
         AnalyticsService.shared.track(.signInCompleted)
@@ -298,6 +308,8 @@ final class AppState {
         }
 
         let localOptimizationId = latestOptimizationId
+        let recoveryGeneration = optimizationRecoveryGeneration
+        let recoveryUserId = session?.userId
         optimizationRecoveryState = .loading
         // Keep the persisted identifier until the server has answered. The setter writes
         // through to UserDefaults, so clearing it before an awaited request made a transient
@@ -307,6 +319,11 @@ final class AppState {
         do {
             let history = try await callWithFreshToken { token in
                 try await self.optimizationHistoryService.list(token: token)
+            }
+            guard optimizationRecoveryGeneration == recoveryGeneration,
+                  session?.userId == recoveryUserId,
+                  latestOptimizationId == localOptimizationId else {
+                return
             }
             let completed = history.filter(Self.isRecoverableOptimization)
 
@@ -330,6 +347,11 @@ final class AppState {
             optimizationRecoveryState = .recovered
             AnalyticsService.shared.track(.optimizationStateRecovered(optimizationId: recovered.id))
         } catch {
+            guard optimizationRecoveryGeneration == recoveryGeneration,
+                  session?.userId == recoveryUserId,
+                  latestOptimizationId == localOptimizationId else {
+                return
+            }
             // Restate the failure-path invariant defensively: a failed validation request
             // must never mutate the last known optimization identifier.
             latestOptimizationId = localOptimizationId
