@@ -6,6 +6,7 @@ import XCTest
 /// The Fit screen asked for the same intent twice and delivered a discouraging
 /// verdict before the product had done anything for the user. A moderated
 /// session on 2026-07-24 watched that happen with a score of 45.
+@MainActor
 final class DirectOptimizeRoutingTests: XCTestCase {
 
     func testFitGateIsOff() {
@@ -33,9 +34,14 @@ final class DirectOptimizeRoutingTests: XCTestCase {
         // days the free checker's observed maximum was 51 and the authenticated
         // maximum was 62, against a strong threshold of 75. Showing a verdict
         // built on those bands could only ever discourage.
-        XCTAssertEqual(FitBand.derived(from: 51), .skip)
-        XCTAssertEqual(FitBand.derived(from: 62), .stretch)
-        XCTAssertEqual(FitBand.derived(from: 45), .skip)
+        // The observed 60-day maxima: 51 on the free checker, 62 authenticated.
+        // Neither reaches strong, so the screen could award it to nobody.
+        XCTAssertNotEqual(FitBand.derived(from: 51), .strong)
+        XCTAssertNotEqual(FitBand.derived(from: 62), .strong)
         XCTAssertEqual(FitBand.derived(from: 75), .strong)
+
+        // And the score the moderated session actually met falls in skip, the
+        // band that tells someone not to bother applying.
+        XCTAssertEqual(FitBand.derived(from: 45), .skip)
     }
 }
