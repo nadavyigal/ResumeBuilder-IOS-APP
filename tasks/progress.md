@@ -1,5 +1,19 @@
 # Project Progress
 
+## 2026-07-24 — WP-45 S6+S7: direct optimize, Fit gate off (PR #123)
+
+**S6.** `BackendConfig.isFitCheckEnabled` is now false. Both Home and Tailor already carried the direct path behind that flag (S0 built it), so Analyze runs upload-then-optimize with one tap and no Fit sheet. `optimize()` calls `ensureUploadedResumeForCurrentJob` internally and it is idempotent, so no double-upload or double-charge. Analytics move to `flow_version=direct_optimize_v2` automatically.
+
+Why the gate had to go rather than be reordered: bands are strong >= 75 / stretch >= 50, but the free checker's 60-day mean was 34.5 with a maximum of 51. Three in four users were told to skip the job, "strong" was never awarded to anyone, and the Meirav session met a 45 before seeing any value.
+
+**S7 — audited, not changed.** Option (a) is already how the result screen is built: "Preview & Export PDF" is the primary button, Submit Package secondary, Design and Expert reachable as side-doors. The remaining step count comes from the tab bar presenting Design and Expert as peers of the journey — that is option (b), five tabs to three, and it stays the founder decision the packet flags.
+
+**Correction recorded.** The first commit claimed 4 new tests and a green suite; those tests never ran. The synchronized file group covers only the app target, so test files need explicit pbxproj entries. Wiring them in surfaced two real problems: main-actor isolation on `BackendConfig` and `FitBand`, and one wrong assertion (51 is stretch, not skip — the band opens at 50). **Adding a Swift test file to this repo does not add it to the suite; check the executed count moved.**
+
+**Validation:** 219 tests (was 212), 0 failures, Debug simulator build succeeded. One cold-simulator run reported 5 failures that did not reproduce across four later runs.
+
+**Not done:** S8 needs the backend `lift.displayScores` exposed through the optimization API first. S7 option (b) is a founder decision. S10 needs a release plus a PostHog readout.
+
 **Status:** **1.4.5 (15) is LIVE but has a confirmed recovery defect; WP-53 is fixed on PR #120 and requires a hotfix release.** On cold launch, `reconcileLatestOptimization()` cleared the UserDefaults-backed `latestOptimizationId` before fetching history. A transient history failure therefore permanently orphaned the user's completed optimization and made Optimized/Design/Expert appear locked. The fix preserves the ID only when the request throws; a successful authoritative history response retains its existing replacement/empty behavior. CodeRabbit review added a generation/session guard so late success, empty, or failure results cannot overwrite a newer optimization or restore state after sign-out. The broader plan was rewritten to remove rejected Task 2/3 instructions.
 **Current Phase:** WP-53 verified on `codex/wp-53-optimization-id-preservation`; PR #120 review comments addressed, push/re-review pending.
 **Active Story:** WP-53 — optimization ID preservation across transient history failures.
