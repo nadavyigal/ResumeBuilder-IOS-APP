@@ -2,10 +2,24 @@ import Foundation
 
 enum BackendConfig {
     /// Fit-First Triage — paste a JD before optimizing, get a Strong/Stretch/Skip verdict.
-    /// Enabled 2026-06-24 (v1.1 build 6): ships visible to authenticated users. Targets the
-    /// upload-to-optimize activation drop-off surfaced by the D7 readout; internal smoke passed
-    /// (live /api/public/ats-check 200, all fit_check_* analytics, Hebrew RTL).
-    static let isFitCheckEnabled = true
+    /// Disabled 2026-07-24 (WP-45 S6). Was enabled 2026-06-24 (v1.1 build 6).
+    ///
+    /// The Fit screen asked for the same intent twice. The user had already
+    /// chosen the role, supplied its data and tapped Analyze; the screen then
+    /// repeated the job input, added a second CTA, and delivered a verdict
+    /// before the product had done anything for them.
+    ///
+    /// The verdict was also not fit to carry that decision. Its bands are
+    /// strong >= 75 and stretch >= 50, but over 60 days the free checker's mean
+    /// was 34.5 with a maximum of 51 — so 76% of users were told to skip the
+    /// job, "strong" was never once awarded, and a moderated session on
+    /// 2026-07-24 watched a real user meet a 45 before seeing any value.
+    ///
+    /// With this off, both entry points run the direct path that already
+    /// exists below, and analytics report flow_version=direct_optimize_v2.
+    /// The Fit surfaces stay in the binary for the public web checker and are
+    /// removed once the release readout is clean (WP-45 S10).
+    static let isFitCheckEnabled = false
 
     /// Stage 1 ships without monetization. Flip to `true` once the backend
     /// credit ledger and StoreKit IAP wiring land in Stage 2.
