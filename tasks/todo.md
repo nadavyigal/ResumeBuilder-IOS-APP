@@ -1,3 +1,20 @@
+# Resumely 1.4.6 — Export-success review prompt (2026-07-23)
+
+- [x] Start from merged PR #120 on `origin/main` (`fa5efe5`) without touching the dirty original checkout.
+- [x] Add red-first eligibility tests: successful export required, internal excluded, once per version, later version allowed.
+- [x] Persist the claimed version in Keychain so an ordinary reinstall does not immediately re-ask.
+- [x] Request through SwiftUI `RequestReviewAction` only after the successful export share sheet dismisses.
+- [x] Emit `app_store_review_requested` with `source=export_success` when the request is issued.
+- [x] Remove the dead Ambassador review path so there is one code path.
+- [x] Register the previously orphaned `ExportCompletionTests.swift` in the explicit test target.
+- [x] Bump 1.4.5 (15) → 1.4.6 (16).
+- [x] Pass focused tests, full iOS 26.5 suite, and EN/HE simulator smoke.
+- [x] Push, review, and merge PR #121, including the durable-save failure regression test.
+- [x] Prepare the exact merged tree with configured local release settings and pass a signed Release build/store validation.
+- [ ] Founder-controlled physical-device regression, Xcode Organizer archive/validation, upload, and ASC submission.
+
+---
+
 # WP-53 — Preserve optimization ID on transient recovery failure (2026-07-23)
 
 - [x] Reproduce the destructive UserDefaults clear with a red regression test.
@@ -6,7 +23,9 @@
 - [x] Verify the existing 200-body apply rejection surfaces an error without false success.
 - [x] Run focused recovery/optimization suites, full iOS 26.5 suite, Release build, and simulator launch smoke.
 - [x] Address PR #120 CodeRabbit comments: stale-result generation guard, race tests, and active-plan cleanup.
-- [ ] Merge and ship the WP-53 hotfix.
+- [x] Merge PR #120 with the WP-53 hotfix.
+- [x] Merge WP-53 and the 1.4.6 release vehicle to `main`.
+- [ ] Archive/upload 1.4.6 so WP-53 reaches users.
 - [ ] Run authenticated physical-device offline cold-launch recovery smoke after shipping.
 
 ---

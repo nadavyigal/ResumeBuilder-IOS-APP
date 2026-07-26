@@ -1,8 +1,10 @@
 import SwiftUI
+import StoreKit
 import UIKit
 
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.requestReview) private var requestReview
     @Bindable var viewModel: OptimizedResumeViewModel
     var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
@@ -25,6 +27,7 @@ struct OptimizedResumeView: View {
     @State private var isDownloadingPDF = false
     @State private var pdfTempURL: URL? = nil
     @State private var showPDFShare = false
+    @State private var pendingReviewOptimizationId: String? = nil
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
     @State private var optimizedViewedIds: Set<String> = []
@@ -279,7 +282,7 @@ struct OptimizedResumeView: View {
         .sheet(isPresented: $isManualEditMode) {
             manualEditSheet
         }
-        .sheet(isPresented: $showPDFShare, onDismiss: { pdfTempURL = nil }) {
+        .sheet(isPresented: $showPDFShare, onDismiss: handlePDFShareDismissed) {
             if let url = pdfTempURL {
                 ShareSheet(items: [url])
                     .ignoresSafeArea()
@@ -1165,6 +1168,7 @@ struct OptimizedResumeView: View {
                 renderedHTML: renderedPreviewHTML
             )
             pdfTempURL = result.fileURL
+            pendingReviewOptimizationId = result.optimizationId
             showPDFShare = true
             showExportSuccess = true
         } catch {
@@ -1174,6 +1178,24 @@ struct OptimizedResumeView: View {
                 viewModel.errorMessage = String(format: NSLocalizedString("PDF export failed: %@", comment: ""), error.localizedDescription)
             }
         }
+    }
+
+    @MainActor
+    private func handlePDFShareDismissed() {
+        pdfTempURL = nil
+        defer { pendingReviewOptimizationId = nil }
+
+        guard let optimizationId = pendingReviewOptimizationId,
+              appState.isExportComplete(for: optimizationId)
+        else {
+            return
+        }
+
+        let gate = ReviewPromptGate()
+        guard gate.claimAfterSuccessfulExport(hasCompletedExport: true) else { return }
+
+        AnalyticsService.shared.track(.appStoreReviewRequested(source: "export_success"))
+        requestReview()
     }
 
     private func trackOptimizedAndExportVisibilityIfNeeded() {

@@ -96,6 +96,7 @@ enum AnalyticsEvent: Sendable {
     case saveFailed(optimizationId: String, reason: String, errorCode: String)
     case exportStarted(optimizationId: String)
     case exportSuccess(optimizationId: String)
+    case appStoreReviewRequested(source: String)
     case exportFailed(optimizationId: String, errorCode: String)
     case diagnosisViewed(matchScore: Int)
     case recommendationViewed(surface: String, safetyState: String, reviewId: String?, itemId: String?)
@@ -155,6 +156,7 @@ enum AnalyticsEvent: Sendable {
         case .saveFailed: return "save_failed"
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
+        case .appStoreReviewRequested: return "app_store_review_requested"
         case .exportFailed: return "export_failed"
         case .diagnosisViewed: return "diagnosis_viewed"
         case .recommendationViewed: return "recommendation_viewed"
@@ -246,6 +248,8 @@ enum AnalyticsEvent: Sendable {
             return ["score_bucket": scoreBucket]
         case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
+        case .appStoreReviewRequested(let source):
+            return ["source": source]
         case .saveFailed(let optimizationId, let reason, let errorCode):
             return ["optimization_id": optimizationId, "reason": reason, "error_code": errorCode]
         case .diagnosisViewed(let matchScore):
