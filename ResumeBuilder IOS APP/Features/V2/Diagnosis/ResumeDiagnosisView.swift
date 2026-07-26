@@ -149,18 +149,30 @@ struct ResumeDiagnosisView: View {
     /// product has already been burned once by showing a "potential" the user
     /// could not reach.
     private func fitJourneyStrip(from current: Int, to next: Int) -> some View {
-        HStack(spacing: AppSpacing.sm) {
-            Text("\(current)%")
-                .font(.appSubheadline.weight(.bold))
-                .foregroundStyle(AppColors.textSecondary)
+        HStack(alignment: .firstTextBaseline, spacing: AppSpacing.sm) {
+            // The progression is pinned left-to-right on purpose.
+            //
+            // In Hebrew the surrounding RTL layout mirrors this row, and the
+            // strip rendered as "48% -> 29%" — the journey reading backwards,
+            // so the score appeared to DROP. That is the exact impression this
+            // screen exists to remove. Start-then-end is a directional quantity
+            // like a formula: it stays LTR in both languages, while the caption
+            // beside it follows the language.
+            HStack(spacing: AppSpacing.sm) {
+                Text(verbatim: "\(current)%")
+                    .font(.appSubheadline.weight(.bold))
+                    .foregroundStyle(AppColors.textSecondary)
 
-            Image(systemName: "arrow.right")
-                .font(.appCaption.weight(.bold))
-                .foregroundStyle(AppColors.accentTeal)
+                Image(systemName: "arrow.right")
+                    .font(.appCaption.weight(.bold))
+                    .foregroundStyle(AppColors.accentTeal)
 
-            Text("\(next)%")
-                .font(.appSubheadline.weight(.bold))
-                .foregroundStyle(AppColors.accentTeal)
+                Text(verbatim: "\(next)%")
+                    .font(.appSubheadline.weight(.bold))
+                    .foregroundStyle(AppColors.accentTeal)
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .accessibilityElement(children: .ignore)
 
             Text("after you apply the tailored rewrite")
                 .font(.appCaption)

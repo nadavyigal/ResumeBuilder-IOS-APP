@@ -7,6 +7,27 @@ struct ResumeBuilder_IOS_APPApp: App {
 
     var body: some Scene {
         WindowGroup {
+#if DEBUG
+            // Renders the fit-journey diagnosis with fixture data so the screen
+            // can be looked at without an account and a real optimization.
+            // Follows the existing --smoke-* launch-argument convention.
+            if ProcessInfo.processInfo.arguments.contains("--smoke-diagnosis") {
+                DiagnosisSmokeHarness()
+                    .environment(localization)
+                    .environment(\.locale, localization.locale)
+                    .environment(\.layoutDirection, localization.layoutDirection)
+                    .preferredColorScheme(.dark)
+            } else {
+                appBody
+            }
+#else
+            appBody
+#endif
+        }
+    }
+
+    @ViewBuilder
+    private var appBody: some View {
             ContentView()
                 .environment(appState)
                 .environment(localization)
@@ -23,6 +44,5 @@ struct ResumeBuilder_IOS_APPApp: App {
                 .onOpenURL { url in
                     appState.handleIncomingURL(url)
                 }
-        }
     }
 }
