@@ -16,16 +16,29 @@ enum FitBand: String, Codable, CaseIterable, Sendable, Equatable {
         }
     }
 
+    /// Mirrors `src/lib/ats/config/bands.ts` on the backend. Keep both in step.
+    ///
+    /// Recalibrated 2026-07-26 from the labelled benchmark, replacing
+    /// strong >= 75 / stretch >= 50. Those belonged to the scoring scale that
+    /// stopped existing on 2026-06-18, and on the current scale they classified
+    /// 4 of 19 labelled pairs as Weak when a human called them Strong or
+    /// Stretch — a 26.7% false-Weak rate. The adopted pair scores 0.947
+    /// accuracy with a 6.7% false-Weak rate, under the packet's 10% gate.
     static func derived(from score: Int) -> FitBand {
         switch score {
-        case 75...:
+        case FitBand.strongThreshold...:
             return .strong
-        case 50...74:
+        case FitBand.stretchThreshold..<FitBand.strongThreshold:
             return .stretch
         default:
             return .skip
         }
     }
+
+    /// At or above this is a strong match.
+    static let strongThreshold = 57
+    /// At or above this, and below `strongThreshold`, is a stretch.
+    static let stretchThreshold = 42
 }
 
 struct FitVerdict: Codable, Equatable, Sendable {

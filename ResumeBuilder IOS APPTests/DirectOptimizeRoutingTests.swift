@@ -34,14 +34,18 @@ final class DirectOptimizeRoutingTests: XCTestCase {
         // days the free checker's observed maximum was 51 and the authenticated
         // maximum was 62, against a strong threshold of 75. Showing a verdict
         // built on those bands could only ever discourage.
-        // The observed 60-day maxima: 51 on the free checker, 62 authenticated.
-        // Neither reaches strong, so the screen could award it to nobody.
-        XCTAssertNotEqual(FitBand.derived(from: 51), .strong)
-        XCTAssertNotEqual(FitBand.derived(from: 62), .strong)
-        XCTAssertEqual(FitBand.derived(from: 75), .strong)
-
-        // And the score the moderated session actually met falls in skip, the
-        // band that tells someone not to bother applying.
-        XCTAssertEqual(FitBand.derived(from: 45), .skip)
+        // Under the OLD 75/50 bands the observed 60-day maxima — 51 on the free
+        // checker, 62 authenticated — could not reach strong, so the screen was
+        // able to award it to nobody. That is why the gate was removed.
+        //
+        // The bands were recalibrated on 2026-07-26 to 57/42 against the
+        // labelled benchmark, so those same numbers now band sensibly. The gate
+        // stays off regardless: the screen asked for the same intent twice.
+        XCTAssertEqual(FitBand.derived(from: 62), .strong)
+        XCTAssertEqual(FitBand.derived(from: 51), .stretch)
+        XCTAssertEqual(FitBand.derived(from: 45), .stretch)
+        XCTAssertEqual(FitBand.derived(from: 41), .skip)
+        XCTAssertEqual(FitBand.strongThreshold, 57)
+        XCTAssertEqual(FitBand.stretchThreshold, 42)
     }
 }
