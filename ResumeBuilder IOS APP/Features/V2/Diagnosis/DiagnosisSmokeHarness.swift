@@ -72,8 +72,38 @@ struct DiagnosisSmokeHarness: View {
         )
     }
 
+    /// `--smoke-fit` renders the fit check that now sits between optimizing
+    /// and accepting, using the same numbers the backend returns.
+    private var wantsFitCheck: Bool {
+        ProcessInfo.processInfo.arguments.contains("--smoke-fit")
+    }
+
+    private var fitFixture: OptimizeFitPreview {
+        OptimizeFitPreview(
+            currentScore: 29,
+            potentialScore: 48,
+            delta: 19,
+            displayScores: true,
+            confidence: 0.8,
+            scoreVersion: "ats_v2.1_wp45",
+            topGaps: [
+                OptimizeFitGap(title: "Add at least one metric to your most recent role", estimatedGain: 6, category: "metrics"),
+                OptimizeFitGap(title: "Include timeframes showing speed of delivery", estimatedGain: 4, category: "content"),
+                OptimizeFitGap(title: "Mirror the posting's job title wording", estimatedGain: 3, category: "keywords"),
+            ]
+        )
+    }
+
     var body: some View {
         NavigationStack {
+            if wantsFitCheck {
+                OptimizeFitCheckView(
+                    fit: fitFixture,
+                    jobTitle: "Business Development Manager · XTEND",
+                    onAccept: {},
+                    onEditTargetJob: {}
+                )
+            } else {
             ResumeDiagnosisView(
                 viewModel: ResumeDiagnosisViewModel(
                     optimizationId: "smoke",
@@ -83,6 +113,7 @@ struct DiagnosisSmokeHarness: View {
                 onEditTargetJob: {}
             )
             .environment(appState)
+            }
         }
         .task {
             if wantsHebrew { LocalizationManager.shared.setLanguage(.hebrew) }

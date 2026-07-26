@@ -9360,6 +9360,105 @@
           }
         }
       }
+    },
+    "Match Check": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בדיקת התאמה"
+          }
+        }
+      }
+    },
+    "YOUR MATCH": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ההתאמה שלך"
+          }
+        }
+      }
+    },
+    "Here is how you match this job today": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כך אתם מתאימים למשרה הזו היום"
+          }
+        }
+      }
+    },
+    "if you accept the tailored rewrite": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אם תאשרו את הניסוח המותאם"
+          }
+        }
+      }
+    },
+    "What is holding it back": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מה מעכב את הציון"
+          }
+        }
+      }
+    },
+    "Accept optimization": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אשרו את האופטימיזציה"
+          }
+        }
+      }
+    },
+    "Estimated fit vs this job, not a hiring guarantee.": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הערכת התאמה למשרה זו, לא הבטחה לקבלה."
+          }
+        }
+      }
+    },
+    "We prepared targeted improvements for this job. Review them and see what changes.": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הכנו שיפורים ממוקדים למשרה הזו. עברו עליהם וראו מה משתנה."
+          }
+        }
+      }
+    },
+    "Your match goes from %lld percent to %lld percent if you accept the tailored rewrite": {
+      "extractionState": "manual",
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ההתאמה שלך עולה מ-%lld אחוז ל-%lld אחוז אם תאשרו את הניסוח המותאם"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

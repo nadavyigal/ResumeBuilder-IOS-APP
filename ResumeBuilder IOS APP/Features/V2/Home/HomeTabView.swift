@@ -291,6 +291,13 @@ struct HomeTabView: View {
                             )
                         }
                     )
+                case .fitCheck(let reviewId):
+                    OptimizeFitCheckView(
+                        fit: viewModel.fitPreview,
+                        jobTitle: nil,
+                        onAccept: { journeyRoute = .optimizationReview(reviewId: reviewId) },
+                        onEditTargetJob: { journeyRoute = nil }
+                    )
                 case .diagnosis:
                     if let diagnosisViewModel {
                         ResumeDiagnosisView(
@@ -510,7 +517,18 @@ struct HomeTabView: View {
             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
             journeyRoute = .diagnosis(optimizationId: optId)
         } else if let reviewId = viewModel.reviewId {
-            journeyRoute = .optimizationReview(reviewId: reviewId)
+            // The fit check comes first when the run measured one.
+            //
+            // This branch used to go straight to the accept screen, which is
+            // why the fit check appeared to have been removed: the review-based
+            // flow always returns a reviewId, so the diagnosis branch above was
+            // effectively dead. The user sees where they stand and what
+            // accepting would buy, then accepts.
+            if let fit = viewModel.fitPreview, fit.currentScore != nil {
+                journeyRoute = .fitCheck(reviewId: reviewId)
+            } else {
+                journeyRoute = .optimizationReview(reviewId: reviewId)
+            }
         }
     }
 

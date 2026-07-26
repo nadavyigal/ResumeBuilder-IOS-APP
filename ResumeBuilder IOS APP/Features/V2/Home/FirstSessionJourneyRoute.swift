@@ -2,11 +2,21 @@ import Foundation
 
 /// The single navigation destination owned by Home during the first-session journey.
 enum FirstSessionJourneyRoute: Hashable, Identifiable, Sendable {
+    /// The fit check: where the resume stands against this job right now, and
+    /// what accepting the tailored rewrite would buy. Shown BEFORE the accept
+    /// screen — going straight to accept is what made the fit check look like
+    /// it had been removed (founder, device test 2026-07-26).
+    ///
+    /// Carries only the reviewId; the measurement itself lives on the view
+    /// model so this stays cheap to hash.
+    case fitCheck(reviewId: String)
     case optimizationReview(reviewId: String)
     case diagnosis(optimizationId: String)
 
     var id: String {
         switch self {
+        case .fitCheck(let reviewId):
+            "fit:\(reviewId)"
         case .optimizationReview(let reviewId):
             "review:\(reviewId)"
         case .diagnosis(let optimizationId):
