@@ -173,9 +173,39 @@ final class OptimizedResumeViewModel {
         atsScoreAfter ?? atsScoreBefore ?? 0
     }
 
+    /// The smallest improvement worth showing as a before/after pair.
+    ///
+    /// Mirrors `MIN_MEANINGFUL_LIFT` in `src/lib/ats/lift.ts`. A moderated
+    /// session on 2026-07-24 watched a user optimize and see "42 before,
+    /// 44 after"; over 60 days, 24 of 59 optimizations ended at +4 or worse and
+    /// 6 ended lower than they started. A pair like that reads as a promise the
+    /// run did not keep (WP-45 S2/S8).
+    static let minimumMeaningfulLift = 5
+
     var atsScoreDelta: Int? {
         guard let before = atsScoreBefore, let after = atsScoreAfter else { return nil }
         return after - before
+    }
+
+    /// Did this run actually improve on the resume the user started with?
+    ///
+    /// Nil when there is nothing to compare. The backend sends the same verdict
+    /// on the optimization response; this is the local fallback so the rule
+    /// holds even against an older response that predates that field.
+    var hasMeaningfulLift: Bool? {
+        guard let delta = atsScoreDelta else { return nil }
+        return delta >= Self.minimumMeaningfulLift
+    }
+
+    /// Whether to render the before/after numbers at all.
+    ///
+    /// False does NOT mean hide the result — it means show what changed and
+    /// what is still missing, without a numeric pair. The scores themselves are
+    /// never rewritten, clamped, or floored; withholding is a display decision,
+    /// and inflating the number would be the dishonest fix for the same
+    /// complaint.
+    var shouldDisplayScorePair: Bool {
+        hasMeaningfulLift ?? false
     }
 
     var atsLowScoreExplanation: String? {

@@ -19,6 +19,7 @@
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* FitCheckViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */; };
 		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
+		DA45030000000000000000B3 /* LiftDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45030000000000000000A3 /* LiftDisplayTests.swift */; };
 		DA45020000000000000000B2 /* ResultScreenPrimaryActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */; };
 		DA45010000000000000000B1 /* DirectOptimizeRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */; };
 		AB98B773B677E9430A3573F6 /* ImproveViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */; };
@@ -58,6 +59,7 @@
 		9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpertReportParsingTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FirstSessionJourneyTests.swift; sourceTree = "<group>"; };
 		AA11223344556677889900BB /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
+		DA45030000000000000000A3 /* LiftDisplayTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiftDisplayTests.swift; sourceTree = "<group>"; };
 		DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResultScreenPrimaryActionTests.swift; sourceTree = "<group>"; };
 		DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DirectOptimizeRoutingTests.swift; sourceTree = "<group>"; };
 		B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitCheckViewModelTests.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				3C8E0A2F5D7B9F1A3C5E7A9B /* CopyClaimsTests.swift */,
 				A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */,
 				AA11223344556677889900BB /* AnalyticsServiceTests.swift */,
+				DA45030000000000000000A3 /* LiftDisplayTests.swift */,
 				DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */,
 				DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */,
 				EC120002EC120002EC120002 /* ExportCompletionTests.swift */,
@@ -283,6 +286,7 @@
 				2B7D9F1E4C6A8E0F2B4D6F8A /* CopyClaimsTests.swift in Sources */,
 				F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */,
 				AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */,
+				DA45030000000000000000B3 /* LiftDisplayTests.swift in Sources */,
 				DA45020000000000000000B2 /* ResultScreenPrimaryActionTests.swift in Sources */,
 				DA45010000000000000000B1 /* DirectOptimizeRoutingTests.swift in Sources */,
 				EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */,
@@ -445,7 +449,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -454,7 +458,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.6;
+				MARKETING_VERSION = 1.4.7;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -478,7 +482,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -487,7 +491,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.6;
+				MARKETING_VERSION = 1.4.7;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
