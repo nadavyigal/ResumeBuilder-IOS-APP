@@ -149,7 +149,7 @@ final class OptimizedResumeViewModel {
     }
 
     var atsStatusLabel: String {
-        let score = atsScoreAfter ?? atsScoreBefore ?? 0
+        let score = fitJourney.currentDisplayedScore ?? 0
         if score >= 80 { return "High" }
         if score >= 70 { return "Strong" }
         if score >= 55 { return "Medium" }
@@ -169,9 +169,38 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    var currentATSScore: Int {
-        atsScoreAfter ?? atsScoreBefore ?? 0
+    /// Score after an expert pass, when one has run. Recorded separately so the
+    /// journey can show experts as their own stage rather than overwriting the
+    /// improved number.
+    var atsScoreAfterExpert: Int?
+
+    /// The user's fit as a journey with stages, not a single number.
+    ///
+    /// `.fit` is where the resume started against this job, `.improved` is the
+    /// tailored rewrite, `.expert` is what expert passes added. FitJourney owns
+    /// the rule that the displayed number never goes backwards, so no screen
+    /// has to remember it (founder direction 2026-07-26).
+    var fitJourney: FitJourney {
+        FitJourney(
+            fit: atsScoreBefore,
+            improved: atsScoreAfter,
+            expert: atsScoreAfterExpert
+        )
     }
+
+    /// The stage the user has reached, for labelling the score they can see.
+    var currentFitStage: FitStage? { fitJourney.currentStage }
+
+    /// The number to show right now. Never below anything already shown.
+    var currentATSScore: Int {
+        fitJourney.currentDisplayedScore ?? 0
+    }
+
+    /// Where the resume started, for the "you were here" end of the journey.
+    var startingFitScore: Int? { fitJourney.displayedScore(at: .fit) }
+
+    /// Total gain so far, never negative.
+    var fitGainSoFar: Int? { fitJourney.totalGain }
 
     /// The smallest improvement worth showing as a before/after pair.
     ///
@@ -605,7 +634,12 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    func rescanATS(token: String?) async {
+    /// Refresh the Match Score.
+    ///
+    /// `stage` says which part of the journey the new measurement belongs to.
+    /// FitJourney guarantees the displayed number never falls below what the
+    /// user has already seen, whichever stage records it.
+    func rescanATS(token: String?, recordingAs stage: FitStage = .improved) async {
         guard let token else {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return
@@ -619,12 +653,32 @@ final class OptimizedResumeViewModel {
         defer { isRefreshingATS = false }
 
         do {
+            let previouslyShown = currentATSScore
             let response = try await analysisService.rescan(optimizationId: optId, token: token)
+
+            // Both sides come from the same rescan, so they are on the same
+            // scale. Keeping a stale "before" against a fresh "after" is the
+            // incomparability defect this packet spent a day removing.
             if let original = response.originalScore {
                 atsScoreBefore = original
             }
+
+            // Which stage this measurement belongs to is the caller's to say.
+            // A plain refresh re-measures the tailored rewrite; a refresh that
+            // follows an expert pass is what the experts added, and the founder
+            // wants those as separate, climbing stages.
             if let optimized = response.optimizedScore {
-                atsScoreAfter = optimized
+                if optimized < previouslyShown {
+                    AnalyticsService.shared.track(
+                        .improveScoreRegressed(previous: previouslyShown, measured: optimized)
+                    )
+                }
+                switch stage {
+                case .expert:
+                    atsScoreAfterExpert = optimized
+                case .fit, .improved:
+                    atsScoreAfter = optimized
+                }
             }
             backendDiagnosis = nil
         } catch {
@@ -670,7 +724,9 @@ final class OptimizedResumeViewModel {
             await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
-            await rescanATS(token: token)
+            // This refresh is the expert pass's result, so it lands on the
+            // expert stage rather than overwriting what the rewrite achieved.
+            await rescanATS(token: token, recordingAs: .expert)
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = nil

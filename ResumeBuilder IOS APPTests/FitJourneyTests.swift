@@ -123,3 +123,58 @@ final class ResumeGapDeduplicationTests: XCTestCase {
         XCTAssertFalse(gap(title: "Some gap", explanation: "   ").hasDistinctExplanation)
     }
 }
+
+/// The journey as the founder described it, through the view model that the
+/// screens actually read.
+@MainActor
+final class OptimizedResumeJourneyTests: XCTestCase {
+
+    private func model(before: Int?, after: Int?, expert: Int? = nil) -> OptimizedResumeViewModel {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-test",
+            atsScoreBefore: before,
+            atsScoreAfter: after
+        )
+        vm.atsScoreAfterExpert = expert
+        return vm
+    }
+
+    func testTheScoreClimbsThroughTheStages() {
+        XCTAssertEqual(model(before: 29, after: nil).currentATSScore, 29)
+        XCTAssertEqual(model(before: 29, after: 48).currentATSScore, 48)
+        XCTAssertEqual(model(before: 29, after: 48, expert: 63).currentATSScore, 63)
+    }
+
+    func testTheStageIsReportedSoTheScreenCanLabelIt() {
+        XCTAssertEqual(model(before: 29, after: nil).currentFitStage, .fit)
+        XCTAssertEqual(model(before: 29, after: 48).currentFitStage, .improved)
+        XCTAssertEqual(model(before: 29, after: 48, expert: 63).currentFitStage, .expert)
+    }
+
+    func testAnExpertPassThatMeasuresLowerCannotPullTheNumberDown() {
+        let vm = model(before: 29, after: 48, expert: 40)
+        XCTAssertEqual(vm.currentATSScore, 48, "holds at what the user already saw")
+        XCTAssertEqual(vm.fitJourney.rawScore(at: .expert), 40, "measurement still recorded")
+        XCTAssertTrue(vm.fitJourney.regressed(at: .expert))
+    }
+
+    func testTheStartingPointIsKeptForTheJourneyStrip() {
+        let vm = model(before: 29, after: 48)
+        XCTAssertEqual(vm.startingFitScore, 29)
+        XCTAssertEqual(vm.fitGainSoFar, 19)
+    }
+
+    func testGainIsNeverNegativeEvenWhenTheRewriteMeasuresWorse() {
+        let vm = model(before: 55, after: 41)
+        XCTAssertEqual(vm.currentATSScore, 55)
+        XCTAssertEqual(vm.fitGainSoFar, 0)
+    }
+
+    func testStatusLabelReadsTheSameMonotonicNumber() {
+        // It used to compute its own `after ?? before`, so the badge could
+        // disagree with the ring on the same screen.
+        let vm = model(before: 29, after: 48, expert: 40)
+        XCTAssertEqual(vm.currentATSScore, 48)
+        XCTAssertEqual(vm.atsStatusLabel, "Low")
+    }
+}

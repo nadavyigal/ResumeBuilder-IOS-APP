@@ -126,10 +126,11 @@ struct ResumeDiagnosisView: View {
                 ScoreRingView(score: diagnosis.matchScore, size: 92)
             }
 
-            if let potential = diagnosis.potentialScore {
-                Label("Potential after optimization: about \(potential)%", systemImage: "arrow.up.circle.fill")
-                    .font(.appCaption.weight(.semibold))
-                    .foregroundStyle(AppColors.accentTeal)
+            // The journey, not a lone number. The user sees where they started,
+            // what the tailored rewrite reaches, and that the next step only
+            // ever adds — never subtracts (founder direction 2026-07-26).
+            if let potential = diagnosis.potentialScore, potential > diagnosis.matchScore {
+                fitJourneyStrip(from: diagnosis.matchScore, to: potential)
             }
 
             Text(diagnosis.scoreNote.isEmpty ? diagnosis.matchScoreLabel : diagnosis.scoreNote)
@@ -139,6 +140,36 @@ struct ResumeDiagnosisView: View {
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    /// Where you are now, and where the next step takes you.
+    ///
+    /// Deliberately shows the destination as a gain rather than a promise of a
+    /// final number, and only when the destination is genuinely higher — the
+    /// product has already been burned once by showing a "potential" the user
+    /// could not reach.
+    private func fitJourneyStrip(from current: Int, to next: Int) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            Text("\(current)%")
+                .font(.appSubheadline.weight(.bold))
+                .foregroundStyle(AppColors.textSecondary)
+
+            Image(systemName: "arrow.right")
+                .font(.appCaption.weight(.bold))
+                .foregroundStyle(AppColors.accentTeal)
+
+            Text("\(next)%")
+                .font(.appSubheadline.weight(.bold))
+                .foregroundStyle(AppColors.accentTeal)
+
+            Text("after you apply the tailored rewrite")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, AppSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("Your match goes from \(current) percent to \(next) percent after applying the tailored rewrite"))
     }
 
     private func topGapsCard(_ gaps: [ResumeGap]) -> some View {
