@@ -107,6 +107,9 @@ enum AnalyticsEvent: Sendable {
     /// Counts only — quote content never leaves the device.
     case recommendationEvidenceShown(surface: String, jobQuoteCount: Int, resumeQuoteCount: Int, reviewId: String?, itemId: String?)
     case atsImproveTapped(currentScore: Int)
+    /// A rescan measured lower than the user had already been shown. The
+    /// display holds at the higher number; this counts how often that happens.
+    case improveScoreRegressed(previous: Int, measured: Int)
     case exportPdfTapped(optimizationId: String)
     case exportCTASeen(optimizationId: String)
     case submitPackageSaved(hasCoverLetter: Bool)
@@ -166,6 +169,7 @@ enum AnalyticsEvent: Sendable {
         case .recommendationBlocked: return "recommendation_blocked"
         case .recommendationEvidenceShown: return "recommendation_evidence_shown"
         case .atsImproveTapped: return "ats_improve_tapped"
+        case .improveScoreRegressed: return "improve_score_regressed"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .exportCTASeen: return "export_cta_seen"
         case .submitPackageSaved: return "submit_package_saved"
@@ -288,6 +292,14 @@ enum AnalyticsEvent: Sendable {
             ])
         case .atsImproveTapped(let currentScore):
             return ["current_score": "\(currentScore)"]
+        case .improveScoreRegressed(let previous, let measured):
+            // Bucketed, like the backend's optimization_no_lift: this exists to
+            // count how often the pipeline goes backwards, not to reconstruct
+            // anybody's resume quality from analytics.
+            return [
+                "drop_bucket": measured < previous - 10 ? "10_plus"
+                    : measured < previous - 4 ? "5_to_9" : "1_to_4",
+            ]
         case .submitPackageSaved(let hasCoverLetter):
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
         case .fitCheckStarted:

@@ -160,10 +160,15 @@ struct ResumeDiagnosisView: View {
                         Text(gap.title)
                             .font(.appCaption.weight(.semibold))
                             .foregroundStyle(AppColors.textPrimary)
-                        Text(gap.explanation)
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        // The backend often returns the same sentence for the
+                        // blocker's title and its suggested action, which
+                        // rendered every gap twice — once bold, once grey.
+                        if gap.hasDistinctExplanation {
+                            Text(gap.explanation)
+                                .font(.appCaption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
             }

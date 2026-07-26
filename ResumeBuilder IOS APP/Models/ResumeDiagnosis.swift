@@ -159,6 +159,25 @@ struct ResumeGap: Identifiable, Codable, Equatable, Sendable {
     let explanation: String
     let severity: GapSeverity
 
+    /// Is the explanation actually saying something the title did not?
+    ///
+    /// Blockers frequently carry the same sentence in `title` and
+    /// `suggestedAction`, and rendering both printed every gap twice on the
+    /// diagnosis screen. Compared case- and whitespace-insensitively so near
+    /// duplicates are caught too.
+    var hasDistinctExplanation: Bool {
+        let normalise: (String) -> String = {
+            $0.lowercased()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+                .trimmingCharacters(in: CharacterSet(charactersIn: ".!:;"))
+        }
+        let t = normalise(title)
+        let e = normalise(explanation)
+        guard !e.isEmpty else { return false }
+        return e != t && !e.hasPrefix(t) && !t.hasPrefix(e)
+    }
+
     init(id: UUID = UUID(), title: String, explanation: String, severity: GapSeverity) {
         self.id = id
         self.title = title

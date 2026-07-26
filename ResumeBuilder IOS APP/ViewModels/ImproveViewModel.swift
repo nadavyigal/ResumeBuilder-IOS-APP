@@ -214,9 +214,26 @@ final class ImproveViewModel {
         guard response.success ?? true else {
             throw APIClientError.invalidResponse
         }
-        let updated = response.optimizedScore ?? analysis?.overall
-        if let updated {
-            analysis = analysis?.withUpdatedScores(overall: updated, ats: updated)
+        // The score the user sees never goes down (founder direction 2026-07-26).
+        //
+        // This used to assign the rescan result unconditionally, so a rescan
+        // that came back lower than where the user already was lowered the
+        // number in front of someone who had just asked the product to improve
+        // it. That reads as "you made it worse" and it is the same class of
+        // damage as the 42 -> 44 the moderated session hit.
+        //
+        // The raw measurement is still reported to analytics; only the display
+        // holds. Suppressing a bad presentation is not the same as hiding a bad
+        // result from ourselves.
+        if let measured = response.optimizedScore {
+            let previous = analysis?.overall ?? 0
+            if measured < previous {
+                AnalyticsService.shared.track(
+                    .improveScoreRegressed(previous: previous, measured: measured)
+                )
+            }
+            let shown = max(previous, measured)
+            analysis = analysis?.withUpdatedScores(overall: shown, ats: shown)
         }
     }
 

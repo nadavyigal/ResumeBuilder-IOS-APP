@@ -698,7 +698,21 @@ final class OptimizedResumeViewModel {
             )
             keywordPreviews[suggestionId] = dto.affectedFields
         } catch let apiError as APIClientError {
-            keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+            // Never surface a raw server error string as if it were content.
+            // A 404 here reached the user on device as the literal words
+            // "Suggestion not found" sitting inside the preview card, which
+            // reads like broken advice rather than a stale item. It means the
+            // suggestion can no longer be resolved — usually because the
+            // optimization was rescored after this list was built — so say
+            // that, and tell the user what to do about it.
+            if case .serverError(let status, _) = apiError, status == 404 {
+                keywordPreviewErrors[suggestionId] = NSLocalizedString(
+                    "This suggestion is out of date. Refresh to get the current list.",
+                    comment: "Shown when a keyword suggestion can no longer be previewed"
+                )
+            } else {
+                keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+            }
         } catch {
             keywordPreviewErrors[suggestionId] = error.localizedDescription
         }
