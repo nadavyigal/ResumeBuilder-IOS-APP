@@ -180,11 +180,22 @@ final class OptimizedResumeViewModel {
     /// tailored rewrite, `.expert` is what expert passes added. FitJourney owns
     /// the rule that the displayed number never goes backwards, so no screen
     /// has to remember it (founder direction 2026-07-26).
+    /// The score from the free match check the user ran before signing in.
+    ///
+    /// Read from the session store rather than passed in: this view model has
+    /// ten construction sites and threading a baseline through all of them
+    /// would be ten chances to forget one. See `FitJourney.baseline` for why
+    /// the floor is needed even after the engine fixes.
+    var freeCheckScore: Int? {
+        FitBaselineStore.shared.baseline(forResumeID: resumeId)
+    }
+
     var fitJourney: FitJourney {
         FitJourney(
             fit: atsScoreBefore,
             improved: atsScoreAfter,
-            expert: atsScoreAfterExpert
+            expert: atsScoreAfterExpert,
+            baseline: freeCheckScore
         )
     }
 

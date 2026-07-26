@@ -95,6 +95,17 @@ final class FitCheckViewModel {
                 sessionId: nil
             )
             result = checkResult
+
+            // This is the first score the user ever sees, and it comes from a
+            // different endpoint than the optimize path. Record it so the
+            // journey that follows can never present a number below it
+            // (WP-45 D7). Recorded here, at the one place a verdict is
+            // produced, rather than at each screen that shows one.
+            FitBaselineStore.shared.record(
+                score: checkResult.verdict.score,
+                resumeID: resumeId
+            )
+
             AnalyticsService.shared.track(
                 .fitCheckCompleted(
                     verdict: checkResult.verdict.band.rawValue,

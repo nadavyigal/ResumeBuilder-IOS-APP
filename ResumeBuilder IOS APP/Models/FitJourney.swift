@@ -39,10 +39,26 @@ enum FitStage: Int, Comparable, CaseIterable, Sendable {
 struct FitJourney: Equatable, Sendable {
     private(set) var rawScores: [FitStage: Int] = [:]
 
-    init(fit: Int? = nil, improved: Int? = nil, expert: Int? = nil) {
+    /// A score the user was already shown before this journey started.
+    ///
+    /// The free match check runs before sign-in, against a different endpoint,
+    /// and its number is the first one the user ever sees. On 2026-07-26 a real
+    /// run scored 56 there and 51 on the optimize path's original side — the
+    /// same resume and the same job, differing only in how much structure each
+    /// endpoint could recover. The engine defects behind most of that gap are
+    /// fixed, but the two paths still extract resume text slightly differently,
+    /// so a residual point or two remains possible.
+    ///
+    /// A one-point drop is still a drop. This is the backstop that makes the
+    /// never-decrease guarantee hold across the guest-to-signed-in boundary
+    /// regardless of what the two scorers disagree about (WP-45 D7).
+    private(set) var baseline: Int?
+
+    init(fit: Int? = nil, improved: Int? = nil, expert: Int? = nil, baseline: Int? = nil) {
         if let fit { rawScores[.fit] = Self.clamp(fit) }
         if let improved { rawScores[.improved] = Self.clamp(improved) }
         if let expert { rawScores[.expert] = Self.clamp(expert) }
+        if let baseline { self.baseline = Self.clamp(baseline) }
     }
 
     private static func clamp(_ value: Int) -> Int { min(100, max(0, value)) }
@@ -63,7 +79,9 @@ struct FitJourney: Equatable, Sendable {
     /// `regressed(at:)` reports it.
     func displayedScore(at stage: FitStage) -> Int? {
         guard rawScores[stage] != nil else { return nil }
-        var best = 0
+        // The baseline is the floor for every stage, not a stage itself — the
+        // user saw it before this journey began and must never see less.
+        var best = baseline ?? 0
         var found = false
         for candidate in FitStage.allCases where candidate <= stage {
             if let raw = rawScores[candidate] {
@@ -72,6 +90,11 @@ struct FitJourney: Equatable, Sendable {
             }
         }
         return found ? best : nil
+    }
+
+    /// Record the score the user was shown before this journey started.
+    mutating func recordBaseline(_ score: Int) {
+        baseline = Self.clamp(score)
     }
 
     /// Did this stage measure lower than the user has already been shown?
