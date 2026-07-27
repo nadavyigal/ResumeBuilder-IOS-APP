@@ -321,3 +321,74 @@ final class FitBaselineStoreJoinTests: XCTestCase {
         XCTAssertNil(FitBaselineStore.shared.baseline(for: "resume_abc"))
     }
 }
+
+// MARK: - Expert gain lands on the expert stage (WP-45 D7)
+
+/// Founder direction: fit → improved → expert as separate climbing stages,
+/// and "experts usage should increase the score".
+///
+/// `applyExpertATSResult` wrote unconditionally into the improved stage, so an
+/// expert pass overwrote what the tailored rewrite achieved. The improved
+/// reading became wrong and the expert gain became invisible — the number had
+/// already been raised before `.expert` was ever recorded.
+@MainActor
+final class ExpertStageAttributionTests: XCTestCase {
+
+    private func applyResult(score: Double) -> ExpertWorkflowApplyResponseDTO? {
+        let json = """
+        {"success":true,"new_ats_score":\(score)}
+        """.data(using: .utf8)!
+        return try? JSONDecoder().decode(ExpertWorkflowApplyResponseDTO.self, from: json)
+    }
+
+    func testAnExpertApplyDoesNotOverwriteTheRewritesScore() throws {
+        let dto = try XCTUnwrap(applyResult(score: 71))
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_1")
+        vm.atsScoreBefore = 29
+        vm.atsScoreAfter = 48   // what the tailored rewrite achieved
+
+        vm.applyExpertATSResult(dto, recordingAs: .expert)
+
+        XCTAssertEqual(vm.atsScoreAfter, 48, "the rewrite's own result must survive an expert pass")
+        XCTAssertEqual(vm.atsScoreAfterExpert, 71)
+    }
+
+    func testTheExpertGainIsVisibleAsItsOwnStep() throws {
+        let dto = try XCTUnwrap(applyResult(score: 71))
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_1")
+        vm.atsScoreBefore = 29
+        vm.atsScoreAfter = 48
+
+        vm.applyExpertATSResult(dto, recordingAs: .expert)
+
+        let journey = vm.fitJourney
+        XCTAssertEqual(journey.displayedScore(at: .fit), 29)
+        XCTAssertEqual(journey.displayedScore(at: .improved), 48)
+        XCTAssertEqual(journey.displayedScore(at: .expert), 71)
+        XCTAssertEqual(journey.totalGain, 42)
+    }
+
+    func testAPlainApplyStillLandsOnTheImprovedStage() throws {
+        let dto = try XCTUnwrap(applyResult(score: 55))
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_1")
+        vm.atsScoreAfter = 48
+
+        vm.applyExpertATSResult(dto)
+
+        XCTAssertEqual(vm.atsScoreAfter, 55)
+        XCTAssertNil(vm.atsScoreAfterExpert)
+    }
+
+    func testAnExpertPassThatMeasuresLowerStillShowsTheImprovedScore() throws {
+        let dto = try XCTUnwrap(applyResult(score: 40))
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_1")
+        vm.atsScoreBefore = 29
+        vm.atsScoreAfter = 48
+
+        vm.applyExpertATSResult(dto, recordingAs: .expert)
+
+        // Never down: the user keeps the 48 they were already shown.
+        XCTAssertEqual(vm.currentATSScore, 48)
+        XCTAssertEqual(vm.atsScoreAfterExpert, 40, "the raw measurement is still recorded")
+    }
+}

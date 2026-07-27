@@ -529,11 +529,30 @@ final class OptimizedResumeViewModel {
         if applicationId == nil { applicationId = detail.applicationId }
     }
 
-    func applyExpertATSResult(_ applyResult: ExpertWorkflowApplyResponseDTO) {
-        if let after = applyResult.newAtsScore {
-            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
-        } else if let after = applyResult.atsImpact?.after {
-            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+    /// Record the score an expert apply reported, on the stage it belongs to.
+    ///
+    /// This wrote unconditionally into `atsScoreAfter` — the *improved* stage —
+    /// even when the caller was an expert pass. That overwrote what the tailored
+    /// rewrite achieved with what the experts achieved, so the improved reading
+    /// was wrong and the expert gain was invisible: the number had already been
+    /// raised before `.expert` was recorded. When the follow-up rescan fails on
+    /// credits, which `improveATS` explicitly expects, the expert score stayed
+    /// mislabelled as the rewrite's. The founder's journey is fit → improved →
+    /// expert as separate climbing stages, so the stage is the caller's to name
+    /// (WP-45 D7).
+    func applyExpertATSResult(
+        _ applyResult: ExpertWorkflowApplyResponseDTO,
+        recordingAs stage: FitStage = .improved
+    ) {
+        let reported = applyResult.newAtsScore ?? applyResult.atsImpact?.after
+        guard let reported else { return }
+
+        let score = Int((reported <= 1 ? reported * 100 : reported).rounded())
+        switch stage {
+        case .expert:
+            atsScoreAfterExpert = score
+        case .fit, .improved:
+            atsScoreAfter = score
         }
     }
 
@@ -737,7 +756,9 @@ final class OptimizedResumeViewModel {
                 selectedFields: nil
             )
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
-            applyExpertATSResult(apply)
+            // An expert pass's own reported score is the expert stage's, so it
+            // stands even if the rescan below fails on credits.
+            applyExpertATSResult(apply, recordingAs: .expert)
             await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1

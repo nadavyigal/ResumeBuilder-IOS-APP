@@ -296,9 +296,13 @@ enum AnalyticsEvent: Sendable {
             // Bucketed, like the backend's optimization_no_lift: this exists to
             // count how often the pipeline goes backwards, not to reconstruct
             // anybody's resume quality from analytics.
+            //
+            // Bucketed on the drop itself. Expressed as `measured < previous - 10`
+            // an exact 10-point fall landed in 5_to_9, under-counting the worst
+            // bucket at its own boundary.
+            let drop = previous - measured
             return [
-                "drop_bucket": measured < previous - 10 ? "10_plus"
-                    : measured < previous - 4 ? "5_to_9" : "1_to_4",
+                "drop_bucket": drop >= 10 ? "10_plus" : drop >= 5 ? "5_to_9" : "1_to_4",
             ]
         case .submitPackageSaved(let hasCoverLetter):
             return ["has_cover_letter": hasCoverLetter ? "true" : "false"]
