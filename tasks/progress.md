@@ -1,5 +1,33 @@
 # Project Progress
 
+## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)
+
+**The bug.** A moderated run scored one unchanged resume **56** through the free match check and **51** through optimize, then **44** after the rewrite. The user watched the number fall for doing nothing but continue. All three composites reproduce to the point from their stored subscores, so this was measured, not inferred.
+
+**Root cause was four defects, and the largest was self-inflicted.** `recency_fit` was `latestRoleBonus * avgDecay` — recency multiplied by the share of the job's must-have keywords in the newest role — so a candidate in a current role that did not echo the job's keywords scored **0 on recency**. It also double-counted keyword overlap, which `keyword_exact` already measures at nearly 3x the weight. Because the analyzer's no-data fallback is a flat 50, **having more information about a resume made it score lower**: the free check fell back to 50, optimize computed 0. WP-45 D4 had introduced that derivation days earlier.
+
+**This was never a one-off.** Across 60 days, **58 of 60 runs** had optimized-side recency below the 50 fallback (mean 12.7, seven at exactly 0) — roughly **3.42 composite points of unearned penalty on every optimization**, invisible until a user happened to see both numbers.
+
+Also fixed: recency resolved on only one side of the comparison (a benchmark case read 93 original vs 50 optimized and reported the optimization as −4); the threshold pair `max_decay_rate 0.5` / `relevance_floor 0.7` putting the worst real score at 35, *below* the fallback, so stale-but-dated history was still punished for parsing; and the gate counting experience entries rather than dates, which let undated roles read as current.
+
+**Two defects were found by reviewing #125 rather than by testing it, and both were shipped-but-inert.** (1) `FitBaselineStore` was keyed by resume id, but every screen that shows a score is built from an optimization id and `OptimizedResumeTabView` passes `resumeId` nil — so the never-decrease floor **never applied in the shipping path**. (2) `applyExpertATSResult` wrote into the *improved* stage even for expert passes, overwriting what the rewrite achieved and making the expert gain invisible; `ExpertModesViewModel` had it on both its apply and its rescan. **Neither was caught by the suite, because both were in wiring between components rather than inside them.** The unit tests exercised the data structure, not the join.
+
+**Scoring changed, so the regime moved.** `SCORE_VERSION` → `ats_v2.2_wp45_d7`, new `wp45_recency_fixed` regime. `regimeFor` matched the substring `wp45` and would have silently binned the new engine with the old.
+
+**Gap found, not closed:** `SCORE_VERSION` is returned in the API response but **never persisted**. `optimizations.ats_version` is an *integer* reading `2` for all 90 days, and `anonymous_ats_scores` has no version column at all. The regime discipline therefore classifies stored rows by timestamp, not by what actually scored them.
+
+**Validation:** 274 tests, 0 failures (ten new; four fail on the prior commit). Web: 11 suites, 126 passed; tsc unchanged at 27 pre-existing errors, none in `src/lib/ats`. Web PR #123 merged and **deployed to production**, verified green on the merge SHA and by scoring a real CV live. `ARCHIVE SUCCEEDED` and `EXPORT SUCCEEDED` for 1.4.7 (17), distribution-signed.
+
+**Not done:** (1) **No physical-device verification.** Simulator only; the journey has now failed on device twice while reporting green. (2) **Not uploaded** — no App Store Connect API key or keychain profile exists on this machine. IPA is at `/private/tmp/wp45-export/`. (3) **The optimizer still degrades resumes** — `keyword_exact` 60 → 40 on the tested run, which also tripped the semantic-gap penalty. `assessLift` detects it and withholds the number; nothing retries. The floor means users no longer *see* a drop, which is not the same as the product no longer *causing* one. Needs its own packet. (4) The free check cannot demonstrate the recency fix: its text extractor does not recover dated roles from PDF-extracted text, so it has always fallen back to 50.
+
+**Status:** **1.4.6 is LIVE; 1.4.7 (17) is built, signed, and NOT uploaded.** Build 17 confirmed never used. Store-verified 2026-07-27 via the lookup API: `id=6776752349` returns `version: 1.4.6`, `currentVersionReleaseDate: 2026-07-24T21:03:09Z`.
+**Current Phase:** 1.4.7 awaiting founder device-check and upload.
+**Active Story:** None.
+**Last Completed Story:** WP-45 D7 merged (iOS #125, web #123) and archived as 1.4.7 (17).
+**Next Recommended Story:** (1) **Walk 1.4.7 on a physical device before submitting** — optimize, see the fit check, accept, run an expert pass, confirm the number only climbs. This is the check that caught the last two failures and the one I could not run. (2) Upload via Transporter and submit. (3) Persist `SCORE_VERSION` as text so regimes stop being inferred from timestamps. (4) Open a packet for the optimizer's keyword regression.
+**Blockers:** Physical-device check and App Store Connect upload both require the founder.
+**Last Validation:** 2026-07-27 — 274 iOS tests 0 failures; web 126 passed; archive + export succeeded.
+
 ## 2026-07-24 — WP-45 S6+S7: direct optimize, Fit gate off (PR #123)
 
 **S6.** `BackendConfig.isFitCheckEnabled` is now false. Both Home and Tailor already carried the direct path behind that flag (S0 built it), so Analyze runs upload-then-optimize with one tap and no Fit sheet. `optimize()` calls `ensureUploadedResumeForCurrentJob` internally and it is idempotent, so no double-upload or double-charge. Analytics move to `flow_version=direct_optimize_v2` automatically.
