@@ -16,10 +16,19 @@ struct ExpertReportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            if let impact = report.atsImpact {
-                atsImpactStrip(impact)
-            }
-
+            // The projected match strip ("60% → 75%") was removed here.
+            //
+            // `ats_impact_estimate` is a field the language model is asked to
+            // fill in — it appears in six expert prompts — so those numbers were
+            // never measured by the scorer. On device 2026-07-27 it read
+            // "60% → 75%" while the user's actual measured journey was at 53,
+            // and applying the changes could never produce 75 because no such
+            // score existed to reach.
+            //
+            // Founder direction, same day: "no way users see a score that is not
+            // measured". The expert screens show what the run changed; the one
+            // number the product stands behind is the measured journey score
+            // (WP-45 D8).
             Text(report.headline)
                 .font(.appSubheadline.weight(.semibold))
                 .foregroundStyle(AppColors.textPrimary)

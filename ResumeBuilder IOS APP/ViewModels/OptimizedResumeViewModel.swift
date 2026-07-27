@@ -544,8 +544,12 @@ final class OptimizedResumeViewModel {
         _ applyResult: ExpertWorkflowApplyResponseDTO,
         recordingAs stage: FitStage = .improved
     ) {
-        let reported = applyResult.newAtsScore ?? applyResult.atsImpact?.after
-        guard let reported else { return }
+        // `newAtsScore` only. The `atsImpact?.after` fallback that used to sit
+        // here reads `ats_impact_estimate`, a field the language model is asked
+        // to fill in across six expert prompts — so a failed or absent server
+        // measurement silently promoted an invented number into the user's
+        // score. No measurement means no update (WP-45 D8).
+        guard let reported = applyResult.newAtsScore else { return }
 
         let score = Int((reported <= 1 ? reported * 100 : reported).rounded())
         switch stage {
