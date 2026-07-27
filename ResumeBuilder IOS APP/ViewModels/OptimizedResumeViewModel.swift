@@ -692,11 +692,27 @@ final class OptimizedResumeViewModel {
             let previouslyShown = currentATSScore
             let response = try await analysisService.rescan(optimizationId: optId, token: token)
 
-            // Both sides come from the same rescan, so they are on the same
-            // scale. Keeping a stale "before" against a fresh "after" is the
-            // incomparability defect this packet spent a day removing.
-            if let original = response.originalScore {
-                atsScoreBefore = original
+            // The baseline is NOT updated here, and this is deliberate.
+            //
+            // The reasoning it replaces — "both sides come from the same rescan,
+            // so they are on the same scale" — is true of the pair in isolation
+            // and wrong for the journey. The user has already been shown a
+            // starting number. Replacing it with a fresh measurement of the same
+            // unchanged original means their starting point moves under them: a
+            // real 2026-07-27 run went 39 at the fit check, then 29 after an
+            // expert pass, because this line overwrote it. Nothing the user did
+            // changed the original resume, so nothing may change its score.
+            //
+            // Comparability is preserved by fixing the baseline, not by
+            // re-deriving it (WP-45 D8). A rescan that disagrees is recorded as
+            // a diagnostic, not shown.
+            if let original = response.originalScore, let known = atsScoreBefore, original != known {
+                AnalyticsService.shared.track(
+                    .improveScoreRegressed(previous: known, measured: original)
+                )
+            } else if atsScoreBefore == nil {
+                // First measurement of this journey: there is no baseline to protect.
+                atsScoreBefore = response.originalScore
             }
 
             // Which stage this measurement belongs to is the caller's to say.
