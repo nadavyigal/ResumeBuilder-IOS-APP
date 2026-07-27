@@ -6,6 +6,10 @@ struct ResumeDiagnosisView: View {
     @Bindable var viewModel: ResumeDiagnosisViewModel
     var onImprove: () -> Void
     var onEditTargetJob: () -> Void
+    /// Take the user to the expert workflows, the next step once the tailored
+    /// rewrite has been applied and the remaining gaps need evidence the
+    /// rewrite could not invent.
+    var onAskExpert: (() -> Void)?
 
     @State private var viewedRewriteIds: Set<UUID> = []
     @State private var blockedRewriteIds: Set<UUID> = []
@@ -316,6 +320,21 @@ struct ResumeDiagnosisView: View {
             if viewModel.optimizationId?.isEmpty == false {
                 GradientButton(title: "Improve my resume", icon: "wand.and.stars") {
                     onImprove()
+                }
+
+                // The next step once the rewrite is applied. The gaps card above
+                // says what is still missing; this is where it gets closed
+                // (founder 2026-07-27: "it should say what is still missing and
+                // direct to experts to further improve").
+                if let onAskExpert {
+                    Button(action: onAskExpert) {
+                        Label("Close the remaining gaps with an expert", systemImage: "rectangle.stack.badge.person.crop")
+                            .font(.appSubheadline.weight(.semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .glassCard(cornerRadius: AppRadii.md)
+                    }
+                    .buttonStyle(GradientButtonStyle())
                 }
             }
             Button {

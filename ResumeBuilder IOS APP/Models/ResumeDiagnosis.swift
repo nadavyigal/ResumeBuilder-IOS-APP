@@ -527,10 +527,25 @@ enum ResumeDiagnosisMapper {
     }
 
     static func make(from detail: OptimizationDetailDTO) -> ResumeDiagnosis {
+        // The headline is where the resume stands NOW, not where it started.
+        //
+        // This read `atsScoreBefore`, so after a user accepted the optimization
+        // the diagnosis still reported their original score and described the
+        // document they had uploaded — on device 2026-07-27 it showed 51 for a
+        // resume that had already been optimized to 71 (founder: "why do I still
+        // see this with the before score? This should be the new updated score
+        // after optimization and lift").
+        //
+        // `potentialScore` is deliberately dropped rather than repointed. It
+        // used to hold the optimized score, which is now the headline, and there
+        // is no measured projection for what experts would add — the only number
+        // that ever filled that role was `ats_impact_estimate`, which the model
+        // invents. The screen shows what is still missing and points at the
+        // experts instead of promising a figure (WP-45 D8).
         make(
             backendDiagnosis: detail.diagnosis,
-            matchScore: detail.atsScoreBefore,
-            potentialScore: detail.atsScoreAfter,
+            matchScore: detail.atsScoreAfter ?? detail.atsScoreBefore,
+            potentialScore: nil,
             blockers: detail.atsBlockers,
             sections: detail.sections,
             jobTitle: detail.jobTitle,
