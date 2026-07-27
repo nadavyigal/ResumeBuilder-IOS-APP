@@ -256,9 +256,36 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         await vm.rescanATS(token: "tok")
 
         XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
-        XCTAssertEqual(vm.atsScoreBefore, 72)
+
+        // The baseline does NOT move, and this assertion is the point of the
+        // test rather than an incidental detail.
+        //
+        // It previously expected 72 — the rescan's fresh reading of the same
+        // untouched original. That is what let a real journey on 2026-07-27
+        // start at 39 and later show 29: nothing the user did changed the
+        // original resume, but its score changed under them anyway. A rescan
+        // may update what the optimization is worth; it may never restate where
+        // the user began (WP-45 D8).
+        XCTAssertEqual(vm.atsScoreBefore, 70, "the starting score must survive a rescan")
         XCTAssertEqual(vm.atsScoreAfter, 91)
         XCTAssertNil(vm.errorMessage)
+    }
+
+    func testRescanAdoptsAnOriginalScoreOnlyWhenThereIsNoBaselineYet() async {
+        let analysisService = ManualEditAnalysisSpy(
+            rescanResponse: ATSRescanResponse(success: true, optimizedScore: 91, originalScore: 72)
+        )
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            atsScoreAfter: 80,
+            optimizationService: MockResumeOptimizationService(),
+            analysisService: analysisService
+        )
+
+        await vm.rescanATS(token: "tok")
+
+        // Nothing to protect on the first measurement of a journey.
+        XCTAssertEqual(vm.atsScoreBefore, 72)
     }
 
     func testImproveATSRunsExpertWorkflowAndRefreshesScore() async {
