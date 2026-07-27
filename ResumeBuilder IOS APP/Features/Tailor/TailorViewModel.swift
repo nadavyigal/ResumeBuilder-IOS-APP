@@ -40,8 +40,12 @@ final class TailorViewModel {
         atsResult != nil && guestDiagnosisFingerprint != nil
     }
 
-    /// Set after a successful upload — triggers the "Save this resume?" prompt.
-    /// Cleared after the user responds.
+    /// Set after a successful upload, and cleared immediately.
+    ///
+    /// This used to raise a "Save this resume?" confirmation dialog, removed on
+    /// 2026-07-27 because it interrupted the user mid-result to ask something
+    /// the page already offers further down. The property is kept because
+    /// several call sites still set it; nothing consumes it as a prompt.
     var pendingSaveResumeId: String?
 
     private let apiClient = RuntimeServices.sharedAPIClient
