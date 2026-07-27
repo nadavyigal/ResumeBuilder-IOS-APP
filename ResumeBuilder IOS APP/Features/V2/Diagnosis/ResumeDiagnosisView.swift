@@ -39,6 +39,22 @@ struct ResumeDiagnosisView: View {
             await viewModel.load(appState: appState)
             AnalyticsService.shared.track(.diagnosisViewed(matchScore: viewModel.diagnosis?.matchScore ?? 0))
         }
+        // Reload whenever the underlying resume changes.
+        //
+        // Without this the diagnosis kept describing the resume as it was
+        // before the user improved it: the score, the gaps and the recruiter's
+        // 7-second impression were all a snapshot of a document that no longer
+        // existed. On device 2026-07-27 that showed a user their pre-improvement
+        // score and "how a recruiter sees you" after they had already accepted
+        // the rewrite (founder: "either remove it, or change it to how the
+        // recruiter sees me now, after the improvement").
+        //
+        // `resumePreviewRefreshToken` is bumped by every path that rewrites the
+        // resume, and `improveATS` already clears the detail cache, so this
+        // re-fetch reflects the current document rather than a cached one.
+        .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
+            Task { await viewModel.load(appState: appState) }
+        }
         .safeAreaInset(edge: .bottom) {
             bottomActions
         }

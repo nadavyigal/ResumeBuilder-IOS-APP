@@ -165,30 +165,13 @@ struct TailorView: View {
                 }
                 .preferredColorScheme(.dark)
             }
-            .confirmationDialog(
-                "Save this resume?",
-                isPresented: $showSavePrompt,
-                titleVisibility: .visible
-            ) {
-                Button("Save") {
-                    if let id = viewModel.pendingSaveResumeId,
-                       let token = appState.session?.accessToken {
-                        let name = saveDisplayName.isEmpty ? (viewModel.selectedResumeName ?? NSLocalizedString("My Resume", comment: "")) : saveDisplayName
-                        Task { await libraryViewModel.save(id: id, displayName: name, token: token) }
-                    }
-                    viewModel.pendingSaveResumeId = nil
-                }
-                Button("Not now", role: .cancel) {
-                    viewModel.pendingSaveResumeId = nil
-                }
-            } message: {
-                Text("Save to reuse on other jobs without re-uploading.")
-            }
+            // The "Save this resume?" confirmation dialog was removed here
+            // (founder, device test 2026-07-27). Saving is already offered
+            // further down the page, so this interrupted the journey to ask a
+            // question the user could answer in place, at the exact moment they
+            // were reading their result.
             .onChange(of: viewModel.pendingSaveResumeId) { _, newId in
-                if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
-                    saveDisplayName = viewModel.selectedResumeName ?? ""
-                    showSavePrompt = true
-                } else if newId != nil {
+                if newId != nil {
                     viewModel.pendingSaveResumeId = nil
                 }
             }
