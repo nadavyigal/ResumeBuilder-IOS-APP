@@ -12,6 +12,9 @@ final class TailorViewModel {
 
     /// Set when the server returns a review-based flow result. Drives navigation to `OptimizationReviewView`.
     var reviewId: String?
+    /// The fit check measured by this optimize run: where the resume stands
+    /// today against this job, and where accepting the rewrite takes it.
+    var fitPreview: OptimizeFitPreview?
     /// Set when the server runs the direct flow (no diff review). Drives navigation to `OptimizedResumeView`.
     var optimizationId: String?
 
@@ -208,8 +211,10 @@ final class TailorViewModel {
             didUpload = true
 
             // Some backends return reviewId straight from upload — short-circuit.
+            // No optimize call ran, so there is no fit measurement to show.
             if let reviewId = upload.reviewId, !reviewId.isEmpty {
                 self.reviewId = reviewId
+                self.fitPreview = nil
                 return
             }
 
@@ -232,6 +237,12 @@ final class TailorViewModel {
             #if DEBUG
             print("🔍 [TAILOR] optimize response: reviewId=\(optimize.reviewId ?? "nil") optimizationId=\(optimize.optimizationId ?? "nil") sections=\(optimize.sections?.count ?? 0) error=\(optimize.error ?? "none")")
             #endif
+            // Capture the fit check BEFORE routing. The review-based flow
+            // returns a reviewId, and this branch used to win and return, so
+            // the app went straight to the accept screen and the fit check was
+            // never shown (founder, device test 2026-07-26).
+            self.fitPreview = optimize.fit
+
             if let reviewId = optimize.reviewId, !reviewId.isEmpty {
                 self.reviewId = reviewId
                 #if DEBUG

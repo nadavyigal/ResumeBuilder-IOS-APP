@@ -163,6 +163,10 @@ final class AppState {
         UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
         refreshTask?.cancel()
         refreshTask = nil
+        // The fit floor is a display guarantee for one person's journey. Left
+        // in place it would float the next account's first score to whatever
+        // this one reached (WP-45 D7).
+        FitBaselineStore.shared.clear()
         AnalyticsService.shared.resetDistinctId()
     }
 

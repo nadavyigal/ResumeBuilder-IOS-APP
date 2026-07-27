@@ -282,6 +282,17 @@ struct HomeTabView: View {
                             FirstSessionJourneyTransition.completeApply(
                                 optimizationId: optId,
                                 persist: { optimizationId in
+                                    // Accepting mints the real optimization id. Carry the
+                                    // floor onto it from whichever identity held it, so the
+                                    // Optimized tab can find it (WP-45 D7).
+                                    FitBaselineStore.shared.carryForward(
+                                        from: viewModel.uploadResponse?.resumeId,
+                                        to: optimizationId
+                                    )
+                                    FitBaselineStore.shared.carryForward(
+                                        from: reviewId,
+                                        to: optimizationId
+                                    )
                                     appState.latestOptimizationId = optimizationId
                                     appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
                                     viewModel.pendingSaveResumeId = optimizationId
@@ -290,6 +301,13 @@ struct HomeTabView: View {
                                 showPreview: onShowOptimizedPreview
                             )
                         }
+                    )
+                case .fitCheck(let reviewId):
+                    OptimizeFitCheckView(
+                        fit: viewModel.fitPreview,
+                        jobTitle: nil,
+                        onAccept: { journeyRoute = .optimizationReview(reviewId: reviewId) },
+                        onEditTargetJob: { journeyRoute = nil }
                     )
                 case .diagnosis:
                     if let diagnosisViewModel {
@@ -503,6 +521,14 @@ struct HomeTabView: View {
         // optimizationStarted / optimizationCompleted are fired inside
         // TailorViewModel.optimize() — do not double-fire here.
         await viewModel.optimize(appState: appState)
+        // The free check recorded its score against the resume id; every screen
+        // from here on is keyed by the optimization. Join them, or the floor is
+        // recorded and never found (WP-45 D7).
+        FitBaselineStore.shared.carryForward(
+            from: viewModel.uploadResponse?.resumeId,
+            to: viewModel.optimizationId ?? viewModel.reviewId
+        )
+
         if let optId = viewModel.optimizationId, !optId.isEmpty {
             appState.latestOptimizationId = optId
             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
@@ -510,7 +536,18 @@ struct HomeTabView: View {
             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
             journeyRoute = .diagnosis(optimizationId: optId)
         } else if let reviewId = viewModel.reviewId {
-            journeyRoute = .optimizationReview(reviewId: reviewId)
+            // The fit check comes first when the run measured one.
+            //
+            // This branch used to go straight to the accept screen, which is
+            // why the fit check appeared to have been removed: the review-based
+            // flow always returns a reviewId, so the diagnosis branch above was
+            // effectively dead. The user sees where they stand and what
+            // accepting would buy, then accepts.
+            if let fit = viewModel.fitPreview, fit.currentScore != nil {
+                journeyRoute = .fitCheck(reviewId: reviewId)
+            } else {
+                journeyRoute = .optimizationReview(reviewId: reviewId)
+            }
         }
     }
 

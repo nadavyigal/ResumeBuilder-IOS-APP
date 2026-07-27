@@ -285,7 +285,13 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(expertService.appliedWorkflowTypes, [.atsOptimizationReport])
         XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
         XCTAssertEqual(vm.atsScoreBefore, 61)
-        XCTAssertEqual(vm.atsScoreAfter, 88)
+        // The expert pass is its own stage now, so it no longer overwrites what
+        // the tailored rewrite achieved. The user sees fit -> improved -> expert
+        // climbing, and 88 is the number on screen.
+        XCTAssertEqual(vm.atsScoreAfter, 72, "the rewrite's result is preserved")
+        XCTAssertEqual(vm.atsScoreAfterExpert, 88)
+        XCTAssertEqual(vm.currentATSScore, 88)
+        XCTAssertEqual(vm.currentFitStage, .expert)
         XCTAssertEqual(appState.resumePreviewRefreshToken, 1)
         XCTAssertEqual(vm.atsUpliftMessage, "Match improvements applied. Review the resume before submitting.")
     }

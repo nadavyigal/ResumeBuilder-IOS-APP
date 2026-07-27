@@ -1162,10 +1162,40 @@ struct TailorRequest: Codable, Sendable {
     let jobDescriptionId: String
 }
 
+/// The fit check the user sees between optimizing and accepting.
+///
+/// `/api/optimize` measured all of this and used to discard it, so the app had
+/// nothing to show and jumped straight to the accept screen — on device that
+/// looked like the fit check had vanished (founder, 2026-07-26).
+struct OptimizeFitPreview: Codable, Sendable {
+    /// The resume as it stands today against this job. The "before".
+    let currentScore: Int?
+    /// Where accepting the tailored rewrite takes it.
+    let potentialScore: Int?
+    let delta: Int?
+    /// False when the run did not meaningfully beat the starting resume. The
+    /// screen then shows gaps and the next step instead of a number pair that
+    /// reads as a promise the run did not keep (WP-45 S2).
+    let displayScores: Bool?
+    let confidence: Double?
+    let scoreVersion: String?
+    let topGaps: [OptimizeFitGap]?
+}
+
+struct OptimizeFitGap: Codable, Sendable {
+    let title: String?
+    let estimatedGain: Int?
+    let category: String?
+}
+
 struct TailorResponse: Codable, Sendable {
     let reviewId: String?
     let nextStep: String?
     let error: String?
+    /// Present from 2026-07-26. Absent on older backends, in which case the app
+    /// falls through to its previous behaviour rather than showing an empty
+    /// fit check.
+    let fit: OptimizeFitPreview?
 }
 
 struct IAPVerifyResponse: Codable, Sendable {

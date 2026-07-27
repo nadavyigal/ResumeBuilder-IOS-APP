@@ -189,13 +189,16 @@ final class ExpertModesViewModel {
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
-                resumeViewModel.applyExpertATSResult(dto)
+                // Everything applied from this screen is an expert pass, so it
+                // belongs to the expert stage — recording it as the rewrite's
+                // made the expert gain invisible (WP-45 D7).
+                resumeViewModel.applyExpertATSResult(dto, recordingAs: .expert)
                 Task {
                     await resumeViewModel.forceReloadSections(appState: appState)
                 }
                 if type == .atsOptimizationReport {
                     Task {
-                        await resumeViewModel.rescanATS(token: token)
+                        await resumeViewModel.rescanATS(token: token, recordingAs: .expert)
                     }
                 }
             }

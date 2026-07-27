@@ -28,9 +28,12 @@ struct OptimizeResponse: Decodable, Sendable {
     /// Returned by the current API when the server uses the review-based flow.
     let reviewId: String?
     let error: String?
+    /// The fit check shown between optimizing and accepting. Nil on backends
+    /// that predate 2026-07-26, in which case the app keeps its old behaviour.
+    let fit: OptimizeFitPreview?
 
     private enum CodingKeys: String, CodingKey {
-        case success, sections, error
+        case success, sections, error, fit
         case optimizationId = "optimization_id"
         case reviewId
         case review_id
@@ -41,7 +44,8 @@ struct OptimizeResponse: Decodable, Sendable {
         case optimizedResume = "optimized_resume"
     }
 
-    init(success: Bool?, sections: [OptimizedResumeSection]?, optimizationId: String?, reviewId: String? = nil, error: String?) {
+    init(success: Bool?, sections: [OptimizedResumeSection]?, optimizationId: String?, reviewId: String? = nil, error: String?, fit: OptimizeFitPreview? = nil) {
+        self.fit = fit
         self.success = success
         self.sections = sections
         self.optimizationId = optimizationId
@@ -62,6 +66,7 @@ struct OptimizeResponse: Decodable, Sendable {
             ?? container.decodeIfPresent(String.self, forKey: .review_id)
             ?? nestedData?.reviewId
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
+        fit = try container.decodeIfPresent(OptimizeFitPreview.self, forKey: .fit) ?? nestedData?.fit
 
         let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)
         let nestedSections = nestedData?.sections

@@ -149,7 +149,7 @@ final class OptimizedResumeViewModel {
     }
 
     var atsStatusLabel: String {
-        let score = atsScoreAfter ?? atsScoreBefore ?? 0
+        let score = fitJourney.currentDisplayedScore ?? 0
         if score >= 80 { return "High" }
         if score >= 70 { return "Strong" }
         if score >= 55 { return "Medium" }
@@ -169,9 +169,55 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    var currentATSScore: Int {
-        atsScoreAfter ?? atsScoreBefore ?? 0
+    /// Score after an expert pass, when one has run. Recorded separately so the
+    /// journey can show experts as their own stage rather than overwriting the
+    /// improved number.
+    var atsScoreAfterExpert: Int?
+
+    /// The user's fit as a journey with stages, not a single number.
+    ///
+    /// `.fit` is where the resume started against this job, `.improved` is the
+    /// tailored rewrite, `.expert` is what expert passes added. FitJourney owns
+    /// the rule that the displayed number never goes backwards, so no screen
+    /// has to remember it (founder direction 2026-07-26).
+    /// The score from the free match check the user ran before signing in.
+    ///
+    /// Read from the session store rather than passed in: this view model has
+    /// ten construction sites and threading a baseline through all of them
+    /// would be ten chances to forget one. See `FitJourney.baseline` for why
+    /// the floor is needed even after the engine fixes.
+    var freeCheckScore: Int? {
+        // Look up by whichever identity this instance was built with. The
+        // Optimized tab constructs with an optimizationId and no resumeId, so a
+        // resume-only lookup found nothing and the floor never applied —
+        // shipped-but-inert. HomeTabView carries the score across identities as
+        // the journey mints them (WP-45 D7).
+        FitBaselineStore.shared.baseline(for: optimizationId)
+            ?? FitBaselineStore.shared.baseline(for: resumeId)
     }
+
+    var fitJourney: FitJourney {
+        FitJourney(
+            fit: atsScoreBefore,
+            improved: atsScoreAfter,
+            expert: atsScoreAfterExpert,
+            baseline: freeCheckScore
+        )
+    }
+
+    /// The stage the user has reached, for labelling the score they can see.
+    var currentFitStage: FitStage? { fitJourney.currentStage }
+
+    /// The number to show right now. Never below anything already shown.
+    var currentATSScore: Int {
+        fitJourney.currentDisplayedScore ?? 0
+    }
+
+    /// Where the resume started, for the "you were here" end of the journey.
+    var startingFitScore: Int? { fitJourney.displayedScore(at: .fit) }
+
+    /// Total gain so far, never negative.
+    var fitGainSoFar: Int? { fitJourney.totalGain }
 
     /// The smallest improvement worth showing as a before/after pair.
     ///
@@ -483,11 +529,30 @@ final class OptimizedResumeViewModel {
         if applicationId == nil { applicationId = detail.applicationId }
     }
 
-    func applyExpertATSResult(_ applyResult: ExpertWorkflowApplyResponseDTO) {
-        if let after = applyResult.newAtsScore {
-            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
-        } else if let after = applyResult.atsImpact?.after {
-            atsScoreAfter = Int((after <= 1 ? after * 100 : after).rounded())
+    /// Record the score an expert apply reported, on the stage it belongs to.
+    ///
+    /// This wrote unconditionally into `atsScoreAfter` — the *improved* stage —
+    /// even when the caller was an expert pass. That overwrote what the tailored
+    /// rewrite achieved with what the experts achieved, so the improved reading
+    /// was wrong and the expert gain was invisible: the number had already been
+    /// raised before `.expert` was recorded. When the follow-up rescan fails on
+    /// credits, which `improveATS` explicitly expects, the expert score stayed
+    /// mislabelled as the rewrite's. The founder's journey is fit → improved →
+    /// expert as separate climbing stages, so the stage is the caller's to name
+    /// (WP-45 D7).
+    func applyExpertATSResult(
+        _ applyResult: ExpertWorkflowApplyResponseDTO,
+        recordingAs stage: FitStage = .improved
+    ) {
+        let reported = applyResult.newAtsScore ?? applyResult.atsImpact?.after
+        guard let reported else { return }
+
+        let score = Int((reported <= 1 ? reported * 100 : reported).rounded())
+        switch stage {
+        case .expert:
+            atsScoreAfterExpert = score
+        case .fit, .improved:
+            atsScoreAfter = score
         }
     }
 
@@ -605,7 +670,12 @@ final class OptimizedResumeViewModel {
         }
     }
 
-    func rescanATS(token: String?) async {
+    /// Refresh the Match Score.
+    ///
+    /// `stage` says which part of the journey the new measurement belongs to.
+    /// FitJourney guarantees the displayed number never falls below what the
+    /// user has already seen, whichever stage records it.
+    func rescanATS(token: String?, recordingAs stage: FitStage = .improved) async {
         guard let token else {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return
@@ -619,12 +689,32 @@ final class OptimizedResumeViewModel {
         defer { isRefreshingATS = false }
 
         do {
+            let previouslyShown = currentATSScore
             let response = try await analysisService.rescan(optimizationId: optId, token: token)
+
+            // Both sides come from the same rescan, so they are on the same
+            // scale. Keeping a stale "before" against a fresh "after" is the
+            // incomparability defect this packet spent a day removing.
             if let original = response.originalScore {
                 atsScoreBefore = original
             }
+
+            // Which stage this measurement belongs to is the caller's to say.
+            // A plain refresh re-measures the tailored rewrite; a refresh that
+            // follows an expert pass is what the experts added, and the founder
+            // wants those as separate, climbing stages.
             if let optimized = response.optimizedScore {
-                atsScoreAfter = optimized
+                if optimized < previouslyShown {
+                    AnalyticsService.shared.track(
+                        .improveScoreRegressed(previous: previouslyShown, measured: optimized)
+                    )
+                }
+                switch stage {
+                case .expert:
+                    atsScoreAfterExpert = optimized
+                case .fit, .improved:
+                    atsScoreAfter = optimized
+                }
             }
             backendDiagnosis = nil
         } catch {
@@ -666,11 +756,15 @@ final class OptimizedResumeViewModel {
                 selectedFields: nil
             )
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
-            applyExpertATSResult(apply)
+            // An expert pass's own reported score is the expert stage's, so it
+            // stands even if the rescan below fails on credits.
+            applyExpertATSResult(apply, recordingAs: .expert)
             await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
             appState.resumePreviewRefreshToken += 1
-            await rescanATS(token: token)
+            // This refresh is the expert pass's result, so it lands on the
+            // expert stage rather than overwriting what the rewrite achieved.
+            await rescanATS(token: token, recordingAs: .expert)
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = nil
@@ -698,7 +792,21 @@ final class OptimizedResumeViewModel {
             )
             keywordPreviews[suggestionId] = dto.affectedFields
         } catch let apiError as APIClientError {
-            keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+            // Never surface a raw server error string as if it were content.
+            // A 404 here reached the user on device as the literal words
+            // "Suggestion not found" sitting inside the preview card, which
+            // reads like broken advice rather than a stale item. It means the
+            // suggestion can no longer be resolved — usually because the
+            // optimization was rescored after this list was built — so say
+            // that, and tell the user what to do about it.
+            if case .serverError(let status, _) = apiError, status == 404 {
+                keywordPreviewErrors[suggestionId] = NSLocalizedString(
+                    "This suggestion is out of date. Refresh to get the current list.",
+                    comment: "Shown when a keyword suggestion can no longer be previewed"
+                )
+            } else {
+                keywordPreviewErrors[suggestionId] = apiError.userFacingMessage
+            }
         } catch {
             keywordPreviewErrors[suggestionId] = error.localizedDescription
         }
