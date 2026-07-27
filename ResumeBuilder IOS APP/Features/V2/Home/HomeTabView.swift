@@ -321,6 +321,11 @@ struct HomeTabView: View {
                             onEditTargetJob: {
                                 journeyRoute = nil
                                 self.diagnosisViewModel = nil
+                            },
+                            onAskExpert: {
+                                journeyRoute = nil
+                                self.diagnosisViewModel = nil
+                                onSwitchTab(.expert)
                             }
                         )
                     }
