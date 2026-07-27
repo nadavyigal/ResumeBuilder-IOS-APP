@@ -282,6 +282,17 @@ struct HomeTabView: View {
                             FirstSessionJourneyTransition.completeApply(
                                 optimizationId: optId,
                                 persist: { optimizationId in
+                                    // Accepting mints the real optimization id. Carry the
+                                    // floor onto it from whichever identity held it, so the
+                                    // Optimized tab can find it (WP-45 D7).
+                                    FitBaselineStore.shared.carryForward(
+                                        from: viewModel.uploadResponse?.resumeId,
+                                        to: optimizationId
+                                    )
+                                    FitBaselineStore.shared.carryForward(
+                                        from: reviewId,
+                                        to: optimizationId
+                                    )
                                     appState.latestOptimizationId = optimizationId
                                     appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
                                     viewModel.pendingSaveResumeId = optimizationId
@@ -510,6 +521,14 @@ struct HomeTabView: View {
         // optimizationStarted / optimizationCompleted are fired inside
         // TailorViewModel.optimize() — do not double-fire here.
         await viewModel.optimize(appState: appState)
+        // The free check recorded its score against the resume id; every screen
+        // from here on is keyed by the optimization. Join them, or the floor is
+        // recorded and never found (WP-45 D7).
+        FitBaselineStore.shared.carryForward(
+            from: viewModel.uploadResponse?.resumeId,
+            to: viewModel.optimizationId ?? viewModel.reviewId
+        )
+
         if let optId = viewModel.optimizationId, !optId.isEmpty {
             appState.latestOptimizationId = optId
             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)

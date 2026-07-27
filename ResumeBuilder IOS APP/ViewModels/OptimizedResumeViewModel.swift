@@ -187,7 +187,13 @@ final class OptimizedResumeViewModel {
     /// would be ten chances to forget one. See `FitJourney.baseline` for why
     /// the floor is needed even after the engine fixes.
     var freeCheckScore: Int? {
-        FitBaselineStore.shared.baseline(forResumeID: resumeId)
+        // Look up by whichever identity this instance was built with. The
+        // Optimized tab constructs with an optimizationId and no resumeId, so a
+        // resume-only lookup found nothing and the floor never applied —
+        // shipped-but-inert. HomeTabView carries the score across identities as
+        // the journey mints them (WP-45 D7).
+        FitBaselineStore.shared.baseline(for: optimizationId)
+            ?? FitBaselineStore.shared.baseline(for: resumeId)
     }
 
     var fitJourney: FitJourney {

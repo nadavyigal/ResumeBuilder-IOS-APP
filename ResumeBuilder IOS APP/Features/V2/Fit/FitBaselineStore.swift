@@ -20,27 +20,48 @@ import Foundation
 final class FitBaselineStore {
     static let shared = FitBaselineStore()
 
-    private var scoresByResumeID: [String: Int] = [:]
+    private var scoresByKey: [String: Int] = [:]
 
     init() {}
 
-    /// Record the verdict score from a free match check.
+    /// Record the verdict score from a free match check, keyed by resume.
     func record(score: Int, resumeID: String?) {
-        guard let resumeID, !resumeID.isEmpty else { return }
-        // Keep the highest the user has been shown for this resume. Running the
+        record(score: score, key: resumeID)
+    }
+
+    /// Record a baseline against any identity the journey is keyed by.
+    func record(score: Int, key: String?) {
+        guard let key, !key.isEmpty else { return }
+        // Keep the highest the user has been shown under this key. Running the
         // check twice against different jobs must not lower the floor.
-        scoresByResumeID[resumeID] = max(scoresByResumeID[resumeID] ?? 0, score)
+        scoresByKey[key] = max(scoresByKey[key] ?? 0, score)
+    }
+
+    /// Carry an existing baseline onto a second identity for the same journey.
+    ///
+    /// The free check knows the resume id; the screens that later show the
+    /// score know the optimization id, and nothing joins the two. Without this
+    /// the floor was recorded and then never found — present in the code and
+    /// inert in the shipping path.
+    func carryForward(from oldKey: String?, to newKey: String?) {
+        guard let score = baseline(for: oldKey) else { return }
+        record(score: score, key: newKey)
     }
 
     /// The floor for a resume's journey, if a free check produced one.
     func baseline(forResumeID resumeID: String?) -> Int? {
-        guard let resumeID, !resumeID.isEmpty else { return nil }
-        return scoresByResumeID[resumeID]
+        baseline(for: resumeID)
+    }
+
+    /// The floor recorded under any journey identity.
+    func baseline(for key: String?) -> Int? {
+        guard let key, !key.isEmpty else { return nil }
+        return scoresByKey[key]
     }
 
     /// Drop everything. Call on sign-out so one account's floor cannot follow
     /// another into a new session.
     func clear() {
-        scoresByResumeID.removeAll()
+        scoresByKey.removeAll()
     }
 }

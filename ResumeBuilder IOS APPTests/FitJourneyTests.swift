@@ -248,3 +248,76 @@ final class FitJourneyBaselineTests: XCTestCase {
         XCTAssertNil(journey.displayedScore(at: .fit))
     }
 }
+
+// MARK: - The store-to-screen join (WP-45 D7)
+
+/// The floor was correct, recorded correctly, and never found.
+///
+/// `FitBaselineStore` was keyed by resume id because the free check knows one.
+/// Every screen that later shows a score is built from an optimization id, and
+/// the Optimized tab constructs its view model with `resumeId` left nil — so
+/// the lookup returned nil every time and the guarantee was inert in the one
+/// path that ships. These pin the join, not the data structure.
+@MainActor
+final class FitBaselineStoreJoinTests: XCTestCase {
+
+    override func setUp() {
+        super.setUp()
+        FitBaselineStore.shared.clear()
+    }
+
+    override func tearDown() {
+        FitBaselineStore.shared.clear()
+        super.tearDown()
+    }
+
+    func testABaselineIsFoundUnderTheOptimizationItWasCarriedTo() {
+        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc")
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_123")
+
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "opt_123"), 56)
+    }
+
+    func testTheViewModelFindsItWithOnlyAnOptimizationId() {
+        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc")
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_123")
+
+        // Exactly how OptimizedResumeTabView builds it: no resumeId.
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_123")
+        vm.atsScoreBefore = 51
+
+        XCTAssertEqual(vm.freeCheckScore, 56)
+        XCTAssertEqual(vm.currentATSScore, 56, "the 56/51 regression must not survive the hop")
+    }
+
+    func testCarryingForwardFromNothingIsHarmless() {
+        FitBaselineStore.shared.carryForward(from: "never_recorded", to: "opt_123")
+
+        XCTAssertNil(FitBaselineStore.shared.baseline(for: "opt_123"))
+    }
+
+    func testTheFloorNeverCrossesJourneys() {
+        FitBaselineStore.shared.record(score: 90, resumeID: "resume_other")
+
+        let vm = OptimizedResumeViewModel(optimizationId: "opt_123")
+        vm.atsScoreBefore = 51
+
+        // A different resume's high score must not float this one.
+        XCTAssertNil(vm.freeCheckScore)
+        XCTAssertEqual(vm.currentATSScore, 51)
+    }
+
+    func testRunningTheCheckTwiceKeepsTheHigherFloor() {
+        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc")
+        FitBaselineStore.shared.record(score: 48, resumeID: "resume_abc")
+
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "resume_abc"), 56)
+    }
+
+    func testSignOutDropsTheFloor() {
+        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc")
+        FitBaselineStore.shared.clear()
+
+        XCTAssertNil(FitBaselineStore.shared.baseline(for: "resume_abc"))
+    }
+}
