@@ -57,7 +57,9 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(payload["api_key"] as? String, "phc_test")
         XCTAssertEqual(payload["event"] as? String, "app_launched")
         XCTAssertEqual(payload["distinct_id"] as? String, "anon-123")
-        let props = payload["properties"] as? [String: String]
+        // Properties are [String: Any] because `$set` is a nested object (WP-63).
+        let anyProps = payload["properties"] as? [String: Any]
+        let props = anyProps?.compactMapValues { $0 as? String }
         XCTAssertEqual(props?["is_authenticated"], "false")
         XCTAssertEqual(props?["$lib"], "resumely-ios-urlsession")
         XCTAssertEqual(props?["platform"], "ios")
@@ -98,6 +100,67 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(props?["$set"]?["is_internal_tester"], "true")
         XCTAssertEqual(props?["$set"]?["anonymous_session_id"], "anon-before-auth")
         XCTAssertEqual(props?["$set"]?["app"], "resumely_ios")
+    }
+
+    // MARK: WP-63 — the person property every "clean" insight depends on
+
+    /// WP-63 story 5, measured 2026-07-29 on PostHog 270848: `is_internal_tester`
+    /// was `true` on **108 persons** by event property and **3** by person
+    /// property. Every saved insight excludes testers with
+    /// `{"key": "is_internal_tester", "type": "person", "operator": "is_not"}`,
+    /// so all of them — "Clean User Lifecycle", "Clean Current-Build Activation",
+    /// "Web — Export Funnel (founder-excluded)" — were excluding 3 of 108 and
+    /// over-counting the clean population by roughly 40%.
+    ///
+    /// Cause: `$set` rode only on `$identify`, and `$identify` fires only when a
+    /// user authenticates. The 108 are per-build test sweeps that overwhelmingly
+    /// never sign in, so the person property was never written for them.
+    ///
+    /// Fixing this at the insight level instead — switching those filters to
+    /// event-level — would reintroduce the 2026-07-28 defect where one person
+    /// lands on both sides of an exclusion. The flag has to reach the person.
+    func testEveryEventSetsTheInternalTesterPersonPropertySoAnonymousTestersAreExcludable() async {
+        UserDefaults.standard.set(true, forKey: AnalyticsService.internalTesterKey)
+        UserDefaults.standard.set("anon-123", forKey: AnalyticsService.anonymousSessionIdKey)
+        defer { UserDefaults.standard.removeObject(forKey: AnalyticsService.internalTesterKey) }
+
+        let payload = AnalyticsService.buildCapturePayload(
+            apiKey: "phc_test",
+            event: .appLaunched(isAuthenticated: false),
+            distinctId: "anon-123"
+        )
+        let props = payload["properties"] as? [String: Any]
+        let set = props?["$set"] as? [String: String]
+        XCTAssertEqual(set?["is_internal_tester"], "true",
+            "an ordinary event must set the person property, or anonymous testers "
+            + "stay invisible to every person-level exclusion filter")
+    }
+
+    /// The invariant that actually matters, and the one that was broken: the
+    /// person property must AGREE with the event property on the same payload.
+    ///
+    /// Asserting a literal "false" here would be wrong — `currentInternalTesterValue()`
+    /// also consults TestFlight receipt and a configured user-id list, so the
+    /// resolved value is environment-dependent. Agreement is not.
+    func testThePersonPropertyAlwaysAgreesWithTheEventProperty() async {
+        UserDefaults.standard.set("anon-456", forKey: AnalyticsService.anonymousSessionIdKey)
+
+        for flag in [true, false] {
+            UserDefaults.standard.set(flag, forKey: AnalyticsService.internalTesterKey)
+            let payload = AnalyticsService.buildCapturePayload(
+                apiKey: "phc_test",
+                event: .appLaunched(isAuthenticated: false),
+                distinctId: "anon-456"
+            )
+            let props = payload["properties"] as? [String: Any]
+            let eventValue = props?["is_internal_tester"] as? String
+            let personValue = (props?["$set"] as? [String: String])?["is_internal_tester"]
+            XCTAssertNotNil(personValue, "every event must carry the person-scoped $set")
+            XCTAssertEqual(personValue, eventValue,
+                "person and event property must agree — they disagreed 108 vs 3 in "
+                + "production, which silently broke every person-level exclusion filter")
+        }
+        UserDefaults.standard.removeObject(forKey: AnalyticsService.internalTesterKey)
     }
 
     // MARK: PII guard — all events
