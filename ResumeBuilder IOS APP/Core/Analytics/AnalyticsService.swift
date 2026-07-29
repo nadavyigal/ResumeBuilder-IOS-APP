@@ -34,7 +34,20 @@ struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
     /// only to that builder would have passed its tests and shipped nothing.
     nonisolated static func withPersonScope(_ properties: [String: String]) -> [String: Any] {
         var out = properties.mapValues { $0 as Any }
-        out["$set"] = AnalyticsService.personScopedProperties
+        // Derive the person value from THIS payload's event property rather than
+        // re-reading UserDefaults. `track(_:)` snapshots the event property and
+        // then hands off to an async Task, so a sign-in or reset landing in
+        // between would otherwise make `$set.is_internal_tester` disagree with
+        // the event's own `is_internal_tester` on the same payload — the exact
+        // disagreement this whole change exists to remove. Deriving from the
+        // snapshot makes them agree by construction, not by timing.
+        //
+        // The fallback covers direct transport callers that never went through
+        // `track(_:)` and so carry no event property.
+        let personValue = properties["is_internal_tester"]
+            ?? AnalyticsService.personScopedProperties["is_internal_tester"]
+            ?? "false"
+        out["$set"] = ["is_internal_tester": personValue]
         return out
     }
 

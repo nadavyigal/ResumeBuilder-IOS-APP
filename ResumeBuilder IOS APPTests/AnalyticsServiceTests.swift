@@ -163,6 +163,28 @@ final class AnalyticsServiceTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AnalyticsService.internalTesterKey)
     }
 
+    /// Regression for the race CodeRabbit caught on PR #137: `track(_:)` snapshots
+    /// the event property and then hands off to an async Task, so a sign-in or
+    /// reset landing in between must not make the person value disagree with the
+    /// event value on the same payload. Flipping the flag between assembly and
+    /// `withPersonScope` reproduces exactly that window.
+    func testPersonScopeUsesThePayloadSnapshotNotAFreshRead() async {
+        UserDefaults.standard.set(true, forKey: AnalyticsService.internalTesterKey)
+        let assembled = ["is_internal_tester": "true", "app": "resumely_ios"]
+
+        // The window: state changes after the event was assembled.
+        UserDefaults.standard.set(false, forKey: AnalyticsService.internalTesterKey)
+        defer { UserDefaults.standard.removeObject(forKey: AnalyticsService.internalTesterKey) }
+
+        let out = PostHogAnalyticsTransport.withPersonScope(assembled)
+        let personValue = (out["$set"] as? [String: String])?["is_internal_tester"]
+        XCTAssertEqual(personValue, "true",
+            "the person value must come from the payload that was assembled, not from "
+            + "a re-read that can race the async transport")
+        XCTAssertEqual(personValue, out["is_internal_tester"] as? String,
+            "person and event values must agree on the same payload by construction")
+    }
+
     // MARK: PII guard — all events
 
     func testEventPropertiesExcludeForbiddenKeys() async {
