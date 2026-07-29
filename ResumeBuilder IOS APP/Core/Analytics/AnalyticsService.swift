@@ -18,7 +18,24 @@ struct PostHogAnalyticsTransport: AnalyticsTransport, Sendable {
     }
 
     func capture(event: String, properties: [String: String], distinctId: String) async throws {
-        try await post(event: event, distinctId: distinctId, properties: properties.mapValues { $0 as Any })
+        try await post(
+            event: event,
+            distinctId: distinctId,
+            properties: Self.withPersonScope(properties)
+        )
+    }
+
+    /// Adds the person-scoped `$set` block to an event's properties.
+    ///
+    /// WP-63 story 5. This is on the **production** send path deliberately.
+    /// `AnalyticsService.buildCapturePayload` looked like the payload builder and
+    /// is asserted by the tests, but nothing in the app calls it — `track(_:)`
+    /// composes its own dictionary and hands it to this transport. A fix applied
+    /// only to that builder would have passed its tests and shipped nothing.
+    nonisolated static func withPersonScope(_ properties: [String: String]) -> [String: Any] {
+        var out = properties.mapValues { $0 as Any }
+        out["$set"] = AnalyticsService.personScopedProperties
+        return out
     }
 
     func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws {
@@ -488,8 +505,46 @@ final class AnalyticsService {
             "api_key": apiKey,
             "event": event.name,
             "distinct_id": distinctId,
-            "properties": event.properties.merging(baseProperties) { current, _ in current },
+            "properties": eventProperties(for: event),
         ]
+    }
+
+    /// Event properties plus the person-scoped `$set` block.
+    ///
+    /// Kept in agreement with `PostHogAnalyticsTransport.withPersonScope`, which is
+    /// what actually ships. Nothing in the app calls this builder today; it exists
+    /// as the tested shape, and that divergence is itself worth knowing about.
+    nonisolated static func eventProperties(for event: AnalyticsEvent) -> [String: Any] {
+        PostHogAnalyticsTransport.withPersonScope(
+            event.properties.merging(baseProperties) { current, _ in current }
+        )
+    }
+
+    /// Person-scoped properties sent with **every** event, not only `$identify`.
+    ///
+    /// WP-63 story 5. `is_internal_tester` rides on every event as an event
+    /// property, but the person property was only ever written through `$set` on
+    /// `$identify` — and `$identify` fires only when a user authenticates.
+    /// Measured on PostHog 270848 for 2026-03-30 → 2026-07-28: the flag was true
+    /// on **108 persons** by event property and **3** by person property, because
+    /// the internal testers are per-build sweeps that almost never sign in.
+    ///
+    /// Every saved "clean"/"founder-excluded" insight filters with
+    /// `{"key": "is_internal_tester", "type": "person", "operator": "is_not"}`,
+    /// so all of them were excluding 3 testers out of 108 and over-counting the
+    /// clean population by roughly 40%.
+    ///
+    /// Setting it here rather than switching those insights to event-level
+    /// filtering is deliberate: event-level exclusion splits a single person
+    /// across both sides of a filter, which is the separate defect that
+    /// corrupted the 2026-07-28 activation snapshot. The flag has to reach the
+    /// person.
+    ///
+    /// This is forward-only. Events already ingested keep the person properties
+    /// they had at ingest time under person-on-events, so historical reads must
+    /// still aggregate the event property to the person.
+    nonisolated static var personScopedProperties: [String: String] {
+        ["is_internal_tester": currentInternalTesterValue() ? "true" : "false"]
     }
 
     nonisolated static func buildAliasPayload(
