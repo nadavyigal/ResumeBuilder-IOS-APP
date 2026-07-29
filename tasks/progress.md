@@ -1,5 +1,68 @@
 # Project Progress
 
+## 2026-07-29 (later) — RESOLVED: telemetry is healthy. The launch check was low traffic, not a break
+
+**A founder device walk at 05:13–05:17 UTC settled it.** The live 1.4.7 (17) build emitted the complete journey, in order and with correct version properties: `app_launched` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` → `resume_file_selected` → `job_input_validation_shown` → `job_added` → `analysis_cta_tapped` → `resume_upload_started` → `resume_upload_succeeded` → `optimization_started` → `recommendation_viewed` / `recommendation_evidence_shown` → `optimization_apply_started` → `optimization_apply_succeeded` → `optimization_completed` → `optimized_viewed` → `export_cta_seen` → **`optimized_preview_rendered`** → `ats_improve_tapped` → `expert_mode_run_started` / `_completed` → `expert_apply_clicked` → `expert_mode_apply_completed`. All carrying `marketing_version 1.4.7`, `build_number 17`.
+
+**The 21-hour silence was volume, not a defect.** The three eliminations recorded below stand, and the fourth candidate is now also eliminated: the app sends. Nothing is wrong with the instrument. **Everything previously written here about "unexplained silence" is closed.**
+
+**`optimized_preview_rendered` fired**, so the activation milestone works on the live build. This is the first confirmation of that on 1.4.7.
+
+**Two instrumentation defects surfaced in the same trace, both worth their own fix:**
+
+1. **Events are duplicated.** At identical timestamps: `optimized_viewed` ×2, `export_cta_seen` ×2, `saved_resume_prompt_viewed` ×2, `recommendation_viewed` ×4, `recommendation_evidence_shown` ×4. Any count built on these is inflated by 2–4x. This alone invalidates naive funnel counts on those steps.
+2. **`optimization_completed` is emitted twice from two sources** — once from the client at 05:16:03.277 carrying `marketing_version`/`build_number`, once server-side at 05:16:03.034 carrying neither. Cross-source double-counting, and the server copy is invisible to any version-filtered query.
+
+**The founder's own person is not flagged internal.** `is_internal_tester` reads `False` on every event in this walk. Founder activity therefore contaminates activation metrics unless excluded by person id — the person-level exclusion is necessary but **not sufficient**, and `9fa6c1f5…` / person `a6441489-66c4-512d-9cf4-22b07652570e` must be excluded explicitly.
+
+**The walk also found a P0 in the product**, unrelated to telemetry: the optimizer returned all five roles with zero achievement bullets, and the ATS score rose 38 → 61 anyway. Filed as **WP-64** in the web repo (`tasks/work-pack-optimizer-drops-all-bullets.md`, PR #126). Root cause is a key-name mismatch (`responsibilities` vs `achievements`) with no output validation. That is now the highest-priority item for this product, ahead of everything in the list below.
+
+**Last Updated:** 2026-07-29
+
+## 2026-07-29 — 1.4.7 is LIVE, and the launch check found zero post-release traffic (superseded above)
+
+**1.4.7 (17) is public.** Apple's lookup API returns `version: 1.4.7`, `currentVersionReleaseDate: 2026-07-28T19:30:45Z`, release notes "Scores reliably update". Store-verified, not a founder statement. The 2026-07-27 entry below asked for the release date to be written back on approval; this is that write-back, one day late.
+
+**The lookup API lies if you call it the same way twice, and this nearly went in the file as fact.** The first call of this session returned `1.4.7`. Later calls to the *identical* URL returned `version: 1.4.6`, `currentVersionReleaseDate: 2026-07-24T21:03:09Z` — the exact signature of a build still in review, and exactly what the 2026-07-27 entry recorded as evidence 1.4.7 was still with Apple. **Sending `Cache-Control: no-cache` does not help**; the stale response comes from Apple's edge cache keyed on the URL, and the request header does not reach past it. **Varying a query parameter does** (`&nocache=1`, `&nocache=2`, ...). Polled six times with a varying parameter: 6/6 returned 1.4.7. Anyone re-verifying a release date must vary the URL and poll more than once, or they will record "still in review" for a build that shipped. This is a plausible reason the last three releases across both apps went live without anyone noticing.
+
+**No ratings and no reviews yet.** `userRatingCount: 0` and `userRatingCountForCurrentVersion: 0`; the customer-reviews RSS feed returns zero entries on both the US and IL storefronts. Nothing to triage, and no rejection-risk signal either way.
+
+**The launch telemetry check ran and returned nothing, which is the finding.** PostHog project 270848, fingerprinted before reading (10,043 events / 452 persons over 365d, distinct from RunSmart's 171597 at 45,111 / 435). **Not one event of any kind has arrived since 2026-07-28T07:32:20Z** — 21 hours of silence at the time of the check (project clock 2026-07-29T04:49Z), and the release landed at 19:30Z, 12 hours *after* the last event. So there is no post-release data at all: zero `app_launched`, zero anything, on the live build.
+
+**Every 1.4.7 event on record is pre-release internal testing.** Build 17 shows 1,858 events / 31 persons / 42 launches, all between 2026-07-26T10:51Z and 2026-07-28T07:32Z. Person-level exclusion (`max(is_internal_tester = 'true')` per person, then filter — *not* event-level, which splits one person across both sides) leaves **1 external person**. That single external person predates the public release. **The instrument has not been proven on the live build; it has only been proven on the same binary before Apple shipped it.**
+
+**Do not read this as broken ingestion, and do not read it as fine.** Both readings are unsupported by what is in the data. Against it: no calendar day in the last 21 has had zero launches, so a 21-hour dead stop has no precedent in this project. For it: the install base is genuinely tiny — 1.4.6 was public for five days (2026-07-24 to 2026-07-28) and accumulated **133 events / 7 persons / 4 external**, so a quiet overnight window is entirely consistent with normal volume. **The two are separated by one observation: whether an `app_launched` carrying `marketing_version = 1.4.7` arrives from a device that is not a tester.** Until one does, the launch is unmeasured.
+
+**Three candidate causes were tested and eliminated; the silence is still unexplained.**
+
+1. **PostHog ingestion is healthy.** Differential against the RunSmart project (171597, fingerprinted 45,173 events / 436 persons) returned an event **5 minutes old** while Resumely sat at 21.6 hours. Whatever this is, it is not the vendor and not the account.
+2. **The shipped binary is correctly configured.** The 1.4.7 (17) IPA at `/private/tmp/wp45-export/` carries `POSTHOG_API_KEY` with prefix `phc_UmPZ` (matching project 270848), `POSTHOG_HOST = https://us.i.posthog.com`, `CFBundleShortVersionString 1.4.7`, `CFBundleVersion 17`. This mattered because `POSTHOG_API_KEY` resolves from the **gitignored** `Secrets.xcconfig` via `$(POSTHOG_API_KEY)` substitution, so a distribution archive built anywhere without that file would ship with analytics silently disabled. It did not happen here, but the exposure is one missing untracked file wide.
+3. **The last transmission was a clean one.** 2026-07-28T07:31–07:32Z, an `is_internal_tester = False` person on build 17 fired `app_launched` → `guest_mode_started` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` via `resumely-ios-urlsession`. The build emits correctly. Nothing degraded gradually; it stopped mid-health.
+
+**A founder device check on 2026-07-29 did not test this.** The app opened that morning was RunSmart, not Resumely — confirmed by the event stream (`run_started`, `run_completed`, `adaptive_coach_shown`, `posthog-ios`, v1.1.4). **No conclusion about Resumely was drawn from it, and none should be.** The question stays open.
+
+**Separate defect found while investigating: the app cannot report that it failed to report.** `AnalyticsService.track` wraps the transport in `do/catch` whose entire catch body is `#if DEBUG print(...) #endif`. In a Release build a failed capture is swallowed with no retry, no queue, no disk persistence and no counter. `BackendConfig.isPostHogEnabled` fails the same way — a missing key returns `nil` and analytics no-ops, which `Secrets.xcconfig` documents as intended ("Without it the app builds and runs fine; analytics calls are silently skipped"). Every event is one immediate HTTP POST, so a backgrounded app, a flaky network or a 4xx loses it permanently. **The consequence for this investigation is exact: no amount of looking at the app can distinguish "nobody opened it" from "it failed to send", because the app is built not to know.** Needs its own packet.
+
+**Version adoption remains slow and is the real constraint.** Ranked by external persons over 30 days: 1.4.2 (8), 1.4.1 (6), 1.4.6 (4), 1.4 (4), 1.4.3 (3), 1.4.7 (1), 1.4.5 (1), 1.4.4 (1). Older builds still out-carry the current one. Against the EXD-022 gate of >=20 clean activations, **volume is binding, not cohort maturity** — the "no version has matured" framing is true but secondary, and 1.4.7 is now the fourth exact-version reset inside one measurement window (1.4.5 → 1.4.6 → 1.4.7).
+
+**Instrumentation note, unchanged and still load-bearing:** the version lives on `marketing_version` / `build_number` / `app_version`, **not** `$app_version`, which is unset on every native iOS event because the app posts through `resumely-ios-urlsession` rather than the official SDK. A check written against `$app_version` returns "no version data" and is indistinguishable from broken attribution.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None. The open item is an observation, not a build.
+**Last Completed Story:** 1.4.7 (17) released by Apple 2026-07-28T19:30:45Z, carrying WP-45 D7/D8 (iOS #125, web #123).
+**Next Recommended Story:** In order.
+
+1. **Open Resumely on a physical device and watch the event stream.** Cheapest open item, and it closes two at once: it resolves whether the live build still emits, and it *is* the overdue pre-submission device walk. Run the full journey (optimize → fit check → accept → expert pass, number only climbs). That walk was the recorded gate before submitting, it never ran, and it is now a check on a live build — the journey has failed on device twice while reporting green in the simulator. Both answers arrive in the same five minutes.
+2. **Give the analytics transport a failure signal**, so silence stops being ambiguous: persist failed captures and retry, or at absolute minimum count them. Until this exists the app is built so that "no data" and "no users" are indistinguishable, which is exactly the ambiguity blocking item 1 from being conclusive on its own.
+3. **Re-run the version query once real traffic appears** and confirm a non-tester `app_launched` on `marketing_version = 1.4.7`. Until then every 1.4.7 figure in this file describes testers.
+4. **The upload step.** On the post-2026-07-08 cohort, 27 people saw the upload CTA and only 9 selected a file. n=27 clears the Activation Playbook's 10-user minimum, so it is the one funnel step currently safe to act on, and it starves everything downstream.
+5. **Persist `SCORE_VERSION` as stored text** so score regimes stop being inferred from timestamps.
+6. **Open a packet for the optimizer's keyword regression** (`keyword_exact` 60 → 40 on the tested run; the floor hides it from users but does not stop the product causing it).
+**Blockers:** None on the code. The measurement is blocked on user traffic, which no amount of engineering produces.
+**Last Validation:** 2026-07-29 — App Store lookup API confirms 1.4.7 public since 2026-07-28T19:30:45Z, polled 6/6 with a varying query parameter after identical-URL calls returned a cached 1.4.6. PostHog 270848 read-only, fingerprinted before reading; last ingested event 2026-07-28T07:32:20Z, 21 hours before the check. Zero store ratings and zero reviews (US and IL).
+**Open Verification, carried:** the physical-device walk of 1.4.7 is now a post-release check on a live build. Carried from 2026-07-27 and still unrun.
+**Last Updated:** 2026-07-29
+
 ## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)
 
 **The bug.** A moderated run scored one unchanged resume **56** through the free match check and **51** through optimize, then **44** after the rewrite. The user watched the number fall for doing nothing but continue. All three composites reproduce to the point from their stored subscores, so this was measured, not inferred.
