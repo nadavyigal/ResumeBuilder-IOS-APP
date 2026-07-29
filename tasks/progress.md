@@ -1,5 +1,28 @@
 # Project Progress
 
+## 2026-07-29 — 1.4.7 is LIVE, and the launch check found zero post-release traffic
+
+**1.4.7 (17) is public.** Apple's lookup API returns `version: 1.4.7`, `currentVersionReleaseDate: 2026-07-28T19:30:45Z`, release notes "Scores reliably update". Store-verified, not a founder statement. The 2026-07-27 entry below asked for the release date to be written back on approval; this is that write-back, one day late. **Note for anyone re-checking:** the first lookup call of this session returned a cached `1.4.6`. A single uncached `curl` is not sufficient evidence that a build is still in review.
+
+**The launch telemetry check ran and returned nothing, which is the finding.** PostHog project 270848, fingerprinted before reading (10,043 events / 452 persons over 365d, distinct from RunSmart's 171597 at 45,111 / 435). **Not one event of any kind has arrived since 2026-07-28T07:32:20Z** — 21 hours of silence at the time of the check (project clock 2026-07-29T04:49Z), and the release landed at 19:30Z, 12 hours *after* the last event. So there is no post-release data at all: zero `app_launched`, zero anything, on the live build.
+
+**Every 1.4.7 event on record is pre-release internal testing.** Build 17 shows 1,858 events / 31 persons / 42 launches, all between 2026-07-26T10:51Z and 2026-07-28T07:32Z. Person-level exclusion (`max(is_internal_tester = 'true')` per person, then filter — *not* event-level, which splits one person across both sides) leaves **1 external person**. That single external person predates the public release. **The instrument has not been proven on the live build; it has only been proven on the same binary before Apple shipped it.**
+
+**Do not read this as broken ingestion, and do not read it as fine.** Both readings are unsupported by what is in the data. Against it: no calendar day in the last 21 has had zero launches, so a 21-hour dead stop has no precedent in this project. For it: the install base is genuinely tiny — 1.4.6 was public for five days (2026-07-24 to 2026-07-28) and accumulated **133 events / 7 persons / 4 external**, so a quiet overnight window is entirely consistent with normal volume. **The two are separated by one observation: whether an `app_launched` carrying `marketing_version = 1.4.7` arrives from a device that is not a tester.** Until one does, the launch is unmeasured.
+
+**Version adoption remains slow and is the real constraint.** Ranked by external persons over 30 days: 1.4.2 (8), 1.4.1 (6), 1.4.6 (4), 1.4 (4), 1.4.3 (3), 1.4.7 (1), 1.4.5 (1), 1.4.4 (1). Older builds still out-carry the current one. Against the EXD-022 gate of >=20 clean activations, **volume is binding, not cohort maturity** — the "no version has matured" framing is true but secondary, and 1.4.7 is now the fourth exact-version reset inside one measurement window (1.4.5 → 1.4.6 → 1.4.7).
+
+**Instrumentation note, unchanged and still load-bearing:** the version lives on `marketing_version` / `build_number` / `app_version`, **not** `$app_version`, which is unset on every native iOS event because the app posts through `resumely-ios-urlsession` rather than the official SDK. A check written against `$app_version` returns "no version data" and is indistinguishable from broken attribution.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None. The open item is an observation, not a build.
+**Last Completed Story:** 1.4.7 (17) released by Apple 2026-07-28T19:30:45Z, carrying WP-45 D7/D8 (iOS #125, web #123).
+**Next Recommended Story:** In order. (1) **Re-run the version query once real traffic appears** and confirm a non-tester `app_launched` on `marketing_version = 1.4.7`; until then every 1.4.7 number in this file describes testers. (2) **The physical-device walk of 1.4.7** (optimize → fit check → accept → expert pass, number only climbs) — it was the recorded pre-submission gate, it never ran, and it is now a check on a live build; the journey has failed on device twice while reporting green in the simulator. (3) **The upload step** — on the post-2026-07-08 cohort, 27 people saw the upload CTA and only 9 selected a file; n=27 clears the Activation Playbook's 10-user minimum, so it is the one funnel step currently safe to act on, and it starves everything downstream. (4) Persist `SCORE_VERSION` as stored text so score regimes stop being inferred from timestamps. (5) Open a packet for the optimizer's keyword regression (`keyword_exact` 60 → 40 on the tested run; the floor hides it from users but does not stop the product causing it).
+**Blockers:** None on the code. The measurement is blocked on user traffic, which no amount of engineering produces.
+**Last Validation:** 2026-07-29 — App Store lookup API confirms 1.4.7 public since 2026-07-28T19:30:45Z. PostHog 270848 read-only, fingerprinted before reading; last ingested event 2026-07-28T07:32:20Z, 21 hours before the check.
+**Open Verification, carried:** the physical-device walk of 1.4.7 is now a post-release check on a live build. Carried from 2026-07-27 and still unrun.
+**Last Updated:** 2026-07-29
+
 ## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)
 
 **The bug.** A moderated run scored one unchanged resume **56** through the free match check and **51** through optimize, then **44** after the rewrite. The user watched the number fall for doing nothing but continue. All three composites reproduce to the point from their stored subscores, so this was measured, not inferred.
