@@ -1,5 +1,36 @@
 # Project Progress
 
+## 2026-07-29 — WP-65: one score, one place. The optimized preview said three different things at once
+
+**Founder report from device, with screenshots:** "as a user i still do not know what the numbers say? ... its very confusing and not clear. also i still see the old how recruter sees my resume i asked several times to remove."
+
+**The three numbers were all correct, and that was the problem.** `FitJourney` models the run in three stages, and the screen rendered all three simultaneously with nothing naming any of them:
+
+| Shown | Stage | Meaning |
+|---|---|---|
+| 44 | `.fit` | the original resume |
+| 69 | `.improved` | after optimize |
+| 85 | `.expert` | after the expert passes — **the resume actually on screen** |
+
+`currentATSScore` returns the *current* stage (85). The Before/After pair was hardcoded to `fit -> improved`, so it read 44 → 69 and **ignored the expert passes entirely**. The "+25 pts" badge understated the real gain of **+41**. Headline and delta were describing two different documents.
+
+**`FitJourney` already owned all of this** — `displayedScore(at:)`, `currentStage`, `totalGain`. The view simply never asked it. The fix is a labelled journey strip (`Original 44 → Optimized 69 → Expert 85`, current stage highlighted, total gain stated once) plus a caption naming what the headline number refers to. No new score logic was written.
+
+**Four score-bearing panels became one.** `atsScoreCard`, `atsInsightPanel`, `diagnosisSnapshotPanel` and `atsUpliftPanel` all rendered scores on the same scroll, each added for a reason, none ever removed when the next arrived. Now: a scoreless `targetRoleHeader` (role only) and a single `atsInsightPanel` carrying the number, the journey, the signals and the blockers. **162 lines of dead view code deleted.**
+
+**The recruiter-eye card was stale by construction, not by accident.** `ResumeDiagnosisViewModel.load()` opens with `guard diagnosis == nil else { return }` — it loads once and never reloads. So the 44% diagnosis and its blockers were computed from the *pre-optimization* resume and pinned there permanently, under an optimized document. That is why it survived being raised several times: nothing was ever wired to refresh it, so every "remove it" landed on a screen that had no refresh path to fix. **Founder decision 2026-07-29: remove it from this screen entirely** rather than re-run it. `RecruiterEyeViewCard` and `ResumeConfidenceChecklist` remain in use by `ResumeDiagnosisView`, the standalone pre-optimization screen where they are accurate.
+
+**Two rendering bugs found in the same screenshots.**
+
+1. **`Sales &amp; Business Development Manager` rendered verbatim.** Job titles are extracted from job descriptions users paste from web pages, so they arrive HTML-escaped, and **nothing in the app decoded entities anywhere**. New `String.decodingHTMLEntities()` handles named and numeric (`&#38;` / `&#x26;`) forms. `&amp;` is unescaped **last** so `&amp;lt;` decodes one level instead of becoming markup. Deliberately a small table rather than `NSAttributedString`'s HTML importer, which requires the main thread, is far slower, and would interpret arbitrary markup in a job title.
+2. **Blocker text rendered twice**, bold then grey. The guard was `detail != blocker.title`, exact equality, which trailing whitespace, case or a full stop slipped straight past. Now `isEquivalentCopy(to:)` normalizes case, diacritics, whitespace runs and trailing punctuation.
+
+**Validation:** `BUILD SUCCEEDED`. Full suite **282 tests, 0 failures, 1 skipped**. 7 new tests, and their execution was confirmed individually with `-only-testing` rather than inferred from the total — the repo's synchronized file group covers only the app target, so a test file added without an explicit pbxproj entry compiles into nothing and reports green. `HTMLEntitiesTests` is wired into `project.pbxproj` (4 entries) and `plutil -lint` passes. Built with `-derivedDataPath /private/tmp/...`, never under iCloud-synced `~/Documents`.
+
+**Not done, and this one matters:** **the screen itself has not been seen rendered.** A fresh simulator install lands on onboarding, and reaching the optimized preview needs a real resume file, an account and a live optimization. Compilation and unit tests are verified; **the layout is not**. It needs a device pass on the real journey before anyone calls this good. Also not done: no snapshot test pins the new layout, and the `&amp;` escaping is fixed at the *render* boundary rather than at the backend extractor that produces it, so the escaped text is still what is stored.
+
+**Last Updated:** 2026-07-29
+
 ## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)
 
 **The bug.** A moderated run scored one unchanged resume **56** through the free match check and **51** through optimize, then **44** after the rewrite. The user watched the number fall for doing nothing but continue. All three composites reproduce to the point from their stored subscores, so this was measured, not inferred.
