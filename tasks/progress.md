@@ -1,6 +1,25 @@
 # Project Progress
 
-## 2026-07-29 — 1.4.7 is LIVE, and the launch check found zero post-release traffic
+## 2026-07-29 (later) — RESOLVED: telemetry is healthy. The launch check was low traffic, not a break
+
+**A founder device walk at 05:13–05:17 UTC settled it.** The live 1.4.7 (17) build emitted the complete journey, in order and with correct version properties: `app_launched` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` → `resume_file_selected` → `job_input_validation_shown` → `job_added` → `analysis_cta_tapped` → `resume_upload_started` → `resume_upload_succeeded` → `optimization_started` → `recommendation_viewed` / `recommendation_evidence_shown` → `optimization_apply_started` → `optimization_apply_succeeded` → `optimization_completed` → `optimized_viewed` → `export_cta_seen` → **`optimized_preview_rendered`** → `ats_improve_tapped` → `expert_mode_run_started` / `_completed` → `expert_apply_clicked` → `expert_mode_apply_completed`. All carrying `marketing_version 1.4.7`, `build_number 17`.
+
+**The 21-hour silence was volume, not a defect.** The three eliminations recorded below stand, and the fourth candidate is now also eliminated: the app sends. Nothing is wrong with the instrument. **Everything previously written here about "unexplained silence" is closed.**
+
+**`optimized_preview_rendered` fired**, so the activation milestone works on the live build. This is the first confirmation of that on 1.4.7.
+
+**Two instrumentation defects surfaced in the same trace, both worth their own fix:**
+
+1. **Events are duplicated.** At identical timestamps: `optimized_viewed` ×2, `export_cta_seen` ×2, `saved_resume_prompt_viewed` ×2, `recommendation_viewed` ×4, `recommendation_evidence_shown` ×4. Any count built on these is inflated by 2–4x. This alone invalidates naive funnel counts on those steps.
+2. **`optimization_completed` is emitted twice from two sources** — once from the client at 05:16:03.277 carrying `marketing_version`/`build_number`, once server-side at 05:16:03.034 carrying neither. Cross-source double-counting, and the server copy is invisible to any version-filtered query.
+
+**The founder's own person is not flagged internal.** `is_internal_tester` reads `False` on every event in this walk. Founder activity therefore contaminates activation metrics unless excluded by person id — the person-level exclusion is necessary but **not sufficient**, and `9fa6c1f5…` / person `a6441489-66c4-512d-9cf4-22b07652570e` must be excluded explicitly.
+
+**The walk also found a P0 in the product**, unrelated to telemetry: the optimizer returned all five roles with zero achievement bullets, and the ATS score rose 38 → 61 anyway. Filed as **WP-64** in the web repo (`tasks/work-pack-optimizer-drops-all-bullets.md`, PR #126). Root cause is a key-name mismatch (`responsibilities` vs `achievements`) with no output validation. That is now the highest-priority item for this product, ahead of everything in the list below.
+
+**Last Updated:** 2026-07-29
+
+## 2026-07-29 — 1.4.7 is LIVE, and the launch check found zero post-release traffic (superseded above)
 
 **1.4.7 (17) is public.** Apple's lookup API returns `version: 1.4.7`, `currentVersionReleaseDate: 2026-07-28T19:30:45Z`, release notes "Scores reliably update". Store-verified, not a founder statement. The 2026-07-27 entry below asked for the release date to be written back on approval; this is that write-back, one day late.
 
