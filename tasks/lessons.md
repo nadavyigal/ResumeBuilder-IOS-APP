@@ -693,3 +693,10 @@
 **Category:** Analytics / measurement contracts
 **Rule:** An event that has never fired is a finding, not a gap. Check `count() = 0` on the error events before theorizing about errors.
 **Why:** `resume_upload_error_shown` has zero occurrences in project 270848 across 365 days, so no user has ever been shown an upload error or a picker failure. Any explanation of the upload wall that runs through "something broke and they gave up" is ruled out by that one number, and it was available before WP-62 and WP-66 were written.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** This scheme uses `shouldAutocreateTestPlan`, and the implicit plan parallelizes execution — so `xcodebuild test | grep 'Executed N tests' | tail` can report one clone's shard as if it were the suite. Read the `Test Suite 'All tests'` summary instead, and treat a total that moves between identical runs as a sharding artifact, not a change in coverage.
+**Why:** The WP-66 S1 verification was reported as "119 tests, 0 failures" in a commit message and a PR body. The suite is 279. Both runs were green and both numbers came from a real `Executed ... tests` line; the smaller one was a shard. An under-reported count in a PR is a claim nobody can reproduce, which is worse than no count.

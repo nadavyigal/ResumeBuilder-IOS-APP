@@ -10,8 +10,9 @@ import XCTest
 final class DirectOptimizeRoutingTests: XCTestCase {
 
     func testFitGateIsOff() {
-        // The routing in HomeTabView and TailorView both branch on this. With
-        // it off, Analyze runs the direct path and no Fit sheet is presented.
+        // HomeTabView's routing branches on this. With it off, Analyze runs the
+        // direct path and no Fit sheet is presented. (TailorView also branched
+        // on it until it was deleted as unreachable on 2026-08-04.)
         XCTAssertFalse(BackendConfig.isFitCheckEnabled)
     }
 

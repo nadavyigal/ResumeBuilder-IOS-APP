@@ -1,5 +1,19 @@
 # Project Progress
 
+## 2026-08-04 (latest) — Three unreachable picker surfaces deleted
+
+`TailorView.swift`, `ScanResumeView.swift`, and `ImportResumeView.swift` are gone, along with `TailorDestination` (declared in `TailorView.swift`, referenced nowhere else). The project uses a file-system-synchronized root group, so removing the files removes them from the build — no `project.pbxproj` edit was needed or made.
+
+Nothing referenced them. `HomeTabView` declares its own `resumeImportContentTypes`, so the deleted copy on `TailorView` was a duplicate, not a shared constant. One stale comment in `DirectOptimizeRoutingTests` was corrected.
+
+**Suite after deletion: 279 tests, 1 skipped, 0 failures**, reproduced twice on iOS 26.5 iPhone 17 (`9E2E82B6`), `-testLanguage en -testRegion US`. The skip is the pre-existing intentional `XCTSkip` in `FitCheckViewModelTests.testLiveFitCheckEndToEndAgainstProduction` (needs a live authenticated fixture).
+
+**Correction to the WP-66 S1 entry below:** it cites "119 tests, 0 failures". 119 was a shard total from a parallelized run, not the suite. The suite is 279. The green result stands — the count was under-reported. The scheme uses `shouldAutocreateTestPlan`, whose implicit plan parallelizes execution, so a `tail`-based read of `Executed N tests` can catch one clone's summary rather than the total. Read the `Test Suite 'All tests'` line, not the last `Executed` line.
+
+**Left in place, flagged:** `ViewModels/ScanViewModel.swift` is now production code referenced only by `ScanViewModelTests` and `ImproveViewModelTests`. It was the deleted Scan screen's view model. Deleting it means rewriting or dropping those tests, which is a separate decision.
+
+**Last Updated:** 2026-08-04
+
 ## 2026-08-04 (later) — The upload wall is not at the picker. 13 of 27 never tapped the CTA
 
 **Source:** PostHog project 270848 (fingerprinted 10,500 events / 467 persons / latest 2026-08-04T06:31Z before reading), person-level `is_internal_tester` exclusion, founder person `a6441489-66c4-512d-9cf4-22b07652570e` excluded explicitly, window from 2026-07-08 per WP-66's Do Not Redo.
