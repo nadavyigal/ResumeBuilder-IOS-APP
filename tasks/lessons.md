@@ -675,3 +675,18 @@
 **Category:** General
 **Rule:** Read the total from the `Test Suite 'All tests'` summary line, not the trailing `Executed N tests` line. The implicit test plan shards and runs in parallel, so a tail read reports one shard.
 **Why:** Confirmed on the 2026-08-04 enrollment run: `All tests` reported 310 while individual shard lines reported much smaller counts. Also note the run emits two summaries — XCTest (`Test Suite 'All tests'`, 310) and swift-testing (`Test run with 5 tests in 1 suite`, `ResumeOptimizationServiceSwiftTestingTests`). They do not overlap and are not additive into either headline.
+
+**Date:** 2026-08-04
+**Category:** Testing
+**Rule:** A test that reaches a live backend can be green for a reason that has nothing to do with the assertion. Before trusting a test that touches network code, re-run it with the backend unreachable — temporarily repointing `BackendConfig.supabaseURL` at `https://127.0.0.1:9` is enough and does not require touching the host's networking.
+**Why:** `testParallelRefreshAccessTokenCoalescesToSingleTask` passed only because Supabase rejected a bogus refresh token, which triggered sign-out and made `session == nil` true. Offline the request fails with a transport error, sign-out correctly does not fire, and the assertion collapses. The test also never observed coalescing. Fixing it needed a production seam (`protocol AuthClient`, injected into `AppState.init`) because `AuthService.shared` was a hard-coded singleton.
+
+**Date:** 2026-08-04
+**Category:** Testing
+**Rule:** To test that two concurrent callers coalesce into one call, the stub must hold the first call open until both callers have arrived. Counting calls without a gate can pass while measuring nothing.
+**Why:** `AppState.refreshAccessToken` clears `refreshTask` as soon as it returns. If the stub returns immediately, the first refresh can complete before the second caller reaches the coalescing check, so the second starts its own refresh — or the test passes for scheduling reasons that will not hold on another machine. The stub in `AppStateRefreshTests` suspends inside `refreshSession` until the test calls `release()`.
+
+**Date:** 2026-08-04
+**Category:** Swift concurrency
+**Rule:** `NSLock.lock()`/`unlock()` are unavailable in an async context under Swift 6. Put the critical section in a synchronous helper and call that from the async function.
+**Why:** The `refreshSession` stub incremented its call counter inline in an `async` method and failed to build with `instance method 'lock' is unavailable from asynchronous contexts`. Related: a data type lifted to file scope in the app target inherits `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` and stops being usable from nonisolated code (including its `Decodable` conformance) — mark such model types `nonisolated`, as `GoTrueResponse`/`GoTrueUser` now are.

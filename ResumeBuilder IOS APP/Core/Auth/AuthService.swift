@@ -34,6 +34,17 @@ extension AuthServiceError {
     }
 }
 
+/// The slice of `AuthService` that `AppState` depends on. Injecting it keeps session
+/// handling (refresh coalescing, sign-out policy) testable without a live GoTrue request.
+protocol AuthClient: Sendable {
+    func restoreSession() -> AuthSession?
+    func clearSession()
+    func refreshSession(refreshToken: String) async throws -> AuthSession
+    func deleteAccount(accessToken: String) async throws
+}
+
+extension AuthService: AuthClient {}
+
 final class AuthService: @unchecked Sendable {
     static let shared = AuthService()
 
@@ -206,21 +217,7 @@ final class AuthService: @unchecked Sendable {
             throw AuthServiceError.serverError(parseGoTrueError(text))
         }
 
-        struct GoTrueResponse: Decodable {
-            let access_token: String
-            let refresh_token: String?
-            let user: GoTrueUser
-        }
-        let decoded = try JSONDecoder().decode(GoTrueResponse.self, from: data)
-        guard let refresh = decoded.refresh_token else {
-            throw AuthServiceError.invalidResponse
-        }
-        return AuthSession(
-            accessToken: decoded.access_token,
-            refreshToken: refresh,
-            userId: decoded.user.id,
-            email: decoded.user.email
-        )
+        return try JSONDecoder().decode(GoTrueResponse.self, from: data).makeSession()
     }
 
     // Extracts a human-readable message from GoTrue error JSON ({"error":"…","message":"…"})
@@ -233,9 +230,29 @@ final class AuthService: @unchecked Sendable {
     }
 }
 
-// MARK: - Shared GoTrue user shape
+// MARK: - Shared GoTrue response shapes
 
-private struct GoTrueUser: Decodable {
+nonisolated struct GoTrueUser: Decodable, Sendable {
     let id: String
     let email: String?
+}
+
+/// GoTrue token payload. A response with no `refresh_token` cannot be persisted as a
+/// session — the app would be unable to refresh — so it is rejected as `.invalidResponse`.
+nonisolated struct GoTrueResponse: Decodable, Sendable {
+    let access_token: String
+    let refresh_token: String?
+    let user: GoTrueUser
+
+    func makeSession() throws -> AuthSession {
+        guard let refresh = refresh_token else {
+            throw AuthServiceError.invalidResponse
+        }
+        return AuthSession(
+            accessToken: access_token,
+            refreshToken: refresh,
+            userId: user.id,
+            email: user.email
+        )
+    }
 }
