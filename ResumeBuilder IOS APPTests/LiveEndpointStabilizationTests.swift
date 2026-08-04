@@ -32,6 +32,18 @@ final class LiveEndpointStabilizationTests: XCTestCase {
         XCTAssertTrue(uploadedPDFText.contains("Resume text for extraction"))
     }
 
+    /// Word resumes are the case WP-18 opened the picker's content types for, and the
+    /// Home upload path is the only one that can reach preflight. Moved here from
+    /// `ScanViewModelTests` on 2026-08-04 when that file was deleted with its screen —
+    /// it never exercised the Scan view model, only this shared preflight helper.
+    func testDocxMimeTypeRecognizedByPreflight() {
+        let url = URL(fileURLWithPath: "/tmp/resume.docx")
+        XCTAssertEqual(
+            UploadFilePreflight.mimeType(for: url),
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    }
+
     func testMultipartUploadIncludesResumeTextFallback() {
         let descriptor = UploadFileDescriptor(
             filename: "resume.pdf",

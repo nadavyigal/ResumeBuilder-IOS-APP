@@ -3,28 +3,11 @@ import XCTest
 
 @MainActor
 final class ImproveViewModelTests: XCTestCase {
-    func testScanUploadUsesAuthenticatedAppStateSession() async {
-        let appState = AppState()
-        appState.session = AuthSession(
-            accessToken: "token",
-            refreshToken: "refresh",
-            userId: "user-1",
-            email: "user@example.com"
-        )
-        let viewModel = ScanViewModel(uploadService: MockResumeUploadService())
-        let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("scan-upload-test.pdf")
-        try? Data("resume".utf8).write(to: fileURL)
-        defer { try? FileManager.default.removeItem(at: fileURL) }
-
-        viewModel.jobDescription = "iOS Engineer"
-        await viewModel.handlePickedFile(url: fileURL, token: nil)
-
-        let input = await viewModel.uploadForOptimization(appState: appState)
-
-        XCTAssertEqual(input?.resumeId, "mock-resume-001")
-        XCTAssertEqual(input?.jobDescriptionId, "mock-jd-001")
-    }
+    // `testScanUploadUsesAuthenticatedAppStateSession` was removed on 2026-08-04
+    // with `ScanViewModel`. It asserted that the Scan screen's upload used the
+    // session on `AppState` rather than a passed token; the equivalent guarantee
+    // on the live path is `TailorViewModel.ensureUploadedResumeForCurrentJob`,
+    // which reads `appState.session` through `callWithFreshToken`.
 
     func testImproveOptimizeUsesAuthenticatedAppStateSession() async {
         let appState = AppState()

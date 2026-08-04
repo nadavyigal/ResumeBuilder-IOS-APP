@@ -1,6 +1,29 @@
 # Project Progress
 
-## 2026-08-04 (latest) — Three unreachable picker surfaces deleted
+## 2026-08-04 (latest) — ScanViewModel deleted, and 11 test files are discovered to have never run
+
+**ScanViewModel and its test file are gone.** `ViewModels/ScanViewModel.swift` was the deleted Scan screen's view model, referenced only by tests after that screen went. `ScanViewModelTests.swift` deleted with it.
+
+**Two things in those files were not ScanViewModel tests and were kept:**
+
+1. `testDocxMimeTypeRecognizedByPreflight` never touched `ScanViewModel` — it asserts `UploadFilePreflight.mimeType(for:)` maps `.docx` correctly, which is live shared code on the Home upload path and directly relevant to WP-18's Word support. Moved to `LiveEndpointStabilizationTests` beside the other preflight tests.
+2. `ImproveViewModelTests` is not a ScanViewModel file. Three of its four tests cover `ImproveViewModel`, which is live (`Features/V2/Improve/ImproveView.swift`). Only `testScanUploadUsesAuthenticatedAppStateSession` was removed, with a comment naming the live-path equivalent (`TailorViewModel.ensureUploadedResumeForCurrentJob` via `callWithFreshToken`).
+
+**Suite: 279 tests, 1 skipped, 0 failures** on iOS 26.5 iPhone 17 (`9E2E82B6`). Unchanged total: −1 from `ImproveViewModelTests`, +1 into `LiveEndpointStabilizationTests`, and the three tests in `ScanViewModelTests` contributed zero because they never ran.
+
+### 11 test files exist on disk and have never executed
+
+The app target uses a file-system-synchronized group. **The test target does not** — it has an explicit `PBXSourcesBuildPhase` file list, so a test file only runs if someone added it to `project.pbxproj`. `ScanViewModelTests.swift` had zero references and never ran. Auditing the rest found ten more in the same state:
+
+`AppStateRefreshTests`, `AuthServiceResponseTests`, `ChatViewModelTests`, `HomeActivationStateTests`, `JWTDecoderTests`, `KeychainStoreTests`, `OptimizationDetailCacheTests`, `PDFDownloadValidatorTests`, `ProfileAccountDisplayTests`, `ReceiptVerifierTests`, `StoreKitManagerTests`.
+
+Confirmed two ways: zero occurrences in `project.pbxproj`, and no `Test Suite '<name>'` line in a full run. **11 of 34 test files — a third of the written suite — are decorative.** `StoreKitManagerTests` and `ReceiptVerifierTests` cover purchases; `KeychainStoreTests` and `JWTDecoderTests` cover auth; `HomeActivationStateTests` covers the activation surface this whole work stream is about.
+
+**Not fixed here — out of scope and genuinely risky.** Enrolling them is one pbxproj edit, but eleven never-run files will not all pass on first execution, and the failures could be anywhere. This needs its own session with room to triage. The 2026-07-14 lesson already recorded this trap for one file; nobody checked whether it had happened elsewhere.
+
+**Last Updated:** 2026-08-04
+
+## 2026-08-04 — Three unreachable picker surfaces deleted
 
 `TailorView.swift`, `ScanResumeView.swift`, and `ImportResumeView.swift` are gone, along with `TailorDestination` (declared in `TailorView.swift`, referenced nowhere else). The project uses a file-system-synchronized root group, so removing the files removes them from the build — no `project.pbxproj` edit was needed or made.
 

@@ -700,3 +700,17 @@
 **Category:** Build
 **Rule:** This scheme uses `shouldAutocreateTestPlan`, and the implicit plan parallelizes execution — so `xcodebuild test | grep 'Executed N tests' | tail` can report one clone's shard as if it were the suite. Read the `Test Suite 'All tests'` summary instead, and treat a total that moves between identical runs as a sharding artifact, not a change in coverage.
 **Why:** The WP-66 S1 verification was reported as "119 tests, 0 failures" in a commit message and a PR body. The suite is 279. Both runs were green and both numbers came from a real `Executed ... tests` line; the smaller one was a shard. An under-reported count in a PR is a claim nobody can reproduce, which is worse than no count.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Xcode test targets
+**Rule:** The app target is a file-system-synchronized group but the **test target is not** — it carries an explicit `PBXSourcesBuildPhase` list, so a test file on disk runs only if it was added to `project.pbxproj`. Audit the whole directory, not the one file you just touched: `for f in "ResumeBuilder IOS APPTests/"*.swift; do grep -q "$(basename $f) in Sources" *.xcodeproj/project.pbxproj || echo "MISSING: $f"; done`.
+**Why:** The 2026-07-14 lesson recorded this trap for a single new file and said to verify enrollment after adding one. Nobody asked whether it had already happened elsewhere. It had: **11 of 34 test files have never executed** — including `StoreKitManagerTests` and `ReceiptVerifierTests` (purchases), `KeychainStoreTests` and `JWTDecoderTests` (auth), and `HomeActivationStateTests` (the activation surface under active investigation). Found only because deleting `ScanViewModelTests.swift` prompted a check for whether it needed a pbxproj removal — it needed none, because it was never there. A green suite says nothing about files the target cannot see.
+
+---
+
+**Date:** 2026-08-04
+**Category:** General
+**Rule:** When asked to delete a file and "drop its tests", read the test files first. A test file named after a dead type often contains tests that never touched it, and a file that mentions the dead type may be mostly about something live.
+**Why:** `ScanViewModelTests.testDocxMimeTypeRecognizedByPreflight` asserted on `UploadFilePreflight`, live shared code on the Home upload path, and never referenced `ScanViewModel`. `ImproveViewModelTests` had one ScanViewModel test out of four; the other three cover `ImproveViewModel`, which ships in `ImproveView`. Dropping both files wholesale, as asked, would have deleted coverage of two live paths — one of them the Word-document support the upload packet spent a story on.
