@@ -1,5 +1,26 @@
 # Project Progress
 
+## 2026-08-04 — 1.4.7 has been live for a week and this file still said Apple was holding it
+
+**Store-verified 2026-08-04.** Apple's lookup API returns `version: 1.4.7`, `currentVersionReleaseDate: 2026-07-28T19:30:45Z` for `id=6776752349` on **both** the IL and US storefronts, across six cache-busted calls (three per storefront). 1.4.7 went live **2026-07-28 at 19:30:45Z**, roughly seven hours after it was submitted the same day.
+
+**Nobody wrote it down for seven days.** This file, `dashboard/status.json`, `dashboard/portfolio-hq-manual.json`, `DASHBOARD.md`, `PROJECT-STATUS.md` and `distribution-os/weekly-growth-review.md` all continued to say 1.4.7 was in review, and the growth review went further and described build 17 as "a build that has never been public". The 2026-07-31 CEO review caught the contradiction and assigned the source-file correction; this entry is that correction.
+
+**This is the fourth consecutive release nobody recorded** — 2026-07-22 (parser bug), 2026-07-24 (1.4.6), 2026-07-26 (RunSmart 1.1.4), now 1.4.7. The releases are fine; the reporting layer is what keeps failing, and it fails silently because a stale card looks exactly like a fresh one. **Approval produces no git artifact and no local event**, which is why every writeback so far has depended on a human remembering. Fixed at the root in the same pass: `build_ground_truth()` in the Agentic OS refresh now queries the lookup API for the live version and raises a hard contradiction when a version declared "in review" is one the store is already serving.
+
+**What this does and does not license.** 1.4.7 carries WP-45 D7/D8 (the fit score can no longer fall for an unchanged resume; the `recency_fit` defect is fixed). Its post-release cohort is **unproven**: build-17 traffic before 19:30:45Z was overwhelmingly internal test sweeps and is not launch evidence, and the 2026-07-28 activation snapshot remains the last reproducible decision snapshot rather than being silently rewritten as a 1.4.7 result.
+
+**Ratings, re-checked in the same pass:** Resumely is still `averageUserRating 0 / userRatingCount 0`. The App Store review prompt shipped in 1.4.6 on 2026-07-24 (`requestReview()` on the export-success path, `Features/V2/Improve/OptimizedResumeView.swift:1198`) and has produced **zero ratings in eleven days**. That is now a measurable result, not an unknown.
+
+**Status:** **1.4.7 (17) is LIVE on the App Store, released 2026-07-28T19:30:45Z.** Store-verified 2026-08-04 on the IL and US storefronts with six cache-busted lookups. Build 17 is repo-derived from the release commit, not store-verified — Apple's lookup API does not expose build numbers.
+**Current Phase:** Post-release watch on live 1.4.7. No release work in flight.
+**Active Story:** None.
+**Last Completed Story:** 1.4.7 (17) released to the App Store 2026-07-28, carrying WP-45 D7/D8 (iOS #125, web #123).
+**Next Recommended Story:** (1) **The upload step (WP-62)** — on the post-2026-07-08 cohort, 27 people saw the upload CTA and only 9 selected a file. n=27 clears the Activation Playbook's 10-user minimum, so this is the one funnel step currently safe to act on, and it starves everything downstream. Instrument picker opened / dismissed / denied / rejected / parse-failure on the **live 1.4.7** journey before designing a fix. (2) Persist `SCORE_VERSION` as stored text so score regimes stop being inferred from timestamps. (3) Open a packet for the optimizer's keyword regression (`keyword_exact` 60 → 40 on the tested run; the floor hides it from users but does not stop the product causing it). (4) Re-baseline the cohort against 1.4.7 from 2026-07-28T19:30:45Z — this is the third exact-version reset inside one measurement window (1.4.5 → 1.4.6 → 1.4.7), so no cohort has yet matured.
+**Blockers:** None. Nothing is with Apple. Two things are still owed on the live build: the **physical-device walk** of optimize → fit check → accept → expert pass (the journey has failed on device twice while reporting green in the simulator), and confirmation that the StoreKit review prompt is actually visible after a real export — eleven days at zero ratings makes that the leading hypothesis for why nothing has come in.
+**Last Validation:** 2026-08-04 — Apple lookup API, six cache-busted calls across IL and US storefronts, all returning 1.4.7 / 2026-07-28T19:30:45Z. Build evidence carried forward from 2026-07-29 (WP-65): `BUILD SUCCEEDED`, 282 tests / 0 failures / 1 skipped. No new code shipped in this entry.
+**Last Updated:** 2026-08-04
+
 ## 2026-07-29 — WP-65: one score, one place. The optimized preview said three different things at once
 
 **Founder report from device, with screenshots:** "as a user i still do not know what the numbers say? ... its very confusing and not clear. also i still see the old how recruter sees my resume i asked several times to remove."
