@@ -59,7 +59,12 @@ final class TailorViewModel {
     }
 
     /// Copies the picked PDF into the sandbox temp dir and sets the URL + name.
-    func cachePickedFile(url: URL) {
+    ///
+    /// `source` is the surface whose CTA opened the picker, and it must match the
+    /// value the preceding `resume_upload_cta_seen` / `resume_file_picker_opened`
+    /// carried — that pairing is what makes the upload step a measurable funnel
+    /// step rather than two unrelated counts (WP-66 S1).
+    func cachePickedFile(url: URL, source: String) {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let ext = url.pathExtension.isEmpty ? "pdf" : url.pathExtension.lowercased()
@@ -72,6 +77,18 @@ final class TailorViewModel {
         try? FileManager.default.copyItem(at: url, to: dest)
 
         let candidateURL = FileManager.default.fileExists(atPath: dest.path) ? dest : url
+
+        // Emitted before preflight, not after it. The picker did return a file;
+        // a preflight rejection is a distinct downstream outcome with its own
+        // event (`resume_upload_preflight_rejected`), not a non-selection.
+        // Emitting only on the success path made every rejected file look in the
+        // data like a person who never picked one (WP-66 S1).
+        AnalyticsService.shared.track(.resumeFileSelected(
+            source: source,
+            fileType: url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased(),
+            sizeBucket: Self.fileSizeBucket(for: candidateURL)
+        ))
+
         do {
             _ = try UploadFilePreflight.loadResumeFile(candidateURL)
         } catch {
@@ -89,11 +106,6 @@ final class TailorViewModel {
         failedResumeName = nil
         uploadFailureReason = nil
         errorMessage = nil
-        let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
-        AnalyticsService.shared.track(.resumeFileSelected(
-            fileType: pickedType,
-            sizeBucket: Self.fileSizeBucket(for: candidateURL)
-        ))
     }
 
     /// PII-safe coarse file-size bucket for upload analytics.

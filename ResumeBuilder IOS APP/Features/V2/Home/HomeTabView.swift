@@ -255,7 +255,7 @@ struct HomeTabView: View {
                         AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
                         return
                     }
-                    viewModel.cachePickedFile(url: url)
+                    viewModel.cachePickedFile(url: url, source: "home")
                 case .failure(let error):
                     markImporterResolved()
                     if (error as NSError).code == NSUserCancelledError {

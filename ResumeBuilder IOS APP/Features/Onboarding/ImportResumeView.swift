@@ -1,6 +1,17 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// **Not in the upload funnel, because it is not reachable.** Verified 2026-08-04:
+/// `ImportResumeView` is constructed nowhere in the app — no view, route, or
+/// settings screen presents it. Its six silent exit paths (no url, no token,
+/// unreadable, server rejected, threw, picker failed) therefore cannot be
+/// costing any live user anything, and it is left uninstrumented on purpose
+/// (WP-66 S1). The same applies to the "Sign in to upload your resume" hard stop
+/// below: no guest can reach it today.
+///
+/// If this view is ever presented, it must gain the paired CTA-seen /
+/// file-selected events with a matching `source`, one event per exit path, and
+/// the shared pdf/docx/doc content-type list before it ships.
 struct ImportResumeView: View {
     @Environment(AppState.self) private var appState
 

@@ -1,6 +1,17 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// **Not in the upload funnel, because it is not reachable.** Verified 2026-08-04:
+/// `ScanResumeView` is constructed nowhere in the app — only in its own `#Preview`.
+/// `MainTabViewV2` builds Home / Optimized / Design / Expert / Profile, and no
+/// navigation destination reaches this screen. It is therefore deliberately left
+/// without `resume_upload_cta_seen` / `resume_file_selected`: instrumenting a
+/// surface no user can open adds contract surface and zero signal (WP-66 S1).
+///
+/// If this view is ever wired into navigation, it must gain the paired
+/// CTA-seen / file-selected events with a matching `source` before it ships,
+/// and its `[.pdf]`-only `allowedContentTypes` must be replaced with the shared
+/// pdf/docx/doc list Home already uses (`HomeTabView.resumeImportContentTypes`).
 struct ScanResumeView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: ScanViewModel

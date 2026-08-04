@@ -313,7 +313,7 @@ final class AnalyticsServiceTests: XCTestCase {
             ["source": "home"],
             ["source": "home"],
             ["source": "home"],
-            ["file_type": "pdf", "file_size_bucket": "100kb-1mb"],
+            ["source": "home", "file_type": "pdf", "file_size_bucket": "100kb-1mb"],
             ["reason": "unreadable"],
             ["file_type": "pdf"],
             ["failure_stage": "upload", "error_code": "500"],
@@ -433,7 +433,7 @@ final class AnalyticsServiceTests: XCTestCase {
 
     func testLocalSelectionAndServerUploadCompletionRemainDistinctEvents() {
         XCTAssertEqual(
-            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            AnalyticsEvent.resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb").name,
             "resume_file_selected"
         )
         XCTAssertEqual(
@@ -441,9 +441,34 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_succeeded"
         )
         XCTAssertNotEqual(
-            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            AnalyticsEvent.resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb").name,
             AnalyticsEvent.resumeUploadSucceeded(fileType: "pdf").name
         )
+    }
+
+    /// WP-66 S1 regression. The upload step is only a funnel step if both of its ends
+    /// carry the same `source`, on the same surface. Before this, `resume_file_selected`
+    /// carried no `source` at all, so a CTA impression on one screen could only ever be
+    /// compared against an action that could not be attributed to any screen.
+    func testUploadFunnelEndsArePairableOnSource() {
+        let surface = "home"
+        let ctaSeen = AnalyticsEvent.resumeUploadCTASeen(source: surface).properties
+        let pickerOpened = AnalyticsEvent.resumeFilePickerOpened(source: surface).properties
+        let fileSelected = AnalyticsEvent.resumeFileSelected(
+            source: surface,
+            fileType: "docx",
+            sizeBucket: "100kb-1mb"
+        ).properties
+
+        XCTAssertEqual(ctaSeen["source"], surface)
+        XCTAssertEqual(pickerOpened["source"], surface)
+        XCTAssertEqual(
+            fileSelected["source"],
+            surface,
+            "resume_file_selected must carry the surface it was picked from, or the step cannot be joined to its CTA impression."
+        )
+        XCTAssertEqual(fileSelected["file_type"], "docx")
+        XCTAssertEqual(fileSelected["file_size_bucket"], "100kb-1mb")
     }
 
     /// WP-51 regression. The preview renders from the optimization id alone, so a real
@@ -655,7 +680,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadCTATapped(source: "home"),
         .resumeFilePickerOpened(source: "home"),
         .resumeFilePickerCancelled(source: "home"),
-        .resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb"),
+        .resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb"),
         .resumeUploadPreflightRejected(reason: "unreadable"),
         .resumeUploadStarted(fileType: "pdf"),
         .resumeUploadFailed(failureStage: "upload", errorCode: "500"),

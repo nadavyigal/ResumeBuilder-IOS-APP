@@ -9,6 +9,11 @@ enum TailorDestination: Hashable {
     case direct(String)
 }
 
+/// **Not reachable.** Verified 2026-08-04: `TailorView` is constructed nowhere —
+/// `MainTabViewV2` builds `HomeTabView` for the Tailor tab and hands it the shared
+/// `TailorViewModel`. Its `source: "tailor"` events cannot fire in production, so
+/// any `resume_*` event carrying `source = "tailor"` in PostHog predates this
+/// screen's retirement and is not current behaviour (WP-66 S1).
 struct TailorView: View {
     @Environment(AppState.self) private var appState
     @Bindable var viewModel: TailorViewModel
@@ -186,7 +191,7 @@ struct TailorView: View {
                         AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))
                         return
                     }
-                    viewModel.cachePickedFile(url: url)
+                    viewModel.cachePickedFile(url: url, source: "tailor")
                 case .failure(let error):
                     if (error as NSError).code == NSUserCancelledError {
                         AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))

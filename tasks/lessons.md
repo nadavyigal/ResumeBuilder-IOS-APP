@@ -658,3 +658,24 @@
 **Category:** General
 **Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
 **Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Analytics / measurement contracts
+**Rule:** A file name is not a surface. Before concluding that two events fire on different screens, check where the *view model* is owned, not where its file lives — and check that every screen you are reasoning about is actually constructed somewhere.
+**Why:** WP-66 was written on the finding that `resume_upload_cta_seen` (`HomeTabView.swift:446`) and `resume_file_selected` (`TailorViewModel.swift:93`) are "emitted on different screens by different files", making the published 27→9 step a Home impression measured against a Tailor action. Both halves are wrong. `MainTabViewV2` owns one `TailorViewModel` and hands it to `HomeTabView`, whose picker calls `cachePickedFile` — so both ends already fire on Home. And of the four claimed picker surfaces, three (`TailorView`, `ScanResumeView`, `ImportResumeView`) are constructed nowhere in the app: they compile because the project uses a file-system-synchronized group, but no route reaches them. `grep -rn "ViewName" --include="*.swift"` returning only the definition and its `#Preview` is the check that would have caught this in thirty seconds.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Analytics / measurement contracts
+**Rule:** Any event that ends a funnel step must carry the same discriminator its opening event carries. `resume_file_selected` shipped for months with `file_type` and `file_size_bucket` but no `source`, so it could not be joined to `resume_upload_cta_seen(source:)` under any query.
+**Why:** Every WP-62 / WP-66 statement about the upload wall depended on pairing those two events, and the property needed to pair them did not exist. The defect was invisible from PostHog — both events are present and populated, they just cannot be related. Pinned now by `testUploadFunnelEndsArePairableOnSource`.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Analytics / measurement contracts
+**Rule:** Emit the "user did the thing" event where the user does the thing, not after the code that validates it. `resume_file_selected` fired only after `UploadFilePreflight` passed, so a rejected file was indistinguishable in the data from never opening the picker.
+**Why:** `cachePickedFile` emitted `resume_upload_preflight_rejected` and returned before ever reaching the `resume_file_selected` call. Anyone whose file failed preflight counted toward "saw the CTA, never selected a file" — the exact population WP-62 was scoped to fix. Moved ahead of preflight as of 2026-08-04; the two events are now sequential rather than exclusive, so `resume_file_selected` counts rise from that build forward for reasons that are instrumentation, not behaviour.

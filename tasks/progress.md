@@ -1,5 +1,34 @@
 # Project Progress
 
+## 2026-08-04 — WP-66 Story 1 shipped, and it corrected the packet that commissioned it
+
+**Status:** WP-66 Story 1 complete. Stories 2-5 need re-scoping against the finding below before anyone spends a session on them.
+**Current Phase:** Upload-step instrumentation (WP-66 / WP-62 Story 1)
+**Last Completed Story:** WP-66 S1 — pair the upload funnel on one surface
+**Next Recommended Story:** WP-66 S3 (device verification) on the next TestFlight build. **Not** S2 or S4 as written — see below.
+**Blockers:** None in code. S3 cannot run until a build carrying this change reaches a device.
+**Last Validation:** Full suite `xcodebuild test` on iOS 26.5 iPhone 17 (`9E2E82B6`), `-testLanguage en -testRegion US` — 119 tests, 0 failures. `AnalyticsServiceTests` 26/26 including the new pairing test.
+
+### Three of WP-66's four picker surfaces do not exist for users
+
+`TailorView`, `ScanResumeView`, and `ImportResumeView` are each constructed **nowhere in the app** — only in their own `#Preview`. They compile because the project uses a file-system-synchronized group, not because anything reaches them. `MainTabViewV2` builds Home / Optimized / Design / Expert / Profile, and `HomeTabView` holds the only reachable `fileImporter`. Verified by exhaustive grep on `main` at `5998004`.
+
+Two of the packet's load-bearing claims fall out of that:
+
+1. **The 27→9 step is not cross-surface.** WP-66 says `resume_upload_cta_seen` fires on Home while `resume_file_selected` fires on Tailor. But `MainTabViewV2` owns a single `TailorViewModel` and passes it into `HomeTabView`; the Home picker calls `cachePickedFile` on it. The file is named for a screen that no longer runs. **Both ends already fire on Home.** The figure has a different defect (below), not this one.
+2. **The `.docx` hypothesis is already eliminated, not cheap-to-test.** WP-66 S4 proposes unifying content types because Scan and Import accept `[.pdf]` only. They do — and no user can open either. The one reachable picker has accepted pdf/docx/doc since WP-18 (`HomeTabView.resumeImportContentTypes`). **A Word resume has never been blocked on the live surface.** S4 as written changes nothing a user can reach.
+
+### What was actually broken, and is now fixed
+
+- **`resume_file_selected` carried no `source` at all.** It had `file_type` and `file_size_bucket` only. So it could not be joined to `resume_upload_cta_seen(source:)` in any query, on any surface — the pairing every WP-62 and WP-66 statement rests on was not expressible. `source` added; `cachePickedFile(url:source:)` now requires it; Home passes `"home"`.
+- **A file that failed preflight emitted no `resume_file_selected`.** `cachePickedFile` returned after `resume_upload_preflight_rejected`, before the emit. Those people counted as "saw the CTA, never picked a file" — the exact population the packet exists to explain. The emit now runs before preflight, so selection and rejection are sequential rather than mutually exclusive.
+
+**Measurement break to carry:** `resume_file_selected` counts rise from this build forward for both reasons. Do not compare across the boundary. The pre-change series measures "picked a file that passed preflight, on any surface, unattributable"; the post-change series measures "picked a file, attributed to a surface".
+
+Three unreachable views are documented in place with why they are out of the funnel and what they would need before shipping. They were left uninstrumented deliberately — instrumenting code no user can open adds contract surface and no signal.
+
+**Last Updated:** 2026-08-04
+
 ## 2026-07-29 (later) — RESOLVED: telemetry is healthy. The launch check was low traffic, not a break
 
 **A founder device walk at 05:13–05:17 UTC settled it.** The live 1.4.7 (17) build emitted the complete journey, in order and with correct version properties: `app_launched` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` → `resume_file_selected` → `job_input_validation_shown` → `job_added` → `analysis_cta_tapped` → `resume_upload_started` → `resume_upload_succeeded` → `optimization_started` → `recommendation_viewed` / `recommendation_evidence_shown` → `optimization_apply_started` → `optimization_apply_succeeded` → `optimization_completed` → `optimized_viewed` → `export_cta_seen` → **`optimized_preview_rendered`** → `ats_improve_tapped` → `expert_mode_run_started` / `_completed` → `expert_apply_clicked` → `expert_mode_apply_completed`. All carrying `marketing_version 1.4.7`, `build_number 17`.
