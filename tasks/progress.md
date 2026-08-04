@@ -1,5 +1,31 @@
 # Project Progress
 
+## 2026-08-04 (later) — The three weak tests from the enrollment are now real, and the suite no longer needs a network
+
+**The suite ran a live Supabase request on every invocation. It does not any more.** `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` called `AppState.refreshAccessToken()`, which reached `AuthService.shared.refreshSession` — an actual GoTrue round trip. It passed only because the server rejected the bogus token, `shouldSignOutAfterRefreshFailure` fired, and the cleared session satisfied the first half of `session == nil || accessToken != "stale"`. With the backend unreachable both disjuncts are false, so the green was an artifact of having a network. It also never tested coalescing.
+
+**The blocker was a hard-coded singleton, so the fix is a production change.** `AuthService.shared` had no injection point. Added `protocol AuthClient` (`AuthService.swift:39`) covering the four methods `AppState` actually uses — `restoreSession`, `clearSession`, `refreshSession`, `deleteAccount` — with `extension AuthService: AuthClient {}`, and gave `AppState.init` an `authClient: any AuthClient = AuthService.shared` parameter. Every call site inside `AppState` now goes through the injected client; no other production behavior changed and no call site outside `AppState` needed touching, since the default preserves the old wiring.
+
+**The coalescing test now asserts the property its name claims.** A stub counts `refreshSession` calls and holds the first one open until the test releases it, so the second caller provably arrives while the first is still in flight. Two concurrent `refreshAccessToken()` calls produce **exactly one** underlying refresh, and both receive the same fresh token. Holding the call open is what makes it deterministic — without it the first refresh can finish and clear `refreshTask` before the second caller arrives, and the test would pass while measuring nothing.
+
+**The two tautologies are gone, replaced by tests of the code that makes the decision.**
+- `testURLErrorIsNotAuthFailure` cast a `URLError` to `AuthServiceError`, which can never succeed, so `XCTAssertFalse` was asserting `false == false`. The real decision lives in `AppState.shouldSignOutAfterRefreshFailure`, so it is now tested through it, as a pair: a transport failure **keeps** the session, and an `invalid_grant` server error **clears** it. The pair matters — either assertion alone passes under a policy that always signs out, or never does.
+- `testGoTrueResponseRejectsMissingRefreshToken` declared its own local `GoTrueResponse` struct and tested `JSONDecoder`. The app's real `GoTrueResponse` was nested inside the private `postToGoTrue`, unreachable from tests, so it was lifted to file scope with the existing missing-token guard moved into `makeSession()` — same behavior, now addressable. The test decodes the app's type and asserts `makeSession()` throws `.invalidResponse`, with a companion asserting the success path maps all four fields.
+
+**Verified with the backend unreachable, which is the only check that proves the point.** Disabling the Mac's networking would also have cut this session, so `BackendConfig.supabaseURL` was temporarily repointed at `https://127.0.0.1:9` — a dead port, so every real GoTrue request fails immediately — and the full suite re-run: **312 tests / 1 skip / 0 failures**. Identical to the run against the live backend. The patch was then reverted and the suite re-run once more to confirm the tree is clean. Under the old test this configuration would have failed.
+
+**One offline run aborted on a host crash, not an assertion.** The first unreachable-backend run reported `TEST FAILED` naming `AnalyticsServiceTests.testEveryEventSetsTheInternalTesterPersonProperty…`, with `Restarting after unexpected exit, crash, or test timeout` and zero assertion failures — the known XCTest host-restart flake. The identical configuration passed 312 / 1 / 0 on re-run. Not related to this change.
+
+**This work sits on top of the still-open PR #140.** #140 is what enrolls the 11 files; without it these two test files do not compile at all. Confirmed empirically: the first run on this worktree reported 278 XCTest tests and no `Test Suite 'AppStateRefreshTests'` line anywhere. #140's branch was merged into this one, so the PR is stacked on it.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None.
+**Last Completed Story:** Made the three weak tests from the enrollment real; suite 310 → 312 and now network-independent.
+**Next Recommended Story:** Unchanged — the physical-device walk of 1.4.7 and the analytics failure signal remain the top two. Still open from the enrollment session: convert the test target to a synchronized root group; decide `ScanViewModelTests`.
+**Blockers:** PR #140 must land first (this branch contains it).
+**Last Validation:** 2026-08-04 — `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "id=9E2E82B6-DC56-4162-846F-B96AE74867E7" -testLanguage en -testRegion US` on iPhone 17 (iOS 26.5). **312 tests, 1 skipped, 0 failures**, read from the `Test Suite 'All tests'` summary, plus 5 swift-testing tests. Same result with `BackendConfig.supabaseURL` pointed at a dead port.
+**Last Updated:** 2026-08-04
+
 ## 2026-08-04 — 11 test files had never run. They now run, and all 32 tests pass
 
 **The defect was enrollment, not correctness.** The app target uses a `PBXFileSystemSynchronizedRootGroup`, so source files auto-enroll when dropped on disk. The **test target does not** — it carries an explicit `PBXSourcesBuildPhase` `files` list, so a test file compiles only if someone hand-wrote its `PBXFileReference` **and** its `PBXBuildFile ... in Sources` into `project.pbxproj`. Twelve files had accumulated with **zero** references. They existed, they were readable, and they had never once been compiled.

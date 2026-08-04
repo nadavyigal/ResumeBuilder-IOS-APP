@@ -102,13 +102,16 @@ final class AppState {
 
     let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationHistoryService: any OptimizationHistoryServiceProtocol
+    private let authClient: any AuthClient
     private let anonymousSessionKey = "anonymous_ats_session_id"
     private var refreshTask: Task<String, Error>?
 
     init(
-        optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService()
+        optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService(),
+        authClient: any AuthClient = AuthService.shared
     ) {
         self.optimizationHistoryService = optimizationHistoryService
+        self.authClient = authClient
     }
 
     var isAuthenticated: Bool {
@@ -116,7 +119,7 @@ final class AppState {
     }
 
     func bootstrap() {
-        session = AuthService.shared.restoreSession()
+        session = authClient.restoreSession()
         if let session {
             AnalyticsService.shared.prepareRestoredSession(userId: session.userId, email: session.email)
         }
@@ -145,7 +148,7 @@ final class AppState {
     }
 
     func signOut() {
-        AuthService.shared.clearSession()
+        authClient.clearSession()
         optimizationRecoveryGeneration &+= 1
         session = nil
         creditsBalance = 0
@@ -173,7 +176,7 @@ final class AppState {
     /// Deletes the account server-side, then clears all local state.
     func deleteAccount() async throws {
         try await callWithFreshToken { token in
-            try await AuthService.shared.deleteAccount(accessToken: token)
+            try await self.authClient.deleteAccount(accessToken: token)
         }
         AnalyticsService.shared.track(.accountDeleted)
         signOut()
@@ -413,7 +416,7 @@ final class AppState {
         guard JWTDecoder.shouldRefresh(accessToken: currentSession.accessToken) else { return }
 
         do {
-            let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
+            let newSession = try await authClient.refreshSession(refreshToken: refreshToken)
             session = newSession
         } catch {
             if shouldSignOutAfterRefreshFailure(error) {
@@ -435,7 +438,7 @@ final class AppState {
 
         let task = Task<String, Error> { @MainActor in
             do {
-                let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
+                let newSession = try await self.authClient.refreshSession(refreshToken: refreshToken)
                 self.session = newSession
                 return newSession.accessToken
             } catch {
