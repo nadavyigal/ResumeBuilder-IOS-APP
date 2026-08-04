@@ -658,3 +658,20 @@
 **Category:** General
 **Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
 **Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** The test target is NOT file-system-synchronized — only the app target is. Every new file in `ResumeBuilder IOS APPTests/` needs four hand-written `project.pbxproj` entries (`PBXFileReference`, `PBXBuildFile ... in Sources`, a child in the `ResumeBuilder IOS APPTests` `PBXGroup`, and a member of the `FDB6C233CB7683E4F80DCDB3 /* Sources */` phase) or it silently never compiles and never runs.
+**Why:** 12 of 34 test files had accumulated on disk with zero pbxproj references. The app target uses a `PBXFileSystemSynchronizedRootGroup`, so anything dropped into the app folder auto-enrolls; the test target has an explicit `files` list, so anything dropped into the test folder is invisible. Nothing failed — the suite just reported a smaller number, and "278 passed" read as healthy. Verify a new test by name in the run output (`Test Suite '<Name>'`), never by the fact that the suite is green.
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** A never-compiled test file will usually fail on actor isolation before it fails on logic, because the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` and the test target does not. Mark the test class `@MainActor` (the convention in 25 of the enrolled files) rather than touching production isolation.
+**Why:** 6 of the 11 files enrolled on 2026-08-04 failed to build purely on `main actor-isolated ... in a synchronous nonisolated context`. Every app type is implicitly `@MainActor`; a bare `final class FooTests: XCTestCase` is nonisolated and cannot touch it. A `@MainActor` class also cannot override the synchronous `tearDown()` — switch it to `override func tearDown() async throws`.
+
+**Date:** 2026-08-04
+**Category:** General
+**Rule:** Read the total from the `Test Suite 'All tests'` summary line, not the trailing `Executed N tests` line. The implicit test plan shards and runs in parallel, so a tail read reports one shard.
+**Why:** Confirmed on the 2026-08-04 enrollment run: `All tests` reported 310 while individual shard lines reported much smaller counts. Also note the run emits two summaries — XCTest (`Test Suite 'All tests'`, 310) and swift-testing (`Test run with 5 tests in 1 suite`, `ResumeOptimizationServiceSwiftTestingTests`). They do not overlap and are not additive into either headline.

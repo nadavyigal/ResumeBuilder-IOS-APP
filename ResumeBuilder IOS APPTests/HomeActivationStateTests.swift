@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class HomeActivationStateTests: XCTestCase {
     func testNoResumeWhenEmpty() {
         let state = HomeActivationState.derive(from: .init(

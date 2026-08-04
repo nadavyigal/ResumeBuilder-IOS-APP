@@ -31,6 +31,17 @@
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
 		EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC120002EC120002EC120002 /* ExportCompletionTests.swift */; };
 		F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */; };
+		EEB100000000000000000001 /* AppStateRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000001 /* AppStateRefreshTests.swift */; };
+		EEB100000000000000000002 /* AuthServiceResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000002 /* AuthServiceResponseTests.swift */; };
+		EEB100000000000000000003 /* ChatViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000003 /* ChatViewModelTests.swift */; };
+		EEB100000000000000000004 /* HomeActivationStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000004 /* HomeActivationStateTests.swift */; };
+		EEB100000000000000000005 /* JWTDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000005 /* JWTDecoderTests.swift */; };
+		EEB100000000000000000006 /* KeychainStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000006 /* KeychainStoreTests.swift */; };
+		EEB100000000000000000007 /* OptimizationDetailCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000007 /* OptimizationDetailCacheTests.swift */; };
+		EEB100000000000000000008 /* PDFDownloadValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000008 /* PDFDownloadValidatorTests.swift */; };
+		EEB100000000000000000009 /* ProfileAccountDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000009 /* ProfileAccountDisplayTests.swift */; };
+		EEB100000000000000000010 /* ReceiptVerifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000010 /* ReceiptVerifierTests.swift */; };
+		EEB100000000000000000011 /* StoreKitManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF100000000000000000011 /* StoreKitManagerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +82,17 @@
 		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		EC120002EC120002EC120002 /* ExportCompletionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportCompletionTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000001 /* AppStateRefreshTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppStateRefreshTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000002 /* AuthServiceResponseTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthServiceResponseTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000003 /* ChatViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatViewModelTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000004 /* HomeActivationStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeActivationStateTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000005 /* JWTDecoderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JWTDecoderTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000006 /* KeychainStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000007 /* OptimizationDetailCacheTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OptimizationDetailCacheTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000008 /* PDFDownloadValidatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PDFDownloadValidatorTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000009 /* ProfileAccountDisplayTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileAccountDisplayTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000010 /* ReceiptVerifierTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReceiptVerifierTests.swift; sourceTree = "<group>"; };
+		EEF100000000000000000011 /* StoreKitManagerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StoreKitManagerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -175,6 +197,17 @@
 				54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */,
 				F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */,
 				45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */,
+				EEF100000000000000000001 /* AppStateRefreshTests.swift */,
+				EEF100000000000000000002 /* AuthServiceResponseTests.swift */,
+				EEF100000000000000000003 /* ChatViewModelTests.swift */,
+				EEF100000000000000000004 /* HomeActivationStateTests.swift */,
+				EEF100000000000000000005 /* JWTDecoderTests.swift */,
+				EEF100000000000000000006 /* KeychainStoreTests.swift */,
+				EEF100000000000000000007 /* OptimizationDetailCacheTests.swift */,
+				EEF100000000000000000008 /* PDFDownloadValidatorTests.swift */,
+				EEF100000000000000000009 /* ProfileAccountDisplayTests.swift */,
+				EEF100000000000000000010 /* ReceiptVerifierTests.swift */,
+				EEF100000000000000000011 /* StoreKitManagerTests.swift */,
 			);
 			path = "ResumeBuilder IOS APPTests";
 			sourceTree = "<group>";
@@ -308,6 +341,17 @@
 				D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */,
 				1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */,
 				D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */,
+				EEB100000000000000000001 /* AppStateRefreshTests.swift in Sources */,
+				EEB100000000000000000002 /* AuthServiceResponseTests.swift in Sources */,
+				EEB100000000000000000003 /* ChatViewModelTests.swift in Sources */,
+				EEB100000000000000000004 /* HomeActivationStateTests.swift in Sources */,
+				EEB100000000000000000005 /* JWTDecoderTests.swift in Sources */,
+				EEB100000000000000000006 /* KeychainStoreTests.swift in Sources */,
+				EEB100000000000000000007 /* OptimizationDetailCacheTests.swift in Sources */,
+				EEB100000000000000000008 /* PDFDownloadValidatorTests.swift in Sources */,
+				EEB100000000000000000009 /* ProfileAccountDisplayTests.swift in Sources */,
+				EEB100000000000000000010 /* ReceiptVerifierTests.swift in Sources */,
+				EEB100000000000000000011 /* StoreKitManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

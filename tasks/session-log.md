@@ -3,6 +3,24 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-08-04 — Enroll 11 orphaned test files in the test target
+
+**Branch:** `claude/heuristic-gagarin-4bdc00` in worktree `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/heuristic-gagarin-4bdc00` (based on `main` @ `5998004`)
+
+**Task:** Enroll 11 test files that existed on disk but had never been compiled, then triage whatever they surfaced.
+
+**Files changed:** `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` (+44: file refs, build files, group children, Sources phase members for 11 files) and 7 test files — `ChatViewModelTests` (added the missing `previewKeywordSuggestion` stub to `MockChatMessaging`), `HomeActivationStateTests` / `JWTDecoderTests` / `OptimizationDetailCacheTests` / `PDFDownloadValidatorTests` / `ProfileAccountDisplayTests` (added `@MainActor`), `KeychainStoreTests` (added `@MainActor`, `tearDown()` → `tearDown() async throws`). **No production code touched.**
+
+**Result:** 278 → **310 tests, 1 skipped, 0 failures**. Baseline re-measured on this worktree by reverting the pbxproj (278, not the 279 in the brief). Delta of +32 matches the 11 files exactly, and each suite was confirmed by name in the run output.
+
+**Decisions:** (1) Fixed isolation on the test side with `@MainActor` rather than changing production isolation — matches 25 already-enrolled files. (2) Left `ScanViewModelTests` unenrolled after probing it (it compiles, 3 tests pass), because the unmerged branch `claude/resumely-upload-instrumentation-25fad1` deletes both it and `ScanViewModel`. (3) Deleted nothing. The four "deleted" APIs named in the brief still exist on `main`; the deletions are on that same unmerged branch.
+
+**Flagged, not fixed:** two vacuous tests in `AuthServiceResponseTests` (one decodes a locally-declared struct and touches no app code; one asserts a cast that can never succeed) and `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask`, which makes a real network call to Supabase and will fail offline. Fixing the last one needs an injection point on `AppState`, which is a production change.
+
+**Next action:** Convert the test target to a `PBXFileSystemSynchronizedRootGroup` so enrollment stops being manual, and revisit `ScanViewModelTests` once the upload-instrumentation branch resolves.
+
+---
+
 ## 2026-07-23 — Merge PR #121 and prepare 1.4.6 (16) for founder archive
 
 **Branch:** `codex/resumely-1.4.6-release-prep` in `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP-review-prompt`

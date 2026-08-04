@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class ProfileAccountDisplayTests: XCTestCase {
     func testGuestModeLabels() {
         let info = AccountDisplayInfo.resolve(isAuthenticated: false, email: nil)

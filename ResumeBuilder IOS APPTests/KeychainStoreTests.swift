@@ -1,13 +1,14 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class KeychainStoreTests: XCTestCase {
     private let service = "com.resumebuilder.tests.keychain"
     private let account = "roundtrip"
 
-    override func tearDown() {
+    override func tearDown() async throws {
         KeychainStore.shared.remove(service: service, account: account)
-        super.tearDown()
+        try await super.tearDown()
     }
 
     func testSaveReadRoundTrip() throws {

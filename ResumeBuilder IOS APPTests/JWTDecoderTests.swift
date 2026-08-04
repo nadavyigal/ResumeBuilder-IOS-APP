@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class JWTDecoderTests: XCTestCase {
     func testShouldRefreshWhenExpiryWithinLeeway() {
         let exp = Date().addingTimeInterval(120).timeIntervalSince1970

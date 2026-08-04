@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class OptimizationDetailCacheTests: XCTestCase {
     func testEvictsOldestEntryWhenOverLimit() throws {
         var cache = OptimizationDetailCache()
