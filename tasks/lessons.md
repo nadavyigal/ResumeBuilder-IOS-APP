@@ -13,6 +13,23 @@
 
 ---
 
+**Date:** 2026-09-02
+**Category:** Build
+**Rule:** When a `nonisolated` wire DTO constructs a model that inherits the app target's default `MainActor` isolation, mark only the construction method `@MainActor`; do not broaden the DTO or the model's isolation to silence the compiler.
+**Why:** Replaying PR #142 on current main failed because `GoTrueResponse.makeSession()` was nonisolated while `AuthSession.init` is main-actor isolated.
+
+**Date:** 2026-09-02
+**Category:** Testing
+**Rule:** A test that reaches authentication network code must prove its behavior with an injected client; never let a live backend failure accidentally satisfy the assertion.
+**Why:** PR #142's refresh-coalescing test passed only because Supabase rejected a bogus token and cleared the session; offline it did not test coalescing and failed for an unrelated transport reason.
+
+**Date:** 2026-09-02
+**Category:** Testing
+**Rule:** To prove concurrent callers coalesce, hold the first stubbed request open until the second caller has reached the shared in-flight task, then assert one underlying call and both results.
+**Why:** An immediate stub result can finish and clear `refreshTask` before the second task arrives, making the test scheduler-dependent.
+
+---
+
 **Date:** 2026-08-31
 **Category:** API
 **Rule:** Never decode a server-side *score gain* or other computed metric into a non-optional-typed `Int`; use the lenient Int-or-Double shape `ATSSuggestion` already uses. A fractional number does not degrade one field, it throws `dataCorrupted` ("Number 2.5 is not representable in Swift") and fails the **entire** response decode.
