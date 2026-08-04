@@ -3,6 +3,24 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-08-04 (later) — Convert the test target to a synchronized root group
+
+**Branch:** `claude/loving-gagarin-6ccd76` in worktree `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/loving-gagarin-6ccd76` (based on `claude/heuristic-gagarin-4bdc00` @ `8ba3258`, PR #140 — **not** on `main`)
+
+**Task:** Replace the test target's hand-maintained enrollment with a `PBXFileSystemSynchronizedRootGroup`, so new test files auto-enroll the way app files already do.
+
+**Files changed:** `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` only (+9 / −144). Added `EBBAC22F32DDC2060C87D2CC` as a `PBXFileSystemSynchronizedRootGroup` on `ResumeBuilder IOS APPTests`, referenced it from the test target's `fileSystemSynchronizedGroups`, swapped it into the root group's children, deleted the `EBBAC22E32DDC2060C87D2CB` `PBXGroup`, emptied the `FDB6C233CB7683E4F80DCDB3` Sources `files` list, and removed all 34 test `PBXFileReference` / `PBXBuildFile` entries. **No Swift file touched.**
+
+**Result:** **313 tests, 1 skipped, 0 failures.** Control run of the same command on the parent branch: 310 / 1 / 0. The +3 is `ScanViewModelTests`, now auto-enrolled. Reverse case proven: a throwaway `SyncGroupEnrollmentProbeTests.swift` with zero pbxproj references ran by name and took the suite to 314; deleting it returned it to 313 and the build system logged `Removed stale file` unprompted.
+
+**Decisions:** (1) **Based on PR #140, not `main`** — a synchronized group makes the 11 orphaned files *compile* but not *build*; PR #140's `@MainActor` and `MockChatMessaging` fixes are still required. This supersedes only PR #140's 44 pbxproj lines; if the two land in either order the conflict is confined to `project.pbxproj` and resolves to this version. (2) **Accepted `ScanViewModelTests`' auto-enrollment.** PR #139 (`claude/resumely-upload-instrumentation-25fad1` @ `bbb3ce1`) was re-checked and is still open. Its diff does not touch `project.pbxproj`, so when it lands the file leaves disk and the group stops compiling it — no conflict. Under the old explicit list, that merge would have left four dangling entries.
+
+**Chased and dismissed:** the first run reported 1 failure in `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` and reproduced twice, which looked like pollution from the newly-enrolled tests. Root cause was this worktree's `Secrets.xcconfig` being a copy of the **template**, so the real Supabase call failed as a `URLError` and the session was never cleared. Copying the real local config in made the same run green with no code change.
+
+**Next action:** Merge order between #139, #140 and this is free; resolve any `project.pbxproj` conflict to the synchronized-group version.
+
+---
+
 ## 2026-08-04 — Enroll 11 orphaned test files in the test target
 
 **Branch:** `claude/heuristic-gagarin-4bdc00` in worktree `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/heuristic-gagarin-4bdc00` (based on `main` @ `5998004`)
