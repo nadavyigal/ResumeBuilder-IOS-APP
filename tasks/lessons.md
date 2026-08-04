@@ -679,3 +679,17 @@
 **Category:** Analytics / measurement contracts
 **Rule:** Emit the "user did the thing" event where the user does the thing, not after the code that validates it. `resume_file_selected` fired only after `UploadFilePreflight` passed, so a rejected file was indistinguishable in the data from never opening the picker.
 **Why:** `cachePickedFile` emitted `resume_upload_preflight_rejected` and returned before ever reaching the `resume_file_selected` call. Anyone whose file failed preflight counted toward "saw the CTA, never selected a file" — the exact population WP-62 was scoped to fix. Moved ahead of preflight as of 2026-08-04; the two events are now sequential rather than exclusive, so `resume_file_selected` counts rise from that build forward for reasons that are instrumentation, not behaviour.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Analytics / measurement contracts
+**Rule:** Before building instrumentation to explain a drop-off, query the events that already exist to check the drop-off is where you think it is. Count the candidate cause first; if it has fired twice in a year, it is not the cause.
+**Why:** WP-66 S1 fixed a real defect — `resume_file_selected` was emitted only after preflight passed, so a rejected file looked like a non-selection. The obvious next move was to measure how many people that had been hiding. Answer: **one**, and that person emitted `resume_file_selected` anyway. `resume_upload_preflight_rejected` has 2 events / 1 person in 365 days. The same single query showed the actual shape: of 27 clean persons who saw the upload CTA since 2026-07-08, **13 never tapped it**, versus 8 who opened the picker and came back empty. Both packets were scoped to the picker; the largest bucket sits one step earlier and was already fully instrumented. The query cost two minutes and would have re-scoped the packet before any code was written.
+
+---
+
+**Date:** 2026-08-04
+**Category:** Analytics / measurement contracts
+**Rule:** An event that has never fired is a finding, not a gap. Check `count() = 0` on the error events before theorizing about errors.
+**Why:** `resume_upload_error_shown` has zero occurrences in project 270848 across 365 days, so no user has ever been shown an upload error or a picker failure. Any explanation of the upload wall that runs through "something broke and they gave up" is ruled out by that one number, and it was available before WP-62 and WP-66 were written.

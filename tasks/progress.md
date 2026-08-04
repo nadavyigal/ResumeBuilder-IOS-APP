@@ -1,5 +1,36 @@
 # Project Progress
 
+## 2026-08-04 (later) — The upload wall is not at the picker. 13 of 27 never tapped the CTA
+
+**Source:** PostHog project 270848 (fingerprinted 10,500 events / 467 persons / latest 2026-08-04T06:31Z before reading), person-level `is_internal_tester` exclusion, founder person `a6441489-66c4-512d-9cf4-22b07652570e` excluded explicitly, window from 2026-07-08 per WP-66's Do Not Redo.
+
+**The preflight hypothesis is dead.** `resume_upload_preflight_rejected` has fired **2 times, by 1 person, ever** — 2026-07-18, both events inside 18 seconds. That person also emitted `resume_file_selected`. So the emit-after-preflight defect fixed in WP-66 S1 was real, and it was hiding **zero** people. Worth fixing so it cannot hide anyone later; worthless as an explanation of the current number. No excluded person carries a preflight rejection either (96 internal persons, 0 rejections), so the exclusion did not delete this signal.
+
+**Where the 27 actually go:**
+
+| Shape | Persons | Share |
+|---|---|---|
+| Saw the CTA, **never tapped it** | **13** | 48% |
+| Tapped → opened picker → cancelled, no file | 7 | 26% |
+| Tapped → opened → selected a file | 4 | 15% |
+| Tapped → opened → selected, and also hit preflight rejection | 1 | 4% |
+| Tapped → opened → selected, and also cancelled another session | 1 | 4% |
+| Tapped → opened → **silent exit** (no select, no cancel, no error) | 1 | 4% |
+
+**The wall is one step earlier than both packets assume.** WP-62 and WP-66 are scoped to the picker: what happens between opening a file browser and coming back with a file. That transition loses 8 of 14. But **13 people never got there at all** — they saw the upload CTA on Home and never touched it. That bucket is larger than the entire picker loss, and it has been fully instrumented the whole time. Nothing needed to be built to see it.
+
+**WP-66 Story 2 is worth about one person a month.** It exists to instrument six silent exit paths. Exactly **1** person in four weeks exited the picker with no select, no cancel, and no error — and they did it on Home, whose exits are already instrumented, not on the uninstrumented dead surfaces S2 targets. The silent-exit hypothesis is not where the loss is.
+
+**`resume_upload_error_shown` has never fired in this project.** Not once, in 365 days. No picker failure, no upload error surfaced to any user. Whatever is stopping people, it is not an error they were shown.
+
+**Caveat on the denominator.** `resume_upload_cta_seen` is an impression fired when Home appears, not evidence of attention. "13 saw it and did nothing" is at least partly "13 opened the app and did not engage with anything", which is a different and larger problem than upload friction. Separating those needs a scroll-depth or dwell signal that does not exist today.
+
+**Caveat on n.** 27 people over four weeks. Every share above moves by ~4 points if one person moves. Directionally the 13 vs 8 split is safe; the fine structure is not.
+
+**Arrivals, not activation, look like the binding constraint.** Since 1.4.7 went public (2026-07-28T19:30Z), **1** clean person has seen the upload CTA. They tapped, opened the picker, and cancelled. Six days, one person. That question is already on this week's decision backlog and this is a data point for it.
+
+**Last Updated:** 2026-08-04
+
 ## 2026-08-04 — WP-66 Story 1 shipped, and it corrected the packet that commissioned it
 
 **Status:** WP-66 Story 1 complete. Stories 2-5 need re-scoping against the finding below before anyone spends a session on them.
@@ -368,7 +399,7 @@ Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026
 Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
 Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
 Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-04
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -401,7 +432,7 @@ Next Recommended Story: After 1.2 (7) is approved and live, verify production Po
 Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
 Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
 Last Validation: 2026-06-28 — `git diff --check` clean; targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. Full `OptimizedResumeViewModelTests` also hit 4 existing locale-sensitive Hebrew simulator assertions, not package regressions.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-04
 Current Branch: main
 Latest Base Commit: pending Submit Package job-link commit
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md
