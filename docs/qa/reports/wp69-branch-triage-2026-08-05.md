@@ -80,19 +80,29 @@ and `.claude/worktrees/resumely-ios-1-4-5-prep-07f44c` (detached at `bbb3ce1`). 
 safe to remove once the branch deletions below are made. `ResumeBuilder-IOS-1.4.7-release`
 (detached at `0103705`) is the release checkout and should be kept until 1.4.8 branches.
 
-## Deletion list — requires an explicit yes
+## Deleted 2026-08-05, with recovery hashes
 
-Twelve local branches whose content is verified present in `main`, plus the superseded version
-bump. Deleting these clears the stranded-work board without losing anything:
+Approved by the founder on 2026-08-05. Every tip commit is recorded below, so any of these is
+recoverable with `git branch <name> <sha>` — this does not depend on the reflog expiring.
 
-```
-claude/wp63-internal-tester-person-property   claude/wp63-person-scope-race
-pr-72-review                                  docs/ftux-audit-rescue
-feat/localization-updates                     codex/wp46-story-10
-codex/wp46-story-11                           codex/wp46-story-12
-claude/1.4.7-live-launch-check                claude/activation-audit-corrections
-claude/progress-1.4.7-submitted               chore/release-c-1.4.3-version-bump
-```
+| Branch | Tip |
+|---|---|
+| `claude/wp63-internal-tester-person-property` | `ffc5963` |
+| `claude/wp63-person-scope-race` | `854cb49` |
+| `pr-72-review` | `35f0c18` |
+| `docs/ftux-audit-rescue` | `4c2a2db` |
+| `feat/localization-updates` | `cc0f72a` |
+| `codex/wp46-story-10` | `e4f8517` |
+| `codex/wp46-story-11` | `a158a03` |
+| `codex/wp46-story-12` | `f2d26c8` |
+| `claude/1.4.7-live-launch-check` | `2233ec2` |
+| `claude/activation-audit-corrections` | `7bc24f7` |
+| `claude/progress-1.4.7-submitted` | `54d5c35` |
+| `chore/release-c-1.4.3-version-bump` | `65c841d` |
 
-`codex/wp46-story-10` and `-story-11` are checked out in worktrees and need
-`git worktree remove` first.
+`codex/wp46-story-10` and `-story-11` are checked out in the `ResumeBuilder IOS APP-story-10`
+and `-story-11` worktrees, which git refuses to delete out from under. Removing those worktrees
+was **not** approved, so those two branches remain until it is.
+
+The duplicate files and the leftover worktrees were also left in place — only the branches were
+approved for deletion.
