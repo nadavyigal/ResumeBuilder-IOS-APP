@@ -1,5 +1,24 @@
 # Project Progress
 
+## 2026-08-09 — Export ships the résumé alone: story 1 of three makes expert output durable
+
+**The device walk found a product gap, not a bug.** The founder ran the expert cover-letter mode on the live 1.4.7 build, tapped Export, and got the résumé PDF only. Three surfaces produce overlapping artifacts and the one a user naturally taps produces the least: Export builds one file, Submit Package builds the full package but regenerates the expert work, and the Expert tab holds the real runs in memory in a view model no other screen can see.
+
+**Founder product calls (2026-08-09), recorded in `docs/superpowers/specs/2026-08-09-export-application-package-design.md`:** Export becomes the package and Submit Package becomes the tracking step; a missing cover letter never delays the export, it is named in the success state with a route to Expert; the cover letter ships as a PDF and screening answers as `.txt`, matching how each is actually used.
+
+**Story 1 (this commit) — expert output becomes durable.** Nothing outside the Expert tab could see a generated cover letter, and there is no endpoint that lists expert runs for an optimization, so "attach whatever exists" had nothing to read. `SubmitPackageCacheRecord` is now the single per-optimization artifact record: it carries the run ids, and `ExpertModesViewModel` writes to it the moment a cover-letter or screening run completes rather than waiting for Apply — the walk ran the mode and expected the letter, and for these two workflow types Apply only records a variant choice. Empty output writes no record, so an empty record can never read as "artifacts exist".
+
+**Validation:** 12 new tests in `ExpertArtifactPersistenceTests` (red first, on a compile failure proving the file is enrolled in the test target), then the full iOS 26.5 suite: 300 tests, 1 skipped, 0 failures.
+
+**Status:** Story 1 committed on `claude/inspiring-wilson-4c38f7`. No user-visible change yet — Export still ships one file until story 2 lands.
+**Current Phase:** Export-package work, story 1 of 3 complete.
+**Active Story:** Story 2 — Export assembles and shares the package.
+**Last Completed Story:** Story 1 — durable per-optimization expert artifacts.
+**Next Recommended Story:** Story 2 (`ApplicationPackageBuilder`, share sheet, bottom bar, `export_success` artifact properties), then story 3 (Submit reuses the stored run instead of regenerating).
+**Blockers:** None.
+**Last Validation:** 2026-08-09, full iOS 26.5 suite on device 9E2E82B6, 300 tests / 0 failures, `-testLanguage en`.
+**Last Updated:** 2026-08-09
+
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
 
 **The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
@@ -429,7 +448,7 @@ Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026
 Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
 Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
 Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-09
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -462,7 +481,7 @@ Next Recommended Story: After 1.2 (7) is approved and live, verify production Po
 Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
 Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
 Last Validation: 2026-06-28 — `git diff --check` clean; targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. Full `OptimizedResumeViewModelTests` also hit 4 existing locale-sensitive Hebrew simulator assertions, not package regressions.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-09
 Current Branch: main
 Latest Base Commit: pending Submit Package job-link commit
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md
