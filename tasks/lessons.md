@@ -670,6 +670,13 @@
 **Why:** Twelve days live with the prompt shipped and zero ratings. The gate at `ReviewPromptGate.swift:57` claims first and calls `requestReview()` second, from `.sheet(onDismiss:)` — during the share sheet's teardown, which is one of the documented conditions under which StoreKit declines to present. Before fixing it, read `app_store_review_requested` on the live version: if it is zero the prompt was never attempted and the problem is the funnel, not the gate.
 
 **Date:** 2026-08-09
+**Category:** Test
+**Rule:** To smoke a screen behind the optimization gate without an account, seed the simulator's `UserDefaults` directly: `xcrun simctl spawn <udid> defaults write <bundle-id> latest_optimization_id -string "smoke-opt-1"`, plus `defaults write <bundle-id> <key> -data <hex>` for any `Codable` record the screen reads, then launch with `--smoke-open-optimized-tab`. The preview pane shows its signed-out error, but every locally-derived affordance renders for real.
+**Why:** Story 2 of the export-package work changed the Optimized bottom bar, whose copy branches on `appState.submitPackageRecord(for:)`. `--smoke-open-optimized-tab` alone only selects the tab — with no `latestOptimizationId` the tab is the locked teaser, so the changed UI was unreachable. Seeding the record twice (once populated, once deleted) captured both copy branches on device in two launches. The bundle id is `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, which is not the `com.resumely.*` id a first guess reaches for; read it from the built `Info.plist` with PlistBuddy rather than guessing.
+
+---
+
+**Date:** 2026-08-09
 **Category:** Optimized résumé state
 **Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
 **Why:** One live run showed 43 as the original, 57 as the review projection, and 64 as the stored result while the screen presented all three. The same résumé accepted three ATS improvement runs because success did not create a durable completion state and the simplified panel omitted the success message.

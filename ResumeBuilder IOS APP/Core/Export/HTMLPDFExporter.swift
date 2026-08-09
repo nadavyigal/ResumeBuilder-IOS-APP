@@ -14,11 +14,13 @@ private let htmlPDFLogger = Logger(subsystem: "ResumeBuilder", category: "HTMLPD
 enum HTMLPDFExporter {
     private static var delegateKey: UInt8 = 0
 
-    static func exportPDF(html: String, optimizationId: String) async throws -> URL {
+    /// `filename` names the written file; when omitted the résumé naming is used, which
+    /// is what every pre-package call site expects.
+    static func exportPDF(html: String, optimizationId: String, filename: String? = nil) async throws -> URL {
         try await withCheckedThrowingContinuation { continuation in
             // A4 in points (72 dpi): 595 × 842
             let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 595, height: 842))
-            let delegate = Delegate(webView: webView, optimizationId: optimizationId) { result in
+            let delegate = Delegate(webView: webView, optimizationId: optimizationId, filename: filename) { result in
                 continuation.resume(with: result)
             }
             webView.navigationDelegate = delegate
@@ -33,12 +35,19 @@ enum HTMLPDFExporter {
     private final class Delegate: NSObject, WKNavigationDelegate {
         private var webView: WKWebView?
         private let optimizationId: String
+        private let filename: String?
         private var completion: ((Result<URL, Error>) -> Void)?
         private var timeoutTask: Task<Void, Never>?
 
-        init(webView: WKWebView, optimizationId: String, completion: @escaping (Result<URL, Error>) -> Void) {
+        init(
+            webView: WKWebView,
+            optimizationId: String,
+            filename: String?,
+            completion: @escaping (Result<URL, Error>) -> Void
+        ) {
             self.webView = webView
             self.optimizationId = optimizationId
+            self.filename = filename
             self.completion = completion
         }
 
@@ -55,7 +64,8 @@ enum HTMLPDFExporter {
                 switch result {
                 case .success(let data):
                     do {
-                        let dest = try ExportFileStore.writePDFData(data, optimizationId: self.optimizationId)
+                        let dest = try self.filename.map { try ExportFileStore.write(data, filename: $0) }
+                            ?? ExportFileStore.writePDFData(data, optimizationId: self.optimizationId)
                         self.complete(.success(dest))
                     } catch {
                         htmlPDFLogger.error("HTML PDF export failed to write PDF for optimization \(self.optimizationId, privacy: .public): \(error.localizedDescription, privacy: .public)")
@@ -96,11 +106,41 @@ enum HTMLPDFExporter {
 
 enum ExportFileStore {
     static func writePDFData(_ data: Data, optimizationId: String) throws -> URL {
+        try write(data, filename: "Resume_\(safeFilenameComponent(optimizationId)).pdf")
+    }
+
+    static func write(_ data: Data, filename: String) throws -> URL {
         let directory = try exportsDirectory()
-        let destination = directory.appendingPathComponent("Resume_\(safeFilenameComponent(optimizationId)).pdf")
+        let destination = directory.appendingPathComponent(safeFilename(filename))
         try? FileManager.default.removeItem(at: destination)
         try data.write(to: destination, options: .atomic)
         return destination
+    }
+
+    static func writeText(_ text: String, filename: String) throws -> URL {
+        try write(Data(text.utf8), filename: filename)
+    }
+
+    /// Copies an already-exported file under a display name, so everything the share
+    /// sheet carries reads as one set.
+    static func copyFile(at source: URL, filename: String) throws -> URL {
+        let directory = try exportsDirectory()
+        let destination = directory.appendingPathComponent(safeFilename(filename))
+        guard destination != source else { return source }
+        try? FileManager.default.removeItem(at: destination)
+        try FileManager.default.copyItem(at: source, to: destination)
+        return destination
+    }
+
+    /// Last line of defence on a composed filename: no path traversal, no hidden files,
+    /// and never empty.
+    static func safeFilename(_ filename: String) -> String {
+        let cleaned = filename
+            .replacingOccurrences(of: "/", with: " ")
+            .replacingOccurrences(of: "\\", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .drop(while: { $0 == "." })
+        return cleaned.isEmpty ? "Export" : String(cleaned)
     }
 
     private static func exportsDirectory() throws -> URL {

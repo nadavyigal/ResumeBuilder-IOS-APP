@@ -1,22 +1,26 @@
 # Project Progress
 
-## 2026-08-09 — Export ships the résumé alone: story 1 of three makes expert output durable
+## 2026-08-09 — Export ships the résumé alone: stories 1 and 2 of three
 
 **The device walk found a product gap, not a bug.** The founder ran the expert cover-letter mode on the live 1.4.7 build, tapped Export, and got the résumé PDF only. Three surfaces produce overlapping artifacts and the one a user naturally taps produces the least: Export builds one file, Submit Package builds the full package but regenerates the expert work, and the Expert tab holds the real runs in memory in a view model no other screen can see.
 
 **Founder product calls (2026-08-09), recorded in `docs/superpowers/specs/2026-08-09-export-application-package-design.md`:** Export becomes the package and Submit Package becomes the tracking step; a missing cover letter never delays the export, it is named in the success state with a route to Expert; the cover letter ships as a PDF and screening answers as `.txt`, matching how each is actually used.
 
-**Story 1 (this commit) — expert output becomes durable.** Nothing outside the Expert tab could see a generated cover letter, and there is no endpoint that lists expert runs for an optimization, so "attach whatever exists" had nothing to read. `SubmitPackageCacheRecord` is now the single per-optimization artifact record: it carries the run ids, and `ExpertModesViewModel` writes to it the moment a cover-letter or screening run completes rather than waiting for Apply — the walk ran the mode and expected the letter, and for these two workflow types Apply only records a variant choice. Empty output writes no record, so an empty record can never read as "artifacts exist".
+**Story 1 — expert output becomes durable.** Nothing outside the Expert tab could see a generated cover letter, and there is no endpoint that lists expert runs for an optimization, so "attach whatever exists" had nothing to read. `SubmitPackageCacheRecord` is now the single per-optimization artifact record: it carries the run ids, and `ExpertModesViewModel` writes to it the moment a cover-letter or screening run completes rather than waiting for Apply — the walk ran the mode and expected the letter, and for these two workflow types Apply only records a variant choice. Empty output writes no record, so an empty record can never read as "artifacts exist".
 
-**Validation:** 12 new tests in `ExpertArtifactPersistenceTests` (red first, on a compile failure proving the file is enrolled in the test target), then the full iOS 26.5 suite: 300 tests, 1 skipped, 0 failures.
+Validated by 12 tests in `ExpertArtifactPersistenceTests`, red first on a compile failure that also proved the new file is enrolled in the test target.
 
-**Status:** Story 1 committed on `claude/inspiring-wilson-4c38f7`. No user-visible change yet — Export still ships one file until story 2 lands.
-**Current Phase:** Export-package work, story 1 of 3 complete.
-**Active Story:** Story 2 — Export assembles and shares the package.
-**Last Completed Story:** Story 1 — durable per-optimization expert artifacts.
-**Next Recommended Story:** Story 2 (`ApplicationPackageBuilder`, share sheet, bottom bar, `export_success` artifact properties), then story 3 (Submit reuses the stored run instead of regenerating).
-**Blockers:** None.
-**Last Validation:** 2026-08-09, full iOS 26.5 suite on device 9E2E82B6, 300 tests / 0 failures, `-testLanguage en`.
+**Story 2 — Export delivers the package.** `ApplicationPackageBuilder` assembles the share-sheet file set: `<Name> - Resume - <Company>.pdf`, the cover letter as a PDF when one exists, and screening answers as `.txt`, because the letter gets attached and the answers get pasted. Unknown metadata is dropped rather than replaced with placeholders, so an unidentified export is `Resume.pdf`. A cover letter that fails to render never fails the export: the résumé ships and the success state says the letter could not be attached. The bottom bar states what the export will carry before the tap, the primary action reads "Export application package", and Submit Package becomes "Save this application to Me" — it no longer generates anything. `export_success` now carries `has_cover_letter` and `has_screening_answers`; without them a full-package export is indistinguishable from a résumé-only one, which is the only way to tell whether this work changed anything.
+
+**Validation:** 11 new builder tests, two analytics contract tests updated for the new properties, full iOS 26.5 suite 311 tests / 1 skipped / 0 failures. Both bottom-bar copy branches captured on the simulator by seeding the artifact record in `UserDefaults` — the technique is in `tasks/lessons.md`, since the Optimized tab is otherwise unreachable without an account.
+
+**Status:** Stories 1 and 2 committed on `claude/inspiring-wilson-4c38f7`, draft PR #147. Export ships the package; Submit still regenerates until story 3.
+**Current Phase:** Export-package work, 2 of 3 stories complete.
+**Active Story:** Story 3 — Submit reuses the stored expert run instead of regenerating it.
+**Last Completed Story:** Story 2 — Export delivers the application package.
+**Next Recommended Story:** Story 3, then a device walk that records the three ATS scores the 2026-08-09 walk left blank.
+**Blockers:** None. The live share sheet still needs an authenticated optimization on hardware; the simulator smoke covers the UI, not a real export.
+**Last Validation:** 2026-08-09, full iOS 26.5 suite on device 9E2E82B6, 311 tests / 0 failures, `-testLanguage en`, plus a two-launch bottom-bar smoke.
 **Last Updated:** 2026-08-09
 
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
