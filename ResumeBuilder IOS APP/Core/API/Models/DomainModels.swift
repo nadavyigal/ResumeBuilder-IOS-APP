@@ -1830,6 +1830,7 @@ struct OptimizationDetailDTO: Decodable, Sendable {
     let company: String?
     let atsScoreBefore: Int?
     let atsScoreAfter: Int?
+    let atsImprovementApplied: Bool
     let atsBlockers: [ATSOptimizationBlocker]
     let diagnosis: ResumeDiagnosis?
     let jobUrl: String?
@@ -1845,6 +1846,8 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         case atsScoreBefore = "ats_score_before"
         case atsScoreAfterCamel = "atsScoreAfter"
         case atsScoreAfter  = "ats_score_after"
+        case atsImprovementAppliedCamel = "atsImprovementApplied"
+        case atsImprovementApplied = "ats_improvement_applied"
         case atsBlockersCamel = "atsBlockers"
         case atsBlockers = "ats_blockers"
         case diagnosis
@@ -1868,6 +1871,10 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         atsScoreAfter =
             try c.decodeIfPresent(Int.self, forKey: .atsScoreAfter)
             ?? c.decodeIfPresent(Int.self, forKey: .atsScoreAfterCamel)
+        atsImprovementApplied =
+            try c.decodeIfPresent(Bool.self, forKey: .atsImprovementApplied)
+            ?? c.decodeIfPresent(Bool.self, forKey: .atsImprovementAppliedCamel)
+            ?? false
         atsBlockers =
             try c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockers)
             ?? c.decodeIfPresent([ATSOptimizationBlocker].self, forKey: .atsBlockersCamel)

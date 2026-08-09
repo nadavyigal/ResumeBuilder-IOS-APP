@@ -61,6 +61,7 @@ final class AppState {
     private var optimizationJobURLs: [String: String] = [:]
     private var submitPackageRecords: [String: SubmitPackageCacheRecord] = [:]
     private var savedResumeRecords: [String: SavedResumeLinkRecord] = [:]
+    private var completedATSImprovementIds: Set<String> = []
     private var latestOptimizationStorage: String?
     private var optimizationRecoveryGeneration = 0
 
@@ -76,6 +77,7 @@ final class AppState {
     nonisolated static let optimizationJobURLsKey = "optimization_job_urls"
     nonisolated static let submitPackageRecordsKey = "submit_package_records"
     nonisolated static let savedResumeRecordsKey = "saved_resume_records"
+    nonisolated static let completedATSImprovementIdsKey = "completed_ats_improvement_ids"
 
     var latestOptimizationId: String? {
         get { latestOptimizationStorage }
@@ -126,6 +128,7 @@ final class AppState {
         optimizationJobURLs = Self.loadOptimizationJobURLs()
         submitPackageRecords = Self.loadSubmitPackageRecords()
         savedResumeRecords = Self.loadSavedResumeRecords()
+        completedATSImprovementIds = Self.loadCompletedATSImprovementIds()
     }
 
     func bootstrapAndRefreshSession() async {
@@ -156,11 +159,13 @@ final class AppState {
         optimizationJobURLs = [:]
         submitPackageRecords = [:]
         savedResumeRecords = [:]
+        completedATSImprovementIds = []
         pendingSecondJobRequest = nil
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
         UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
+        UserDefaults.standard.removeObject(forKey: Self.completedATSImprovementIdsKey)
         refreshTask?.cancel()
         refreshTask = nil
         // The fit floor is a display guarantee for one person's journey. Left
@@ -207,6 +212,21 @@ final class AppState {
     func savedResumeRecord(for optimizationId: String?) -> SavedResumeLinkRecord? {
         guard let optimizationId else { return nil }
         return savedResumeRecords[optimizationId]
+    }
+
+    func markATSImprovementComplete(for optimizationId: String) {
+        let normalized = optimizationId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return }
+        completedATSImprovementIds.insert(normalized)
+        UserDefaults.standard.set(
+            Array(completedATSImprovementIds).sorted(),
+            forKey: Self.completedATSImprovementIdsKey
+        )
+    }
+
+    func hasCompletedATSImprovement(for optimizationId: String?) -> Bool {
+        guard let optimizationId else { return false }
+        return completedATSImprovementIds.contains(optimizationId)
     }
 
     func requestSecondJob(from optimizationId: String) {
@@ -285,6 +305,10 @@ final class AppState {
     private static func loadSavedResumeRecords() -> [String: SavedResumeLinkRecord] {
         guard let data = UserDefaults.standard.data(forKey: savedResumeRecordsKey) else { return [:] }
         return (try? JSONDecoder().decode([String: SavedResumeLinkRecord].self, from: data)) ?? [:]
+    }
+
+    private static func loadCompletedATSImprovementIds() -> Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: completedATSImprovementIdsKey) ?? [])
     }
 
     func setSession(_ session: AuthSession) async {

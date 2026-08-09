@@ -50,6 +50,7 @@ final class OptimizedResumeViewModel {
     var jobURLString: String?
     var applicationId: String?
     var isImprovingATS = false
+    var hasCompletedATSImprovement = false
     var atsUpliftMessage: String?
     var savedResumeState: OptimizedResumeSaveState = .idle
 
@@ -59,6 +60,7 @@ final class OptimizedResumeViewModel {
     private let expertService: any ExpertWorkflowServiceProtocol
     private let chatService: any ChatMessaging
     private let libraryService: any ResumeLibraryServiceProtocol
+    private let detailLoader: (String, String) async throws -> OptimizationDetailDTO
     private var didAttemptInitialSectionLoad: Bool
     private static let detailCache = OptimizationDetailCacheActor()
 
@@ -76,7 +78,13 @@ final class OptimizedResumeViewModel {
         analysisService: any ResumeAnalysisServiceProtocol = RuntimeServices.resumeAnalysisService(),
         expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
         chatService: any ChatMessaging = ChatService(),
-        libraryService: any ResumeLibraryServiceProtocol = ResumeLibraryService()
+        libraryService: any ResumeLibraryServiceProtocol = ResumeLibraryService(),
+        detailLoader: @escaping (String, String) async throws -> OptimizationDetailDTO = { optimizationId, token in
+            try await RuntimeServices.sharedAPIClient.get(
+                endpoint: .optimizationDetail(id: optimizationId),
+                token: token
+            )
+        }
     ) {
         self.optimizationId = optimizationId
         self.resumeId = resumeId
@@ -92,6 +100,7 @@ final class OptimizedResumeViewModel {
         self.expertService = expertService
         self.chatService = chatService
         self.libraryService = libraryService
+        self.detailLoader = detailLoader
         self.didAttemptInitialSectionLoad = optimizationId == nil || !sections.isEmpty
     }
 
@@ -107,6 +116,20 @@ final class OptimizedResumeViewModel {
             savedResumeState = .saved(resume)
         } else if case .saved = savedResumeState {
             savedResumeState = .idle
+        }
+    }
+
+    func restoreATSImprovementState(appState: AppState) {
+        hasCompletedATSImprovement = hasCompletedATSImprovement
+            || appState.hasCompletedATSImprovement(for: optimizationId)
+        if hasCompletedATSImprovement {
+            if let optimizationId {
+                appState.markATSImprovementComplete(for: optimizationId)
+            }
+            atsUpliftMessage = NSLocalizedString(
+                "Fit improvement applied once. The score above is current for this resume.",
+                comment: ""
+            )
         }
     }
 
@@ -506,23 +529,26 @@ final class OptimizedResumeViewModel {
             return
         }
 
-        let detail: OptimizationDetailDTO = try await RuntimeServices.sharedAPIClient.get(
-            endpoint: .optimizationDetail(id: optId),
-            token: token
-        )
+        let detail = try await detailLoader(optId, token)
         await Self.detailCache.store(detail, for: optId)
         apply(detail: detail)
     }
 
-    private func apply(detail: OptimizationDetailDTO) {
+    func apply(detail: OptimizationDetailDTO) {
         sections = detail.sections
         if let detailContact = detail.contact, detailContact.hasDisplayableValue {
             contact = detailContact
         }
         if jobTitle == nil { jobTitle = detail.jobTitle }
         if company == nil  { company  = detail.company  }
+        // The review preview is a projection. The optimization detail is the
+        // authoritative measurement of the document that was actually saved
+        // after the user's selections. Preserve the immutable starting score,
+        // but always replace the projected "after" value when the stored result
+        // supplies one (43 -> projected 57 -> stored 64 on the 2026-08-08 run).
         if atsScoreBefore == nil { atsScoreBefore = detail.atsScoreBefore }
-        if atsScoreAfter  == nil { atsScoreAfter  = detail.atsScoreAfter  }
+        if let storedScore = detail.atsScoreAfter { atsScoreAfter = storedScore }
+        hasCompletedATSImprovement = hasCompletedATSImprovement || detail.atsImprovementApplied
         atsBlockers = detail.atsBlockers
         backendDiagnosis = detail.diagnosis
         if jobURLString == nil { jobURLString = detail.jobUrl }
@@ -743,6 +769,13 @@ final class OptimizedResumeViewModel {
     }
 
     func improveATS(token: String?, appState: AppState) async {
+        guard !isImprovingATS, !hasCompletedATSImprovement else {
+            atsUpliftMessage = NSLocalizedString(
+                "Fit improvement applied once. The score above is current for this resume.",
+                comment: ""
+            )
+            return
+        }
         guard let token else {
             errorMessage = ResumeOptimizationError.missingToken.localizedDescription
             return
@@ -775,20 +808,37 @@ final class OptimizedResumeViewModel {
                 screeningSelectedIndices: nil,
                 selectedFields: nil
             )
+            // Apply is non-idempotent. Persist completion immediately after the
+            // server confirms it so a failed refresh can never invite a second
+            // mutation of the same resume.
+            hasCompletedATSImprovement = true
+            appState.markATSImprovementComplete(for: optId)
             mergeExpertApply(workflowType: .atsOptimizationReport, output: run.output, applyResult: apply)
             // An expert pass's own reported score is the expert stage's, so it
             // stands even if the rescan below fails on credits.
             applyExpertATSResult(apply, recordingAs: .expert)
             await Self.detailCache.remove(optId)
             appState.resumeSectionsNeedRefresh = true
+            var previewRefreshError: String?
+            do {
+                try await loadSections(with: token, optimizationId: optId, useCache: false)
+            } catch {
+                previewRefreshError = NSLocalizedString(
+                    "Fit improvement was applied, but the resume preview could not refresh. Reopen Optimized to load the saved result.",
+                    comment: ""
+                )
+            }
             appState.resumePreviewRefreshToken += 1
             // This refresh is the expert pass's result, so it lands on the
             // expert stage rather than overwriting what the rewrite achieved.
             await rescanATS(token: token, recordingAs: .expert)
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
-            errorMessage = nil
-            atsUpliftMessage = NSLocalizedString("Match improvements applied. Review the resume before submitting.", comment: "")
+            errorMessage = previewRefreshError
+            atsUpliftMessage = previewRefreshError ?? NSLocalizedString(
+                "Fit improvement applied once. The score above and resume preview are now current.",
+                comment: ""
+            )
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {
