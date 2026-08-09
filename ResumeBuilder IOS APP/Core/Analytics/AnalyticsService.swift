@@ -168,7 +168,10 @@ enum AnalyticsEvent: Sendable {
     case saveSuccess(optimizationId: String)
     case saveFailed(optimizationId: String, reason: String, errorCode: String)
     case exportStarted(optimizationId: String)
-    case exportSuccess(optimizationId: String)
+    /// `hasCoverLetter` / `hasScreeningAnswers` describe what the share sheet actually
+    /// carried, not what exists. Without them there is no way to tell whether anyone
+    /// ever exports a full application package.
+    case exportSuccess(optimizationId: String, hasCoverLetter: Bool = false, hasScreeningAnswers: Bool = false)
     case appStoreReviewRequested(source: String)
     case exportFailed(optimizationId: String, errorCode: String)
     case diagnosisViewed(matchScore: Int)
@@ -319,7 +322,6 @@ enum AnalyticsEvent: Sendable {
              .saveStarted(let optimizationId),
              .saveSuccess(let optimizationId),
              .exportStarted(let optimizationId),
-             .exportSuccess(let optimizationId),
              .exportPdfTapped(let optimizationId),
              .exportCTASeen(let optimizationId),
              .whatChangedTapped(let optimizationId):
@@ -349,6 +351,12 @@ enum AnalyticsEvent: Sendable {
             ]
         case .scoreScreenSignInTapped(let source, let scoreBucket):
             return ["source": source, "score_bucket": scoreBucket]
+        case .exportSuccess(let optimizationId, let hasCoverLetter, let hasScreeningAnswers):
+            return [
+                "optimization_id": optimizationId,
+                "has_cover_letter": hasCoverLetter ? "true" : "false",
+                "has_screening_answers": hasScreeningAnswers ? "true" : "false",
+            ]
         case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
         case .appStoreReviewRequested(let source):

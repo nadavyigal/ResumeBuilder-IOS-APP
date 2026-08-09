@@ -248,7 +248,7 @@ struct ResumePreviewWebView: View {
                 let dest = try await HTMLPDFExporter.exportPDF(html: styledHTML, optimizationId: optimizationId)
                 pdfURL = dest
                 showSharePDF = true
-                AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId))
+                AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
                 return
             } catch {
                 styledHTMLFailureCode = ExportFailureCode.code(for: error)
@@ -263,7 +263,7 @@ struct ResumePreviewWebView: View {
             let dest = try ExportFileStore.writePDFData(data, optimizationId: optimizationId)
             pdfURL = dest
             showSharePDF = true
-            AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId))
+            AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode

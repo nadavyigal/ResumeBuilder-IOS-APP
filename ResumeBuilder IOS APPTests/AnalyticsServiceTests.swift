@@ -296,7 +296,7 @@ final class AnalyticsServiceTests: XCTestCase {
             ["optimization_id": "opt-1"],
             ["optimization_id": "opt-1", "reason": "network", "error_code": "network_1009"],
             ["optimization_id": "opt-1"],
-            ["optimization_id": "opt-1"],
+            ["optimization_id": "opt-1", "has_cover_letter": "true", "has_screening_answers": "false"],
             ["source": "export_success"],
             ["optimization_id": "opt-1", "error_code": "unauthorized"],
             ["match_score": "72"],
@@ -431,9 +431,21 @@ final class AnalyticsServiceTests: XCTestCase {
             AnalyticsEvent.saveFailed(optimizationId: "opt-1", reason: "server_error", errorCode: "server_500").properties,
             ["optimization_id": "opt-1", "reason": "server_error", "error_code": "server_500"]
         )
+        // The package flags are bounded booleans describing what the share sheet
+        // carried, not content: they say whether a cover letter shipped, never what it
+        // said. Without them a full-package export is indistinguishable from a
+        // résumé-only one.
         XCTAssertEqual(
             AnalyticsEvent.exportSuccess(optimizationId: "opt-1").properties,
-            ["optimization_id": "opt-1"]
+            ["optimization_id": "opt-1", "has_cover_letter": "false", "has_screening_answers": "false"]
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.exportSuccess(
+                optimizationId: "opt-1",
+                hasCoverLetter: true,
+                hasScreeningAnswers: true
+            ).properties,
+            ["optimization_id": "opt-1", "has_cover_letter": "true", "has_screening_answers": "true"]
         )
     }
 
@@ -830,7 +842,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .saveSuccess(optimizationId: "opt-1"),
         .saveFailed(optimizationId: "opt-1", reason: "network", errorCode: "network_1009"),
         .exportStarted(optimizationId: "opt-1"),
-        .exportSuccess(optimizationId: "opt-1"),
+        .exportSuccess(optimizationId: "opt-1", hasCoverLetter: true, hasScreeningAnswers: false),
         .appStoreReviewRequested(source: "export_success"),
         .exportFailed(optimizationId: "opt-1", errorCode: "unauthorized"),
         .diagnosisViewed(matchScore: 72),
