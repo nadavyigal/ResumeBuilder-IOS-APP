@@ -1,5 +1,26 @@
 # Project Progress
 
+## 2026-08-09 — The device walk ran, and it overturned the review-prompt hypothesis
+
+**The physical-device walk on the App Store build of 1.4.7 is done** (`docs/qa/reports/wp69-device-walk-2026-08-09.md`), the first completed in five releases. **The App Store rating prompt APPEARED.** Relaunch confirmed the optimization persists.
+
+**That answers WP-69 story 2 and kills the leading explanation for zero ratings.** The two defects found by inspection on 2026-08-05 — the keychain claim written before the prompt is confirmed shown, and the call site inside `.sheet(onDismiss:)` during share-sheet teardown — are real, and they did **not** stop the prompt firing. They are latent correctness issues, not the cause, and should stop being prioritised as if they were.
+
+**The competing explanation is confirmed instead.** Live PostHog on 270848, 2026-08-09: `app_store_review_requested` has fired **once ever** — this walk. `export_success` on 1.4.7 by non-internal persons is **0 events, 0 people** across twelve days live. The prompt was never reachable because nobody outside the team has finished an export. Zero ratings is a funnel and arrivals problem; no review-prompt work can move it.
+
+**A product gap surfaced during the walk that was not in the script.** Export delivers the résumé PDF alone. `ResumeExportAction.exportPDF` builds one file and the share sheet receives a one-element array, so nothing on that path knows a cover letter exists. The capability is real but lives on the neighbouring **Submit Package** button, whose `SubmitApplicationViewModel` assembles résumé + cover letter + screening answers — and **re-runs** the expert modes rather than reusing output the user already generated. Three surfaces produce overlapping artifacts and the one users naturally tap produces the least. The founder ran the expert cover-letter mode, exported, and got no cover letter.
+
+**Not answered by this run:** the three scores at analyze / apply / expert were not written down, so the "score only climbs" assertion in step 6 is **unevidenced**. It needs one more pass and must not be recorded as passed.
+
+**Status:** **1.4.7 (17) is LIVE on the App Store, released 2026-07-28T19:30:45Z.** Store-verified 2026-08-09, three cache-busted lookups agreeing.
+**Current Phase:** Post-release watch on live 1.4.7. Device walk complete; review-prompt question closed.
+**Active Story:** None. WP-69 stories 1 and 2 closed by this walk.
+**Last Completed Story:** WP-69 stories 1 + 2 — the App Store device walk and the review-prompt verdict.
+**Next Recommended Story:** (1) Product call on export scope — should Export deliver the full application package, and should Submit Package reuse existing expert output instead of regenerating it. (2) Re-run steps 5-7 recording the three scores so monotonicity is evidenced. (3) Land PR #136 before PR #143. (4) Deprioritise the review-prompt repair.
+**Blockers:** None.
+**Last Validation:** 2026-08-09 — physical-device walk on the App Store build, prompt appeared; PostHog 270848 confirms 1 lifetime `app_store_review_requested` and 0 clean `export_success` on 1.4.7.
+**Last Updated:** 2026-08-09
+
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
 
 **The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
