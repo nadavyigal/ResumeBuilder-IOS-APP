@@ -13,7 +13,9 @@
 **Validation:** read-only Supabase query on the exact live failure; web 4 suites / 21 tests passing; touched-file ESLint clean; iOS targeted regressions passing; complete iOS 26.5 suite passing; fresh iPhone 17 Pro simulator build/install/launch smoke passing. Web `tsc` still has the documented unrelated contract-test baseline errors. No deploy, production write, App Store action, or public change was performed.
 
 **Status:** Fixes implemented locally on `codex/resumely-one-pass-fit-score` and the companion web branch. Not live until the two PRs merge and their normal release paths run.
-**Release status:** iOS 1.4.8 (18) passed 288 XCTest tests with 1 intentional skip, plus 5 Swift Testing tests, with 0 failures. A signed App Store archive and exported IPA both succeeded. The package is Apple Distribution signed, points to `https://www.resumelybuilderai.com`, and has `get-task-allow = false`. It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey.\n\n**Current Phase:** P0 repair ready for TestFlight and production web deployment.
+**Release status:** iOS 1.4.8 (18) passed 288 XCTest tests with 1 intentional skip, plus 5 Swift Testing tests, with 0 failures. A signed App Store archive and exported IPA both succeeded. The package is Apple Distribution signed, points to `https://www.resumelybuilderai.com`, and has `get-task-allow = false`. It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey.
+
+**Current Phase:** P0 repair ready for TestFlight and production web deployment.
 **Active Story:** Full experience content, one authoritative score, one fit improvement.
 **Next Recommended Story:** Merge and deploy the web compatibility fix, merge the iOS fix into the next build, then repeat the same authenticated physical-device path.
 **Blockers:** The live verification needs a deployed backend and a new iOS build.
