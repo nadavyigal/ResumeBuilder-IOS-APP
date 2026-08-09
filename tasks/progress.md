@@ -1,5 +1,27 @@
 # Project Progress
 
+## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
+
+**The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
+
+**The three failures were separate but converged on one broken screen.** The web review/canonicalization path could reintroduce the exact `responsibilities` versus `achievements` mismatch that WP-64 had fixed only at the AI parse boundary. On iOS, the review's projected 57 initialized `atsScoreAfter`, and the detail loader refused to replace any non-nil value with the stored 64. The simplified WP-65 panel still showed the entire numeric journey and always left Improve match active; its success message was not in that panel.
+
+**iOS fix:** the optimization detail's stored after-score now replaces the projection while the original baseline remains immutable. The optimized screen renders one number with the label “Current score for the resume shown above.” A successful Improve fit call is marked complete immediately after the non-idempotent server apply, forces an uncached detail reload, persists locally, and is suppressed when the server reports any prior applied ATS improvement. The action becomes a visible completed state instead of remaining tappable.
+
+**Companion web fix:** review canonicalization now promotes non-empty `responsibilities` to `achievements`; the detail and design preview paths also accept the alias so the existing affected row becomes readable without a data rewrite. The detail contract returns whether an ATS improvement was already applied.
+
+**Validation:** read-only Supabase query on the exact live failure; web 4 suites / 21 tests passing; touched-file ESLint clean; iOS targeted regressions passing; complete iOS 26.5 suite passing; fresh iPhone 17 Pro simulator build/install/launch smoke passing. Web `tsc` still has the documented unrelated contract-test baseline errors. No deploy, production write, App Store action, or public change was performed.
+
+**Status:** Fixes implemented locally on `codex/resumely-one-pass-fit-score` and the companion web branch. Not live until the two PRs merge and their normal release paths run.
+**Release status:** iOS 1.4.8 (18) passed 288 XCTest tests with 1 intentional skip, plus 5 Swift Testing tests, with 0 failures. A signed App Store archive and exported IPA both succeeded. The package is Apple Distribution signed, points to `https://www.resumelybuilderai.com`, and has `get-task-allow = false`. It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey.
+
+**Current Phase:** P0 repair ready for TestFlight and production web deployment.
+**Active Story:** Full experience content, one authoritative score, one fit improvement.
+**Next Recommended Story:** Merge and deploy the web compatibility fix, merge the iOS fix into the next build, then repeat the same authenticated physical-device path.
+**Blockers:** The live verification needs a deployed backend and a new iOS build.
+**Last Validation:** 2026-08-09, full iOS 26.5 suite and fresh simulator smoke; web contract and normalization suites.
+**Last Updated:** 2026-08-09
+
 ## 2026-08-05 — WP-69: the 13 stranded branches were never stranded, and the review prompt has a real defect
 
 **Story 5 first, because it is the one that was fully answerable. Twelve of the thirteen "stranded" branches are already in `main`.** The brief counted three different states as one: squash-merged branches whose remote was deleted (the local ref survives and looks unmerged, because a squash merge rewrites the hash), branches superseded by later work, and genuinely unlanded work. Only the third kind is lost, and there is none of it. Each verdict is evidenced by looking for a distinctive symbol from the branch in `origin/main` — `git log main..branch` cannot answer this after a squash merge, and `git diff main...branch` answers a different question and reports a delta for landed work too. Full table in `docs/qa/reports/wp69-branch-triage-2026-08-05.md`. The single exception is `chore/release-c-1.4.3-version-bump`, which bumps to 1.4.3 (13) while the store has served 1.4.7 (17) since 2026-07-28 — superseded, not lost.
@@ -98,6 +120,37 @@
 **Blockers:** None on the code. The measurement is blocked on user traffic, which no amount of engineering produces.
 **Last Validation:** 2026-07-29 — App Store lookup API confirms 1.4.7 public since 2026-07-28T19:30:45Z, polled 6/6 with a varying query parameter after identical-URL calls returned a cached 1.4.6. PostHog 270848 read-only, fingerprinted before reading; last ingested event 2026-07-28T07:32:20Z, 21 hours before the check. Zero store ratings and zero reviews (US and IL).
 **Open Verification, carried:** the physical-device walk of 1.4.7 is now a post-release check on a live build. Carried from 2026-07-27 and still unrun.
+**Last Updated:** 2026-07-29
+
+## 2026-07-29 — WP-65: one score, one place. The optimized preview said three different things at once
+
+**Founder report from device, with screenshots:** "as a user i still do not know what the numbers say? ... its very confusing and not clear. also i still see the old how recruter sees my resume i asked several times to remove."
+
+**The three numbers were all correct, and that was the problem.** `FitJourney` models the run in three stages, and the screen rendered all three simultaneously with nothing naming any of them:
+
+| Shown | Stage | Meaning |
+|---|---|---|
+| 44 | `.fit` | the original resume |
+| 69 | `.improved` | after optimize |
+| 85 | `.expert` | after the expert passes — **the resume actually on screen** |
+
+`currentATSScore` returns the *current* stage (85). The Before/After pair was hardcoded to `fit -> improved`, so it read 44 → 69 and **ignored the expert passes entirely**. The "+25 pts" badge understated the real gain of **+41**. Headline and delta were describing two different documents.
+
+**`FitJourney` already owned all of this** — `displayedScore(at:)`, `currentStage`, `totalGain`. The view simply never asked it. The fix is a labelled journey strip (`Original 44 → Optimized 69 → Expert 85`, current stage highlighted, total gain stated once) plus a caption naming what the headline number refers to. No new score logic was written.
+
+**Four score-bearing panels became one.** `atsScoreCard`, `atsInsightPanel`, `diagnosisSnapshotPanel` and `atsUpliftPanel` all rendered scores on the same scroll, each added for a reason, none ever removed when the next arrived. Now: a scoreless `targetRoleHeader` (role only) and a single `atsInsightPanel` carrying the number, the journey, the signals and the blockers. **162 lines of dead view code deleted.**
+
+**The recruiter-eye card was stale by construction, not by accident.** `ResumeDiagnosisViewModel.load()` opens with `guard diagnosis == nil else { return }` — it loads once and never reloads. So the 44% diagnosis and its blockers were computed from the *pre-optimization* resume and pinned there permanently, under an optimized document. That is why it survived being raised several times: nothing was ever wired to refresh it, so every "remove it" landed on a screen that had no refresh path to fix. **Founder decision 2026-07-29: remove it from this screen entirely** rather than re-run it. `RecruiterEyeViewCard` and `ResumeConfidenceChecklist` remain in use by `ResumeDiagnosisView`, the standalone pre-optimization screen where they are accurate.
+
+**Two rendering bugs found in the same screenshots.**
+
+1. **`Sales &amp; Business Development Manager` rendered verbatim.** Job titles are extracted from job descriptions users paste from web pages, so they arrive HTML-escaped, and **nothing in the app decoded entities anywhere**. New `String.decodingHTMLEntities()` handles named and numeric (`&#38;` / `&#x26;`) forms. `&amp;` is unescaped **last** so `&amp;lt;` decodes one level instead of becoming markup. Deliberately a small table rather than `NSAttributedString`'s HTML importer, which requires the main thread, is far slower, and would interpret arbitrary markup in a job title.
+2. **Blocker text rendered twice**, bold then grey. The guard was `detail != blocker.title`, exact equality, which trailing whitespace, case or a full stop slipped straight past. Now `isEquivalentCopy(to:)` normalizes case, diacritics, whitespace runs and trailing punctuation.
+
+**Validation:** `BUILD SUCCEEDED`. Full suite **282 tests, 0 failures, 1 skipped**. 7 new tests, and their execution was confirmed individually with `-only-testing` rather than inferred from the total — the repo's synchronized file group covers only the app target, so a test file added without an explicit pbxproj entry compiles into nothing and reports green. `HTMLEntitiesTests` is wired into `project.pbxproj` (4 entries) and `plutil -lint` passes. Built with `-derivedDataPath /private/tmp/...`, never under iCloud-synced `~/Documents`.
+
+**Not done, and this one matters:** **the screen itself has not been seen rendered.** A fresh simulator install lands on onboarding, and reaching the optimized preview needs a real resume file, an account and a live optimization. Compilation and unit tests are verified; **the layout is not**. It needs a device pass on the real journey before anyone calls this good. Also not done: no snapshot test pins the new layout, and the `&amp;` escaping is fixed at the *render* boundary rather than at the backend extractor that produces it, so the escaped text is still what is stored.
+
 **Last Updated:** 2026-07-29
 
 ## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)

@@ -21,6 +21,7 @@
 		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
 		DA45060000000000000000B6 /* OptimizeFitResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45060000000000000000A6 /* OptimizeFitResponseTests.swift */; };
 		DA45040000000000000000B4 /* FitJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45040000000000000000A4 /* FitJourneyTests.swift */; };
+		DA45040000000000000000E8 /* HTMLEntitiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45040000000000000000E7 /* HTMLEntitiesTests.swift */; };
 		DA45030000000000000000B3 /* LiftDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45030000000000000000A3 /* LiftDisplayTests.swift */; };
 		DA45020000000000000000B2 /* ResultScreenPrimaryActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */; };
 		DA45010000000000000000B1 /* DirectOptimizeRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */; };
@@ -63,6 +64,7 @@
 		AA11223344556677889900BB /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
 		DA45060000000000000000A6 /* OptimizeFitResponseTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OptimizeFitResponseTests.swift; sourceTree = "<group>"; };
 		DA45040000000000000000A4 /* FitJourneyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitJourneyTests.swift; sourceTree = "<group>"; };
+		DA45040000000000000000E7 /* HTMLEntitiesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTMLEntitiesTests.swift; sourceTree = "<group>"; };
 		DA45030000000000000000A3 /* LiftDisplayTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiftDisplayTests.swift; sourceTree = "<group>"; };
 		DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResultScreenPrimaryActionTests.swift; sourceTree = "<group>"; };
 		DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DirectOptimizeRoutingTests.swift; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 				AA11223344556677889900BB /* AnalyticsServiceTests.swift */,
 				DA45060000000000000000A6 /* OptimizeFitResponseTests.swift */,
 				DA45040000000000000000A4 /* FitJourneyTests.swift */,
+				DA45040000000000000000E7 /* HTMLEntitiesTests.swift */,
 				DA45030000000000000000A3 /* LiftDisplayTests.swift */,
 				DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */,
 				DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */,
@@ -294,6 +297,7 @@
 				AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */,
 				DA45060000000000000000B6 /* OptimizeFitResponseTests.swift in Sources */,
 				DA45040000000000000000B4 /* FitJourneyTests.swift in Sources */,
+				DA45040000000000000000E8 /* HTMLEntitiesTests.swift in Sources */,
 				DA45030000000000000000B3 /* LiftDisplayTests.swift in Sources */,
 				DA45020000000000000000B2 /* ResultScreenPrimaryActionTests.swift in Sources */,
 				DA45010000000000000000B1 /* DirectOptimizeRoutingTests.swift in Sources */,
@@ -457,7 +461,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -466,7 +470,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.4.8;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -490,7 +494,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -499,7 +503,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.4.8;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";

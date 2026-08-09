@@ -289,20 +289,30 @@ final class OptimizedResumeViewModelTests: XCTestCase {
     }
 
     func testImproveATSRunsExpertWorkflowAndRefreshesScore() async {
+        let optimizationId = "fit-improvement-\(UUID().uuidString)"
         let analysisService = ManualEditAnalysisSpy(
             rescanResponse: ATSRescanResponse(success: true, optimizedScore: 88, originalScore: 61)
         )
         let expertService = SubmitExpertWorkflowSpy()
         let appState = AppState()
         appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        defer { UserDefaults.standard.removeObject(forKey: AppState.completedATSImprovementIdsKey) }
+        let detail = try! JSONDecoder().decode(OptimizationDetailDTO.self, from: Data("""
+        {
+          "sections": [{"id":"skills","type":"skills","content":"Swift, SwiftUI","status":"improved"}],
+          "ats_score_before": 61,
+          "ats_score_after": 88
+        }
+        """.utf8))
         let vm = OptimizedResumeViewModel(
-            optimizationId: "opt-1",
+            optimizationId: optimizationId,
             sections: [OptimizedResumeSection(id: "skills", type: .skills, body: "Swift", status: "optimized")],
             atsScoreBefore: 61,
             atsScoreAfter: 72,
             optimizationService: MockResumeOptimizationService(),
             analysisService: analysisService,
-            expertService: expertService
+            expertService: expertService,
+            detailLoader: { _, _ in detail }
         )
 
         await vm.improveATS(token: "tok", appState: appState)
@@ -310,17 +320,100 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(expertService.runTypes, [.atsOptimizationReport])
         XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
         XCTAssertEqual(expertService.appliedWorkflowTypes, [.atsOptimizationReport])
-        XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
+        XCTAssertEqual(analysisService.rescannedOptimizationIds, [optimizationId])
         XCTAssertEqual(vm.atsScoreBefore, 61)
-        // The expert pass is its own stage now, so it no longer overwrites what
-        // the tailored rewrite achieved. The user sees fit -> improved -> expert
-        // climbing, and 88 is the number on screen.
-        XCTAssertEqual(vm.atsScoreAfter, 72, "the rewrite's result is preserved")
+        // The forced detail reload is authoritative for the saved resume, so
+        // the projected 72 is replaced by the stored 88.
+        XCTAssertEqual(vm.atsScoreAfter, 88)
         XCTAssertEqual(vm.atsScoreAfterExpert, 88)
         XCTAssertEqual(vm.currentATSScore, 88)
         XCTAssertEqual(vm.currentFitStage, .expert)
         XCTAssertEqual(appState.resumePreviewRefreshToken, 1)
-        XCTAssertEqual(vm.atsUpliftMessage, "Match improvements applied. Review the resume before submitting.")
+        XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertTrue(appState.hasCompletedATSImprovement(for: optimizationId))
+        XCTAssertEqual(vm.sections.first?.body, "Swift, SwiftUI")
+        XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above and resume preview are now current.")
+
+        await vm.improveATS(token: "tok", appState: appState)
+
+        XCTAssertEqual(expertService.runTypes, [.atsOptimizationReport], "a completed fit improvement must not run twice")
+    }
+
+    func testImproveATSShowsRefreshFailureOnlyAsAnError() async {
+        let optimizationId = "fit-refresh-failure-\(UUID().uuidString)"
+        let analysisService = ManualEditAnalysisSpy(
+            rescanResponse: ATSRescanResponse(success: true, optimizedScore: 88, originalScore: 61)
+        )
+        let expertService = SubmitExpertWorkflowSpy()
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        defer { UserDefaults.standard.removeObject(forKey: AppState.completedATSImprovementIdsKey) }
+        let vm = OptimizedResumeViewModel(
+            optimizationId: optimizationId,
+            sections: [OptimizedResumeSection(id: "skills", type: .skills, body: "Swift", status: "optimized")],
+            atsScoreBefore: 61,
+            atsScoreAfter: 72,
+            optimizationService: MockResumeOptimizationService(),
+            analysisService: analysisService,
+            expertService: expertService,
+            detailLoader: { _, _ in throw URLError(.cannotLoadFromNetwork) }
+        )
+
+        await vm.improveATS(token: "tok", appState: appState)
+
+        XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertEqual(
+            vm.errorMessage,
+            "Fit improvement was applied, but the resume preview could not refresh. Reopen Optimized to load the saved result."
+        )
+        XCTAssertEqual(
+            vm.atsUpliftMessage,
+            "Fit improvement applied once. The score above is current for this resume."
+        )
+        XCTAssertNotEqual(vm.atsUpliftMessage, vm.errorMessage)
+    }
+
+    func testOptimizationDetailReplacesProjectedAfterScoreWithStoredResumeScore() throws {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-1",
+            atsScoreBefore: 43,
+            atsScoreAfter: 57,
+            optimizationService: MockResumeOptimizationService()
+        )
+        let detail = try JSONDecoder().decode(OptimizationDetailDTO.self, from: Data("""
+        {
+          "sections": [{"id":"experience","type":"experience","content":"Role • Company\\n• Full content","status":"optimized"}],
+          "ats_score_before": 43,
+          "ats_score_after": 64,
+          "ats_improvement_applied": true
+        }
+        """.utf8))
+
+        vm.apply(detail: detail)
+
+        XCTAssertEqual(vm.atsScoreBefore, 43)
+        XCTAssertEqual(vm.atsScoreAfter, 64)
+        XCTAssertEqual(vm.currentATSScore, 64)
+        XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertTrue(vm.sections.first?.body.contains("Full content") == true)
+    }
+
+    func testCompletedFitImprovementPersistsAcrossRelaunch() {
+        defer { UserDefaults.standard.removeObject(forKey: AppState.completedATSImprovementIdsKey) }
+        let firstLaunch = AppState()
+        firstLaunch.markATSImprovementComplete(for: "opt-persisted")
+
+        let relaunched = AppState()
+        relaunched.bootstrap()
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-persisted",
+            optimizationService: MockResumeOptimizationService()
+        )
+        vm.restoreATSImprovementState(appState: relaunched)
+
+        XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertTrue(relaunched.hasCompletedATSImprovement(for: "  opt-persisted\n"))
+        XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above is current for this resume.")
     }
 
     func testATSInsightsExplainLowScoreAndExposeActions() {

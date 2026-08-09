@@ -1,3 +1,16 @@
+# P0: Full experience, one current score, one fit improvement (2026-08-09)
+
+- [x] Reproduce the live 1.4.7 failure against the latest production optimization without modifying production data.
+- [x] Confirm the displayed-resume score is 64; 43 is the immutable original and 57 was only the review projection.
+- [x] Make optimization detail replace the projected after-score with the stored score.
+- [x] Show one score only, labelled as the current score for the résumé in the preview.
+- [x] Make Improve fit a one-time action with visible completion output and an immediate no-cache preview refresh.
+- [x] Persist completion locally and consume the server's applied-run flag; cross-device suppression becomes effective after web PR #133 is deployed.
+- [x] Pass targeted regressions, the complete iOS 26.5 suite, and a fresh-simulator launch smoke.
+- [ ] Merge and deploy the companion web fix, then ship a new iOS build and repeat the authenticated physical-device path.
+
+---
+
 # Resumely 1.4.6 — Export-success review prompt (2026-07-23)
 
 - [x] Start from merged PR #120 on `origin/main` (`fa5efe5`) without touching the dirty original checkout.

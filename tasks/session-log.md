@@ -3,6 +3,20 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-08-09 — P0 optimized résumé content, score, and one-pass fit repair
+
+**Branches:** `codex/resumely-one-pass-fit-score` in the iOS repo and `codex/wp64-review-path-bullet-preservation` in the web repo.
+
+**Task:** Investigate and resolve the App Store 1.4.7 device finding where experience showed only role headlines, the screen showed 43, 57, and 64 without one answer, and Improve fit could run repeatedly without visible output.
+
+**Evidence and root cause:** Read-only production data for the just-created optimization showed five roles, zero `achievements`, 17 `responsibilities`, original score 43, and stored optimized score 64. The review/canonicalization path was outside the prior WP-64 normalizer and persisted the unread alias. The iOS model retained the review projection 57 because detail scores only filled nil values. Three applied ATS report runs proved the action had no durable completion gate.
+
+**Changes:** Added backend compatibility at canonicalization, detail, and design-render boundaries; added a durable server `ats_improvement_applied` contract. On iOS, adopted the stored after-score, reduced the result to one clearly labelled number, made fit improvement one-time across server state and local relaunches, forced a fresh detail load after apply, and replaced the button with an explicit completed state.
+
+**Validation:** Web targeted suite 21/21 and touched-file ESLint passed. Full iOS 26.5 suite passed with no failures when run normally signed on a fresh simulator. Targeted new regressions passed. The app built, installed, launched, and rendered the English Home screen on a fresh iPhone 17 Pro simulator. An earlier unsigned full-suite run failed only the Keychain entitlement test, confirming why the documented signed gate matters.
+
+**Not done:** No production data was rewritten, no backend was deployed, no App Store build was archived or uploaded, and PR #139 remains paused.
+
 ## 2026-07-23 — Merge PR #121 and prepare 1.4.6 (16) for founder archive
 
 **Branch:** `codex/resumely-1.4.6-release-prep` in `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP-review-prompt`

@@ -53,9 +53,12 @@ struct OptimizedResumeView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
-                // ATS score card (shown when before/after data is available)
-                if viewModel.atsScoreBefore != nil || viewModel.atsScoreAfter != nil {
-                    atsScoreCard
+                // The job this resume is aimed at. The scores themselves live in
+                // exactly one place now (`atsInsightPanel`) — this header used to
+                // carry its own Before/After pair, which is how the same screen
+                // ended up showing three unlabelled numbers at once.
+                if viewModel.jobTitle != nil {
+                    targetRoleHeader
                         .padding(.top, AppSpacing.xl)
                         .padding(.horizontal, AppSpacing.lg)
                 }
@@ -105,13 +108,10 @@ struct OptimizedResumeView: View {
                         .padding(.top, AppSpacing.xl)
                 }
 
+                // One score panel. It carries the current number, the labelled
+                // journey, the signals and the remaining blockers.
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                if shouldShowDiagnosisPanels {
-                    diagnosisSnapshotPanel
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
@@ -120,16 +120,6 @@ struct OptimizedResumeView: View {
                     improveActionsRow
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.top, viewModel.atsScoreBefore == nil && viewModel.atsScoreAfter == nil ? AppSpacing.xl : 0)
-                }
-
-                if viewModel.optimizationIdentifier != nil {
-                    atsUpliftPanel
-                        .padding(.horizontal, AppSpacing.lg)
-
-                    if shouldShowDiagnosisPanels {
-                        ResumeConfidenceChecklist(items: viewModel.resumeDiagnosis.confidenceChecklist)
-                            .padding(.horizontal, AppSpacing.lg)
-                    }
                 }
 
                 if let error = viewModel.errorMessage {
@@ -153,6 +143,7 @@ struct OptimizedResumeView: View {
             await sectionLoad
             await assignmentLoad
             viewModel.restoreSavedResumeState(appState: appState)
+            viewModel.restoreATSImprovementState(appState: appState)
         }
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {
@@ -166,6 +157,7 @@ struct OptimizedResumeView: View {
             showPDFShare = false
             showExportSuccess = appState.isExportComplete(for: newId)
             viewModel.restoreSavedResumeState(appState: appState)
+            viewModel.restoreATSImprovementState(appState: appState)
             if let newId {
                 designVM = DesignViewModel(optimizationId: newId)
                 Task { await designVM?.loadCurrentAssignment(token: appState.session?.accessToken) }
@@ -325,79 +317,50 @@ struct OptimizedResumeView: View {
             && (viewModel.atsScoreBefore != nil || viewModel.atsScoreAfter != nil || !viewModel.atsBlockers.isEmpty)
     }
 
-    private var shouldShowDiagnosisPanels: Bool {
-        viewModel.optimizationIdentifier != nil
-            && !viewModel.isAwaitingInitialSections
-            && !viewModel.isLoadingSections
-    }
-
-    private var atsScoreCard: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+    /// Just the target role. No scores — they live in `atsInsightPanel` only.
+    private var targetRoleHeader: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
             if let title = viewModel.jobTitle {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "briefcase.fill")
                         .imageScale(.small)
                         .foregroundStyle(AppColors.accentTeal)
-                    Text(title)
+                    Text(title.decodingHTMLEntities())
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
                     if let co = viewModel.company {
-                        Text("· \(co)")
+                        Text("· \(co.decodingHTMLEntities())")
                             .font(.appSubheadline)
                             .foregroundStyle(AppColors.textSecondary)
                     }
+                    Spacer(minLength: 0)
                 }
             }
-            HStack(spacing: AppSpacing.lg) {
-                if let before = viewModel.atsScoreBefore {
-                    VStack(spacing: 2) {
-                        Text("Before")
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.textTertiary)
-                        Text("\(before)%")
-                            .font(.appHeadline)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                    Image(systemName: "arrow.forward")
-                        .foregroundStyle(AppColors.textTertiary)
-                        .imageScale(.small)
-                }
-                if let after = viewModel.atsScoreAfter {
-                    VStack(spacing: 2) {
-                        Text("After")
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.textTertiary)
-                        Text("\(after)%")
-                            .font(.appHeadline)
-                            .foregroundStyle(AppColors.accentTeal)
-                    }
-                    if let before = viewModel.atsScoreBefore, after > before {
-                        Label("+\(after - before)pts", systemImage: "arrow.up.circle.fill")
-                            .font(.appCaption.weight(.semibold))
-                            .foregroundStyle(AppColors.accentTeal)
-                    }
-                }
-                Spacer()
-            }
-            Text("Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor.")
+            Text("Tailored for this role.")
                 .font(.appCaption)
                 .foregroundStyle(AppColors.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
+    }
+
+    /// Plain-language label for the headline number, so "85" is never an
+    /// unattributed figure floating next to two other unattributed figures.
+    private var currentScoreCaption: LocalizedStringKey {
+        "Current score for the resume shown above"
     }
 
     private var atsInsightPanel: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             HStack(alignment: .top, spacing: AppSpacing.md) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Match insights")
+                    Text("Match score")
                         .font(.appCaption.weight(.bold))
                         .foregroundStyle(AppColors.accentTeal)
-                    Text("See what's blocking this resume")
+                    Text(currentScoreCaption)
                         .font(.appSubheadline.weight(.semibold))
                         .foregroundStyle(AppColors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(viewModel.atsStatusDescription)
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
@@ -417,20 +380,6 @@ struct OptimizedResumeView: View {
                 .frame(minWidth: 88)
                 .padding(.vertical, AppSpacing.sm)
                 .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
-            }
-
-            if let delta = viewModel.atsScoreDelta {
-                HStack(spacing: AppSpacing.md) {
-                    scoreDeltaTile(title: "Before", value: viewModel.atsScoreBefore)
-                    Image(systemName: "arrow.forward")
-                        .font(.appSubheadline.weight(.semibold))
-                        .foregroundStyle(AppColors.accentSky)
-                    scoreDeltaTile(title: "Optimized", value: viewModel.atsScoreAfter)
-                    Spacer(minLength: 0)
-                    Text(delta >= 0 ? "+\(delta) pts" : "\(delta) pts")
-                        .font(.appCaption.weight(.bold))
-                        .foregroundStyle(delta >= 0 ? AppColors.accentTeal : AppColors.accentViolet)
-                }
             }
 
             if let explanation = viewModel.atsLowScoreExplanation {
@@ -473,46 +422,43 @@ struct OptimizedResumeView: View {
                 addableKeywordsSection
             }
 
-            Button {
-                AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
-                Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
-            } label: {
-                HStack(spacing: AppSpacing.sm) {
-                    if viewModel.isImprovingATS {
-                        ProgressView()
-                            .tint(AppColors.textPrimary)
-                    } else {
-                        Image(systemName: "gauge.with.dots.needle.67percent")
+            if viewModel.hasCompletedATSImprovement {
+                Label(
+                    viewModel.atsUpliftMessage ?? "Fit improvement applied once. The score above is current for this resume.",
+                    systemImage: "checkmark.seal.fill"
+                )
+                .font(.appCaption.weight(.semibold))
+                .foregroundStyle(AppColors.accentTeal)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(AppSpacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
+                .accessibilityIdentifier("fit-improvement-complete")
+            } else {
+                Button {
+                    AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
+                    Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
+                } label: {
+                    HStack(spacing: AppSpacing.sm) {
+                        if viewModel.isImprovingATS {
+                            ProgressView()
+                                .tint(AppColors.textPrimary)
+                        } else {
+                            Image(systemName: "gauge.with.dots.needle.67percent")
+                        }
+                        Text(viewModel.isImprovingATS ? "Improving fit…" : "Improve fit once")
                     }
-                    Text(viewModel.isImprovingATS ? "Improving match…" : "Improve match")
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .font(.appSubheadline.weight(.semibold))
-                .foregroundStyle(AppColors.textPrimary)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .buttonStyle(GradientButtonStyle())
+                .disabled(viewModel.isImprovingATS)
+                .accessibilityIdentifier("improve-fit-once")
             }
-            .buttonStyle(GradientButtonStyle())
-            .disabled(viewModel.isImprovingATS)
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
-    }
-
-    private func scoreDeltaTile(title: String, value: Int?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title.uppercased())
-                .font(.appCaption.weight(.bold))
-                .foregroundStyle(AppColors.textTertiary)
-            Text(value.map { "\($0)" } ?? "--")
-                .font(.appHeadline)
-                .foregroundStyle(title == "Optimized" ? AppColors.accentTeal : AppColors.textPrimary)
-        }
-        .frame(width: 92, alignment: .leading)
-        .padding(AppSpacing.md)
-        .background(.black.opacity(0.16), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous)
-                .stroke(title == "Optimized" ? AppColors.accentTeal.opacity(0.45) : AppColors.glassStroke, lineWidth: 1)
-        }
     }
 
     private func atsInsightRow(_ row: ATSInsightRow) -> some View {
@@ -572,11 +518,15 @@ struct OptimizedResumeView: View {
         return VStack(alignment: .leading, spacing: AppSpacing.xs) {
             HStack(alignment: .top, spacing: AppSpacing.sm) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(blocker.title)
+                    Text(blocker.title.decodingHTMLEntities())
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let detail = blocker.detail, detail != blocker.title {
+                    // The old guard was exact equality, so a detail differing
+                    // only in whitespace or case rendered as a duplicate line
+                    // directly under the title (seen on device 2026-07-29).
+                    if let detail = blocker.detail?.decodingHTMLEntities(),
+                       !detail.isEquivalentCopy(to: blocker.title.decodingHTMLEntities()) {
                         Text(detail)
                             .font(.appCaption)
                             .foregroundStyle(AppColors.textTertiary)
@@ -651,63 +601,6 @@ struct OptimizedResumeView: View {
 
     private func describeAffectedFieldChange(_ field: ChatAffectedField, newValue: JSONValue) -> String {
         "Proposed: \(newValue.displayString)"
-    }
-
-    private var diagnosisSnapshotPanel: some View {
-        let diagnosis = viewModel.resumeDiagnosis
-        return VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack(alignment: .top, spacing: AppSpacing.md) {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Resume diagnosis")
-                        .font(.appCaption.weight(.bold))
-                        .foregroundStyle(AppColors.accentTeal)
-                    Text(diagnosis.recruiterReview.impression)
-                        .font(.appSubheadline.weight(.semibold))
-                        .foregroundStyle(AppColors.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: AppSpacing.sm)
-
-                VStack(spacing: 0) {
-                    Text("\(diagnosis.matchScore)")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.accentTeal)
-                    Text("% match")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(AppColors.textTertiary)
-                }
-            }
-
-            if !diagnosis.topGaps.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    ForEach(diagnosis.topGaps.prefix(2)) { gap in
-                        HStack(alignment: .top, spacing: AppSpacing.sm) {
-                            Circle()
-                                .fill(AppColors.accentSky)
-                                .frame(width: 7, height: 7)
-                                .padding(.top, 6)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(gap.title)
-                                    .font(.appCaption.weight(.semibold))
-                                    .foregroundStyle(AppColors.textPrimary)
-                                Text(gap.explanation)
-                                    .font(.appCaption)
-                                    .foregroundStyle(AppColors.textTertiary)
-                                    .lineLimit(2)
-                            }
-                        }
-                    }
-                }
-            }
-
-            Text(diagnosis.scoreNote)
-                .font(.appCaption)
-                .foregroundStyle(AppColors.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(AppSpacing.lg)
-        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     // MARK: - New bottom bar
@@ -829,87 +722,6 @@ struct OptimizedResumeView: View {
                 .glassCard(cornerRadius: AppRadii.md)
         }
         .buttonStyle(GradientButtonStyle())
-    }
-
-    private var atsUpliftPanel: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack(alignment: .center, spacing: AppSpacing.md) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Match")
-                        .font(.appCaption.weight(.semibold))
-                        .foregroundStyle(AppColors.textTertiary)
-                    HStack(spacing: AppSpacing.sm) {
-                        Text(viewModel.atsStatusLabel)
-                            .font(.appHeadline)
-                            .foregroundStyle(atsStatusColor)
-                        if let before = viewModel.atsScoreBefore, let after = viewModel.atsScoreAfter {
-                            Text("\(before)% → \(after)%")
-                                .font(.appCaption.weight(.semibold))
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
-                    Text(viewModel.atsStatusDescription)
-                        .font(.appCaption)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                Spacer()
-                Button {
-                    AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
-                    Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
-                } label: {
-                    if viewModel.isImprovingATS {
-                        ProgressView()
-                            .tint(AppColors.accentTeal)
-                            .frame(width: 32, height: 32)
-                    } else {
-                        Image(systemName: "gauge.medium")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(AppColors.accentTeal)
-                            .frame(width: 40, height: 40)
-                            .glassCard(cornerRadius: AppRadii.md)
-                    }
-                }
-                .buttonStyle(.plain)
-                .disabled(viewModel.isImprovingATS)
-            }
-
-            if !viewModel.atsBlockers.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    ForEach(viewModel.atsBlockers.prefix(3)) { blocker in
-                        HStack(alignment: .top, spacing: AppSpacing.sm) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .imageScale(.small)
-                                .foregroundStyle(AppColors.accentSky)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(blocker.title)
-                                    .font(.appCaption.weight(.semibold))
-                                    .foregroundStyle(AppColors.textPrimary)
-                                if let action = blocker.suggestedAction ?? blocker.detail {
-                                    Text(action)
-                                        .font(.appCaption)
-                                        .foregroundStyle(AppColors.textTertiary)
-                                        .lineLimit(2)
-                                }
-                            }
-                            Spacer()
-                            if let gain = blocker.estimatedGain {
-                                Text("+\(gain)")
-                                    .font(.appCaption.weight(.bold))
-                                    .foregroundStyle(AppColors.accentTeal)
-                            }
-                        }
-                    }
-                }
-            }
-
-            if let message = viewModel.atsUpliftMessage {
-                Label(message, systemImage: "checkmark.circle.fill")
-                    .font(.appCaption.weight(.semibold))
-                    .foregroundStyle(AppColors.accentTeal)
-            }
-        }
-        .padding(AppSpacing.lg)
-        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     private var atsStatusColor: Color {

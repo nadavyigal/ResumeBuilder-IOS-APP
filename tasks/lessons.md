@@ -668,3 +668,8 @@
 **Category:** iOS / StoreKit
 **Rule:** Never spend a one-shot claim before the thing it is claiming for is known to have happened. `requestReview()` returns nothing and iOS may silently decline, so writing the per-version keychain claim before the call means a single suppressed presentation permanently costs that user their only prompt. Related: a TestFlight build cannot verify the review prompt at all — `resolveInternalTester` returns true for `sandboxReceipt`, and the gate excludes internal testers by design, so the walk must run on the App Store build.
 **Why:** Twelve days live with the prompt shipped and zero ratings. The gate at `ReviewPromptGate.swift:57` claims first and calls `requestReview()` second, from `.sheet(onDismiss:)` — during the share sheet's teardown, which is one of the documented conditions under which StoreKit declines to present. Before fixing it, read `app_store_review_requested` on the live version: if it is zero the prompt was never attempted and the problem is the funnel, not the gate.
+
+**Date:** 2026-08-09
+**Category:** Optimized résumé state
+**Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
+**Why:** One live run showed 43 as the original, 57 as the review projection, and 64 as the stored result while the screen presented all three. The same résumé accepted three ATS improvement runs because success did not create a durable completion state and the simplified panel omitted the success message.
