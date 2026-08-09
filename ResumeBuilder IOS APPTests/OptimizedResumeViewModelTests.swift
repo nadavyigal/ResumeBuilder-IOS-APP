@@ -289,6 +289,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
     }
 
     func testImproveATSRunsExpertWorkflowAndRefreshesScore() async {
+        let optimizationId = "fit-improvement-\(UUID().uuidString)"
         let analysisService = ManualEditAnalysisSpy(
             rescanResponse: ATSRescanResponse(success: true, optimizedScore: 88, originalScore: 61)
         )
@@ -304,7 +305,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         }
         """.utf8))
         let vm = OptimizedResumeViewModel(
-            optimizationId: "opt-1",
+            optimizationId: optimizationId,
             sections: [OptimizedResumeSection(id: "skills", type: .skills, body: "Swift", status: "optimized")],
             atsScoreBefore: 61,
             atsScoreAfter: 72,
@@ -319,7 +320,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(expertService.runTypes, [.atsOptimizationReport])
         XCTAssertEqual(expertService.appliedRunIds, ["run-1"])
         XCTAssertEqual(expertService.appliedWorkflowTypes, [.atsOptimizationReport])
-        XCTAssertEqual(analysisService.rescannedOptimizationIds, ["opt-1"])
+        XCTAssertEqual(analysisService.rescannedOptimizationIds, [optimizationId])
         XCTAssertEqual(vm.atsScoreBefore, 61)
         // The forced detail reload is authoritative for the saved resume, so
         // the projected 72 is replaced by the stored 88.
@@ -329,13 +330,47 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.currentFitStage, .expert)
         XCTAssertEqual(appState.resumePreviewRefreshToken, 1)
         XCTAssertTrue(vm.hasCompletedATSImprovement)
-        XCTAssertTrue(appState.hasCompletedATSImprovement(for: "opt-1"))
+        XCTAssertTrue(appState.hasCompletedATSImprovement(for: optimizationId))
         XCTAssertEqual(vm.sections.first?.body, "Swift, SwiftUI")
         XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above and resume preview are now current.")
 
         await vm.improveATS(token: "tok", appState: appState)
 
         XCTAssertEqual(expertService.runTypes, [.atsOptimizationReport], "a completed fit improvement must not run twice")
+    }
+
+    func testImproveATSShowsRefreshFailureOnlyAsAnError() async {
+        let optimizationId = "fit-refresh-failure-\(UUID().uuidString)"
+        let analysisService = ManualEditAnalysisSpy(
+            rescanResponse: ATSRescanResponse(success: true, optimizedScore: 88, originalScore: 61)
+        )
+        let expertService = SubmitExpertWorkflowSpy()
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: nil, userId: "user-1", email: nil)
+        defer { UserDefaults.standard.removeObject(forKey: AppState.completedATSImprovementIdsKey) }
+        let vm = OptimizedResumeViewModel(
+            optimizationId: optimizationId,
+            sections: [OptimizedResumeSection(id: "skills", type: .skills, body: "Swift", status: "optimized")],
+            atsScoreBefore: 61,
+            atsScoreAfter: 72,
+            optimizationService: MockResumeOptimizationService(),
+            analysisService: analysisService,
+            expertService: expertService,
+            detailLoader: { _, _ in throw URLError(.cannotLoadFromNetwork) }
+        )
+
+        await vm.improveATS(token: "tok", appState: appState)
+
+        XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertEqual(
+            vm.errorMessage,
+            "Fit improvement was applied, but the resume preview could not refresh. Reopen Optimized to load the saved result."
+        )
+        XCTAssertEqual(
+            vm.atsUpliftMessage,
+            "Fit improvement applied once. The score above is current for this resume."
+        )
+        XCTAssertNotEqual(vm.atsUpliftMessage, vm.errorMessage)
     }
 
     func testOptimizationDetailReplacesProjectedAfterScoreWithStoredResumeScore() throws {
@@ -377,6 +412,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         vm.restoreATSImprovementState(appState: relaunched)
 
         XCTAssertTrue(vm.hasCompletedATSImprovement)
+        XCTAssertTrue(relaunched.hasCompletedATSImprovement(for: "  opt-persisted\n"))
         XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above is current for this resume.")
     }
 

@@ -835,10 +835,15 @@ final class OptimizedResumeViewModel {
             // Rescan failure (e.g. 402) is secondary — the expert improvement succeeded.
             // Clear any error rescanATS set so it doesn't mislead the user.
             errorMessage = previewRefreshError
-            atsUpliftMessage = previewRefreshError ?? NSLocalizedString(
-                "Fit improvement applied once. The score above and resume preview are now current.",
-                comment: ""
-            )
+            atsUpliftMessage = previewRefreshError == nil
+                ? NSLocalizedString(
+                    "Fit improvement applied once. The score above and resume preview are now current.",
+                    comment: ""
+                )
+                : NSLocalizedString(
+                    "Fit improvement applied once. The score above is current for this resume.",
+                    comment: ""
+                )
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {

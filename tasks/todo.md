@@ -5,7 +5,7 @@
 - [x] Make optimization detail replace the projected after-score with the stored score.
 - [x] Show one score only, labelled as the current score for the résumé in the preview.
 - [x] Make Improve fit a one-time action with visible completion output and an immediate no-cache preview refresh.
-- [x] Persist completion locally and consume the server's applied-run flag so relaunches and other devices do not offer another run.
+- [x] Persist completion locally and consume the server's applied-run flag; cross-device suppression becomes effective after web PR #133 is deployed.
 - [x] Pass targeted regressions, the complete iOS 26.5 suite, and a fresh-simulator launch smoke.
 - [ ] Merge and deploy the companion web fix, then ship a new iOS build and repeat the authenticated physical-device path.
 

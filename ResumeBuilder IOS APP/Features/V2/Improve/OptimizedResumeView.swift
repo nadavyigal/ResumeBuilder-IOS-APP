@@ -346,7 +346,7 @@ struct OptimizedResumeView: View {
 
     /// Plain-language label for the headline number, so "85" is never an
     /// unattributed figure floating next to two other unattributed figures.
-    private var currentScoreCaption: String {
+    private var currentScoreCaption: LocalizedStringKey {
         "Current score for the resume shown above"
     }
 

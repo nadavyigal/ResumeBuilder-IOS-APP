@@ -226,7 +226,9 @@ final class AppState {
 
     func hasCompletedATSImprovement(for optimizationId: String?) -> Bool {
         guard let optimizationId else { return false }
-        return completedATSImprovementIds.contains(optimizationId)
+        let normalized = optimizationId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return false }
+        return completedATSImprovementIds.contains(normalized)
     }
 
     func requestSecondJob(from optimizationId: String) {

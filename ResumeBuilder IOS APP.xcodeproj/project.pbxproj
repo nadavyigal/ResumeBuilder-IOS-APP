@@ -461,7 +461,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -470,7 +470,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.4.8;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -494,7 +494,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -503,7 +503,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.4.8;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
