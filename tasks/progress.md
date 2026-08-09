@@ -1,6 +1,6 @@
 # Project Progress
 
-## 2026-08-09 — Export ships the résumé alone: stories 1 and 2 of three
+## 2026-08-09 — Export delivers the application package: all three stories
 
 **The device walk found a product gap, not a bug.** The founder ran the expert cover-letter mode on the live 1.4.7 build, tapped Export, and got the résumé PDF only. Three surfaces produce overlapping artifacts and the one a user naturally taps produces the least: Export builds one file, Submit Package builds the full package but regenerates the expert work, and the Expert tab holds the real runs in memory in a view model no other screen can see.
 
@@ -14,13 +14,17 @@ Validated by 12 tests in `ExpertArtifactPersistenceTests`, red first on a compil
 
 **Validation:** 11 new builder tests, two analytics contract tests updated for the new properties, full iOS 26.5 suite 311 tests / 1 skipped / 0 failures. Both bottom-bar copy branches captured on the simulator by seeding the artifact record in `UserDefaults` — the technique is in `tasks/lessons.md`, since the Optimized tab is otherwise unreachable without an account.
 
-**Status:** Stories 1 and 2 committed on `claude/inspiring-wilson-4c38f7`, draft PR #147. Export ships the package; Submit still regenerates until story 3.
-**Current Phase:** Export-package work, 2 of 3 stories complete.
-**Active Story:** Story 3 — Submit reuses the stored expert run instead of regenerating it.
-**Last Completed Story:** Story 2 — Export delivers the application package.
-**Next Recommended Story:** Story 3, then a device walk that records the three ATS scores the 2026-08-09 walk left blank.
-**Blockers:** None. The live share sheet still needs an authenticated optimization on hardware; the simulator smoke covers the UI, not a real export.
-**Last Validation:** 2026-08-09, full iOS 26.5 suite on device 9E2E82B6, 311 tests / 0 failures, `-testLanguage en`, plus a two-launch bottom-bar smoke.
+**Story 3 — Submit stops regenerating.** `SubmitApplicationViewModel` takes the stored record and runs only what is genuinely missing, deciding the cover letter and the screening answers independently. Typed cover-letter notes still force a fresh letter, because notes are a request for a new one and silently reusing the old letter would discard the user's input. `savePackageToMe` applies the stored run ids; a legacy record with text but no run id saves the application and skips the server-side apply it has no run for, rather than failing. Anything Submit does generate is now written to the same record immediately, so the next Export attaches it without waiting for a save to Me.
+
+**Validation:** 6 reuse tests whose spy records every `run` call, so a regression that regenerates fails the suite. Full iOS 26.5 suite 317 tests / 1 skipped / 0 failures.
+
+**Status:** All three stories committed on `claude/inspiring-wilson-4c38f7`, PR #147 open for review. Not live: this ships in the next build.
+**Current Phase:** Export-package work complete, awaiting review and a build.
+**Active Story:** None.
+**Last Completed Story:** Story 3 — Submit reuses the stored expert run.
+**Next Recommended Story:** A device walk on the next build that (a) exercises a real export with a cover letter present and (b) records the three ATS scores the 2026-08-09 walk left blank, which is still the open monotonicity question.
+**Blockers:** None. The live share sheet has not been exercised on hardware — that needs an authenticated optimization and a build.
+**Last Validation:** 2026-08-09, full iOS 26.5 suite on device 9E2E82B6, 317 tests / 0 failures, `-testLanguage en`, plus a two-launch bottom-bar smoke.
 **Last Updated:** 2026-08-09
 
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
