@@ -1020,7 +1020,10 @@ struct OptimizedResumeView: View {
     }
 
     private func openSubmitPackage() {
-        submitVM = SubmitApplicationViewModel(resumeProvider: viewModel)
+        submitVM = SubmitApplicationViewModel(
+            resumeProvider: viewModel,
+            storedArtifacts: appState.submitPackageRecord(for: viewModel.optimizationIdentifier)
+        )
         showSubmitPackageSheet = true
     }
 
@@ -1416,6 +1419,26 @@ private struct SubmitApplicationSheet: View {
             ) {
                 Task {
                     await vm.submit(token: accessToken)
+                    // Anything this run generated becomes durable immediately, so the
+                    // next Export attaches it without waiting for a save to Me.
+                    if let package = vm.package {
+                        appState.rememberExpertArtifacts(
+                            for: package.optimizationId,
+                            coverLetterText: package.coverLetterText,
+                            coverLetterRunId: package.coverLetterRunId,
+                            coverLetterSelectionIndex: package.coverLetterSelectionIndex,
+                            screeningAnswers: package.screeningAnswers.map {
+                                SubmitPackageCachedScreeningAnswer(
+                                    id: $0.id,
+                                    question: $0.question,
+                                    answer: $0.answer,
+                                    evidenceUsed: $0.evidenceUsed,
+                                    confidenceNote: $0.confidenceNote
+                                )
+                            },
+                            screeningRunId: package.screeningRunId
+                        )
+                    }
                 }
             }
             .disabled(!vm.canSubmit)

@@ -195,7 +195,8 @@ final class ExpertModesViewModel {
                 token: token,
                 selectionIndex: selectionIndex,
                 screeningSelectedIndices: screeningIndices,
-                selectedFields: selectedFields
+                selectedFields: selectedFields,
+                acceptScoreDecrease: false
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)

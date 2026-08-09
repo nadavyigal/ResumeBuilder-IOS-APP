@@ -27,7 +27,9 @@ struct SubmitApplicationPackage: Identifiable, Sendable {
     let coverLetterText: String
     let screeningAnswers: [ExpertScreeningAnswer]
     let jobURL: URL?
-    let coverLetterRunId: String
+    /// Absent when the letter came from a record written before run ids were stored.
+    /// The text is still usable; there is simply no run to apply server-side.
+    let coverLetterRunId: String?
     let coverLetterSelectionIndex: Int
     let screeningRunId: String?
 }
@@ -47,16 +49,21 @@ final class SubmitApplicationViewModel {
     private weak var resumeProvider: (any SubmitResumePDFProviding)?
     private let applicationService: any ApplicationTrackingServiceProtocol
     private let expertService: any ExpertWorkflowServiceProtocol
+    /// What the user already generated in Expert. Passed in rather than read from
+    /// `AppState` so the reuse decision stays testable without a view.
+    private let storedArtifacts: SubmitPackageCacheRecord?
     private static let logger = Logger(subsystem: "ResumeBuilder", category: "SubmitPackage")
 
     init(
         resumeProvider: any SubmitResumePDFProviding,
         applicationService: any ApplicationTrackingServiceProtocol = ApplicationTrackingService(),
-        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService()
+        expertService: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
+        storedArtifacts: SubmitPackageCacheRecord? = nil
     ) {
         self.resumeProvider = resumeProvider
         self.applicationService = applicationService
         self.expertService = expertService
+        self.storedArtifacts = storedArtifacts
         self.jobTitle = resumeProvider.jobTitle ?? ""
         self.companyName = resumeProvider.company ?? ""
         self.sourceURLString = resumeProvider.jobURLString ?? ""
@@ -114,30 +121,50 @@ final class SubmitApplicationViewModel {
             let resumeURL = try await resumeProvider.downloadPDF(token: token)
             Self.logger.info("Submit package PDF ready")
 
-            // Run cover letter and screening answers in parallel.
-            async let coverLetterRunTask = expertService.run(
-                type: .coverLetterArchitect,
-                optimizationId: optimizationId,
-                token: token,
-                evidenceInputs: coverLetterEvidence
-            )
-            async let screeningRunTask = expertService.run(
-                type: .screeningAnswerStudio,
-                optimizationId: optimizationId,
-                token: token,
-                evidenceInputs: [:]
-            )
+            // Anything the user already generated in Expert is reused as-is. Running it
+            // again costs a second premium run and lets the two surfaces disagree about
+            // what the cover letter says.
+            let reusableCoverLetter = reusableCoverLetter
+            let reusableScreening = reusableScreening
+
+            // Only what is genuinely missing runs, and those runs stay parallel.
+            async let coverLetterRunTask: ExpertWorkflowRunCreateResponseDTO? = reusableCoverLetter == nil
+                ? try await expertService.run(
+                    type: .coverLetterArchitect,
+                    optimizationId: optimizationId,
+                    token: token,
+                    evidenceInputs: coverLetterEvidence
+                )
+                : nil
+            async let screeningRunTask: ExpertWorkflowRunCreateResponseDTO? = reusableScreening == nil
+                ? try await expertService.run(
+                    type: .screeningAnswerStudio,
+                    optimizationId: optimizationId,
+                    token: token,
+                    evidenceInputs: [:]
+                )
+                : nil
 
             let coverLetterRun = try await coverLetterRunTask
-            let screeningRun = try? await screeningRunTask
-            Self.logger.info("Submit package expert workflows completed coverLetterRunId=\(coverLetterRun.runId)")
+            let screeningRun = try? await screeningRunTask ?? nil
+            Self.logger.info(
+                "Submit package expert workflows settled reusedCoverLetter=\(reusableCoverLetter != nil) reusedScreening=\(reusableScreening != nil)"
+            )
 
-            let parsed = ExpertReportParsing.parsedOutput(from: coverLetterRun.output)
-            let selectedIndex = clampedCoverLetterIndex(parsed.recommendedIndex, count: parsed.coverLetterVariants.count)
-            let coverLetter = selectedIndex.flatMap { parsed.coverLetterVariants[safe: $0]?.letter }
-                ?? firstString(in: coverLetterRun.output, keys: ["letter", "body", "cover_letter", "text", "content", "full_letter"])
-                ?? ""
-            guard !coverLetter.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            let coverLetterResult: (text: String, runId: String?, selectionIndex: Int)
+            if let reusableCoverLetter {
+                coverLetterResult = reusableCoverLetter
+            } else if let coverLetterRun {
+                let parsed = ExpertReportParsing.parsedOutput(from: coverLetterRun.output)
+                let selectedIndex = clampedCoverLetterIndex(parsed.recommendedIndex, count: parsed.coverLetterVariants.count)
+                let text = selectedIndex.flatMap { parsed.coverLetterVariants[safe: $0]?.letter }
+                    ?? firstString(in: coverLetterRun.output, keys: ["letter", "body", "cover_letter", "text", "content", "full_letter"])
+                    ?? ""
+                coverLetterResult = (text, coverLetterRun.runId, selectedIndex ?? 0)
+            } else {
+                throw SubmitApplicationError.emptyCoverLetter
+            }
+            guard !coverLetterResult.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw SubmitApplicationError.emptyCoverLetter
             }
 
@@ -145,13 +172,19 @@ final class SubmitApplicationViewModel {
             // after the user confirms saving the package to Me.
             var screeningAnswers: [ExpertScreeningAnswer] = []
             var screeningRunId: String?
-            if let screeningRun {
+            if let reusableScreening {
+                screeningAnswers = reusableScreening.answers
+                screeningRunId = reusableScreening.runId
+            } else if let screeningRun {
                 let generatedAnswers = ExpertReportParsing.parsedOutput(from: screeningRun.output).screeningAnswers
                 if !generatedAnswers.isEmpty {
                     screeningAnswers = generatedAnswers
                     screeningRunId = screeningRun.runId
                 }
             }
+
+            let coverLetter = coverLetterResult.text
+            let selectedIndex: Int? = coverLetterResult.selectionIndex
 
             package = SubmitApplicationPackage(
                 application: nil,
@@ -163,7 +196,7 @@ final class SubmitApplicationViewModel {
                 coverLetterText: coverLetter,
                 screeningAnswers: screeningAnswers,
                 jobURL: normalizedSourceURL,
-                coverLetterRunId: coverLetterRun.runId,
+                coverLetterRunId: coverLetterResult.runId,
                 coverLetterSelectionIndex: selectedIndex ?? 0,
                 screeningRunId: screeningRunId
             )
@@ -213,21 +246,28 @@ final class SubmitApplicationViewModel {
                 token: token
             )
 
-            _ = try await expertService.apply(
-                runId: package.coverLetterRunId,
-                workflowType: .coverLetterArchitect,
-                token: token,
-                selectionIndex: package.coverLetterSelectionIndex,
-                screeningSelectedIndices: nil,
-                selectedFields: nil,
-                acceptScoreDecrease: false
-            )
-            _ = try await applicationService.saveExpertReport(
-                applicationId: application.id,
-                runId: package.coverLetterRunId,
-                token: token
-            )
-            Self.logger.info("Submit package cover letter saved")
+            // A record written before run ids were stored still carries the letter text,
+            // which reaches the application through `jobExtraction`. There is simply no
+            // run to apply or attach, and that must not fail the save.
+            if let coverLetterRunId = package.coverLetterRunId {
+                _ = try await expertService.apply(
+                    runId: coverLetterRunId,
+                    workflowType: .coverLetterArchitect,
+                    token: token,
+                    selectionIndex: package.coverLetterSelectionIndex,
+                    screeningSelectedIndices: nil,
+                    selectedFields: nil,
+                    acceptScoreDecrease: false
+                )
+                _ = try await applicationService.saveExpertReport(
+                    applicationId: application.id,
+                    runId: coverLetterRunId,
+                    token: token
+                )
+                Self.logger.info("Submit package cover letter saved")
+            } else {
+                Self.logger.info("Submit package cover letter has no run id; text saved with the application only")
+            }
 
             if let screeningRunId = package.screeningRunId, !package.screeningAnswers.isEmpty {
                 do {
@@ -310,6 +350,33 @@ final class SubmitApplicationViewModel {
             return url
         }
         return URL(string: "https://\(raw)")
+    }
+
+    /// A stored cover letter, unless the user typed notes for this package — notes are a
+    /// request for a new letter, and reusing the old one would silently discard them.
+    private var reusableCoverLetter: (text: String, runId: String?, selectionIndex: Int)? {
+        guard coverLetterEvidence.isEmpty,
+              let record = storedArtifacts,
+              let text = record.coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty
+        else { return nil }
+        return (text, record.coverLetterRunId, record.coverLetterSelectionIndex ?? 0)
+    }
+
+    private var reusableScreening: (answers: [ExpertScreeningAnswer], runId: String?)? {
+        guard let record = storedArtifacts, !record.screeningAnswers.isEmpty else { return nil }
+        return (
+            record.screeningAnswers.map {
+                ExpertScreeningAnswer(
+                    id: $0.id,
+                    question: $0.question,
+                    answer: $0.answer,
+                    evidenceUsed: $0.evidenceUsed,
+                    confidenceNote: $0.confidenceNote
+                )
+            },
+            record.screeningRunId
+        )
     }
 
     private var coverLetterEvidence: [String: JSONValue] {

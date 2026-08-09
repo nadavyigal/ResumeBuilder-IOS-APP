@@ -219,6 +219,7 @@ final class ExpertArtifactPersistenceTests: XCTestCase {
     }
 }
 
+@MainActor
 private final class ExpertArtifactWorkflowSpy: ExpertWorkflowServiceProtocol, @unchecked Sendable {
     private let failing: Bool
     private let emptyOutput: Bool
@@ -285,7 +286,8 @@ private final class ExpertArtifactWorkflowSpy: ExpertWorkflowServiceProtocol, @u
         token: String?,
         selectionIndex: Int?,
         screeningSelectedIndices: [Int]?,
-        selectedFields: [String]?
+        selectedFields: [String]?,
+        acceptScoreDecrease: Bool
     ) async throws -> ExpertWorkflowApplyResponseDTO {
         let json = """
         {"success":true,"workflow_type":"\(workflowType.rawValue)","updated_fields":[],"apply_mode":"default","selection_index":0}
