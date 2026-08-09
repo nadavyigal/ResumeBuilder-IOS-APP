@@ -2,8 +2,15 @@ import Foundation
 
 enum ResumeExportAction {
     struct Result: Sendable {
+        /// The résumé PDF on its own. Kept separate from `packageFileURLs` because
+        /// export completion and the review gate are about the résumé, not the extras.
         let fileURL: URL
         let optimizationId: String
+        /// Everything the share sheet should carry, résumé first.
+        let packageFileURLs: [URL]
+        let includedCoverLetter: Bool
+        let includedScreeningAnswers: Bool
+        let coverLetterFailed: Bool
     }
 
     @MainActor
@@ -35,9 +42,36 @@ enum ResumeExportAction {
                 url = try await viewModel.downloadPDF(appState: appState)
             }
             try PDFDownloadValidator.validatePDF(at: url)
+
+            // Whatever the user already generated ships with the résumé. Assembly runs
+            // after validation and can only add files, so it cannot fail the export.
+            let record = appState.submitPackageRecord(for: optimizationId)
+            let package = await ApplicationPackageBuilder.build(
+                ApplicationPackageInputs(
+                    optimizationId: optimizationId,
+                    resumePDFURL: url,
+                    candidateName: viewModel.contact?.name,
+                    jobTitle: viewModel.jobTitle?.decodingHTMLEntities(),
+                    company: viewModel.company?.decodingHTMLEntities(),
+                    coverLetterText: record?.coverLetterText,
+                    screeningAnswers: record?.screeningAnswers ?? []
+                )
+            )
+
             appState.markExportComplete(for: optimizationId)
-            analytics.track(.exportSuccess(optimizationId: optimizationId))
-            return Result(fileURL: url, optimizationId: optimizationId)
+            analytics.track(.exportSuccess(
+                optimizationId: optimizationId,
+                hasCoverLetter: package.includedCoverLetter,
+                hasScreeningAnswers: package.includedScreeningAnswers
+            ))
+            return Result(
+                fileURL: url,
+                optimizationId: optimizationId,
+                packageFileURLs: package.fileURLs,
+                includedCoverLetter: package.includedCoverLetter,
+                includedScreeningAnswers: package.includedScreeningAnswers,
+                coverLetterFailed: package.coverLetterFailed
+            )
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
