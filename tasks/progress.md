@@ -1,5 +1,24 @@
 # Project Progress
 
+## 2026-08-10 — 1.4.8 (18) is LIVE, and this file said it was still awaiting a TestFlight upload
+
+**Store is ground truth and it disagreed with the repo.** Apple has been serving **1.4.8 (18) since 2026-08-09T19:58:34Z**, verified 2026-08-10 with eight cache-busted `itunes.apple.com/lookup` polls all agreeing (a varying query parameter is required; identical URLs return an edge-cached older version that is indistinguishable from a build still in review). The entry below, written the same day, read *"It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey."* Apple released it hours later. **This is the sixth consecutive release across the two apps that shipped without being recorded here**, and the second in a row caught only because the morning brief polls the store rather than trusting the repo.
+
+**The shipped binary is this branch's work.** The public release notes name the three fixes from `codex/resumely-one-pass-fit-score` verbatim: *"Fixed missing experience bullet points / Clearer current match score / More reliable one-time Improve Match results."* That maps to `24f802d` (WP-65 one score in one place), `edad34c` (one current fit result, one improvement), and `2142d00` (fit completion release gates), as those commits exist on `origin` after rebase. So the P0 repair described below is not "not live until the two PRs merge" — the iOS half of it is live to every user.
+
+**The branch was reported stranded and was not.** The Agentic OS stranded-work detector flagged this branch as unlanded local-only work. It was wrong in the same way WP-69 documented on 2026-08-05: the remote branch carries the identical tree under rebased hashes plus three later doc commits, so `git branch -r --contains <local-sha>` returns nothing and ancestry reads as unpushed. `git diff --stat <local> <remote>` was **empty** — the definitive check. The local branch has been reset to the remote tip and given a tracking ref so it stops re-triggering the false positive. Nothing was pushed to fix this, because nothing was missing.
+
+**Still open and not addressed here.** The companion web fix is on `codex/wp64-review-path-bullet-preservation` in the web repo with 146 lines that are genuinely unpushed, so the server-side half of the bullet repair is not deployed. Eight PRs remain open on this repo, and #143 still contains #136's commit under a documentation title. Ratings remain **0.0 from 0** on a fourth consecutive release.
+
+**Status:** **1.4.8 (18) is LIVE on the App Store, released 2026-08-09T19:58:34Z.** Store-verified 2026-08-10, eight cache-busted lookups agreeing. Ratings 0.0 from 0. Nothing is with Apple.
+**Current Phase:** Post-release watch on live 1.4.8. The iOS half of the P0 bullet/score repair is public; the web half is not deployed.
+**Active Story:** None. Recording the release closed the open one.
+**Last Completed Story:** Full experience content, one authoritative score, one fit improvement — shipped in 1.4.8 (18).
+**Next Recommended Story:** (1) **Run the T+1 telemetry check on 1.4.8** — never run for this build, and the standing question is whether `app_store_review_requested (source = "export_success")` is greater than zero, which decides funnel-problem versus prompt-defect. (2) Push and land `codex/wp64-review-path-bullet-preservation` in the web repo so the server half of the bullet fix is deployed. (3) Repeat the authenticated physical-device walk against 1.4.8 rather than 1.4.7, which is no longer the live build.
+**Blockers:** None for the T+1. The web fix needs a deploy.
+**Last Validation:** 2026-08-10 — App Store lookup API, id 6776752349, eight cache-busted polls returning 1.4.8 / 2026-08-09T19:58:34Z / 0 ratings; release notes cross-checked against branch commits; `git diff --stat` local versus `origin` empty.
+**Last Updated:** 2026-08-10
+
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
 
 **The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
