@@ -1,5 +1,47 @@
 # Project Progress
 
+## 2026-08-10 — T+1 on 1.4.8: the public cohort is empty, and the review-prompt question is finally answered — it is the funnel
+
+**T+1 verdict: PARTIALLY PASSED, and the public half is unanswerable.** PostHog project 270848, fingerprinted before reading (`fit_check_started`, `submit_package_saved` present) because the MCP banner has served the wrong project while naming the right one. **Zero events of any kind have been ingested since the 1.4.8 release timestamp of 2026-08-09T19:58:34Z.** The newest event in the entire project is `2026-08-09T10:28:32Z`, nine and a half hours *before* Apple released the build. 1.4.8 has 78 events from 3 people, all between 07:36 and 08:04 UTC on 2026-08-09 — the device-walk and QA sessions, not public traffic. This is the identical shape as RunSmart 1.1.5 on 2026-08-06: instrumentation reachable, public cohort empty. **Re-run when a non-founder event lands on 1.4.8; trigger on data arriving, not on a date.**
+
+**WP-69's standing question is now closed, and the answer is "funnel".** The packet said: zero `app_store_review_requested (source = "export_success")` on the live build means the prompt was never attempted and this is a funnel problem; greater than zero with no ratings means the prompt defects are costing real prompts. The count is **1, lifetime, across every version**. It fired at `2026-08-09T10:26:50Z`, thirteen seconds after an `export_success`, from **`nadav.yigal@gmail.com`** — the founder's own 1.4.7 device walk. **So the prompt path demonstrably works, and it has never once fired for a real user.** The two `ReviewPromptGate` defects found on 2026-08-05 are real and are not what is costing ratings. Do not spend a release on them.
+
+**The cliff is `save_success` → `export_cta_seen`, and it is not an instrumentation artifact.** On live 1.4.7: **69 people, 54 optimized, 54 applied, 55 saved, 1 saw the export CTA, 1 exported** — and that 1 is the founder. `export_cta_seen` has existed since **2026-07-05**, three weeks before 1.4.7 shipped, so the birthday rule does not explain it (this is the check that invalidated three misread drop-offs on 2026-07-28). The same shape holds on every version measured since that birthday: 1.4.5 saved 15 and 1 saw the CTA; 1.4.2 saved 14 and 5 saw it. **Six people have ever reached `export_success`, lifetime.** Export is not leaking, it is walled off.
+
+**This retargets the open work.** PR #139 (WP-66 S1) instruments the *upload* step. Upload is not where the measured population is lost — 55 of 69 people got all the way to a saved resume. The unmeasured gap is between a saved resume and the export CTA ever being rendered. Instrumenting upload harder will not move the EXD-022 gate.
+
+**Two defects confirmed hitting real users on 1.4.7, both claimed fixed by 1.4.8, neither yet verifiable in public data.** `improve_score_regressed` fired for **35 distinct people**, so the score-going-down defect was not a founder anecdote. `optimization_apply_failed` and `optimization_state_recovery_failed` each hit **53 of 69 people**, and `save_failed` hit **54**, while `optimization_apply_succeeded` also covers 54 — failure and success fire for nearly the same population, which is either retry-then-succeed or double instrumentation and is worth one query before it is read as a 77% failure rate.
+
+**The founder's own event carried `is_internal_tester = false`.** The person-level flag defect mirrored from PRs #137/#138 is still unfixed here, which is why a founder device walk lands in the clean cohort. Every activation number in this project inherits that error until it is fixed.
+
+**Status:** **1.4.8 (18) is LIVE, released 2026-08-09T19:58:34Z.** T+1 run 2026-08-10: public cohort empty, re-run required on first non-founder event. Ratings 0.0 from 0.
+**Current Phase:** Post-release watch on live 1.4.8, awaiting first public traffic.
+**Active Story:** None.
+**Last Completed Story:** T+1 telemetry check on 1.4.8, and closure of the WP-69 review-prompt question.
+**Next Recommended Story:** (1) **Find out why `export_cta_seen` renders for almost nobody** — read the code path that gates it, because 55 people reached a saved resume and 1 saw the CTA, and that single gap is the whole EXD-022 gate. (2) Fix `is_internal_tester` at person level so the founder stops counting as a clean user. (3) Re-run this T+1 when a non-founder event arrives on 1.4.8. **Do not** spend a release on the two `ReviewPromptGate` defects; the data says they are not the constraint.
+**Blockers:** The public half of the T+1 is blocked on real traffic arriving, which this project can go days without.
+**Last Validation:** 2026-08-10 — PostHog 270848, project fingerprinted before reading. 0 events since 2026-08-09T19:58:34Z; `app_store_review_requested` n=1 lifetime, founder-attributed; 1.4.7 funnel 69/54/54/55/1/1; `export_cta_seen` first emitted 2026-07-05.
+**Last Updated:** 2026-08-10
+
+## 2026-08-10 — 1.4.8 (18) is LIVE, and this file said it was still awaiting a TestFlight upload
+
+**Store is ground truth and it disagreed with the repo.** Apple has been serving **1.4.8 (18) since 2026-08-09T19:58:34Z**, verified 2026-08-10 with eight cache-busted `itunes.apple.com/lookup` polls all agreeing (a varying query parameter is required; identical URLs return an edge-cached older version that is indistinguishable from a build still in review). The entry below, written the same day, read *"It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey."* Apple released it hours later. **This is the sixth consecutive release across the two apps that shipped without being recorded here**, and the second in a row caught only because the morning brief polls the store rather than trusting the repo.
+
+**The shipped binary is this branch's work.** The public release notes name the three fixes from `codex/resumely-one-pass-fit-score` verbatim: *"Fixed missing experience bullet points / Clearer current match score / More reliable one-time Improve Match results."* That maps to `24f802d` (WP-65 one score in one place), `edad34c` (one current fit result, one improvement), and `2142d00` (fit completion release gates), as those commits exist on `origin` after rebase. So the P0 repair described below is not "not live until the two PRs merge" — the iOS half of it is live to every user.
+
+**The branch was reported stranded and was not.** The Agentic OS stranded-work detector flagged this branch as unlanded local-only work. It was wrong in the same way WP-69 documented on 2026-08-05: the remote branch carries the identical tree under rebased hashes plus three later doc commits, so `git branch -r --contains <local-sha>` returns nothing and ancestry reads as unpushed. `git diff --stat <local> <remote>` was **empty** — the definitive check. The local branch has been reset to the remote tip and given a tracking ref so it stops re-triggering the false positive. Nothing was pushed to fix this, because nothing was missing.
+
+**Still open and not addressed here.** The companion web fix is on `codex/wp64-review-path-bullet-preservation` in the web repo with 146 lines that are genuinely unpushed, so the server-side half of the bullet repair is not deployed. Eight PRs remain open on this repo, and #143 still contains #136's commit under a documentation title. Ratings remain **0.0 from 0** on a fourth consecutive release.
+
+**Status:** **1.4.8 (18) is LIVE on the App Store, released 2026-08-09T19:58:34Z.** Store-verified 2026-08-10, eight cache-busted lookups agreeing. Ratings 0.0 from 0. Nothing is with Apple.
+**Current Phase:** Post-release watch on live 1.4.8. The iOS half of the P0 bullet/score repair is public; the web half is not deployed.
+**Active Story:** None. Recording the release closed the open one.
+**Last Completed Story:** Full experience content, one authoritative score, one fit improvement — shipped in 1.4.8 (18).
+**Next Recommended Story:** (1) **Run the T+1 telemetry check on 1.4.8** — never run for this build, and the standing question is whether `app_store_review_requested (source = "export_success")` is greater than zero, which decides funnel-problem versus prompt-defect. (2) Push and land `codex/wp64-review-path-bullet-preservation` in the web repo so the server half of the bullet fix is deployed. (3) Repeat the authenticated physical-device walk against 1.4.8 rather than 1.4.7, which is no longer the live build.
+**Blockers:** None for the T+1. The web fix needs a deploy.
+**Last Validation:** 2026-08-10 — App Store lookup API, id 6776752349, eight cache-busted polls returning 1.4.8 / 2026-08-09T19:58:34Z / 0 ratings; release notes cross-checked against branch commits; `git diff --stat` local versus `origin` empty.
+**Last Updated:** 2026-08-10
+
 ## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
 
 **The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
