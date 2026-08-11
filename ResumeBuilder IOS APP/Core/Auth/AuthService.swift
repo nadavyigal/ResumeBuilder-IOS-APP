@@ -146,6 +146,10 @@ final class AuthService: @unchecked Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
         request.httpBody = try JSONSerialization.data(withJSONObject: [String: Any]())
+        // Bounded well below URLSession's 60s default. Nothing user-visible waits
+        // on this, but an unbounded request would keep a launch-time task alive
+        // for a minute on a bad network for no benefit; the next launch retries.
+        request.timeoutInterval = 10
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {

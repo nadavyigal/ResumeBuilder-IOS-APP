@@ -167,9 +167,17 @@ final class AppState {
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
         }
-        await establishAnonymousSessionIfNeeded()
         await reconcileLatestOptimization()
         hasBootstrappedSession = true
+
+        // Deliberately after `hasBootstrappedSession`. Anonymous sign-in is a
+        // network round trip, and `RootView` shows nothing but a spinner until
+        // that flag flips — so awaiting it before render means a slow or stalled
+        // request holds the user on a blank launch screen for as long as the
+        // request takes. Establishing it here lets the UI come up immediately;
+        // `canOptimize` flips when the session lands, and the optimize CTA is
+        // several taps away in every flow, so it is always there in time.
+        await establishAnonymousSessionIfNeeded()
     }
 
     /// Gives a guest a Supabase anonymous session, so their work sits behind a
