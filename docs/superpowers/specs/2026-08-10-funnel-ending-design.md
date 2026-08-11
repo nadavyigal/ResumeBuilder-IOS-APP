@@ -1,7 +1,7 @@
 # Design: give the funnel an ending
 
-**Date:** 2026-08-10
-**Status:** Approved, not yet planned
+**Date:** 2026-08-10, resolved 2026-08-11
+**Status:** Approved and resolved on strategy. Blocked on a backend dependency discovered during live verification — see Resolution.
 **Author:** Claude (Opus 5) with founder
 **Repo:** ResumeBuilder IOS APP
 
@@ -44,6 +44,34 @@ This was recorded as a test quirk in `tasks/lessons.md:184` on 2026-07-05 ("hidd
 
 Export itself works. 6 people have ever started an export and 6 completed it; one `export_failed` event exists in the app's lifetime. The ending is unreachable, not defective.
 
+## Resolution (2026-08-11)
+
+**Verified live, on a freshly erased Simulator (prior sessions had leftover Keychain state from earlier testing that invalidated an initial attempt — every step below was re-run on a genuinely clean guest install).** As a real guest, with zero session, zero sign-in: upload résumé → paste job description → **Run Free Match Check** → a real scored result (issues found, quick wins, top-3 recommendations) → then an explicit wall:
+
+> "4 free checks remaining this week. Sign in to unlock full resume optimization."
+> "Your resume is uploaded securely for analysis. Sign in only when you're ready to optimize and export."
+> **[Sign in to Optimize]**
+
+This confirms the code reading from 2026-08-10 was correct and explains it fully: `apply()` requires a token because the product is *built* to give guests a free, rate-limited score check, then wall off real optimization behind an account. It is not a bug. `HomeActivationState.swift`'s guest copy ("Sign in to unlock full optimization and PDF export") was accurate, not stale.
+
+**Decision: this wall is retired.** Guests get full optimize + export, capped 5/month, per sections 3-4 below. The founder's original call — give guests the real artifact, ask for registration after — stands. Finding a deliberate, well-built gate does not reopen the question; it sharpens what the design overrides. The gate itself produces the exact cliff this design exists to close: 211 guests reach the fit check, 119 tap optimize, and the free tier caps out at a score and three issues before demanding an account. That is not a different problem from the one measured in `## Problem` above — it is the same one, now traced to its source.
+
+**What changed as a result of verifying this live, and why the work is bigger than originally scoped:**
+
+1. **Second entry point found.** `Features/V2/Home/HomeTabView.swift` has its own guest gate, independent of the `TailorView` → `OptimizationReviewView` → `apply()` path already covered in section 1. Its `runAnalysis()` branches explicitly:
+   ```swift
+   if appState.isAuthenticated {
+       await prepareFitCheck()   // or continueOptimization() — the real pipeline
+   } else {
+       await viewModel.runFreeATS(appState: appState)   // the free, capped check
+   }
+   ```
+   and a guest who gets a result sees a standalone `Button { showOnboarding = true } label: { Text("Sign in to Optimize") }` (`HomeTabView.swift`, inside the `!appState.isAuthenticated` branch after `atsResult` populates). Both this gate and the `TailorView` one gate on the same `appState.isAuthenticated`; both must open together or the cliff just relocates from one screen to the other.
+
+2. **The free check and the real pipeline are backed by architecturally separate API endpoints — this is a backend change, not an iOS routing change.** `TailorViewModel.runFreeATS` calls `apiClient.runPublicATSCheck(..., sessionId: appState.anonymousATSSessionId)` — a dedicated public endpoint keyed on the anonymous session id already used elsewhere in the app (`convertAnonymousSessionIfNeeded`). Every optimize/apply/export call (`applyOrRecover`, `downloadPDF`, `improveATS`, `saveOptimizedResume`) takes a real Supabase bearer `token: String`, with no code path that substitutes `anonymousATSSessionId` for it. There is no evidence in this repo that the backend accepts an anonymous session on the optimize/apply/export endpoints. Unlocking guest optimize therefore requires the **backend** (a separate repo this design does not touch) to either accept `anonymousATSSessionId` on those endpoints, or provision a real but silent account for the guest's session before the first optimize call.
+
+**What this means practically:** the *client-side* work in sections 1-7 below (routing, the export fallback, the cap, the registration ask, the copy) is fully scoped and section 3's `HTMLPDFExporter` risk is already resolved — see `Risks`. The blocker is confirming the backend accepts guest credentials on the optimize/apply/export endpoints, which is founder-owned, cross-repo, and outside what this spec or this repo can verify or resolve.
+
 ## Goals
 
 1. Every user who applies an optimization lands on their finished résumé.
@@ -84,7 +112,7 @@ Demoting it costs almost nothing: `diagnosis_viewed` reached 5 people while 80 a
 
 Guests export through the existing local path in `ResumeExportAction.exportPDF`: when `renderedHTML` is present, `HTMLPDFExporter` builds the PDF on-device with no token, and only falls back to the server `downloadPDF` on failure.
 
-**This is the design's load-bearing assumption and it is unverified.** See Risks.
+**Resolved 2026-08-11.** `OptimizedResumeViewModel.downloadPDF(token:)` previously threw `.unauthorized` before ever attempting the fallback; it now routes a nil token to `LocalResumePDFExporter`, the offline Core Graphics renderer already in the codebase. Shipped and merged in PR #149 (`bbef6b7`), with tests proving both the content and no-content cases. See `Risks` for what remains unverified (whether a guest ever has `sections`/`contact` populated in the first place, now moot given the Resolution above — this section only matters once the backend accepts a guest into the optimize pipeline at all).
 
 ### 4. The cap
 
@@ -154,15 +182,19 @@ Read all of these only against post-release traffic on a build whose release dat
 
 ## Risks
 
-**1. `HTMLPDFExporter` may not work for guests. Blocking.**
+**1. `HTMLPDFExporter` may not work for guests. RESOLVED 2026-08-11.**
 
-The whole guest-export design rests on the local render path producing a valid PDF with no token. If `renderedPreviewHTML` is empty for an unauthenticated user, export falls through to `downloadPDF`, throws `.unauthorized`, and the change relocates the wall instead of removing it.
+The offline fallback (`LocalResumePDFExporter`) is now reachable for a nil token and is unit-tested. What remains open is upstream of this risk, not part of it: whether the backend will let a guest reach `sections`/`contact` in the first place. See Resolution above.
 
-**Verification is a prerequisite, not a build step, and the founder owns it:** export as a guest on a real device against the App Store build, confirm a valid PDF with a text layer. If it fails, this design needs a different section 3 before any implementation starts.
+**2. Backend must accept a guest credential on optimize/apply/export. Blocking, not owned by this repo.**
 
-**2. Diagnosis navigation may already be broken.** 80 people applied, 5 saw diagnosis. This design routes around that screen rather than fixing it, so the defect survives into the "See what changed" link. Needs its own investigation; do not let it silently become part of this work.
+`runPublicATSCheck` (the free check) and `applyOrRecover`/`downloadPDF`/`improveATS`/`saveOptimizedResume` (the real pipeline) are separate API surfaces server-side: one takes `anonymousATSSessionId`, the others take a bearer token with no anonymous substitute anywhere in this codebase. Confirmed by reading every call site in `TailorViewModel`, `OptimizationReviewView`, and `OptimizedResumeViewModel` — none has an anonymous branch. This is founder-owned, cross-repo work: confirm with whoever owns the backend/web repo whether the optimize/apply/export endpoints can accept `anonymousATSSessionId`, or scope the backend change needed to add it.
 
-**3. Tab-switch timing.** Switching `selectedTab` while a `navigationDestination` is presented is a known source of SwiftUI misbehavior. Pop first, then switch.
+**3. Diagnosis navigation may already be broken.** 80 people applied, 5 saw diagnosis. This design routes around that screen rather than fixing it, so the defect survives into the "See what changed" link. Needs its own investigation; do not let it silently become part of this work.
+
+**4. Tab-switch timing.** Switching `selectedTab` while a `navigationDestination` is presented is a known source of SwiftUI misbehavior. Pop first, then switch.
+
+**5. Two gates, not one.** `HomeTabView.swift`'s `runAnalysis()`/`optimizeCard` gate and `TailorView.swift`'s `onAppliedOptimization`/`apply()` gate are independent code paths that both check `appState.isAuthenticated`. An implementation that only opens one will move the cliff to the other screen rather than closing it. Both are now in scope; see `Files touched`.
 
 ## Files touched
 
@@ -170,13 +202,15 @@ The whole guest-export design rests on the local render path producing a valid P
 |---|---|
 | `Features/Tailor/TailorView.swift` | reroute `onAppliedOptimization` |
 | `Features/V2/Improve/OptimizedResumeView.swift` | "See what changed" link; registration ask; review-prompt reorder |
+| `Features/V2/Home/HomeTabView.swift` | `runAnalysis()` guest branch calls the real pipeline, not `runFreeATS`; retire the standalone "Sign in to Optimize" button |
 | `Features/V2/Home/HomeActivationState.swift` | guest copy |
 | `App/AppState.swift` | monthly guest export counter |
 | `Core/Analytics/AnalyticsService.swift` | five new events |
 | `Resources/Localizable.xcstrings` | copy |
 | tests | cap logic, month rollover, analytics names, routing |
+| **backend/web repo (out of this repo)** | accept `anonymousATSSessionId` (or equivalent) on the optimize/apply/export endpoints — see Risk 2. **This is the actual first story**; the iOS changes above are inert until it lands. |
 
-Six source files plus tests. This clears the >3-file scope gate in the global work rules, so implementation follows `planning-protocol.md` and lands as separate stories, not one commit.
+Seven iOS source files plus tests, plus one cross-repo backend dependency. Clears the >3-file scope gate; implementation follows `planning-protocol.md` as separate stories. Sequence: confirm/build the backend capability first, then land the iOS stories — building the client side first would ship UI for a pipeline that still 401s.
 
 ## Deferred
 
