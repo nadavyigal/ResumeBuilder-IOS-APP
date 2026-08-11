@@ -104,6 +104,10 @@ enum AnalyticsFlowVersion: String, Sendable {
 enum AnalyticsEvent: Sendable {
     case appLaunched(isAuthenticated: Bool)
     case guestModeStarted
+    /// A Supabase anonymous session was created for a guest. Fires alongside
+    /// `guest_mode_started`, not instead of it, so the guest baseline stays
+    /// comparable across the rollout.
+    case anonymousSessionStarted
     case resumeUploaded(fileType: String)
     case jobAdded(hasURL: Bool, hasPaste: Bool)
     case analysisCTATapped(source: String, flowVersion: AnalyticsFlowVersion, hasURL: Bool, hasPaste: Bool)
@@ -167,6 +171,7 @@ enum AnalyticsEvent: Sendable {
         switch self {
         case .appLaunched: return "app_launched"
         case .guestModeStarted: return "guest_mode_started"
+        case .anonymousSessionStarted: return "anonymous_session_started"
         case .resumeUploaded: return "resume_uploaded"
         case .jobAdded: return "job_added"
         case .analysisCTATapped: return "analysis_cta_tapped"
@@ -227,7 +232,7 @@ enum AnalyticsEvent: Sendable {
         switch self {
         case .appLaunched(let isAuthenticated):
             return ["is_authenticated": isAuthenticated ? "true" : "false"]
-        case .guestModeStarted, .signInCompleted, .accountDeleted,
+        case .guestModeStarted, .anonymousSessionStarted, .signInCompleted, .accountDeleted,
              .fitCheckOptimizeTapped, .fitCheckSkipped, .secondJobStarted:
             return [:]
         case .optimizationStarted(let resumeId, let jobDescriptionId):

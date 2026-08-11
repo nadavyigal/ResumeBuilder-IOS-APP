@@ -113,7 +113,23 @@ final class AppState {
         self.optimizationHistoryService = optimizationHistoryService
     }
 
+    /// Whether the user has a **real account**.
+    ///
+    /// Every UI branch in the app keys off this, so an anonymous session must
+    /// not read as authenticated. If it did, a guest would silently receive the
+    /// entire signed-in experience — Profile as an account, History, "Analyze my
+    /// resume" instead of "Run Free Match Check" — without the export cap and
+    /// registration ask that the funnel design pairs that experience with.
+    ///
+    /// Use `hasSession` when the question is "can I call the API", not "is this
+    /// a signed-in user".
     var isAuthenticated: Bool {
+        session?.isAccountSession == true
+    }
+
+    /// Whether a usable bearer token exists, from a real account **or** an
+    /// anonymous session. This is the correct gate for making API calls.
+    var hasSession: Bool {
         session != nil
     }
 
@@ -137,8 +153,37 @@ final class AppState {
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
         }
+        await establishAnonymousSessionIfNeeded()
         await reconcileLatestOptimization()
         hasBootstrappedSession = true
+    }
+
+    /// Gives a guest a Supabase anonymous session, so their work sits behind a
+    /// real `auth.uid()` from first launch.
+    ///
+    /// That `auth.uid()` is what lets a guest satisfy `supabase.auth.getUser()`
+    /// on the API routes and the `auth.uid() = user_id` RLS policies, with no
+    /// endpoint or policy changes. Converting to a real account later keeps the
+    /// same `user_id`, so nothing has to be migrated across.
+    ///
+    /// Deliberately does **not** make `isAuthenticated` true: an anonymous
+    /// session is a credential, not an account, and the UI keeps treating the
+    /// user as a guest until the funnel design's cap and registration ask ship.
+    ///
+    /// Failure is non-fatal by design. With anonymous sign-ins disabled on the
+    /// project, or the device offline at launch, the app behaves exactly as it
+    /// does today and the next launch retries.
+    func establishAnonymousSessionIfNeeded() async {
+        guard session == nil else { return }
+        do {
+            let anonymous = try await AuthService.shared.signInAnonymously()
+            session = anonymous
+            AnalyticsService.shared.track(.anonymousSessionStarted)
+        } catch AuthServiceError.anonymousSignInDisabled {
+            // Expected while the Supabase provider is off. Not worth surfacing.
+        } catch {
+            // Offline or transient. Guest mode still works unauthenticated.
+        }
     }
 
     func handleIncomingURL(_ url: URL) {

@@ -6,6 +6,9 @@ enum AuthServiceError: Error, LocalizedError {
     case missingSupabaseKey
     case serverError(String)
     case emailConfirmationRequired
+    /// The Supabase project has anonymous sign-ins turned off. Expected, not
+    /// exceptional: callers fall back to unauthenticated guest mode.
+    case anonymousSignInDisabled
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +20,8 @@ enum AuthServiceError: Error, LocalizedError {
             return message
         case .emailConfirmationRequired:
             return NSLocalizedString("Check your email to confirm your account, then sign in.", comment: "")
+        case .anonymousSignInDisabled:
+            return NSLocalizedString("Anonymous sign-in is not available.", comment: "")
         }
     }
 }
@@ -116,6 +121,91 @@ final class AuthService: @unchecked Sendable {
         )
         persist(session)
         return session
+    }
+
+    // MARK: - Anonymous sign-in
+
+    /// Creates a Supabase anonymous session: a real `auth.users` row with a real
+    /// `auth.uid()` and the `authenticated` role, carrying `is_anonymous: true`.
+    ///
+    /// This is what lets a guest reach endpoints that call `supabase.auth.getUser()`
+    /// and tables whose RLS is `auth.uid() = user_id`, without any endpoint or
+    /// policy changes. Converting to a real account later preserves the same
+    /// `user_id`, so the guest's work carries over with no migration.
+    ///
+    /// GoTrue exposes this as `POST /auth/v1/signup` with an empty body — the
+    /// same endpoint as email sign-up, distinguished only by sending no
+    /// credentials. Throws `.anonymousSignInDisabled` when the project has the
+    /// provider turned off, so callers can fall back to unauthenticated guest
+    /// mode rather than failing the launch.
+    func signInAnonymously() async throws -> AuthSession {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("auth/v1/signup")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [String: Any]())
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+
+        if !(200...299).contains(httpResponse.statusCode) {
+            let text = String(data: data, encoding: .utf8) ?? "Anonymous sign-in failed"
+            if Self.indicatesAnonymousDisabled(text) {
+                throw AuthServiceError.anonymousSignInDisabled
+            }
+            throw AuthServiceError.serverError(parseGoTrueError(text))
+        }
+
+        struct AnonymousResponse: Decodable {
+            let access_token: String?
+            let refresh_token: String?
+            let user: AnonymousUser?
+
+            struct AnonymousUser: Decodable {
+                let id: String
+                let email: String?
+                let is_anonymous: Bool?
+            }
+        }
+
+        let decoded = try JSONDecoder().decode(AnonymousResponse.self, from: data)
+        guard let token = decoded.access_token,
+              let refresh = decoded.refresh_token,
+              let user = decoded.user else {
+            // A 200 with no tokens is what confirmation-required sign-up returns.
+            // An anonymous sign-in can never legitimately land here, so treat it
+            // as the provider being unavailable rather than persisting a
+            // half-session that every later call would 401 on.
+            throw AuthServiceError.anonymousSignInDisabled
+        }
+
+        let session = AuthSession(
+            accessToken: token,
+            refreshToken: refresh,
+            userId: user.id,
+            email: user.email,
+            // Trust the server's flag, but default to true: this method only
+            // ever creates anonymous sessions, and mislabelling one as a real
+            // account would wrongly show a guest the signed-in UI.
+            isAnonymous: user.is_anonymous ?? true
+        )
+        persist(session)
+        return session
+    }
+
+    /// GoTrue reports a disabled anonymous provider inconsistently across
+    /// versions — sometimes `anonymous_provider_disabled`, sometimes a generic
+    /// signup-disabled message — so match on either.
+    private static func indicatesAnonymousDisabled(_ raw: String) -> Bool {
+        let lower = raw.lowercased()
+        return lower.contains("anonymous_provider_disabled")
+            || lower.contains("anonymous sign-ins are disabled")
+            || lower.contains("signups not allowed")
+            || lower.contains("signup_disabled")
     }
 
     // MARK: - Sign in with Apple

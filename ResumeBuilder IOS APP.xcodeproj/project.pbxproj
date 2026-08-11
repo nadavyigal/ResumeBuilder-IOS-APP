@@ -31,6 +31,7 @@
 		D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */; };
 		DEE932C0DC3B44D78D73947B /* LiveEndpointStabilizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D563EFED0A244FCA9A12261 /* LiveEndpointStabilizationTests.swift */; };
 		EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC120002EC120002EC120002 /* ExportCompletionTests.swift */; };
+		AN0N5E5510NAN0N5E5510N01 /* AnonymousSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0N5E5510NAN0N5E5510N02 /* AnonymousSessionTests.swift */; };
 		F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -72,6 +73,7 @@
 		C6B6F80A2D3E5F7091A2B4C6 /* RecommendationSafetyPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecommendationSafetyPolicyTests.swift; sourceTree = "<group>"; };
 		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		EC120002EC120002EC120002 /* ExportCompletionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportCompletionTests.swift; sourceTree = "<group>"; };
+		AN0N5E5510NAN0N5E5510N02 /* AnonymousSessionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnonymousSessionTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -168,6 +170,7 @@
 				DA45020000000000000000A2 /* ResultScreenPrimaryActionTests.swift */,
 				DA45010000000000000000A1 /* DirectOptimizeRoutingTests.swift */,
 				EC120002EC120002EC120002 /* ExportCompletionTests.swift */,
+				AN0N5E5510NAN0N5E5510N02 /* AnonymousSessionTests.swift */,
 				9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */,
 				1B3D5F7B9D1F3B5D7F9B1D3F /* FitCheckServiceTests.swift */,
 				B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */,
@@ -302,6 +305,7 @@
 				DA45020000000000000000B2 /* ResultScreenPrimaryActionTests.swift in Sources */,
 				DA45010000000000000000B1 /* DirectOptimizeRoutingTests.swift in Sources */,
 				EC120001EC120001EC120001 /* ExportCompletionTests.swift in Sources */,
+				AN0N5E5510NAN0N5E5510N01 /* AnonymousSessionTests.swift in Sources */,
 				0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */,
 				2C4E6A8C0E2A4C6E8A0C2E4A /* FitCheckServiceTests.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* FitCheckViewModelTests.swift in Sources */,
