@@ -204,10 +204,29 @@ struct TailorView: View {
                             appState.latestOptimizationId = optId
                             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                             viewModel.pendingSaveResumeId = optId
+
+                            // Land on the finished résumé, not on a checkpoint.
+                            //
+                            // This path used to push ResumeDiagnosisView and leave the
+                            // Optimized tab reachable only via that screen's optional
+                            // "Improve" button. Measured result: 104 people completed an
+                            // optimization, 9 ever saw the Optimized screen, and the most
+                            // common event after optimization_completed was
+                            // optimization_started again (95 people) — people re-running
+                            // because they did not believe they were done. Diagnosis is
+                            // now a "See what changed" link on the résumé instead of a
+                            // gate in front of it.
+                            //
+                            // Pop the pushed review stack before switching tabs. Changing
+                            // selectedTab while a navigationDestination is still presented
+                            // leaves the pushed screen sitting over the new tab; the hop
+                            // lets the pop settle first. Same pattern HomeTabView already
+                            // uses when it scrolls after a resume is selected.
                             shouldNavigate = false
-                            pendingDiagnosisOptimizationId = optId
-                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                            showDiagnosis = true
+                            Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 50_000_000)
+                                onSwitchTab(.optimized)
+                            }
                         }
                     )
                 }
