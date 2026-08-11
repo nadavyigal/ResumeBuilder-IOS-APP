@@ -1,7 +1,7 @@
 # Design: give the funnel an ending
 
 **Date:** 2026-08-10, resolved 2026-08-11
-**Status:** Approved and resolved on strategy. Blocked on a backend dependency discovered during live verification — see Resolution.
+**Status:** Approved and fully resolved. No open questions and no external dependencies. Implementation is sequenced in `Files touched`; start with the Supabase anonymous sign-in toggle.
 **Author:** Claude (Opus 5) with founder
 **Repo:** ResumeBuilder IOS APP
 
@@ -68,9 +68,11 @@ This confirms the code reading from 2026-08-10 was correct and explains it fully
    ```
    and a guest who gets a result sees a standalone `Button { showOnboarding = true } label: { Text("Sign in to Optimize") }` (`HomeTabView.swift`, inside the `!appState.isAuthenticated` branch after `atsResult` populates). Both this gate and the `TailorView` one gate on the same `appState.isAuthenticated`; both must open together or the cliff just relocates from one screen to the other.
 
-2. **The free check and the real pipeline are backed by architecturally separate API endpoints — this is a backend change, not an iOS routing change.** `TailorViewModel.runFreeATS` calls `apiClient.runPublicATSCheck(..., sessionId: appState.anonymousATSSessionId)` — a dedicated public endpoint keyed on the anonymous session id already used elsewhere in the app (`convertAnonymousSessionIfNeeded`). Every optimize/apply/export call (`applyOrRecover`, `downloadPDF`, `improveATS`, `saveOptimizedResume`) takes a real Supabase bearer `token: String`, with no code path that substitutes `anonymousATSSessionId` for it. There is no evidence in this repo that the backend accepts an anonymous session on the optimize/apply/export endpoints. Unlocking guest optimize therefore requires the **backend** (a separate repo this design does not touch) to either accept `anonymousATSSessionId` on those endpoints, or provision a real but silent account for the guest's session before the first optimize call.
+2. **The free check and the real pipeline are backed by separate API surfaces.** `TailorViewModel.runFreeATS` calls `apiClient.runPublicATSCheck(..., sessionId: appState.anonymousATSSessionId)` — a dedicated unauthenticated endpoint. Every optimize/apply/export call (`applyOrRecover`, `downloadPDF`, `improveATS`, `saveOptimizedResume`) takes a real Supabase bearer `token: String`, with no anonymous branch anywhere in this repo.
 
-**What this means practically:** the *client-side* work in sections 1-7 below (routing, the export fallback, the cap, the registration ask, the copy) is fully scoped and section 3's `HTMLPDFExporter` risk is already resolved — see `Risks`. The blocker is confirming the backend accepts guest credentials on the optimize/apply/export endpoints, which is founder-owned, cross-repo, and outside what this spec or this repo can verify or resolve.
+   **The unlock is Supabase anonymous sign-in, and it requires no endpoint changes.** `signInAnonymously()` gives the guest a real `auth.uid()` and the `authenticated` role, which satisfies both `/api/optimize`'s `getUser()` check and every `auth.uid() = user_id` RLS policy unchanged. Converting to a permanent account preserves the same `user_id`, so guest work carries over with no migration. Verified against the live database; full evidence, safety argument, and the four conditions attached to it are in **Risk 2**.
+
+**What this means practically:** the client-side work in sections 1-7 (routing, export fallback, cap, registration ask, copy) is fully scoped, and section 3's `HTMLPDFExporter` risk already shipped in PR #149. The remaining work is a Supabase auth toggle, swapping the guest entry point to `signInAnonymously()`, and adding an IP-keyed rate limit to `/api/optimize` so anonymous users cannot farm fresh `user.id`s past the per-user limit. That is a config change plus two small code changes — not a backend rewrite, and not owned by anyone else.
 
 ## Goals
 
@@ -186,9 +188,43 @@ Read all of these only against post-release traffic on a build whose release dat
 
 The offline fallback (`LocalResumePDFExporter`) is now reachable for a nil token and is unit-tested. What remains open is upstream of this risk, not part of it: whether the backend will let a guest reach `sections`/`contact` in the first place. See Resolution above.
 
-**2. Backend must accept a guest credential on optimize/apply/export. Blocking, not owned by this repo.**
+**2. Guests need a real `auth.uid()`. RESOLVED 2026-08-11 — solved by Supabase anonymous sign-in, not by a backend rewrite.**
 
-`runPublicATSCheck` (the free check) and `applyOrRecover`/`downloadPDF`/`improveATS`/`saveOptimizedResume` (the real pipeline) are separate API surfaces server-side: one takes `anonymousATSSessionId`, the others take a bearer token with no anonymous substitute anywhere in this codebase. Confirmed by reading every call site in `TailorViewModel`, `OptimizationReviewView`, and `OptimizedResumeViewModel` — none has an anonymous branch. This is founder-owned, cross-repo work: confirm with whoever owns the backend/web repo whether the optimize/apply/export endpoints can accept `anonymousATSSessionId`, or scope the backend change needed to add it.
+*An earlier draft of this risk claimed the optimize/apply/export endpoints had to be taught to accept `anonymousATSSessionId`, and framed it as cross-repo work owned by someone else. Both were wrong. The backend is this founder's own Supabase project (`brtdyamysfmctrhuankn`) plus Next.js API routes in the ResumeBuilder web repo, and the correct fix is far smaller.*
+
+**Why guests 401 today.** `src/app/api/optimize/route.ts:14-18` (web repo):
+
+```ts
+const supabase = await createRouteHandlerClient(req);
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+```
+
+Every table it then reads is RLS-scoped `auth.uid() = user_id`. By contrast `src/app/api/public/ats-check/route.ts` requires no auth: an IP rate limit of 5 requests per 7 days (`MAX_FREE_CHECKS = 5`, `WINDOW_MS = 7 days` — the source of the app's "4 free checks remaining this week"), a service-role client, and an `x-session-id` header.
+
+**The fix: Supabase anonymous sign-in.** `signInAnonymously()` creates a real `auth.users` row with a real `auth.uid()` and issues a JWT carrying the **`authenticated`** role plus an `is_anonymous: true` claim. Consequences, all verified against the live database:
+
+- Every existing RLS policy is `auth.uid() = user_id` scoped to `authenticated` → **works unchanged, no policy edits**.
+- `/api/optimize`'s `getUser()` returns a user → **no 401, route unchanged**.
+- Converting to a permanent account uses `updateUser({ email })` / `linkIdentity()`, which **preserves the same `user_id`** — the guest's résumés and optimizations carry over with no migration. This is exactly the section 5 "Save your work" ask, obtained for free.
+
+**Database evidence (queried live 2026-08-11, project `brtdyamysfmctrhuankn`):**
+
+| check | result |
+|---|---|
+| `auth.users` | 35 total, **0 anonymous** — also the source of the "~30 Supabase users vs 98 optimizers" question |
+| `resumes`, `optimizations`, `job_descriptions`, `saved_resumes` | RLS enabled; all policies `auth.uid() = user_id` |
+| `credit_transactions` | RLS enabled, **0 `authenticated` policies** → service-role only |
+| billing / payment / subscription tables with `authenticated` policies | **none** |
+
+The last two rows are the safety argument: enabling anonymous sign-in widens every `authenticated` policy to include anonymous users, and here that set contains only user-owned content tables, each `auth.uid()`-scoped. Credits and money are unreachable by an anonymous JWT.
+
+**Conditions on doing this — these are the actual work, and none is a rewrite:**
+
+1. **Enable the toggle.** Authentication → Sign In / Providers → Anonymous sign-ins. Whether it is currently enabled could not be read via SQL or the MCP tools; 0 anonymous users means "disabled or unused," not necessarily disabled.
+2. **Rate-limit optimize by IP, not only by user.** `/api/optimize` limits on `optimize:${user.id}`; an anonymous user can mint a fresh `user.id` on demand, so that limit does not bind for guests. Reuse the `checkRateLimit(ip, ...)` helper the public route already uses. The section 4 client-side `UserDefaults` cap is a conversion nudge, **not** an abuse control, and must not be relied on as one.
+3. **Accept the MAU cost.** Anonymous users count toward Supabase MAU billing; at current volume that is roughly 211 additional MAU.
+4. **Leave `anonymous_ats_scores` and `/api/public/convert-session` in place.** They become partly redundant once `user_id` is stable across conversion, but removing them belongs to a separate change.
 
 **3. Diagnosis navigation may already be broken.** 80 people applied, 5 saw diagnosis. This design routes around that screen rather than fixing it, so the defect survives into the "See what changed" link. Needs its own investigation; do not let it silently become part of this work.
 
@@ -208,9 +244,11 @@ The offline fallback (`LocalResumePDFExporter`) is now reachable for a nil token
 | `Core/Analytics/AnalyticsService.swift` | five new events |
 | `Resources/Localizable.xcstrings` | copy |
 | tests | cap logic, month rollover, analytics names, routing |
-| **backend/web repo (out of this repo)** | accept `anonymousATSSessionId` (or equivalent) on the optimize/apply/export endpoints — see Risk 2. **This is the actual first story**; the iOS changes above are inert until it lands. |
+| Supabase dashboard (config, no code) | enable Authentication → Sign In / Providers → **Anonymous sign-ins**. **Story 1** — everything else is inert until this is on. |
+| `App/AppState.swift` + guest entry point | call `signInAnonymously()` where `guest_mode_started` fires today, so a guest holds a real `auth.uid()` from first launch |
+| web repo `src/app/api/optimize/route.ts` | add an IP-keyed `checkRateLimit` alongside the existing per-`user.id` limit — see Risk 2 condition 2 |
 
-Seven iOS source files plus tests, plus one cross-repo backend dependency. Clears the >3-file scope gate; implementation follows `planning-protocol.md` as separate stories. Sequence: confirm/build the backend capability first, then land the iOS stories — building the client side first would ship UI for a pipeline that still 401s.
+Seven iOS source files plus tests, one Supabase config toggle, and one small web-repo rate-limit change. Clears the >3-file scope gate; implementation follows `planning-protocol.md` as separate stories. Sequence: enable anonymous sign-in and add the IP rate limit first, then land the iOS stories — shipping the client UI first would expose a pipeline that still 401s, and shipping anonymous auth without the IP limit would leave optimize effectively unmetered for guests.
 
 ## Deferred
 
