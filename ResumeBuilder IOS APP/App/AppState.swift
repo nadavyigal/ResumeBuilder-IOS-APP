@@ -133,6 +133,20 @@ final class AppState {
         session != nil
     }
 
+    /// Whether this user can run the full optimize pipeline.
+    ///
+    /// True for anonymous sessions as well as real accounts: the pipeline needs
+    /// a bearer token and an `auth.uid()`, both of which an anonymous session
+    /// provides, and every RLS policy is `auth.uid() = user_id` regardless of
+    /// how the identity was created.
+    ///
+    /// Distinct from `isAuthenticated`, which answers "is this a real account"
+    /// and still governs Profile, History and the account-identity surfaces. A
+    /// guest optimizing is not a guest who has signed up.
+    var canOptimize: Bool {
+        hasSession
+    }
+
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         if let session {

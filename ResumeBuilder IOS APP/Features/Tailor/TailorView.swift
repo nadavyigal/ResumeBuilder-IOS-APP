@@ -571,7 +571,7 @@ struct TailorView: View {
                 if let reason = evaluation.blockingReason?.analyticsValue {
                     AnalyticsService.shared.track(.jobInputValidationShown(surface: "tailor", reason: reason))
                 }
-                if appState.isAuthenticated {
+                if appState.canOptimize {
                     AnalyticsService.shared.track(.analysisCTATapped(
                         source: "tailor",
                         flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
@@ -580,7 +580,7 @@ struct TailorView: View {
                     ))
                 }
                 Task {
-                    if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
+                    if appState.canOptimize && BackendConfig.isFitCheckEnabled {
                         do {
                             guard let upload = try await viewModel.ensureUploadedResumeForCurrentJob(appState: appState),
                                   let resumeId = upload.resumeId,
@@ -620,7 +620,7 @@ struct TailorView: View {
                             viewModel.errorMessage = error.localizedDescription
                             viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
                         }
-                    } else if appState.isAuthenticated {
+                    } else if appState.canOptimize {
                         await viewModel.optimize(appState: appState)
                         #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
@@ -654,9 +654,9 @@ struct TailorView: View {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
+                            Image(systemName: appState.canOptimize ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free Match Check")
+                            Text(appState.canOptimize ? "Analyze my resume" : "Run Free Match Check")
                                 .fontWeight(.bold)
                         }
                     }
