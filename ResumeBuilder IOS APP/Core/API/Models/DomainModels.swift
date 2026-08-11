@@ -1210,6 +1210,31 @@ struct AuthSession: Codable, Equatable, Sendable {
     let refreshToken: String?
     let userId: String
     let email: String?
+    /// True when this session came from Supabase anonymous sign-in.
+    ///
+    /// Optional on purpose. Sessions persisted to the Keychain before anonymous
+    /// auth existed carry no such key, and a non-optional property would make
+    /// `JSONDecoder` throw on every one of them — which `restoreSession()`
+    /// swallows with `try?`, silently signing out every existing user on
+    /// upgrade. Absent means "a real account", which is what all of them are.
+    let isAnonymous: Bool?
+
+    init(
+        accessToken: String,
+        refreshToken: String?,
+        userId: String,
+        email: String?,
+        isAnonymous: Bool? = nil
+    ) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.userId = userId
+        self.email = email
+        self.isAnonymous = isAnonymous
+    }
+
+    /// A session backed by a real account, as opposed to an anonymous one.
+    var isAccountSession: Bool { isAnonymous != true }
 }
 
 // MARK: - Chat (GET / POST /api/v1/chat…)
