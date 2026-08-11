@@ -395,7 +395,18 @@ final class OptimizedResumeViewModel {
 
     func downloadPDF(token: String?) async throws -> URL {
         guard let optId = optimizationId else { throw APIClientError.invalidResponse }
-        guard let token else { throw APIClientError.unauthorized }
+        guard let token else {
+            // Guests have no server session, so /api/download is never reachable — but the
+            // sections/contact already loaded into this view model (from the apply response)
+            // are enough to generate a local, unstyled, text-layer PDF with no network call.
+            // Throwing .unauthorized here instead would wall off every guest export even
+            // though nothing about producing this file actually requires a token.
+            return try LocalResumePDFExporter.exportPDF(
+                sections: sections,
+                contact: contact,
+                optimizationId: optId
+            )
+        }
         return try await downloadPDFWithLocalFallback(with: token, optimizationId: optId)
     }
 

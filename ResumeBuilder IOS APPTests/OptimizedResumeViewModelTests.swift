@@ -143,6 +143,48 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertTrue(text.contains("Swift, iOS"))
     }
 
+    func testDownloadPDFWithNilTokenAndContentReturnsLocalPDF() async throws {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-guest-export",
+            sections: [
+                OptimizedResumeSection(id: "s1", type: .summary, body: "Great engineer.", status: "optimized"),
+            ],
+            contact: ResumeContact(
+                name: "Guest User",
+                email: "guest@example.com",
+                phone: nil,
+                location: nil,
+                title: nil,
+                linkedin: nil,
+                portfolio: nil
+            ),
+            optimizationService: MockResumeOptimizationService()
+        )
+
+        let url = try await vm.downloadPDF(token: nil)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let data = try Data(contentsOf: url)
+        XCTAssertEqual(data.prefix(5), Data("%PDF-".utf8))
+        XCTAssertNoThrow(try PDFDownloadValidator.validatePDFData(data, statusCode: 200))
+    }
+
+    func testDownloadPDFWithNilTokenAndNoContentThrowsInvalidResponse() async {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-guest-empty",
+            optimizationService: MockResumeOptimizationService()
+        )
+
+        do {
+            _ = try await vm.downloadPDF(token: nil)
+            XCTFail("Expected invalidResponse when a guest has no loaded sections or contact")
+        } catch APIClientError.invalidResponse {
+            // expected: nothing to export yet, not an auth failure
+        } catch {
+            XCTFail("Expected APIClientError.invalidResponse, got \(error)")
+        }
+    }
+
     func testLocalResumePDFExporterWritesValidPDFData() async throws {
         let url = try LocalResumePDFExporter.exportPDF(
             sections: [
