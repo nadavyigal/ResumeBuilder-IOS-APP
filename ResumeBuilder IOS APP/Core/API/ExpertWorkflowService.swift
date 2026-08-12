@@ -6,6 +6,10 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
     case emptyRunId
     case premiumRequired(String)
     case applyFailed(String)
+    /// The run would have lowered the match score, so **nothing was applied**.
+    /// Not an error the user should just be shown — a decision they should be
+    /// offered. Re-call `apply` with `acceptScoreDecrease: true` to commit it.
+    case scoreWouldDecrease(kept: Double?, measured: Double)
 
     var errorDescription: String? {
         switch self {
@@ -19,6 +23,15 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
             return message
         case .applyFailed(let message):
             return message
+        case .scoreWouldDecrease(let kept, let measured):
+            return String(
+                format: NSLocalizedString(
+                    "This change would lower your match score from %d%% to %d%%.",
+                    comment: "Expert run refused because it would reduce the score"
+                ),
+                Int((kept ?? 0).rounded()),
+                Int(measured.rounded())
+            )
         }
     }
 }
@@ -33,7 +46,8 @@ protocol ExpertWorkflowServiceProtocol: Sendable {
         token: String?,
         selectionIndex: Int?,
         screeningSelectedIndices: [Int]?,
-        selectedFields: [String]?
+        selectedFields: [String]?,
+        acceptScoreDecrease: Bool
     ) async throws -> ExpertWorkflowApplyResponseDTO
 }
 
@@ -83,13 +97,19 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
         token: String?,
         selectionIndex: Int? = nil,
         screeningSelectedIndices: [Int]? = nil,
-        selectedFields: [String]? = nil
+        selectedFields: [String]? = nil,
+        /// Set only after the user has been shown the drop and chosen to apply
+        /// anyway. Without it the server writes nothing when the score falls.
+        acceptScoreDecrease: Bool = false
     ) async throws -> ExpertWorkflowApplyResponseDTO {
         guard let token else { throw ExpertWorkflowServiceError.missingToken }
         guard !runId.isEmpty else { throw ExpertWorkflowServiceError.emptyRunId }
 
         let applyMode = Self.applyMode(for: workflowType)
         var body: [String: Any] = ["apply_mode": applyMode]
+        if acceptScoreDecrease {
+            body["accept_score_decrease"] = true
+        }
         if workflowType == .professionalSummaryLab || workflowType == .coverLetterArchitect {
             if let selectionIndex {
                 body["selection_index"] = selectionIndex
@@ -108,6 +128,16 @@ struct ExpertWorkflowService: ExpertWorkflowServiceProtocol, Sendable {
             token: token,
             timeout: 120
         )
+        // A refused run also comes back with `success: false`, but it is not a
+        // failure — nothing was applied *on purpose*, and the user gets to
+        // decide. Surfaced as its own case so a caller cannot accidentally
+        // report it as an error.
+        if let decrease = dto.atsImpact?.decreaseBlocked {
+            throw ExpertWorkflowServiceError.scoreWouldDecrease(
+                kept: decrease.kept,
+                measured: decrease.measured
+            )
+        }
         guard dto.success != false else {
             throw ExpertWorkflowServiceError.applyFailed(dto.error ?? NSLocalizedString("Apply failed.", comment: ""))
         }

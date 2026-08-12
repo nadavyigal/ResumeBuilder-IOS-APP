@@ -50,6 +50,12 @@ final class OptimizedResumeViewModel {
     var jobURLString: String?
     var applicationId: String?
     var isImprovingATS = false
+    /// Set when an expert run would have lowered the match score. Nothing has
+    /// been applied while this is non-nil — the user decides.
+    var pendingScoreDecrease: PendingScoreDecrease?
+    /// The run behind `pendingScoreDecrease`, so accepting commits that run
+    /// rather than paying to generate a new one.
+    private var pendingImprovementRunId: String?
     var hasCompletedATSImprovement = false
     var atsUpliftMessage: String?
     var savedResumeState: OptimizedResumeSaveState = .idle
@@ -811,13 +817,15 @@ final class OptimizedResumeViewModel {
                 token: token,
                 evidenceInputs: evidence
             )
+            pendingImprovementRunId = run.runId
             let apply = try await expertService.apply(
                 runId: run.runId,
                 workflowType: .atsOptimizationReport,
                 token: token,
                 selectionIndex: nil,
                 screeningSelectedIndices: nil,
-                selectedFields: nil
+                selectedFields: nil,
+                acceptScoreDecrease: false
             )
             // Apply is non-idempotent. Persist completion immediately after the
             // server confirms it so a failed refresh can never invite a second
@@ -855,11 +863,65 @@ final class OptimizedResumeViewModel {
                     "Fit improvement applied once. The score above is current for this resume.",
                     comment: ""
                 )
+        } catch ExpertWorkflowServiceError.scoreWouldDecrease(let kept, let measured) {
+            // Not a failure. The server scored the candidate résumé before
+            // writing anything, found it worse, and applied nothing — so the
+            // user still has exactly what they had. Offer the decision rather
+            // than an error, and keep the run id so accepting can commit it
+            // without paying for the run twice.
+            pendingScoreDecrease = PendingScoreDecrease(
+                runId: pendingImprovementRunId,
+                kept: kept,
+                measured: measured
+            )
         } catch let apiError as APIClientError {
             errorMessage = apiError.userFacingMessage
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Commits an expert run the user has been shown would lower their score.
+    ///
+    /// Re-applies the same run with the decision attached. Nothing was written
+    /// the first time, so this is the only call that changes anything.
+    func acceptPendingScoreDecrease(token: String?, appState: AppState) async {
+        guard let pending = pendingScoreDecrease, let runId = pending.runId, let token,
+              let optId = optimizationId else {
+            pendingScoreDecrease = nil
+            return
+        }
+        pendingScoreDecrease = nil
+        isImprovingATS = true
+        defer { isImprovingATS = false }
+
+        do {
+            let apply = try await expertService.apply(
+                runId: runId,
+                workflowType: .atsOptimizationReport,
+                token: token,
+                selectionIndex: nil,
+                screeningSelectedIndices: nil,
+                selectedFields: nil,
+                acceptScoreDecrease: true
+            )
+            hasCompletedATSImprovement = true
+            appState.markATSImprovementComplete(for: optId)
+            applyExpertATSResult(apply, recordingAs: .expert)
+            await Self.detailCache.remove(optId)
+            appState.resumeSectionsNeedRefresh = true
+            try? await loadSections(with: token, optimizationId: optId, useCache: false)
+            appState.resumePreviewRefreshToken += 1
+        } catch let apiError as APIClientError {
+            errorMessage = apiError.userFacingMessage
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func discardPendingScoreDecrease() {
+        // Nothing to undo: the server never wrote anything.
+        pendingScoreDecrease = nil
     }
 
     func previewKeyword(suggestionId: String, token: String?) async {
@@ -1178,4 +1240,22 @@ actor OptimizationDetailCacheActor {
         storage.removeValue(forKey: key)
         order.removeAll { $0 == key }
     }
+}
+
+/// An expert run that would lower the match score, awaiting the user's decision.
+///
+/// Nothing has been written while one of these exists: the server scores the
+/// candidate résumé before persisting, precisely so declining costs nothing.
+/// Résumé content has no revert, so this decision has to happen before the
+/// rewrite lands, not after.
+struct PendingScoreDecrease: Identifiable, Equatable, Sendable {
+    let runId: String?
+    /// The score the user keeps if they decline.
+    let kept: Double?
+    /// What the run measured.
+    let measured: Double
+
+    var id: String { "\(runId ?? "none"):\(measured)" }
+    var keptPercent: Int { Int((kept ?? 0).rounded()) }
+    var measuredPercent: Int { Int(measured.rounded()) }
 }

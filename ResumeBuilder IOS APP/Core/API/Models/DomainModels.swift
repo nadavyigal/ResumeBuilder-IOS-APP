@@ -1580,6 +1580,32 @@ struct ExpertAtsImpactResult: Codable, Sendable, Equatable {
     let before: Double?
     let after: Double?
     let delta: Double?
+    /// Present when the run would have lowered the match score and **nothing was
+    /// applied** — not the résumé, not the score.
+    ///
+    /// The server scores the candidate before persisting anything, because
+    /// résumé content has no revert: once an expert pass has rewritten it there
+    /// is no way back. So a drop is offered as a decision rather than reported
+    /// as a fact. Re-applying with `acceptScoreDecrease` commits it.
+    let decreaseBlocked: ExpertScoreDecrease?
+
+    private enum CodingKeys: String, CodingKey {
+        case before, after, delta
+        case decreaseBlocked = "decrease_blocked"
+    }
+}
+
+/// The two numbers a refused run reports: what the user keeps, and what the run
+/// would have produced.
+struct ExpertScoreDecrease: Codable, Sendable, Equatable {
+    /// The score the user still has, because nothing was applied.
+    let kept: Double?
+    /// What the run measured.
+    let measured: Double
+
+    private enum CodingKeys: String, CodingKey {
+        case kept, measured
+    }
 }
 
 /// POST `/api/v1/expert-workflows/run` JSON body succeeds (200).

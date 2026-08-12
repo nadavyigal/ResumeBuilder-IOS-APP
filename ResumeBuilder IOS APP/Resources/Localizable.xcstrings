@@ -9673,6 +9673,61 @@
           }
         }
       }
+    },
+    "Keep your current score?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לשמור על הציון הנוכחי?"
+          }
+        }
+      }
+    },
+    "Apply anyway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "החל בכל זאת"
+          }
+        }
+      }
+    },
+    "Keep %lld%%" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השאר %lld%%"
+          }
+        }
+      }
+    },
+    "This change would take your match score from %lld%% to %lld%%. Nothing has been changed yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינוי הזה יוריד את ציון ההתאמה מ-%lld%% ל-%lld%%. עדיין לא בוצע שום שינוי."
+          }
+        }
+      }
+    },
+    "This change would lower your match score from %d%% to %d%%." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינוי הזה יוריד את ציון ההתאמה מ-%d%% ל-%d%%."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
