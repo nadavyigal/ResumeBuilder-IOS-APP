@@ -12,7 +12,16 @@ struct OptimizedResumeTabView: View {
 
     var body: some View {
         Group {
-            if let vm = optimizedVM {
+            // The identifier check is load-bearing, not defensive. `optimizedVM`
+            // is @State and only re-syncs on an `onChange`, so during the swap
+            // to a freshly applied optimization the previous view model is still
+            // held here. When the tab activates in that window the old view
+            // renders and reports itself seen, which is how `optimized_viewed`
+            // and `export_cta_seen` came to fire twice with the previous
+            // optimization's id (device, 1.4.9, 2026-08-12). Rendering only the
+            // view model that matches AppState removes the stale view from the
+            // hierarchy before it can be activated.
+            if let vm = optimizedVM, vm.optimizationIdentifier == appState.latestOptimizationId {
                 NavigationStack {
                     OptimizedResumeView(viewModel: vm, isActive: isActive, onSwitchTab: onSwitchTab)
                         .id(vm.optimizationIdentifier)

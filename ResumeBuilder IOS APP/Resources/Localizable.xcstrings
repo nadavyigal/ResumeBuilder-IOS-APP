@@ -33,6 +33,7 @@
       }
     },
     "--" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -93,6 +94,7 @@
       }
     },
     "% match" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -396,6 +398,7 @@
       }
     },
     "%lld pts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -442,6 +445,7 @@
       }
     },
     "%lld%% → %lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -488,6 +492,7 @@
       }
     },
     "+%lld pts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -498,6 +503,7 @@
       }
     },
     "+%lldpts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1191,6 +1197,9 @@
           }
         }
       }
+    },
+    "Anonymous sign-in is not available." : {
+
     },
     "app_name" : {
       "extractionState" : "stale",
@@ -1932,6 +1941,9 @@
         }
       }
     },
+    "Close the remaining gaps with an expert" : {
+
+    },
     "Close to high. A focused keyword and metrics pass may lift it further." : {
       "localizations" : {
         "he" : {
@@ -2467,6 +2479,9 @@
           }
         }
       }
+    },
+    "Current score for the resume shown above" : {
+
     },
     "Customise" : {
       "extractionState" : "stale",
@@ -3086,6 +3101,15 @@
         }
       }
     },
+    "Fit improvement applied once. The score above and resume preview are now current." : {
+
+    },
+    "Fit improvement applied once. The score above is current for this resume." : {
+
+    },
+    "Fit improvement was applied, but the resume preview could not refresh. Reopen Optimized to load the saved result." : {
+
+    },
     "Five summary angles with recommendations." : {
       "localizations" : {
         "he" : {
@@ -3563,6 +3587,9 @@
         }
       }
     },
+    "Improve fit once" : {
+
+    },
     "Improve further" : {
       "localizations" : {
         "he" : {
@@ -3630,7 +3657,11 @@
         }
       }
     },
+    "Improving fit…" : {
+
+    },
     "Improving match…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4260,6 +4291,7 @@
       }
     },
     "Match improvements applied. Review the resume before submitting." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4270,6 +4302,7 @@
       }
     },
     "Match insights" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4288,6 +4321,9 @@
           }
         }
       }
+    },
+    "Match score" : {
+
     },
     "Match Score" : {
       "comment" : "Me stats: latest resume's Resumely Match Score percent",
@@ -6128,6 +6164,7 @@
       }
     },
     "Resume diagnosis" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7099,7 +7136,11 @@
         }
       }
     },
+    "See what changed" : {
+
+    },
     "See what's blocking this resume" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7110,6 +7151,7 @@
       }
     },
     "See your Match estimate before signing in, then unlock the full diagnosis." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7118,6 +7160,9 @@
           }
         }
       }
+    },
+    "See your Match estimate now. Sign in later to keep your work." : {
+
     },
     "See your Match Score before signing in" : {
       "localizations" : {
@@ -7428,6 +7473,9 @@
         }
       }
     },
+    "Sign in to optimize this résumé and export it as a PDF." : {
+
+    },
     "Sign in to preview your resume." : {
       "localizations" : {
         "he" : {
@@ -7459,6 +7507,7 @@
       }
     },
     "Sign in to unlock full optimization and PDF export." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -8040,6 +8089,9 @@
           }
         }
       }
+    },
+    "Tailored for this role." : {
+
     },
     "Tailored to target role" : {
       "localizations" : {
@@ -9379,6 +9431,9 @@
           }
         }
       }
+    },
+    "Your résumé before and after, side by side" : {
+
     },
     "Your resume data is encrypted end-to-end." : {
       "localizations" : {

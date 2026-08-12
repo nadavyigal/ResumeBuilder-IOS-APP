@@ -30,11 +30,8 @@ struct OptimizedResumeView: View {
     @State private var pendingReviewOptimizationId: String? = nil
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
-    @State private var optimizedViewedIds: Set<String> = []
-    @State private var exportCTASeenIds: Set<String> = []
     @State private var navigateToDiagnosis = false
     @State private var previewActivationPolicy = PreviewActivationPolicy()
-    @State private var savePromptViewedIds: Set<String> = []
 
     // Target-reached celebration + save-account handoff (fires on a real
     // ATS score crossing the target band, never a fabricated value).
@@ -1069,21 +1066,29 @@ struct OptimizedResumeView: View {
         requestReview()
     }
 
+    // Impressions are claimed from `ImpressionLog`, not from view-local state.
+    // A `@State` Set is only as long-lived as the view, and two views for two
+    // different optimizations were briefly alive at once during the tab swap —
+    // which sent `optimized_viewed` and `export_cta_seen` twice, the second copy
+    // carrying the previous optimization's id (device, 1.4.9, 2026-08-12).
     private func trackOptimizedAndExportVisibilityIfNeeded() {
         guard isActive, let optimizationId = viewModel.optimizationIdentifier else { return }
-        if optimizedViewedIds.insert(optimizationId).inserted {
-            AnalyticsService.shared.track(.optimizedViewed(optimizationId: optimizationId))
-        }
-        if exportCTASeenIds.insert(optimizationId).inserted {
-            AnalyticsService.shared.track(.exportCTASeen(optimizationId: optimizationId))
-        }
+        trackImpression(.optimizedViewed(optimizationId: optimizationId), id: optimizationId)
+        trackImpression(.exportCTASeen(optimizationId: optimizationId), id: optimizationId)
     }
 
     private func trackSavePromptVisibilityIfNeeded() {
-        guard isActive,
-              let optimizationId = viewModel.optimizationIdentifier,
-              savePromptViewedIds.insert(optimizationId).inserted else { return }
-        AnalyticsService.shared.track(.savedResumePromptViewed(optimizationId: optimizationId))
+        guard isActive, let optimizationId = viewModel.optimizationIdentifier else { return }
+        trackImpression(.savedResumePromptViewed(optimizationId: optimizationId), id: optimizationId)
+    }
+
+    /// Sends an impression at most once per optimization, per app process.
+    ///
+    /// Keyed off the event's own wire name so the guard cannot drift from the
+    /// event it protects.
+    private func trackImpression(_ event: AnalyticsEvent, id: String) {
+        guard ImpressionLog.shared.claim(event.name, id: id) else { return }
+        AnalyticsService.shared.track(event)
     }
 
     // MARK: - Refine sheet

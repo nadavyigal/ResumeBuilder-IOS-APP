@@ -453,6 +453,18 @@ final class AnalyticsService {
     ) {
         if let transport {
             self.transport = transport
+        } else if Self.isRunningTests {
+            // A test run must never reach the production project. Without this
+            // guard every `xcodebuild test` invocation registered as a new person
+            // and walked most of the funnel in under a second: three runs on
+            // 2026-08-12 produced three "users" of 61, 61 and 57 events each,
+            // including `optimization_completed` and `optimization_apply_*`.
+            //
+            // That traffic is indistinguishable from real users in aggregate and
+            // it is the reason funnel denominators here have never been
+            // trustworthy — sub-second "optimizations" that no human could have
+            // run were being counted as people who dropped out.
+            self.transport = nil
         } else if BackendConfig.isPostHogEnabled,
                   let key = BackendConfig.postHogAPIKey,
                   let host = BackendConfig.postHogHost {
@@ -470,6 +482,18 @@ final class AnalyticsService {
     }
 
     var isEnabled: Bool { transport != nil }
+
+    /// Whether this process is an XCTest run.
+    ///
+    /// `XCTestConfigurationFilePath` is set by the test runner for both unit and
+    /// UI test hosts, and is absent in a normally launched app, so it identifies
+    /// a test run without the app target needing to know anything about the test
+    /// bundle. Tests that want to assert on tracking inject their own transport,
+    /// which takes precedence over this check.
+    nonisolated static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || NSClassFromString("XCTestCase") != nil
+    }
 
     func setDistinctId(_ id: String) {
         UserDefaults.standard.set(id, forKey: Self.authenticatedUserIdKey)
