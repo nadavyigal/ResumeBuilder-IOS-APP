@@ -257,6 +257,9 @@ struct TailorView: View {
     /// finished résumé. What changed is explained on Resume Diagnosis, reached
     /// from there.
     private func applyReviewAndLand(_ reviewId: String) async {
+        // The apply endpoint mints a new optimization per call, so a second
+        // entry here bills a second run and strands the first résumé.
+        guard !viewModel.isOptimizing else { return }
         viewModel.isOptimizing = true
         defer { viewModel.isOptimizing = false }
         do {

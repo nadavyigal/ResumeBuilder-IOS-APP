@@ -20,6 +20,10 @@ struct OptimizeFitCheckView: View {
     let jobTitle: String?
     var onAccept: () -> Void
     var onEditTargetJob: () -> Void
+    /// Drives the accept button's spinner and disables both actions while the
+    /// apply is in flight. Defaults to false so existing call sites compile, but
+    /// any caller that does real work in `onAccept` must pass it.
+    var isApplying: Bool = false
 
     private var current: Int? { fit?.currentScore }
     private var potential: Int? { fit?.potentialScore }
@@ -221,13 +225,22 @@ struct OptimizeFitCheckView: View {
 
     private var actions: some View {
         VStack(spacing: AppSpacing.sm) {
-            GradientButton(title: "Accept optimization", icon: "sparkles") {
+            // Accepting now runs the apply itself — it used to only push the
+            // review screen, which owned its own submitting state and disabled
+            // its button. Without a busy state here the screen sat still for the
+            // whole round trip and taps stacked up: on device 2026-08-12 three
+            // taps produced three applies and three separate optimizations.
+            GradientButton(title: "Accept optimization", icon: "sparkles", isLoading: isApplying) {
+                guard !isApplying else { return }
                 onAccept()
             }
+            .disabled(isApplying)
+
             Button("Edit target job") { onEditTargetJob() }
                 .font(.appSubheadline.weight(.semibold))
                 .foregroundStyle(AppColors.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
+                .disabled(isApplying)
         }
         .padding(AppSpacing.lg)
         .background(.ultraThinMaterial.opacity(0.9))

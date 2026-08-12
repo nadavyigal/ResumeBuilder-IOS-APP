@@ -23,10 +23,119 @@ struct HomeTabView: View {
     @State private var didTrackUploadCTASeen = false
     @State private var didTrackJobAdded = false
     @State private var jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
+    @State private var isApplyingReview = false
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
     @State private var secondJobContext: String?
     @FocusState private var focusedJobField: JobField?
+
+    /// Extracted from `body` purely for the Swift type-checker, which stopped
+    /// being able to check the main expression in reasonable time once the fit
+    /// check gained its `isApplying` argument. No behaviour change.
+    ///
+    /// The diagnosis outlives sign-in: it describes the résumé and job on screen,
+    /// and authenticating changes neither.
+    @ViewBuilder
+    private var freeCheckResultSection: some View {
+        if let atsResult = viewModel.atsResult {
+            ScoreResultView(result: atsResult, isAuthenticated: appState.canOptimize)
+                .transition(.scale(scale: 0.95).combined(with: .opacity))
+
+            // Only for a user with no session at all. A guest holding an
+            // anonymous session optimizes directly and never reaches this
+            // free-check result, so offering them "Sign in to Optimize" would be
+            // a wall in front of something they can already do.
+            if !appState.canOptimize {
+                privacyReassurance
+
+                Button {
+                    showOnboarding = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.crop.circle.badge.plus")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Sign in to Optimize")
+                            .fontWeight(.bold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .foregroundStyle(.white)
+                    .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+
+    /// Extracted from `body` for the Swift type-checker, which could no longer
+    /// check the main expression once the fit check gained its `isApplying`
+    /// argument. Same switch, same views, no behaviour change.
+    @ViewBuilder
+    private func journeyDestination(for route: FirstSessionJourneyRoute) -> some View {
+            switch route {
+            case .optimizationReview(let reviewId):
+                OptimizationReviewDestination(
+                    reviewId: reviewId,
+                    onAppliedOptimization: { optId in
+                        FirstSessionJourneyTransition.completeApply(
+                            optimizationId: optId,
+                            persist: { optimizationId in
+                                // Accepting mints the real optimization id. Carry the
+                                // floor onto it from whichever identity held it, so the
+                                // Optimized tab can find it (WP-45 D7).
+                                FitBaselineStore.shared.carryForward(
+                                    from: viewModel.uploadResponse?.resumeId,
+                                    to: optimizationId
+                                )
+                                FitBaselineStore.shared.carryForward(
+                                    from: reviewId,
+                                    to: optimizationId
+                                )
+                                appState.latestOptimizationId = optimizationId
+                                appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+                                viewModel.pendingSaveResumeId = optimizationId
+                                journeyRoute = nil
+                            },
+                            showPreview: onShowOptimizedPreview
+                        )
+                    }
+                )
+            case .fitCheck(let reviewId):
+                OptimizeFitCheckView(
+                    fit: viewModel.fitPreview,
+                    jobTitle: nil,
+                    // Accepting here is the approval. The Optimization Review
+                    // screen no longer sits between this and the résumé, so
+                    // every change is applied and the user lands on the
+                    // finished résumé; what changed is explained on Resume
+                    // Diagnosis, reached from there.
+                    onAccept: { Task { await applyReviewAndLand(reviewId) } },
+                    onEditTargetJob: { journeyRoute = nil },
+                    isApplying: isApplyingReview
+                )
+            case .diagnosis:
+                if let diagnosisViewModel {
+                    ResumeDiagnosisView(
+                        viewModel: diagnosisViewModel,
+                        onImprove: {
+                            journeyRoute = nil
+                            self.diagnosisViewModel = nil
+                            onSwitchTab(.optimized)
+                        },
+                        onEditTargetJob: {
+                            journeyRoute = nil
+                            self.diagnosisViewModel = nil
+                        },
+                        onAskExpert: {
+                            journeyRoute = nil
+                            self.diagnosisViewModel = nil
+                            onSwitchTab(.expert)
+                        }
+                    )
+                }
+            }
+    }
 
     private var activationState: HomeActivationState {
         HomeActivationState.derive(from: .init(
@@ -114,37 +223,7 @@ struct HomeTabView: View {
                                 errorBanner(error)
                             }
 
-                            // The diagnosis outlives sign-in: it describes the résumé and
-                            // job on screen, and authenticating changes neither.
-                            if let atsResult = viewModel.atsResult {
-                                ScoreResultView(result: atsResult, isAuthenticated: appState.canOptimize)
-                                    .transition(.scale(scale: 0.95).combined(with: .opacity))
-
-                                // Only for a user with no session at all. A guest
-                                // holding an anonymous session optimizes directly and
-                                // never reaches this free-check result, so offering
-                                // them "Sign in to Optimize" would be a wall in front
-                                // of something they can already do.
-                                if !appState.canOptimize {
-                                    privacyReassurance
-
-                                    Button {
-                                        showOnboarding = true
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "person.crop.circle.badge.plus")
-                                                .font(.system(size: 14, weight: .semibold))
-                                            Text("Sign in to Optimize")
-                                                .fontWeight(.bold)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 50)
-                                        .foregroundStyle(.white)
-                                        .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
+                            freeCheckResultSection
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
@@ -282,67 +361,7 @@ struct HomeTabView: View {
                 }
             }
             .navigationDestination(item: $journeyRoute) { route in
-                switch route {
-                case .optimizationReview(let reviewId):
-                    OptimizationReviewDestination(
-                        reviewId: reviewId,
-                        onAppliedOptimization: { optId in
-                            FirstSessionJourneyTransition.completeApply(
-                                optimizationId: optId,
-                                persist: { optimizationId in
-                                    // Accepting mints the real optimization id. Carry the
-                                    // floor onto it from whichever identity held it, so the
-                                    // Optimized tab can find it (WP-45 D7).
-                                    FitBaselineStore.shared.carryForward(
-                                        from: viewModel.uploadResponse?.resumeId,
-                                        to: optimizationId
-                                    )
-                                    FitBaselineStore.shared.carryForward(
-                                        from: reviewId,
-                                        to: optimizationId
-                                    )
-                                    appState.latestOptimizationId = optimizationId
-                                    appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
-                                    viewModel.pendingSaveResumeId = optimizationId
-                                    journeyRoute = nil
-                                },
-                                showPreview: onShowOptimizedPreview
-                            )
-                        }
-                    )
-                case .fitCheck(let reviewId):
-                    OptimizeFitCheckView(
-                        fit: viewModel.fitPreview,
-                        jobTitle: nil,
-                        // Accepting here is the approval. The Optimization Review
-                        // screen no longer sits between this and the résumé, so
-                        // every change is applied and the user lands on the
-                        // finished résumé; what changed is explained on Resume
-                        // Diagnosis, reached from there.
-                        onAccept: { Task { await applyReviewAndLand(reviewId) } },
-                        onEditTargetJob: { journeyRoute = nil }
-                    )
-                case .diagnosis:
-                    if let diagnosisViewModel {
-                        ResumeDiagnosisView(
-                            viewModel: diagnosisViewModel,
-                            onImprove: {
-                                journeyRoute = nil
-                                self.diagnosisViewModel = nil
-                                onSwitchTab(.optimized)
-                            },
-                            onEditTargetJob: {
-                                journeyRoute = nil
-                                self.diagnosisViewModel = nil
-                            },
-                            onAskExpert: {
-                                journeyRoute = nil
-                                self.diagnosisViewModel = nil
-                                onSwitchTab(.expert)
-                            }
-                        )
-                    }
-                }
+                journeyDestination(for: route)
             }
         }
     }
@@ -550,6 +569,13 @@ struct HomeTabView: View {
     /// could read lower than one already shown. Only the screen in the middle is
     /// gone: accepting at the fit check is the approval now.
     private func applyReviewAndLand(_ reviewId: String) async {
+        // Belt and braces with the button's disabled state. The apply endpoint is
+        // not idempotent — each call mints a new optimization — so a tap that
+        // slips through while the first request is in flight silently creates a
+        // second résumé and bills a second run. Three did, on device 2026-08-12.
+        guard !isApplyingReview else { return }
+        isApplyingReview = true
+        defer { isApplyingReview = false }
         do {
             let result = try await OptimizationAutoApplyService()
                 .applyAll(reviewId: reviewId, appState: appState)
