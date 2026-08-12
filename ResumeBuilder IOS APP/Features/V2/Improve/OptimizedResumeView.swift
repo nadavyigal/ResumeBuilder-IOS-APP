@@ -314,6 +314,32 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
+        // A run that would lower the score is a question, not a result.
+        //
+        // Nothing has been written at this point: the server scores the
+        // candidate résumé before persisting precisely so that declining costs
+        // the user nothing. That matters because résumé content has no revert —
+        // once an expert pass rewrites it there is no way back, which is why
+        // this decision happens before the rewrite lands rather than after.
+        .alert(
+            "Keep your current score?",
+            isPresented: Binding(
+                get: { viewModel.pendingScoreDecrease != nil },
+                set: { if !$0 { viewModel.discardPendingScoreDecrease() } }
+            ),
+            presenting: viewModel.pendingScoreDecrease
+        ) { pending in
+            Button("Keep \(pending.keptPercent)%", role: .cancel) {
+                viewModel.discardPendingScoreDecrease()
+            }
+            Button("Apply anyway", role: .destructive) {
+                Task { await viewModel.acceptPendingScoreDecrease(token: appState.session?.accessToken, appState: appState) }
+            }
+        } message: { pending in
+            Text(
+                "This change would take your match score from \(pending.keptPercent)% to \(pending.measuredPercent)%. Nothing has been changed yet."
+            )
+        }
         .navigationDestination(isPresented: $navigateToDiagnosis) {
             if let optId = viewModel.optimizationIdentifier {
                 ResumeDiagnosisView(

@@ -1051,7 +1051,7 @@ private final class SubmitExpertWorkflowSpy: ExpertWorkflowServiceProtocol, @unc
         ExpertWorkflowRunSnapshot(runId: runId, status: "completed", workflowTypeRaw: ExpertWorkflowType.coverLetterArchitect.rawValue, output: .object([:]), missingEvidence: [])
     }
 
-    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?) async throws -> ExpertWorkflowApplyResponseDTO {
+    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?, acceptScoreDecrease: Bool) async throws -> ExpertWorkflowApplyResponseDTO {
         appliedRunIds.append(runId)
         appliedWorkflowTypes.append(workflowType)
         let json = """
@@ -1104,7 +1104,7 @@ private final class SubmitExpertWorkflowWithScreeningSpy: ExpertWorkflowServiceP
         ExpertWorkflowRunSnapshot(runId: runId, status: "completed", workflowTypeRaw: ExpertWorkflowType.coverLetterArchitect.rawValue, output: .object([:]), missingEvidence: [])
     }
 
-    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?) async throws -> ExpertWorkflowApplyResponseDTO {
+    func apply(runId: String, workflowType: ExpertWorkflowType, token: String?, selectionIndex: Int?, screeningSelectedIndices: [Int]?, selectedFields: [String]?, acceptScoreDecrease: Bool) async throws -> ExpertWorkflowApplyResponseDTO {
         appliedRunIds.append(runId)
         appliedWorkflowTypes.append(workflowType)
         if let idx = screeningSelectedIndices { appliedScreeningIndices.append(idx) }

@@ -219,7 +219,8 @@ final class SubmitApplicationViewModel {
                 token: token,
                 selectionIndex: package.coverLetterSelectionIndex,
                 screeningSelectedIndices: nil,
-                selectedFields: nil
+                selectedFields: nil,
+                acceptScoreDecrease: false
             )
             _ = try await applicationService.saveExpertReport(
                 applicationId: application.id,
@@ -236,7 +237,8 @@ final class SubmitApplicationViewModel {
                         token: token,
                         selectionIndex: nil,
                         screeningSelectedIndices: package.screeningAnswers.map(\.id),
-                        selectedFields: nil
+                        selectedFields: nil,
+                        acceptScoreDecrease: false
                     )
                     _ = try await applicationService.saveExpertReport(
                         applicationId: application.id,
