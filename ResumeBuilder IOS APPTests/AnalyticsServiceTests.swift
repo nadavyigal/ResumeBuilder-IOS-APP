@@ -329,6 +329,52 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
 
+    // MARK: Impression deduplication
+
+    /// One optimization, one impression — regardless of how many views claim it.
+    ///
+    /// The guard used to be a `@State` Set on the view, which meant a rebuilt
+    /// view re-fired. During the tab swap after an apply, two views for two
+    /// different optimizations were briefly alive and both reported themselves
+    /// seen, so `optimized_viewed` and `export_cta_seen` arrived twice with one
+    /// copy carrying the previous optimization's id (device, 1.4.9, 2026-08-12).
+    func testImpressionIsClaimedOncePerOptimization() {
+        let log = ImpressionLog()
+
+        XCTAssertTrue(log.claim("optimized_viewed", id: "opt-1"))
+        XCTAssertFalse(log.claim("optimized_viewed", id: "opt-1"), "A second view must not re-fire")
+        XCTAssertFalse(log.claim("optimized_viewed", id: "opt-1"))
+    }
+
+    func testImpressionsAreIndependentPerEventAndPerOptimization() {
+        let log = ImpressionLog()
+
+        XCTAssertTrue(log.claim("optimized_viewed", id: "opt-1"))
+        XCTAssertTrue(log.claim("export_cta_seen", id: "opt-1"), "A different event is a different impression")
+        XCTAssertTrue(log.claim("optimized_viewed", id: "opt-2"), "A different optimization is a different impression")
+        XCTAssertFalse(log.claim("optimized_viewed", id: "opt-1"))
+    }
+
+    // MARK: Test traffic must not reach production analytics
+
+    /// Local and CI test runs were registering as real people in the production
+    /// project — three runs on 2026-08-12 produced three "users" of 61, 61 and
+    /// 57 events, walking most of the funnel in under a second. That traffic is
+    /// indistinguishable from real users in aggregate and is why the funnel
+    /// denominators here could not be trusted.
+    func testAnalyticsIsDisabledUnderTest() {
+        XCTAssertTrue(AnalyticsService.isRunningTests, "This assertion runs inside XCTest by definition")
+        XCTAssertFalse(
+            AnalyticsService().isEnabled,
+            "A default-initialised service must not build a live transport during a test run"
+        )
+    }
+
+    func testInjectedTransportStillWinsUnderTest() {
+        // Tests that assert on tracking must still be able to observe it.
+        XCTAssertTrue(AnalyticsService(transport: SpyTransport()).isEnabled)
+    }
+
     // MARK: Service enabled state
 
     func testServiceIsEnabledWhenTransportIsProvided() async {
