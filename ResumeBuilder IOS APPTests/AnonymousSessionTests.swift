@@ -107,4 +107,73 @@ final class AnonymousSessionTests: XCTestCase {
         XCTAssertEqual(AnalyticsEvent.anonymousSessionStarted.name, "anonymous_session_started")
         XCTAssertEqual(AnalyticsEvent.guestModeStarted.name, "guest_mode_started")
     }
+
+    // MARK: - One guest is one person
+
+    /// Restoring an anonymous session must not repoint the analytics distinct ID.
+    ///
+    /// `prepareRestoredSession` overwrites the distinct ID and sends no alias, so
+    /// applying it to a restored *anonymous* session makes a guest's first launch
+    /// and every later launch two unrelated PostHog people. Every guest funnel
+    /// that spans a relaunch would then show an invented drop — which is exactly
+    /// the class of artifact the funnel work is trying to measure its way out of.
+    func testRestoringAnAnonymousSessionDoesNotClaimAnalyticsIdentity() {
+        let defaults = UserDefaults.standard
+        let previous = defaults.string(forKey: AnalyticsService.distinctIdKey)
+        defaults.set("device-level-id", forKey: AnalyticsService.distinctIdKey)
+        defer {
+            if let previous {
+                defaults.set(previous, forKey: AnalyticsService.distinctIdKey)
+            } else {
+                defaults.removeObject(forKey: AnalyticsService.distinctIdKey)
+            }
+        }
+
+        let anonymous = AuthSession(
+            accessToken: "tok",
+            refreshToken: "refresh",
+            userId: "anon-uuid",
+            email: nil,
+            isAnonymous: true
+        )
+
+        let identified = AnalyticsService.shared.prepareRestoredSessionIfAccount(anonymous)
+
+        XCTAssertFalse(identified, "An anonymous session is a credential, not an identity")
+        XCTAssertEqual(
+            defaults.string(forKey: AnalyticsService.distinctIdKey),
+            "device-level-id",
+            "The guest must keep the distinct ID their earlier events were sent with"
+        )
+    }
+
+    func testRestoringAnAccountSessionDoesClaimAnalyticsIdentity() {
+        let defaults = UserDefaults.standard
+        let previousDistinct = defaults.string(forKey: AnalyticsService.distinctIdKey)
+        let previousAuthed = defaults.string(forKey: AnalyticsService.authenticatedUserIdKey)
+        defaults.set("device-level-id", forKey: AnalyticsService.distinctIdKey)
+        defer {
+            if let previousDistinct {
+                defaults.set(previousDistinct, forKey: AnalyticsService.distinctIdKey)
+            } else {
+                defaults.removeObject(forKey: AnalyticsService.distinctIdKey)
+            }
+            if let previousAuthed {
+                defaults.set(previousAuthed, forKey: AnalyticsService.authenticatedUserIdKey)
+            } else {
+                defaults.removeObject(forKey: AnalyticsService.authenticatedUserIdKey)
+            }
+        }
+
+        let account = AuthSession(
+            accessToken: "tok",
+            refreshToken: "refresh",
+            userId: "real-user",
+            email: "a@example.com",
+            isAnonymous: false
+        )
+
+        XCTAssertTrue(AnalyticsService.shared.prepareRestoredSessionIfAccount(account))
+        XCTAssertEqual(defaults.string(forKey: AnalyticsService.distinctIdKey), "real-user")
+    }
 }

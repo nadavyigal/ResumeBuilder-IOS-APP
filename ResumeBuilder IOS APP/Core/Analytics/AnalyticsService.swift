@@ -101,6 +101,23 @@ enum AnalyticsFlowVersion: String, Sendable {
     }
 }
 
+/// Which of the two optimize paths produced an `optimization_completed`.
+///
+/// They are not the same event in product terms and must never be pooled again:
+/// `.direct` ends on the résumé with nothing to accept, `.applied` ends a review
+/// the user explicitly accepted. Splitting them is what makes
+/// "completed → viewed the result" answerable.
+enum OptimizationCompletionPath: String, Sendable {
+    /// The optimize call returned an `optimizationId` outright, no review step.
+    case direct
+    /// The user accepted a reviewed set of changes.
+    case applied
+    /// Re-derived from the server after a timeout or an already-applied review,
+    /// rather than observed live. Counted separately so recovery replays cannot
+    /// masquerade as fresh completions.
+    case recovered
+}
+
 enum AnalyticsEvent: Sendable {
     case appLaunched(isAuthenticated: Bool)
     case guestModeStarted
@@ -116,7 +133,16 @@ enum AnalyticsEvent: Sendable {
     case signInCompleted
     case accountDeleted
     case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
-    case optimizationCompleted(optimizationId: String?, reviewId: String?)
+    /// One event name, two different moments — which is why the funnel built on
+    /// it was unreadable.
+    ///
+    /// `.direct` is the optimize call returning an `optimizationId` outright, with
+    /// no review to accept. `.applied` is the user accepting a reviewed set of
+    /// changes. Over 30 days these were 267 and 23 of 290 respectively, mixed
+    /// into one event, so "completed → viewed the result" measured a population
+    /// that was mostly on a path with no result screen at the end of it.
+    /// The backend emits this name too; `emitter` separates that as well.
+    case optimizationCompleted(optimizationId: String?, reviewId: String?, path: OptimizationCompletionPath)
     case optimizationStateRecovered(optimizationId: String)
     case optimizationStateRecoveryFailed(reason: String, errorCode: String)
     case optimizationApplyStarted(reviewId: String, approvedGroupCount: Int)
@@ -244,10 +270,12 @@ enum AnalyticsEvent: Sendable {
                 "resume_id": resumeId,
                 "job_description_id": jobDescriptionId,
             ])
-        case .optimizationCompleted(let optimizationId, let reviewId):
+        case .optimizationCompleted(let optimizationId, let reviewId, let path):
             return Self.compactProperties([
                 "optimization_id": optimizationId,
                 "review_id": reviewId,
+                "path": path.rawValue,
+                "emitter": "client",
             ])
         case .optimizationStateRecovered(let optimizationId):
             return ["optimization_id": optimizationId]
@@ -460,6 +488,25 @@ final class AnalyticsService {
         UserDefaults.standard.set(userId, forKey: Self.authenticatedUserIdKey)
         UserDefaults.standard.set(userId, forKey: Self.distinctIdKey)
         UserDefaults.standard.set(Self.resolveInternalTester(userId: userId), forKey: Self.internalTesterKey)
+    }
+
+    /// Restores analytics identity for a session, if that session is an account.
+    ///
+    /// The guard is the point. `prepareRestoredSession` repoints the distinct ID
+    /// and sends no alias, so calling it for an *anonymous* session splits one
+    /// guest into two unlinked PostHog people: launch one on the device ID, every
+    /// later launch on the Supabase anonymous UUID. Guest funnels spanning a
+    /// relaunch then show a cliff that never happened.
+    ///
+    /// A guest keeps the device-level distinct ID until they sign up, at which
+    /// point `identifyAuthenticatedUser` aliases the two together.
+    ///
+    /// - Returns: whether the session was treated as an account identity.
+    @discardableResult
+    func prepareRestoredSessionIfAccount(_ session: AuthSession) -> Bool {
+        guard session.isAccountSession else { return false }
+        prepareRestoredSession(userId: session.userId, email: session.email)
+        return true
     }
 
     func identifyAuthenticatedUser(userId: String, email: String?) {

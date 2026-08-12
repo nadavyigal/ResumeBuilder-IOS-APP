@@ -279,7 +279,9 @@ final class AnalyticsServiceTests: XCTestCase {
             [:],
             [:],
             ["resume_id": "resume-1", "job_description_id": "job-1"],
-            ["optimization_id": "opt-1", "review_id": "review-1"],
+            // `path` separates the two moments this event name covers, and
+            // `emitter` separates the client copy from the backend's.
+            ["optimization_id": "opt-1", "review_id": "review-1", "path": "applied", "emitter": "client"],
             ["optimization_id": "opt-1"],
             ["reason": "network", "error_code": "network_1009"],
             ["review_id": "review-1", "approved_group_count": "2"],
@@ -621,7 +623,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .signInCompleted,
         .accountDeleted,
         .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1"),
-        .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1"),
+        .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1", path: .applied),
         .optimizationStateRecovered(optimizationId: "opt-1"),
         .optimizationStateRecoveryFailed(reason: "network", errorCode: "network_1009"),
         .optimizationApplyStarted(reviewId: "review-1", approvedGroupCount: 2),
