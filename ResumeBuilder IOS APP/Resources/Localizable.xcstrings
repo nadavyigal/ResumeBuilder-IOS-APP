@@ -1199,7 +1199,15 @@
       }
     },
     "Anonymous sign-in is not available." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כניסה אנונימית אינה זמינה."
+          }
+        }
+      }
     },
     "app_name" : {
       "extractionState" : "stale",
@@ -1942,7 +1950,15 @@
       }
     },
     "Close the remaining gaps with an expert" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סגרו את הפערים שנותרו עם מומחה"
+          }
+        }
+      }
     },
     "Close to high. A focused keyword and metrics pass may lift it further." : {
       "localizations" : {
@@ -2481,7 +2497,15 @@
       }
     },
     "Current score for the resume shown above" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הציון הנוכחי של קורות החיים שמוצגים למעלה"
+          }
+        }
+      }
     },
     "Customise" : {
       "extractionState" : "stale",
@@ -3588,7 +3612,15 @@
       }
     },
     "Improve fit once" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שפרו את ההתאמה"
+          }
+        }
+      }
     },
     "Improve further" : {
       "localizations" : {
@@ -3658,7 +3690,15 @@
       }
     },
     "Improving fit…" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משפרים את ההתאמה…"
+          }
+        }
+      }
     },
     "Improving match…" : {
       "extractionState" : "stale",
@@ -4323,7 +4363,15 @@
       }
     },
     "Match score" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה"
+          }
+        }
+      }
     },
     "Match Score" : {
       "comment" : "Me stats: latest resume's Resumely Match Score percent",
@@ -7137,7 +7185,15 @@
       }
     },
     "See what changed" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראו מה השתנה"
+          }
+        }
+      }
     },
     "See what's blocking this resume" : {
       "extractionState" : "stale",
@@ -8091,7 +8147,15 @@
       }
     },
     "Tailored for this role." : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מותאם למשרה הזו."
+          }
+        }
+      }
     },
     "Tailored to target role" : {
       "localizations" : {
@@ -9433,7 +9497,15 @@
       }
     },
     "Your résumé before and after, side by side" : {
-
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך לפני ואחרי, זה לצד זה"
+          }
+        }
+      }
     },
     "Your resume data is encrypted end-to-end." : {
       "localizations" : {
@@ -9543,6 +9615,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלך נשארים פרטיים. אנחנו לא מוכרים או משתפים את הנתונים שלך."
+          }
+        }
+      }
+    },
+    "What changed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה השתנה"
+          }
+        }
+      }
+    },
+    "Your résumé before and after, line by line" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים שלך לפני ואחרי, שורה אחר שורה"
+          }
+        }
+      }
+    },
+    "Original score" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון מקורי"
+          }
+        }
+      }
+    },
+    "Check this" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדאי לבדוק"
+          }
+        }
+      }
+    },
+    "We could not finish tailoring your résumé. Please try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לסיים את התאמת קורות החיים. נסו שוב."
           }
         }
       }

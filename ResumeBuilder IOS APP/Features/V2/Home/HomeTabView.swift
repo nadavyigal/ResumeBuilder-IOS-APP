@@ -314,7 +314,12 @@ struct HomeTabView: View {
                     OptimizeFitCheckView(
                         fit: viewModel.fitPreview,
                         jobTitle: nil,
-                        onAccept: { journeyRoute = .optimizationReview(reviewId: reviewId) },
+                        // Accepting here is the approval. The Optimization Review
+                        // screen no longer sits between this and the résumé, so
+                        // every change is applied and the user lands on the
+                        // finished résumé; what changed is explained on Resume
+                        // Diagnosis, reached from there.
+                        onAccept: { Task { await applyReviewAndLand(reviewId) } },
                         onEditTargetJob: { journeyRoute = nil }
                     )
                 case .diagnosis:
@@ -535,6 +540,38 @@ struct HomeTabView: View {
         } catch {
             viewModel.errorMessage = error.localizedDescription
             viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
+        }
+    }
+
+    /// Applies every change in the review, then lands on the résumé.
+    ///
+    /// Same transition the Optimization Review screen used to drive — including
+    /// carrying the fit floor forward (WP-45 D7), without which the next score
+    /// could read lower than one already shown. Only the screen in the middle is
+    /// gone: accepting at the fit check is the approval now.
+    private func applyReviewAndLand(_ reviewId: String) async {
+        do {
+            let result = try await OptimizationAutoApplyService()
+                .applyAll(reviewId: reviewId, appState: appState)
+            appState.rememberReviewId(reviewId, for: result.optimizationId)
+            FirstSessionJourneyTransition.completeApply(
+                optimizationId: result.optimizationId,
+                persist: { optimizationId in
+                    FitBaselineStore.shared.carryForward(
+                        from: viewModel.uploadResponse?.resumeId,
+                        to: optimizationId
+                    )
+                    FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
+                    appState.latestOptimizationId = optimizationId
+                    appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+                    viewModel.pendingSaveResumeId = optimizationId
+                    journeyRoute = nil
+                },
+                showPreview: onShowOptimizedPreview
+            )
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            journeyRoute = nil
         }
     }
 
@@ -1100,7 +1137,7 @@ struct HomeTabView: View {
 
     private var optimizeCardTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Optimize" }
-        return appState.canOptimize ? "Analyze" : "Free Match Check"
+        return appState.canOptimize ? "Match Check" : "Free Match Check"
     }
 
     private var optimizeCardSubtitle: LocalizedStringKey {
@@ -1110,7 +1147,7 @@ struct HomeTabView: View {
 
     private var optimizeCardActionTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue to optimize" }
-        return appState.canOptimize ? "Analyze my resume" : "Run Free Match Check"
+        return appState.canOptimize ? "Match Check" : "Run Free Match Check"
     }
 
     private var optimizeCardIcon: String {

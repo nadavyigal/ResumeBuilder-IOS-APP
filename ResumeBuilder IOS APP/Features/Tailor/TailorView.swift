@@ -249,6 +249,27 @@ struct TailorView: View {
     /// The deferred hop mirrors the review path: switching tabs while a
     /// presentation is still settling leaves the old screen sitting over the new
     /// tab.
+    /// Applies every change in the review, then lands on the résumé.
+    ///
+    /// Replaces the Optimization Review screen in the happy path. Accepting at
+    /// the fit check is now the approval: there is no second screen to tick
+    /// changes on, so every group is applied and the user goes straight to the
+    /// finished résumé. What changed is explained on Resume Diagnosis, reached
+    /// from there.
+    private func applyReviewAndLand(_ reviewId: String) async {
+        viewModel.isOptimizing = true
+        defer { viewModel.isOptimizing = false }
+        do {
+            let result = try await OptimizationAutoApplyService()
+                .applyAll(reviewId: reviewId, appState: appState)
+            appState.rememberReviewId(reviewId, for: result.optimizationId)
+            landOnOptimizedResume(result.optimizationId)
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
+        }
+    }
+
     private func landOnOptimizedResume(_ optimizationId: String) {
         appState.latestOptimizationId = optimizationId
         appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
@@ -612,8 +633,8 @@ struct TailorView: View {
                                     await viewModel.optimize(appState: appState)
                                     if let optId = viewModel.optimizationId, !optId.isEmpty {
                                         landOnOptimizedResume(optId)
-                                    } else if viewModel.reviewId != nil {
-                                        shouldNavigate = true
+                                    } else if let reviewId = viewModel.reviewId {
+                                        await applyReviewAndLand(reviewId)
                                     }
                                 }
                             }
@@ -634,11 +655,11 @@ struct TailorView: View {
                             print("➡️ [TAILOR VIEW] landing on optimized resume for id=\(optId)")
                             #endif
                             landOnOptimizedResume(optId)
-                        } else if viewModel.reviewId != nil {
+                        } else if let reviewId = viewModel.reviewId {
                             #if DEBUG
-                            print("➡️ [TAILOR VIEW] navigating to review screen")
+                            print("➡️ [TAILOR VIEW] auto-applying review \(reviewId)")
                             #endif
-                            shouldNavigate = true
+                            await applyReviewAndLand(reviewId)
                         } else {
                             #if DEBUG
                             print("⚠️ [TAILOR VIEW] no id to navigate with — staying on tailor tab")
@@ -656,7 +677,7 @@ struct TailorView: View {
                         HStack(spacing: 8) {
                             Image(systemName: appState.canOptimize ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.canOptimize ? "Analyze my resume" : "Run Free Match Check")
+                            Text(appState.canOptimize ? "Match Check" : "Run Free Match Check")
                                 .fontWeight(.bold)
                         }
                     }

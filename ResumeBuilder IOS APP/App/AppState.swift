@@ -59,6 +59,8 @@ final class AppState {
     private(set) var latestOptimization: OptimizationHistoryItem?
     private(set) var optimizationRecoveryState: OptimizationRecoveryState = .idle
     private var optimizationJobURLs: [String: String] = [:]
+    /// optimizationId -> reviewId, so the résumé can find the review that explains it.
+    private var optimizationReviewIds: [String: String] = [:]
     private var submitPackageRecords: [String: SubmitPackageCacheRecord] = [:]
     private var savedResumeRecords: [String: SavedResumeLinkRecord] = [:]
     private var completedATSImprovementIds: Set<String> = []
@@ -75,6 +77,7 @@ final class AppState {
     nonisolated static let exportCompletionKey = "last_export_completion"
     nonisolated static let anonymousConversionPendingKey = "anonymous_conversion_pending"
     nonisolated static let optimizationJobURLsKey = "optimization_job_urls"
+    nonisolated static let optimizationReviewIdsKey = "optimization_review_ids"
     nonisolated static let submitPackageRecordsKey = "submit_package_records"
     nonisolated static let savedResumeRecordsKey = "saved_resume_records"
     nonisolated static let completedATSImprovementIdsKey = "completed_ats_improvement_ids"
@@ -159,6 +162,7 @@ final class AppState {
         latestOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
         exportCompletion = Self.loadExportCompletion()
         optimizationJobURLs = Self.loadOptimizationJobURLs()
+        optimizationReviewIds = Self.loadOptimizationReviewIds()
         submitPackageRecords = Self.loadSubmitPackageRecords()
         savedResumeRecords = Self.loadSavedResumeRecords()
         completedATSImprovementIds = Self.loadCompletedATSImprovementIds()
@@ -227,12 +231,14 @@ final class AppState {
         optimizationRecoveryState = .idle
         exportCompletion = nil
         optimizationJobURLs = [:]
+        optimizationReviewIds = [:]
         submitPackageRecords = [:]
         savedResumeRecords = [:]
         completedATSImprovementIds = []
         pendingSecondJobRequest = nil
         UserDefaults.standard.removeObject(forKey: Self.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: Self.optimizationJobURLsKey)
+        UserDefaults.standard.removeObject(forKey: Self.optimizationReviewIdsKey)
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
         UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
         UserDefaults.standard.removeObject(forKey: Self.completedATSImprovementIdsKey)
@@ -329,6 +335,27 @@ final class AppState {
         return optimizationJobURLs[optimizationId]
     }
 
+    /// Remembers which review produced an optimization.
+    ///
+    /// Needed since the Optimization Review screen left the happy path: the
+    /// before/after detail it used to show now lives in Resume Diagnosis, which
+    /// is addressed by `optimizationId`, while the review envelope that holds
+    /// that detail is addressed by `reviewId`. Without this mapping the résumé
+    /// can be shown but never explained.
+    func rememberReviewId(_ reviewId: String, for optimizationId: String) {
+        let trimmed = reviewId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !optimizationId.isEmpty, !trimmed.isEmpty else { return }
+        optimizationReviewIds[optimizationId] = trimmed
+        if let data = try? JSONEncoder().encode(optimizationReviewIds) {
+            UserDefaults.standard.set(data, forKey: Self.optimizationReviewIdsKey)
+        }
+    }
+
+    func reviewId(for optimizationId: String?) -> String? {
+        guard let optimizationId else { return nil }
+        return optimizationReviewIds[optimizationId]
+    }
+
     func rememberSubmitPackage(
         for optimizationId: String,
         sourceURLString: String?,
@@ -366,6 +393,11 @@ final class AppState {
 
     private static func loadOptimizationJobURLs() -> [String: String] {
         guard let data = UserDefaults.standard.data(forKey: optimizationJobURLsKey) else { return [:] }
+        return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
+    }
+
+    private static func loadOptimizationReviewIds() -> [String: String] {
+        guard let data = UserDefaults.standard.data(forKey: optimizationReviewIdsKey) else { return [:] }
         return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
     }
 

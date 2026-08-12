@@ -88,6 +88,15 @@ struct ResumeDiagnosisView: View {
     private func successState(_ diagnosis: ResumeDiagnosis) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             scoreCard(diagnosis)
+
+            // The Optimization Review screen's content, merged in. It used to be
+            // a gate in front of the résumé where the user ticked changes; the
+            // fit check is the approval now and everything is applied, so this
+            // is where the user finds out what that meant. Renders nothing when
+            // there is no review behind this optimization — a diagnosis opened
+            // from History predates the mapping.
+            AppliedChangesSection(reviewId: appState.reviewId(for: viewModel.optimizationId))
+
             topGapsCard(diagnosis.topGaps)
             missingKeywordsCard(diagnosis)
             RecruiterEyeViewCard(review: diagnosis.recruiterReview)
