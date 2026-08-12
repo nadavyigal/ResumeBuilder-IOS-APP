@@ -254,7 +254,9 @@ final class OptimizationReviewViewModel {
             AnalyticsService.shared.track(
                 .optimizationApplySucceeded(optimizationId: optimizationId, reviewId: reviewId)
             )
-            AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
+            AnalyticsService.shared.track(
+                .optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId, path: .applied)
+            )
         }
     }
 
@@ -289,7 +291,9 @@ final class OptimizationReviewViewModel {
             AnalyticsService.shared.track(
                 .optimizationApplySucceeded(optimizationId: optimizationId, reviewId: reviewId)
             )
-            AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId))
+            AnalyticsService.shared.track(
+                .optimizationCompleted(optimizationId: optimizationId, reviewId: reviewId, path: .recovered)
+            )
             return true
         }
 

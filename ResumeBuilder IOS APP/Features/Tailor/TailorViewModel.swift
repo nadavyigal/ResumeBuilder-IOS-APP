@@ -258,7 +258,9 @@ final class TailorViewModel {
                 #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
                 #endif
-                AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optId, reviewId: nil))
+                AnalyticsService.shared.track(
+                    .optimizationCompleted(optimizationId: optId, reviewId: nil, path: .direct)
+                )
             } else {
                 #if DEBUG
                 print("❌ [TAILOR] → no valid id in response")

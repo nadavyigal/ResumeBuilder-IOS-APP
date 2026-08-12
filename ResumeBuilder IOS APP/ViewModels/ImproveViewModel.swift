@@ -258,7 +258,9 @@ final class ImproveViewModel {
         }
         let sections = response.sections ?? []
         self.optimizationId = optimizationId
-        AnalyticsService.shared.track(.optimizationCompleted(optimizationId: optimizationId, reviewId: nil))
+        AnalyticsService.shared.track(
+            .optimizationCompleted(optimizationId: optimizationId, reviewId: nil, path: .direct)
+        )
         return OptimizationResult(optimizationId: optimizationId, reviewId: nil, sections: sections)
     }
 }

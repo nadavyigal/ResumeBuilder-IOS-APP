@@ -27,9 +27,6 @@ struct TailorView: View {
         return types
     }()
     @State private var shouldNavigate = false
-    @State private var showDiagnosis = false
-    @State private var pendingDiagnosisOptimizationId: String? = nil
-    @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
     @State private var showSavePrompt = false
@@ -231,24 +228,35 @@ struct TailorView: View {
                     )
                 }
             }
-            .navigationDestination(isPresented: $showDiagnosis) {
-                if let diagnosisViewModel {
-                    ResumeDiagnosisView(
-                        viewModel: diagnosisViewModel,
-                        onImprove: {
-                            showDiagnosis = false
-                            pendingDiagnosisOptimizationId = nil
-                            self.diagnosisViewModel = nil
-                            onSwitchTab(.optimized)
-                        },
-                        onEditTargetJob: {
-                            showDiagnosis = false
-                            pendingDiagnosisOptimizationId = nil
-                            self.diagnosisViewModel = nil
-                        }
-                    )
-                }
-            }
+        }
+    }
+
+    // MARK: - Landing on the finished résumé
+
+    /// Ends the direct optimize path on the résumé itself.
+    ///
+    /// This path is the one the review path was fixed for in #153, and it is the
+    /// larger of the two: the optimize call returns an `optimizationId` outright
+    /// (no review to accept), and it used to push `ResumeDiagnosisView`. Because
+    /// `optimized_viewed` and `export_cta_seen` only fire from
+    /// `OptimizedResumeView`, a user on this path could not reach the résumé —
+    /// or the export button — without finding diagnosis's optional "Improve"
+    /// link. Measured over 30 days: 267 of 290 optimizations took this path and
+    /// none of them reached the result screen.
+    ///
+    /// Diagnosis is not lost; it is the "See what changed" link on the résumé.
+    ///
+    /// The deferred hop mirrors the review path: switching tabs while a
+    /// presentation is still settling leaves the old screen sitting over the new
+    /// tab.
+    private func landOnOptimizedResume(_ optimizationId: String) {
+        appState.latestOptimizationId = optimizationId
+        appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+        viewModel.pendingSaveResumeId = optimizationId
+        shouldNavigate = false
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 50_000_000)
+            onSwitchTab(.optimized)
         }
     }
 
@@ -603,11 +611,7 @@ struct TailorView: View {
                                 Task {
                                     await viewModel.optimize(appState: appState)
                                     if let optId = viewModel.optimizationId, !optId.isEmpty {
-                                        appState.latestOptimizationId = optId
-                                        appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
-                                        pendingDiagnosisOptimizationId = optId
-                                        diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                                        showDiagnosis = true
+                                        landOnOptimizedResume(optId)
                                     } else if viewModel.reviewId != nil {
                                         shouldNavigate = true
                                     }
@@ -627,13 +631,9 @@ struct TailorView: View {
                         #endif
                         if let optId = viewModel.optimizationId, !optId.isEmpty {
                             #if DEBUG
-                            print("➡️ [TAILOR VIEW] showing diagnosis for id=\(optId)")
+                            print("➡️ [TAILOR VIEW] landing on optimized resume for id=\(optId)")
                             #endif
-                            appState.latestOptimizationId = optId
-                            appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
-                            pendingDiagnosisOptimizationId = optId
-                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                            showDiagnosis = true
+                            landOnOptimizedResume(optId)
                         } else if viewModel.reviewId != nil {
                             #if DEBUG
                             print("➡️ [TAILOR VIEW] navigating to review screen")

@@ -149,8 +149,11 @@ final class AppState {
 
     func bootstrap() {
         session = AuthService.shared.restoreSession()
+        // Account sessions only — the guard lives in the analytics service so it
+        // is testable, and is load-bearing: identifying an anonymous session here
+        // splits one guest into two unlinked PostHog people.
         if let session {
-            AnalyticsService.shared.prepareRestoredSession(userId: session.userId, email: session.email)
+            AnalyticsService.shared.prepareRestoredSessionIfAccount(session)
         }
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
         latestOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
