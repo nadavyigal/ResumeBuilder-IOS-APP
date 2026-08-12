@@ -329,6 +329,35 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
 
+    // MARK: Internal tester identification
+
+    /// QA accounts here are plus-aliases of one address, so the allowlist has to
+    /// fold them together or it drifts stale the first time someone makes a new
+    /// one. This is the matching rule the email allowlist depends on.
+    func testPlusAliasesNormaliseToTheBaseAddress() {
+        XCTAssertEqual(
+            AnalyticsService.normalizedEmail("nadav.yigal+fable-qa-jul03@gmail.com"),
+            "nadav.yigal@gmail.com"
+        )
+        XCTAssertEqual(
+            AnalyticsService.normalizedEmail("  NADAV.YIGAL@GmAiL.com "),
+            "nadav.yigal@gmail.com",
+            "Case and surrounding whitespace must not create a second identity"
+        )
+        XCTAssertEqual(AnalyticsService.normalizedEmail("a+b+c@example.com"), "a@example.com")
+    }
+
+    func testMalformedEmailsNormaliseToNothingRatherThanMatchingLoosely() {
+        // A rule that returned "" or the raw string here could match an empty or
+        // malformed allowlist entry and mark a real user internal, which silently
+        // deletes them from the activation numbers.
+        XCTAssertNil(AnalyticsService.normalizedEmail(nil))
+        XCTAssertNil(AnalyticsService.normalizedEmail(""))
+        XCTAssertNil(AnalyticsService.normalizedEmail("   "))
+        XCTAssertNil(AnalyticsService.normalizedEmail("no-at-sign"))
+        XCTAssertNil(AnalyticsService.normalizedEmail("+only@example.com"))
+    }
+
     // MARK: Impression deduplication
 
     /// One optimization, one impression — regardless of how many views claim it.

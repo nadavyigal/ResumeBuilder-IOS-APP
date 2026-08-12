@@ -511,7 +511,24 @@ final class AnalyticsService {
     func prepareRestoredSession(userId: String, email: String?) {
         UserDefaults.standard.set(userId, forKey: Self.authenticatedUserIdKey)
         UserDefaults.standard.set(userId, forKey: Self.distinctIdKey)
-        UserDefaults.standard.set(Self.resolveInternalTester(userId: userId), forKey: Self.internalTesterKey)
+        // `email` was already a parameter here and was simply never used, which
+        // is most of why the founder's App Store installs read as clean users.
+        Self.persistInternalTester(userId: userId, email: email)
+    }
+
+    /// Writes the internal-tester flag, never downgrading a `true`.
+    ///
+    /// Resolution inputs vary by call path — a restore has the session email, a
+    /// launch argument has neither id nor email — so recomputing from scratch on
+    /// every call could flip a known tester back to `false` and put their events
+    /// into the clean cohort mid-session. Being internal is sticky until
+    /// `resetDistinctId()` clears it at sign-out.
+    nonisolated private static func persistInternalTester(userId: String?, email: String?) {
+        if UserDefaults.standard.bool(forKey: internalTesterKey) { return }
+        UserDefaults.standard.set(
+            resolveInternalTester(userId: userId, email: email),
+            forKey: internalTesterKey
+        )
     }
 
     /// Restores analytics identity for a session, if that session is an account.
@@ -536,10 +553,10 @@ final class AnalyticsService {
     func identifyAuthenticatedUser(userId: String, email: String?) {
         let anonymousId = Self.anonymousSessionId()
         let previousDistinctId = distinctIdProvider()
-        let isInternalTester = Self.resolveInternalTester(userId: userId)
         UserDefaults.standard.set(userId, forKey: Self.authenticatedUserIdKey)
         UserDefaults.standard.set(userId, forKey: Self.distinctIdKey)
-        UserDefaults.standard.set(isInternalTester, forKey: Self.internalTesterKey)
+        Self.persistInternalTester(userId: userId, email: email)
+        let isInternalTester = UserDefaults.standard.bool(forKey: Self.internalTesterKey)
 
         guard let transport else { return }
         let userProperties = Self.identityProperties(isInternalTester: isInternalTester)
@@ -709,7 +726,23 @@ final class AnalyticsService {
         return created
     }
 
-    nonisolated static func resolveInternalTester(userId: String?) -> Bool {
+    /// Whether this install belongs to the team rather than to a real user.
+    ///
+    /// The user-id allowlist alone did not work. `INTERNAL_TESTER_USER_IDS` was
+    /// declared in `Config/Info.plist` but never defined in `Secrets.xcconfig`,
+    /// so it shipped empty in every build — confirmed against the 1.4.9 (20)
+    /// archive, whose `INTERNAL_TESTER_USER_IDS` is the empty string. With an
+    /// empty set the only routes to `true` were DEBUG, a launch argument, and a
+    /// TestFlight sandbox receipt, so the founder on an **App Store** build was
+    /// recorded as a clean user. That is why a founder device walk landed in the
+    /// activation cohort.
+    ///
+    /// Matching on email as well is what makes this durable. The app already has
+    /// the address at sign-in, an email is stable and reviewable where a UUID is
+    /// neither, and `normalizedEmail` folds `+` aliases into their base address —
+    /// so one configured entry also covers every future `name+qa-whatever@…`
+    /// account without a rebuild.
+    nonisolated static func resolveInternalTester(userId: String?, email: String? = nil) -> Bool {
         #if DEBUG
         return true
         #else
@@ -722,9 +755,32 @@ final class AnalyticsService {
         if isRunningFromTestFlight {
             return true
         }
-        guard let userId, !userId.isEmpty else { return false }
-        return configuredInternalTesterUserIds.contains(userId)
+        if let userId, !userId.isEmpty, configuredInternalTesterUserIds.contains(userId) {
+            return true
+        }
+        if let normalized = normalizedEmail(email),
+           configuredInternalTesterEmails.contains(normalized) {
+            return true
+        }
+        return false
         #endif
+    }
+
+    /// Lowercased, with any `+suffix` removed from the local part.
+    ///
+    /// `nadav.yigal+fable-qa@gmail.com` and `nadav.yigal@gmail.com` are the same
+    /// human and must resolve alike; QA accounts here are created as plus
+    /// aliases, and a list that had to name each one would drift out of date the
+    /// first time someone made another.
+    nonisolated static func normalizedEmail(_ email: String?) -> String? {
+        guard let email else { return nil }
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !trimmed.isEmpty, let atIndex = trimmed.firstIndex(of: "@") else { return nil }
+        let local = String(trimmed[trimmed.startIndex..<atIndex])
+        let domain = String(trimmed[atIndex...])
+        let base = local.split(separator: "+", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
+        guard !base.isEmpty else { return nil }
+        return base + domain
     }
 
     nonisolated private static func currentInternalTesterValue() -> Bool {
@@ -739,7 +795,25 @@ final class AnalyticsService {
     }
 
     nonisolated private static var configuredInternalTesterUserIds: Set<String> {
-        guard let raw = Bundle.main.object(forInfoDictionaryKey: "INTERNAL_TESTER_USER_IDS") as? String,
+        parsedInfoList("INTERNAL_TESTER_USER_IDS")
+    }
+
+    /// Configured internal-tester addresses, normalised the same way the incoming
+    /// address is, so `+` aliases match without being listed individually.
+    nonisolated private static var configuredInternalTesterEmails: Set<String> {
+        Set(parsedInfoList("INTERNAL_TESTER_EMAILS").compactMap { normalizedEmail($0) })
+    }
+
+    /// Reads a comma/space/newline separated list out of the Info dictionary.
+    ///
+    /// The `$(` check matters: an xcconfig variable that is declared in
+    /// `Config/Info.plist` but never defined resolves to the literal
+    /// `$(NAME)`, and treating that as a single list entry would make the
+    /// allowlist quietly match nothing. It is also why this returns empty rather
+    /// than crashing — but see `assertInternalTesterConfigIsUsable`, which makes
+    /// the empty case audible instead of silent.
+    nonisolated private static func parsedInfoList(_ key: String) -> Set<String> {
+        guard let raw = Bundle.main.object(forInfoDictionaryKey: key) as? String,
               !raw.contains("$(") else { return [] }
         return Set(
             raw.split { character in
@@ -748,6 +822,27 @@ final class AnalyticsService {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         )
+    }
+
+    /// Surfaces the failure mode that caused this bug: both allowlists empty in a
+    /// build where nothing else marks the install internal.
+    ///
+    /// It shipped for months because an unset allowlist looks identical to "no
+    /// testers are using this build". Loud in DEBUG, a log line otherwise —
+    /// never fatal, because a misconfigured allowlist must not take the app down.
+    nonisolated static func assertInternalTesterConfigIsUsable() {
+        guard configuredInternalTesterUserIds.isEmpty,
+              configuredInternalTesterEmails.isEmpty else { return }
+        let message = """
+        Analytics: INTERNAL_TESTER_USER_IDS and INTERNAL_TESTER_EMAILS are both \
+        empty. Team installs will be counted as real users in every activation \
+        metric. Define them in Secrets.xcconfig.
+        """
+        #if DEBUG
+        print("⚠️ \(message)")
+        #else
+        NSLog("%@", message)
+        #endif
     }
 
     nonisolated static let forbiddenPropertyKeys: Set<String> = [
