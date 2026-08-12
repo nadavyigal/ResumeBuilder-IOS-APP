@@ -630,7 +630,17 @@ struct HomeTabView: View {
             if let fit = viewModel.fitPreview, fit.currentScore != nil {
                 journeyRoute = .fitCheck(reviewId: reviewId)
             } else {
-                journeyRoute = .optimizationReview(reviewId: reviewId)
+                // No fit preview, so there is no fit check to accept at — but
+                // that must not put the Optimization Review screen back in the
+                // way. #158 took it out of the happy path and this branch was
+                // missed, so a run whose optimize call returned no fit (device,
+                // 1.4.9 (22), 2026-08-12) still landed on it.
+                //
+                // It also skipped `rememberReviewId`, which is why the
+                // before/after never appeared on Resume Diagnosis: the review
+                // that explains the résumé was never associated with it. Both
+                // symptoms, one branch.
+                Task { await applyReviewAndLand(reviewId) }
             }
         }
     }

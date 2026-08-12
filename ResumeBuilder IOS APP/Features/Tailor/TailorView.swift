@@ -198,6 +198,10 @@ struct TailorView: View {
                     OptimizationReviewDestination(
                         reviewId: reviewId,
                         onAppliedOptimization: { optId in
+                            // Any route that applies must record which review
+                            // explains the result, or Resume Diagnosis has nothing
+                            // to show. Missing here is what hid the before/after.
+                            appState.rememberReviewId(reviewId, for: optId)
                             appState.latestOptimizationId = optId
                             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                             viewModel.pendingSaveResumeId = optId
