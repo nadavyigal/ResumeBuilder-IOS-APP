@@ -10,12 +10,12 @@
 
 **Two measurement defects fixed, both of which would have corrupted any production read.** (1) `optimization_completed` pooled two different moments under one name — 267 direct against 23 applied, plus a backend copy — which is why "completed → viewed the result" was unreadable; it now carries `path` and `emitter`. (2) `AppState.bootstrap()` identified *anonymous* sessions, repointing the PostHog distinct ID at the Supabase anon UUID with no alias, so one guest became two unlinked people and any guest funnel spanning a relaunch showed an invented drop. Server events also now carry `backend_release`, so shared event names can be filtered to a release.
 
-**Status:** 1.4.8 (18) live. Two PRs open, neither shipped: iOS #154 (routing + analytics), web #136 (ungate + server stamping).
-**Current Phase:** Fixing the funnel ending before shipping anything to measure with.
-**Active Story:** None — awaiting review/merge of #154 and #136.
-**Last Completed Story:** Root-caused the export cliff to the direct optimize path; fixed it, the event ambiguity, the guest identity split, and the paywall dead end.
-**Next Recommended Story:** (1) **Run the direct-path walk on a device against #154** — the seam it fixes has still never been watched working. (2) Ship #136 and confirm expert workflows return 200 for a free account. (3) Only then ship a build to measure with; the funnel numbers before these fixes cannot be compared to the numbers after. (4) Still unfixed: `is_internal_tester` at person level, so the founder still lands in the clean cohort.
-**Blockers:** None. Both PRs are green and awaiting merge.
+**Status:** **1.4.9 (19) uploaded to TestFlight 2026-08-12 13:19 UTC**, processing at Apple. 1.4.8 (18) remains the App Store release. All three PRs merged: iOS #154 (routing + analytics), iOS #155 (version bump), web #136 (ungate + server stamping). Web is already deployed — Vercel auto-deploys main — so **expert workflows are ungated in production now, for 1.4.8 users too**, ahead of the iOS build.
+**Current Phase:** Awaiting TestFlight processing, then the first direct-path walk on a real device.
+**Active Story:** None.
+**Last Completed Story:** Root-caused the export cliff to the direct optimize path; fixed it, the event ambiguity, the guest identity split, and the paywall dead end; shipped 1.4.9 (19) to TestFlight.
+**Next Recommended Story:** (1) **Walk the direct path on a device against 1.4.9 (19)** — upload → job → optimize → confirm you land on the résumé, not diagnosis → export. This is the seam that has never been watched working and the whole reason for the build. (2) Confirm an expert workflow returns 200 for a free account (verifies web #136 end to end; only the route contract has been tested, not the live call). (3) Then, and only then, read production funnel numbers — and split on `path`/`emitter`, because pre-2026-08-12 rates are not comparable. (4) Still unfixed: `is_internal_tester` at person level, so the founder still lands in the clean cohort.
+**Blockers:** None.
 **Last Validation:** 2026-08-12 — iOS 307 tests executed, 0 failures, 1 skipped, app target builds clean (exit 0). Web 4/4 contract tests, `tsc` clean under `src/`, eslint clean. PostHog 270848 fingerprinted before reading (`resumely-ios-urlsession`, 174 people/30d).
 **Last Updated:** 2026-08-12
 
