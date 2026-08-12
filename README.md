@@ -18,6 +18,24 @@ Historical tags include `pre-consolidation-r3` (prior `main`), `pre-consolidatio
 2. Select the `ResumeBuilder IOS APP` scheme.
 3. Confirm signing under the app target (`Signing & Capabilities`).
 4. If needed, set `API_BASE_URL` in target build settings (`Info` tab -> custom keys).
+5. Create `Secrets.xcconfig` at the repo root (gitignored, already wired as the base
+   configuration for Debug and Release):
+
+   ```
+   POSTHOG_API_KEY = ...
+   SUPABASE_ANON_KEY = ...
+
+   # Team installs, excluded from every activation metric.
+   # Plus-aliases fold into the base address, so name+qa@example.com matches name@example.com.
+   INTERNAL_TESTER_EMAILS = you@example.com
+   INTERNAL_TESTER_USER_IDS = <supabase-user-uuid>
+   ```
+
+   **Do not skip the last two.** They are declared in `Config/Info.plist` and read at
+   runtime; when they are undefined the allowlist is empty and every team install is
+   counted as a real user in the activation numbers. That shipped undetected for months
+   because an unset allowlist looks exactly like "no testers used this build". The app
+   logs a warning on launch when both are empty.
 
 ## Running
 

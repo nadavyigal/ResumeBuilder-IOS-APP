@@ -35,6 +35,9 @@ struct ResumeBuilder_IOS_APPApp: App {
                 .environment(\.layoutDirection, localization.layoutDirection)
                 .preferredColorScheme(.dark)
                 .task {
+                    // Warns when both internal-tester allowlists are empty, which
+                    // silently counts every team install as a real user.
+                    AnalyticsService.assertInternalTesterConfigIsUsable()
                     await appState.bootstrapAndRefreshSession()
                     AnalyticsService.shared.track(.appLaunched(isAuthenticated: appState.isAuthenticated))
                     if !appState.isAuthenticated {
