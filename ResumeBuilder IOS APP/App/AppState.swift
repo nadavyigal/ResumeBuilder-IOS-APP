@@ -133,6 +133,20 @@ final class AppState {
         session != nil
     }
 
+    /// Whether this user can run the full optimize pipeline.
+    ///
+    /// True for anonymous sessions as well as real accounts: the pipeline needs
+    /// a bearer token and an `auth.uid()`, both of which an anonymous session
+    /// provides, and every RLS policy is `auth.uid() = user_id` regardless of
+    /// how the identity was created.
+    ///
+    /// Distinct from `isAuthenticated`, which answers "is this a real account"
+    /// and still governs Profile, History and the account-identity surfaces. A
+    /// guest optimizing is not a guest who has signed up.
+    var canOptimize: Bool {
+        hasSession
+    }
+
     func bootstrap() {
         session = AuthService.shared.restoreSession()
         if let session {
@@ -153,9 +167,17 @@ final class AppState {
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
         }
-        await establishAnonymousSessionIfNeeded()
         await reconcileLatestOptimization()
         hasBootstrappedSession = true
+
+        // Deliberately after `hasBootstrappedSession`. Anonymous sign-in is a
+        // network round trip, and `RootView` shows nothing but a spinner until
+        // that flag flips — so awaiting it before render means a slow or stalled
+        // request holds the user on a blank launch screen for as long as the
+        // request takes. Establishing it here lets the UI come up immediately;
+        // `canOptimize` flips when the session lands, and the optimize CTA is
+        // several taps away in every flow, so it is always there in time.
+        await establishAnonymousSessionIfNeeded()
     }
 
     /// Gives a guest a Supabase anonymous session, so their work sits behind a

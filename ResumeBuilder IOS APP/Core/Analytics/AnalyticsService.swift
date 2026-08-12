@@ -146,6 +146,9 @@ enum AnalyticsEvent: Sendable {
     case improveScoreRegressed(previous: Int, measured: Int)
     case exportPdfTapped(optimizationId: String)
     case exportCTASeen(optimizationId: String)
+    /// The "See what changed" link on the Optimized screen. Measures whether
+    /// demoting diagnosis from a checkpoint to a link lost anything.
+    case whatChangedTapped(optimizationId: String)
     case submitPackageSaved(hasCoverLetter: Bool)
     // Fit-First Triage (WP-12)
     case fitCheckStarted
@@ -207,6 +210,7 @@ enum AnalyticsEvent: Sendable {
         case .improveScoreRegressed: return "improve_score_regressed"
         case .exportPdfTapped: return "export_pdf_tapped"
         case .exportCTASeen: return "export_cta_seen"
+        case .whatChangedTapped: return "what_changed_tapped"
         case .submitPackageSaved: return "submit_package_saved"
         case .fitCheckStarted: return "fit_check_started"
         case .fitCheckCompleted: return "fit_check_completed"
@@ -263,7 +267,8 @@ enum AnalyticsEvent: Sendable {
              .exportStarted(let optimizationId),
              .exportSuccess(let optimizationId),
              .exportPdfTapped(let optimizationId),
-             .exportCTASeen(let optimizationId):
+             .exportCTASeen(let optimizationId),
+             .whatChangedTapped(let optimizationId):
             return ["optimization_id": optimizationId]
         case .resumeUploaded(let fileType):
             return ["file_type": fileType]

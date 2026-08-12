@@ -32,7 +32,10 @@ struct HomeTabView: View {
         HomeActivationState.derive(from: .init(
             hasResume: viewModel.selectedResumeName?.isEmpty == false,
             hasJob: jobInputEvaluation.isReady,
-            isAuthenticated: appState.isAuthenticated,
+            // Drives which pipeline the headline promises, so it follows
+            // canOptimize — a guest who can optimize must not be told to sign in
+            // first. Account-identity surfaces still use isAuthenticated.
+            isAuthenticated: appState.canOptimize,
             isOptimizing: viewModel.isOptimizing || viewModel.isRunningFreeATS,
             hasATSResult: viewModel.atsResult != nil,
             hasOptimizationId: appState.latestOptimizationId != nil,
@@ -114,10 +117,15 @@ struct HomeTabView: View {
                             // The diagnosis outlives sign-in: it describes the résumé and
                             // job on screen, and authenticating changes neither.
                             if let atsResult = viewModel.atsResult {
-                                ScoreResultView(result: atsResult, isAuthenticated: appState.isAuthenticated)
+                                ScoreResultView(result: atsResult, isAuthenticated: appState.canOptimize)
                                     .transition(.scale(scale: 0.95).combined(with: .opacity))
 
-                                if !appState.isAuthenticated {
+                                // Only for a user with no session at all. A guest
+                                // holding an anonymous session optimizes directly and
+                                // never reaches this free-check result, so offering
+                                // them "Sign in to Optimize" would be a wall in front
+                                // of something they can already do.
+                                if !appState.canOptimize {
                                     privacyReassurance
 
                                     Button {
@@ -447,7 +455,12 @@ struct HomeTabView: View {
     }
 
     private func runAnalysis() async {
-        if appState.isAuthenticated {
+        // `canOptimize`, not `isAuthenticated`: an anonymous session carries a
+        // real auth.uid() and satisfies the pipeline's auth check and every RLS
+        // policy, so a guest runs the same optimization a signed-in user does.
+        // The free Match Check below is now only the fallback for a user with no
+        // session at all — anonymous sign-in disabled, or offline at launch.
+        if appState.canOptimize {
             if BackendConfig.isFitCheckEnabled {
                 await prepareFitCheck()
             } else {
@@ -469,7 +482,10 @@ struct HomeTabView: View {
             description: viewModel.jobDescription,
             urlString: viewModel.jobDescriptionURL
         )
-        guard appState.isAuthenticated else { return }
+        // Track intent for anyone who can actually run the pipeline, guests
+        // included — otherwise the funnel loses its top step for the very
+        // population this change exists to serve.
+        guard appState.canOptimize else { return }
         AnalyticsService.shared.track(.analysisCTATapped(
             source: "home",
             flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
@@ -1084,22 +1100,22 @@ struct HomeTabView: View {
 
     private var optimizeCardTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Optimize" }
-        return appState.isAuthenticated ? "Analyze" : "Free Match Check"
+        return appState.canOptimize ? "Analyze" : "Free Match Check"
     }
 
     private var optimizeCardSubtitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue from the diagnosis you already ran" }
-        return appState.isAuthenticated ? "Diagnose gaps and improve this resume" : "See your Match Score before signing in"
+        return appState.canOptimize ? "Diagnose gaps and improve this resume" : "See your Match Score before signing in"
     }
 
     private var optimizeCardActionTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue to optimize" }
-        return appState.isAuthenticated ? "Analyze my resume" : "Run Free Match Check"
+        return appState.canOptimize ? "Analyze my resume" : "Run Free Match Check"
     }
 
     private var optimizeCardIcon: String {
         if isContinuingFromGuestDiagnosis { return "arrow.forward.circle.fill" }
-        return appState.isAuthenticated ? "wand.and.stars" : "gauge.medium"
+        return appState.canOptimize ? "wand.and.stars" : "gauge.medium"
     }
 
     private var optimizeCard: some View {

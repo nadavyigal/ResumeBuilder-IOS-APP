@@ -53,11 +53,17 @@ enum HomeActivationState: Equatable, Sendable {
         case .resumeNoJob:
             return "A job description lets us compare keywords, gaps, and role fit."
         case .readyForFreeATS:
-            return "See your Match estimate before signing in, then unlock the full diagnosis."
+            // Reached only with no session at all (anonymous sign-in disabled,
+            // or offline at launch). A guest holding an anonymous session gets
+            // `.readyToOptimize` and the real pipeline instead.
+            return "See your Match estimate now. Sign in later to keep your work."
         case .readyToOptimize:
             return "Get your match score, top gaps, missing signals, and a better first rewrite."
         case .atsComplete:
-            return "Sign in to unlock full optimization and PDF export."
+            // This promised a wall that no longer exists for anyone holding a
+            // session. It is now only reachable with no session at all, so it
+            // states the actual remaining condition rather than a general gate.
+            return "Sign in to optimize this résumé and export it as a PDF."
         case .optimizing:
             return "Reading your resume, comparing it to the job, and preparing recruiter-style feedback."
         case .optimizedReady:

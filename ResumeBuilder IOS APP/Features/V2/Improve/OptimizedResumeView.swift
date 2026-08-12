@@ -32,6 +32,7 @@ struct OptimizedResumeView: View {
     @State private var showExportSuccess = false
     @State private var optimizedViewedIds: Set<String> = []
     @State private var exportCTASeenIds: Set<String> = []
+    @State private var navigateToDiagnosis = false
     @State private var previewActivationPolicy = PreviewActivationPolicy()
     @State private var savePromptViewedIds: Set<String> = []
 
@@ -112,6 +113,14 @@ struct OptimizedResumeView: View {
                 // journey, the signals and the remaining blockers.
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
+                // Diagnosis used to sit in front of this screen as a checkpoint;
+                // it is now reachable from it as an optional detail. Same screen,
+                // same view model — only its position in the flow moved.
+                if viewModel.optimizationIdentifier != nil {
+                    seeWhatChangedLink
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
@@ -308,6 +317,56 @@ struct OptimizedResumeView: View {
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
+        .navigationDestination(isPresented: $navigateToDiagnosis) {
+            if let optId = viewModel.optimizationIdentifier {
+                ResumeDiagnosisView(
+                    viewModel: ResumeDiagnosisViewModel(optimizationId: optId),
+                    onImprove: { navigateToDiagnosis = false },
+                    onEditTargetJob: { navigateToDiagnosis = false }
+                )
+            } else {
+                Text("Optimization not available.")
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+    }
+
+    // MARK: - See what changed
+
+    /// Opens the before/after diagnosis for this optimization.
+    ///
+    /// Deliberately a link, not a step. As a checkpoint in front of the résumé
+    /// it reached 5 people while 80 applied an optimization, so it was already
+    /// not being seen — and it was the only route onward to this screen, which
+    /// is what stranded the other 71.
+    private var seeWhatChangedLink: some View {
+        Button {
+            guard let optId = viewModel.optimizationIdentifier else { return }
+            AnalyticsService.shared.track(.whatChangedTapped(optimizationId: optId))
+            navigateToDiagnosis = true
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: "arrow.left.arrow.right.circle")
+                    .imageScale(.medium)
+                    .foregroundStyle(AppColors.accentTeal)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("See what changed")
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("Your résumé before and after, side by side")
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .imageScale(.small)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(AppSpacing.lg)
+            .glassCard(cornerRadius: AppRadii.lg)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("see-what-changed")
     }
 
     // MARK: - ATS score card (unchanged)

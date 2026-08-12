@@ -204,10 +204,29 @@ struct TailorView: View {
                             appState.latestOptimizationId = optId
                             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
                             viewModel.pendingSaveResumeId = optId
+
+                            // Land on the finished résumé, not on a checkpoint.
+                            //
+                            // This path used to push ResumeDiagnosisView and leave the
+                            // Optimized tab reachable only via that screen's optional
+                            // "Improve" button. Measured result: 104 people completed an
+                            // optimization, 9 ever saw the Optimized screen, and the most
+                            // common event after optimization_completed was
+                            // optimization_started again (95 people) — people re-running
+                            // because they did not believe they were done. Diagnosis is
+                            // now a "See what changed" link on the résumé instead of a
+                            // gate in front of it.
+                            //
+                            // Pop the pushed review stack before switching tabs. Changing
+                            // selectedTab while a navigationDestination is still presented
+                            // leaves the pushed screen sitting over the new tab; the hop
+                            // lets the pop settle first. Same pattern HomeTabView already
+                            // uses when it scrolls after a resume is selected.
                             shouldNavigate = false
-                            pendingDiagnosisOptimizationId = optId
-                            diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
-                            showDiagnosis = true
+                            Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 50_000_000)
+                                onSwitchTab(.optimized)
+                            }
                         }
                     )
                 }
@@ -552,7 +571,7 @@ struct TailorView: View {
                 if let reason = evaluation.blockingReason?.analyticsValue {
                     AnalyticsService.shared.track(.jobInputValidationShown(surface: "tailor", reason: reason))
                 }
-                if appState.isAuthenticated {
+                if appState.canOptimize {
                     AnalyticsService.shared.track(.analysisCTATapped(
                         source: "tailor",
                         flowVersion: .current(isFitCheckEnabled: BackendConfig.isFitCheckEnabled),
@@ -561,7 +580,7 @@ struct TailorView: View {
                     ))
                 }
                 Task {
-                    if appState.isAuthenticated && BackendConfig.isFitCheckEnabled {
+                    if appState.canOptimize && BackendConfig.isFitCheckEnabled {
                         do {
                             guard let upload = try await viewModel.ensureUploadedResumeForCurrentJob(appState: appState),
                                   let resumeId = upload.resumeId,
@@ -601,7 +620,7 @@ struct TailorView: View {
                             viewModel.errorMessage = error.localizedDescription
                             viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
                         }
-                    } else if appState.isAuthenticated {
+                    } else if appState.canOptimize {
                         await viewModel.optimize(appState: appState)
                         #if DEBUG
                         print("🔍 [TAILOR VIEW] post-optimize: optimizationId=\(viewModel.optimizationId ?? "nil") reviewId=\(viewModel.reviewId ?? "nil")")
@@ -635,9 +654,9 @@ struct TailorView: View {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: appState.isAuthenticated ? "wand.and.stars" : "gauge.medium")
+                            Image(systemName: appState.canOptimize ? "wand.and.stars" : "gauge.medium")
                                 .font(.system(size: 15, weight: .semibold))
-                            Text(appState.isAuthenticated ? "Analyze my resume" : "Run Free Match Check")
+                            Text(appState.canOptimize ? "Analyze my resume" : "Run Free Match Check")
                                 .fontWeight(.bold)
                         }
                     }
