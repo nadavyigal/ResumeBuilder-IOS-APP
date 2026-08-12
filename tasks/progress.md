@@ -1,5 +1,24 @@
 # Project Progress
 
+## 2026-08-12 (later) — 1.4.9 (20) on TestFlight: flow rebuilt, analytics made countable, nothing yet walked on device
+
+**1.4.9 (20) uploaded 15:10 UTC.** Supersedes (19), which is also on TestFlight but predates every change below. 1.4.8 (18) remains the App Store release. Merged: #157 (analytics), #158 (flow), #159 (bump).
+
+**Two analytics defects fixed, both found by walking (19) on device.** `optimized_viewed`, `export_cta_seen` and `saved_resume_prompt_viewed` each fired **twice** at 10:39:40, the second copy carrying the *previous* optimization's id — two `OptimizedResumeView` instances were alive during the tab swap, each with its own `@State` dedupe Set. `ImpressionLog` moves the guard to the app process and `OptimizedResumeTabView` now renders only the view model matching `latestOptimizationId`. **The duplication is intermittent** (a second walk at 11:00 fired each once), which is worse than consistent — it cannot be corrected for after the fact.
+
+**Test runs were writing to production PostHog, and this retroactively explains the funnel.** `AnalyticsService` had no test guard, so three `xcodebuild test` runs on 2026-08-12 registered as three people with 61/61/57 events each, walking most of the funnel in under a second. **This corrects the earlier "77 applied, 0 landed" finding recorded above: much of that cohort was test traffic, not lost users.** Restricted to sessions with realistic LLM latency the 30-day funnel is 6 started → 4 applied → 3 landed → 3 exported, and both humans observed end-to-end (the external tester on 1.4.8, the founder on 1.4.9) landed and exported. Verified after the fix: a full test run adds no person to the project.
+
+**The tailoring flow was rebuilt (founder direction).** The action button reads בדיקת התאמה. Accepting at the fit check now applies the changes and lands on the résumé — סקירת אופטימיזציה is out of the happy path. **Every change is applied, including ones `RecommendationSafetyPolicy` would have held back**; those are marked "כדאי לבדוק" on אבחון קורות החיים rather than applied invisibly. The review screen's before/after moved to diagnosis (`AppliedChangesSection`), which also shows the original and current match score together. 14 Hebrew strings added, six of which had rendered in English since #152.
+
+**Status:** **1.4.9 (20) uploaded to TestFlight 2026-08-12T15:10Z**, processing. Not submitted for review.
+**Current Phase:** Awaiting a device walk on (20) before any App Store submission.
+**Active Story:** None.
+**Last Completed Story:** Analytics impression/test-traffic fixes and the fit-check-as-approval flow rebuild, shipped as 1.4.9 (20).
+**Next Recommended Story:** (1) **Walk 1.4.9 (20) on device — nothing in #158 has run on hardware.** Watch the RTL layout of the new before/after block (including the `arrow.forward` between the two scores, which may point the wrong way in Hebrew), and that accepting at the fit check reaches the résumé with no intermediate screen. (2) Confirm an expert workflow returns 200 for a free account against the live endpoint — web #136 is merged and deployed but only tested at the route-contract level. (3) Then submit for review. (4) Still unfixed: `is_internal_tester` at person level, so the founder still lands in the clean cohort.
+**Blockers:** None. The first upload attempt failed with "No Accounts with App Store Connect Access"; an immediate retry succeeded, so treat that as transient rather than a broken credential.
+**Last Validation:** 2026-08-12 — 311 tests executed, 0 failures, 1 skipped (executed count checked); archive exit 0, zero errors; upload "Progress 100%: Upload succeeded".
+**Last Updated:** 2026-08-12
+
 ## 2026-08-12 — The export cliff has a cause: the direct optimize path never reaches the résumé
 
 **The 2026-08-10 question ("why does `export_cta_seen` render for almost nobody") is answered, and it is routing, not rendering.** `TailorView` has two optimize outcomes. When the API returns a `reviewId`, the user accepts changes and lands on the Optimized tab — fixed in #153. When it returns an `optimizationId` outright there is nothing to accept, and that branch pushed `ResumeDiagnosisView`. Since `optimized_viewed` and `export_cta_seen` fire only from `OptimizedResumeView`, everyone on the second path was walled off from both the résumé and the export button, reachable only via diagnosis's optional "Improve" link. **267 of 290 optimizations in 30 days took the direct path.** Of 81 people who applied an optimization, the 77 who did not pass through the review screen reached the result **0 times** and exported **0 times**; the 4 who did: 3 landed, 3 exported. Every export in the window came from those 4. **#153 fixed the minority path.** PR #154 fixes the majority one.
