@@ -145,7 +145,7 @@ struct HomeTabView: View {
             // canOptimize — a guest who can optimize must not be told to sign in
             // first. Account-identity surfaces still use isAuthenticated.
             isAuthenticated: appState.canOptimize,
-            isOptimizing: viewModel.isOptimizing || viewModel.isRunningFreeATS,
+            isOptimizing: viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview,
             hasATSResult: viewModel.atsResult != nil,
             hasOptimizationId: appState.latestOptimizationId != nil,
             isExportComplete: appState.isExportComplete(for: appState.latestOptimizationId)
@@ -212,7 +212,7 @@ struct HomeTabView: View {
                                 optimizeCard
                             }
 
-                            if viewModel.isOptimizing || viewModel.isRunningFreeATS {
+                            if viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview {
                                 ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
                                     .transition(.scale.combined(with: .opacity))
                             }
@@ -1223,7 +1223,7 @@ struct HomeTabView: View {
                 Task { await runAnalysis() }
             } label: {
                 Group {
-                    if viewModel.isOptimizing || viewModel.isRunningFreeATS {
+                    if viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
