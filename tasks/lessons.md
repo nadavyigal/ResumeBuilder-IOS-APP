@@ -666,6 +666,7 @@
 **Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
 **Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.
 
+<<<<<<< HEAD
 **Date:** 2026-08-05
 **Category:** Git
 **Rule:** "Is this branch's work already in `main`?" cannot be answered by `git log main..branch` or `git diff main...branch` once the PR was squash-merged. The squash rewrites the hash, so the local ref still looks unmerged, and the three-dot diff reports what the branch added since the merge base — which is non-empty for landed work too. Answer it by content: take a distinctive symbol the branch introduces and run `git grep <symbol> origin/main`.
@@ -680,3 +681,31 @@
 **Category:** Optimized résumé state
 **Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
 **Why:** One live run showed 43 as the original, 57 as the review projection, and 64 as the stored result while the screen presented all three. The same résumé accepted three ATS improvement runs because success did not create a durable completion state and the simplified panel omitted the success message.
+=======
+---
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** The test target is NOT file-system-synchronized — only the app target is. Every new file in `ResumeBuilder IOS APPTests/` needs four hand-written `project.pbxproj` entries (`PBXFileReference`, `PBXBuildFile ... in Sources`, a child in the `ResumeBuilder IOS APPTests` `PBXGroup`, and a member of the `FDB6C233CB7683E4F80DCDB3 /* Sources */` phase) or it silently never compiles and never runs.
+**Why:** 12 of 34 test files had accumulated on disk with zero pbxproj references. The app target uses a `PBXFileSystemSynchronizedRootGroup`, so anything dropped into the app folder auto-enrolls; the test target has an explicit `files` list, so anything dropped into the test folder is invisible. Nothing failed — the suite just reported a smaller number, and "278 passed" read as healthy. Verify a new test by name in the run output (`Test Suite '<Name>'`), never by the fact that the suite is green.
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** A never-compiled test file will usually fail on actor isolation before it fails on logic, because the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` and the test target does not. Mark the test class `@MainActor` (the convention in 25 of the enrolled files) rather than touching production isolation.
+**Why:** 6 of the 11 files enrolled on 2026-08-04 failed to build purely on `main actor-isolated ... in a synchronous nonisolated context`. Every app type is implicitly `@MainActor`; a bare `final class FooTests: XCTestCase` is nonisolated and cannot touch it. A `@MainActor` class also cannot override the synchronous `tearDown()` — switch it to `override func tearDown() async throws`.
+
+**Date:** 2026-08-04
+**Category:** General
+**Rule:** Read the total from the `Test Suite 'All tests'` summary line, not the trailing `Executed N tests` line. The implicit test plan shards and runs in parallel, so a tail read reports one shard.
+**Why:** Confirmed on the 2026-08-04 enrollment run: `All tests` reported 310 while individual shard lines reported much smaller counts. Also note the run emits two summaries — XCTest (`Test Suite 'All tests'`, 310) and swift-testing (`Test run with 5 tests in 1 suite`, `ResumeOptimizationServiceSwiftTestingTests`). They do not overlap and are not additive into either headline.
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** SUPERSEDES the 2026-08-04 rule above about hand-writing four pbxproj entries per test file. Both targets are now `PBXFileSystemSynchronizedRootGroup`s — drop a `.swift` file into `ResumeBuilder IOS APPTests/` and it compiles and runs with no `project.pbxproj` edit, and delete it and it un-enrolls the same way. Never hand-add a `PBXFileReference`/`PBXBuildFile` for a test file again; if you find yourself editing `project.pbxproj` to add a test, something has regressed.
+**Why:** Twelve files had accumulated unenrolled and the manual sweep that fixed them would have had to run forever. The durable fix is one `PBXFileSystemSynchronizedRootGroup` (`EBBAC22F32DDC2060C87D2CC`) on `ResumeBuilder IOS APPTests`, listed in the test target's `fileSystemSynchronizedGroups`, with the old `PBXGroup` and the explicit `Sources` `files` list deleted. `objectVersion` was already 77, which is what supports it. Verify a conversion like this the reverse way, not the forward way: add a throwaway test file, confirm it appears as `Test Suite '<Name>'` in the run output with zero pbxproj references, then delete it. A passing suite after the conversion only proves nothing broke; the probe is what proves files auto-enroll.
+
+**Date:** 2026-08-04
+**Category:** Build
+**Rule:** Before diagnosing a suite failure in a worktree, check that `Secrets.xcconfig` holds real values and not the template placeholders. `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` fails deterministically with a placeholder `SUPABASE_ANON_KEY` and passes with a real one — it is a live-credential canary, not a unit test.
+**Why:** The synchronized-group conversion first reported 313 / 1 skip / 1 failure and the failure reproduced twice, which read exactly like cross-test pollution from the newly-enrolled `ScanViewModelTests` (the control branch was green at 310). It was not. The worktree's gitignored `Secrets.xcconfig` had been created from `Secrets.xcconfig.template` per the 2026-07-23 lesson, so the refresh call failed as a `URLError`; `AppState.shouldSignOutAfterRefreshFailure` correctly returns `false` for `URLError`, the session was never cleared, and `XCTAssertTrue(session == nil || accessToken != "stale")` failed. Copying in the real local `Secrets.xcconfig` made the identical run green. The 2026-07-23 lesson says to create the file from the template — that is enough to *build*, but not enough to run this test. Copy the real one from another worktree when running the full suite.
+>>>>>>> origin/claude/loving-gagarin-6ccd76

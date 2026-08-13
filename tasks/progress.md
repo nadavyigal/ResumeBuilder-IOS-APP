@@ -154,6 +154,58 @@
 **Last Validation:** 2026-08-05 — branch verdicts checked with `git grep <symbol> origin/main` per branch; duplicate files verified byte-identical with `cmp`. No build or test run: this branch changes documentation only.
 **Last Updated:** 2026-08-05
 
+## 2026-08-04 (later) — The test target now auto-enrolls. Hand-writing pbxproj entries is over
+
+**The enrollment gap is closed structurally, not by another sweep.** The test target `EB8A61F52DFE5AE8A5FC5900` now carries a `PBXFileSystemSynchronizedRootGroup` on `ResumeBuilder IOS APPTests`, referenced from `fileSystemSynchronizedGroups`, exactly as the app target has since the project was created. The explicit `PBXGroup` (`EBBAC22E32DDC2060C87D2CB`) is gone, the `PBXSourcesBuildPhase` `files` list (`FDB6C233CB7683E4F80DCDB3`) is empty, and all 34 test `PBXFileReference` / `PBXBuildFile` pairs are deleted. `project.pbxproj` shrinks by 144 lines. `objectVersion` was already 77, so nothing had to change to support it.
+
+**The reverse case is the actual proof, and it was run.** A throwaway `SyncGroupEnrollmentProbeTests.swift` was dropped into the folder with **zero** pbxproj edits — `grep -c SyncGroupEnrollmentProbe project.pbxproj` returned 0 — and the suite went 313 → **314**, with `Test Suite 'SyncGroupEnrollmentProbeTests' passed` present by name in the output. Deleting the file took it back to 313, and the build system logged `note: Removed stale file ...SyncGroupEnrollmentProbe...` on its own. Enrollment and un-enrollment are both automatic now. A green suite by itself still proves nothing about coverage; this probe is what proves the mechanism.
+
+**`ScanViewModelTests` is auto-enrolled, and that is the deliberate choice.** The 2026-08-04 entry below left it out because the unmerged branch `claude/resumely-upload-instrumentation-25fad1` (commit `bbb3ce1`, PR #139) deletes both it and `ScanViewModel.swift`. That branch was re-checked and is **still open, not merged**. Accepting the auto-enrollment is safe precisely because of this change: PR #139's diff **does not touch `project.pbxproj` at all**, so when it lands the file simply disappears from disk and the synchronized group stops compiling it — no conflict, no manual de-registration. Under the old explicit list, that same merge would have left four dangling pbxproj entries pointing at a deleted file. Suite total is therefore **313, not 310**, and the +3 is exactly `ScanViewModelTests`.
+
+**This supersedes the pbxproj half of PR #140.** This branch is based on `claude/heuristic-gagarin-4bdc00` @ `8ba3258` and keeps every one of its source fixes (`@MainActor` on 6 classes, the `MockChatMessaging` stub, `tearDown() async throws`) — those are still required, since a synchronized group makes a file compile but does not make it *build*. What it removes is PR #140's 44 lines of hand-written pbxproj entries, which the group replaces. If the two land in either order the conflict is confined to `project.pbxproj` and resolves to this version.
+
+**A false failure was chased down and it was local config, not the conversion.** The first full run on this worktree reported 313 / 1 skip / **1 failure** — `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask`, the test PR #140 flagged as making a real network call. It reproduced twice, which looked like cross-test pollution from the newly-enrolled `ScanViewModelTests`. It was not. The worktree's gitignored `Secrets.xcconfig` had been created from the **template**, so `SUPABASE_ANON_KEY` was the literal placeholder; the refresh call failed as a `URLError`, `shouldSignOutAfterRefreshFailure` correctly returns `false` for those, the session stayed `"stale"`, and the assertion failed. Copying the real local `Secrets.xcconfig` in turned the same run green with no code change. **That test is a live dependency on Supabase reachability and valid credentials — it is a config canary, not a suite.**
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None.
+**Last Completed Story:** Converted the test target to a `PBXFileSystemSynchronizedRootGroup`; suite 310 → 313 (the +3 is `ScanViewModelTests`, now auto-enrolled).
+**Next Recommended Story:** Unchanged — the physical-device walk of 1.4.7 and the analytics failure signal remain the top two. The test-enrollment item is now closed and needs no follow-up sweep.
+**Blockers:** None.
+**Last Validation:** 2026-08-04 — `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "id=9E2E82B6-DC56-4162-846F-B96AE74867E7" -testLanguage en -testRegion US` on device `9E2E82B6` (iOS 26.5). **313 tests, 1 skipped, 0 failures**, read from the `Test Suite 'All tests'` summary line. Control run of the same command on the parent branch `claude/heuristic-gagarin-4bdc00`: **310 / 1 / 0**. Probe run with a throwaway test file: **314 / 1 / 0** with the new suite named in the output.
+**Last Updated:** 2026-08-04
+
+## 2026-08-04 — 11 test files had never run. They now run, and all 32 tests pass
+
+**The defect was enrollment, not correctness.** The app target uses a `PBXFileSystemSynchronizedRootGroup`, so source files auto-enroll when dropped on disk. The **test target does not** — it carries an explicit `PBXSourcesBuildPhase` `files` list, so a test file compiles only if someone hand-wrote its `PBXFileReference` **and** its `PBXBuildFile ... in Sources` into `project.pbxproj`. Twelve files had accumulated with **zero** references. They existed, they were readable, and they had never once been compiled.
+
+**Nothing about the green suite revealed this.** The suite reported 278 passing with 1 intentional skip and 0 failures, which is exactly what a healthy suite reports. The only symptom was a number that was too small, and nobody had a reason to know what the right number was. Verified two ways before touching anything: zero occurrences of each file's name in `project.pbxproj`, and no `Test Suite '<name>'` line anywhere in a full `xcodebuild test` run.
+
+**Baseline was measured, not assumed: 278, not 279.** The worktree was reverted to the unmodified `project.pbxproj` and the full suite re-run to establish the real pre-enrollment number. It came back **278 tests / 1 skip / 0 failures**. After enrolling the 11 files: **310 tests / 1 skip / 0 failures**. The delta is **+32**, which is exactly the sum of the tests in those 11 files (2+3+2+8+3+2+2+4+3+2+1). Every one of the 11 was confirmed present by name in the run output, not inferred from the total.
+
+**The expected wave of stale-API failures did not happen — but only after fixing seven build breaks.** Nothing survived to run and then fail on an assertion. The breakage was entirely at compile time, in two shapes:
+
+1. **Actor isolation drift (6 files).** The app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`; the test target does not. Every app type is therefore implicitly `@MainActor`, and a bare nonisolated `XCTestCase` cannot touch one. `HomeActivationStateTests`, `JWTDecoderTests`, `KeychainStoreTests`, `OptimizationDetailCacheTests`, `PDFDownloadValidatorTests` and `ProfileAccountDisplayTests` all failed on `main actor-isolated ... in a synchronous nonisolated context`. Fixed by marking each class `@MainActor` — the convention already used by 25 of the previously-enrolled files — not by weakening production isolation. `KeychainStoreTests` needed one extra change: a `@MainActor` class cannot override the synchronous `tearDown()`, so it became `override func tearDown() async throws`.
+2. **Protocol drift (1 file).** `ChatMessaging` gained `previewKeywordSuggestion(optimizationId:suggestionId:token:)` after `ChatViewModelTests` was written, so its `MockChatMessaging` no longer conformed. Added the stub.
+
+**No test was deleted and no production code was changed.** The four deletions flagged as a risk (`ScanViewModel`, `TailorView`, `ScanResumeView`, `ImportResumeView`) are **not on `main`** — they live on the unmerged branch `claude/resumely-upload-instrumentation-25fad1` (commits `bbb3ce1`, `6efc6a6`). Against `main` all four still exist, which is why nothing referenced a dead API.
+
+**A 12th unenrolled file was found that the scope did not name: `ScanViewModelTests`.** It was probed by enrolling it temporarily: it **compiles and its 3 tests pass** (313 total). It was then **backed out**, because `bbb3ce1` on that same unmerged branch deletes both `ScanViewModel.swift` and `ScanViewModelTests.swift` — enrolling it here would leave a pbxproj entry pointing at a file that branch removes. **If that branch does not land, this file should be enrolled; it is passing, working coverage sitting dark.** That is a decision, not an oversight.
+
+**Two of the newly-live tests assert nothing about this app, and one is network-dependent.** They pass, so they are not blocking, but they inflate the count without adding coverage:
+- `AuthServiceResponseTests.testGoTrueResponseRejectsMissingRefreshToken` declares its own local `GoTrueResponse` struct and decodes it. It exercises Foundation's `JSONDecoder`, never app code, and despite the name it asserts the decode *succeeds* with a nil token.
+- `AuthServiceResponseTests.testURLErrorIsNotAuthFailure` evaluates `(error as? AuthServiceError)?.isAuthFailure ?? false` on a `URLError`. The cast can never succeed, so the expression is always `false` and the assertion is a tautology.
+- `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` calls `AppState.refreshAccessToken()`, which reaches `AuthService.shared.refreshSession` — a **real network request to Supabase** on every suite run. It passes today because the bogus refresh token gets rejected and the session is cleared. **Offline it will fail**: the request errors, `shouldSignOutAfterRefreshFailure` does not fire for a transport error, the session stays `"stale"`, and the assertion's disjunction collapses. It also does not test coalescing, which is what its name claims. `AuthService.shared` is a hard-coded singleton with no injection point, so making this deterministic needs a production change and was left out of scope.
+
+**The enrollment gap will recur.** Every future test file needs the same four hand-written pbxproj entries. The durable fix is converting the test target to a `PBXFileSystemSynchronizedRootGroup` like the app target; that is a separate change and would also auto-enroll `ScanViewModelTests`.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None.
+**Last Completed Story:** Enrolled 11 orphaned test files in the test target; suite 278 → 310.
+**Next Recommended Story:** Unchanged from 2026-07-29 below — the physical-device walk of 1.4.7 and the analytics failure signal remain the top two. New items from this session, both secondary: convert the test target to a synchronized root group so enrollment stops being manual; decide `ScanViewModelTests` once the upload-instrumentation branch lands or is abandoned.
+**Blockers:** None.
+**Last Validation:** 2026-08-04 — `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "id=9E2E82B6-DC56-4162-846F-B96AE74867E7" -testLanguage en -testRegion US` on iPhone 17 (iOS 26.5). **310 tests, 1 skipped, 0 failures**, read from the `Test Suite 'All tests'` summary. Run three times (two with a scratch DerivedData, once clean with the default) with identical results. Pre-enrollment baseline re-measured on the same worktree: 278 / 1 / 0.
+**Last Updated:** 2026-08-04
+
 ## 2026-07-29 (later) — RESOLVED: telemetry is healthy. The launch check was low traffic, not a break
 
 **A founder device walk at 05:13–05:17 UTC settled it.** The live 1.4.7 (17) build emitted the complete journey, in order and with correct version properties: `app_launched` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` → `resume_file_selected` → `job_input_validation_shown` → `job_added` → `analysis_cta_tapped` → `resume_upload_started` → `resume_upload_succeeded` → `optimization_started` → `recommendation_viewed` / `recommendation_evidence_shown` → `optimization_apply_started` → `optimization_apply_succeeded` → `optimization_completed` → `optimized_viewed` → `export_cta_seen` → **`optimized_preview_rendered`** → `ats_improve_tapped` → `expert_mode_run_started` / `_completed` → `expert_apply_clicked` → `expert_mode_apply_completed`. All carrying `marketing_version 1.4.7`, `build_number 17`.
@@ -524,7 +576,7 @@ Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026
 Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
 Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
 Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-04
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 
@@ -557,7 +609,7 @@ Next Recommended Story: After 1.2 (7) is approved and live, verify production Po
 Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
 Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
 Last Validation: 2026-06-28 — `git diff --check` clean; targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. Full `OptimizedResumeViewModelTests` also hit 4 existing locale-sensitive Hebrew simulator assertions, not package regressions.
-Last Updated: 2026-07-22
+Last Updated: 2026-08-04
 Current Branch: main
 Latest Base Commit: pending Submit Package job-link commit
 Active Spec: docs/specs/drafts/fit-first-triage-spec.md

@@ -1,6 +1,7 @@
 import XCTest
 @testable import ResumeBuilder_IOS_APP
 
+@MainActor
 final class PDFDownloadValidatorTests: XCTestCase {
     func testLooksLikePDFAcceptsValidHeader() {
         let data = Data("%PDF-1.4\n%fake".utf8)

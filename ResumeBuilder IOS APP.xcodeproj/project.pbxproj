@@ -7,16 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0FBA0C15F7B3459CA46A4B73 /* ExpertReportParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E638CFE06504F8DA5BB2EE9 /* ExpertReportParsingTests.swift */; };
-		1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */; };
-		2B7D9F1E4C6A8E0F2B4D6F8A /* CopyClaimsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8E0A2F5D7B9F1A3C5E7A9B /* CopyClaimsTests.swift */; };
-		2C4E6A8C0E2A4C6E8A0C2E4A /* FitCheckServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3D5F7B9D1F3B5D7F9B1D3F /* FitCheckServiceTests.swift */; };
-		3D2C1B0A9F8E7D6C5B4A3928 /* FitContinuationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7E6D5C4B3A29180F7E6D5C /* FitContinuationTests.swift */; };
-		4F7A31D44F7A31D44F7A31D4 /* ResumeDiagnosisViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7A31D34F7A31D34F7A31D3 /* ResumeDiagnosisViewModelTests.swift */; };
-		5E4D3C2B1A0918273645F0E1 /* RecommendationEvidenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C8B7A695847362514039281 /* RecommendationEvidenceTests.swift */; };
-		749AC58089604044801351CD /* OptimizedResumeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */; };
-		7A1C2E3F4B5D6E7F8A9B0C1D /* GuestDiagnosisContinuityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E5D4C3B2A19087F6E5D4C3B /* GuestDiagnosisContinuityTests.swift */; };
 		8DAA8A35EF8E851FCAC253AD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76421689162B5723CAA363D9 /* Foundation.framework */; };
+<<<<<<< HEAD
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* FitCheckViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B7C8D9E0F1A2 /* FitCheckViewModelTests.swift */; };
 		AA11223344556677889901BB /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11223344556677889900BB /* AnalyticsServiceTests.swift */; };
 		DA45060000000000000000B6 /* OptimizeFitResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA45060000000000000000A6 /* OptimizeFitResponseTests.swift */; };
@@ -35,6 +27,8 @@
 		FUNNELR0UT1NGFUNNELR001 /* FunnelEndingRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FUNNELR0UT1NGFUNNELR002 /* FunnelEndingRoutingTests.swift */; };
 		AN0N5E5510NAN0N5E5510N01 /* AnonymousSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0N5E5510NAN0N5E5510N02 /* AnonymousSessionTests.swift */; };
 		F1A2B3C4D5E6F708192A3B4C /* FirstSessionJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* FirstSessionJourneyTests.swift */; };
+=======
+>>>>>>> origin/claude/loving-gagarin-6ccd76
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,16 +42,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		1B3D5F7B9D1F3B5D7F9B1D3F /* FitCheckServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitCheckServiceTests.swift; sourceTree = "<group>"; };
 		335AA7632FA77AB800FD6628 /* ResumeBuilder IOS APP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ResumeBuilder IOS APP.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		45BC68337ED54F408466F41C /* RuntimeServicesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RuntimeServicesTests.swift; sourceTree = "<group>"; };
-		49153BACFBFA7281A3774E51 /* ImproveViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImproveViewModelTests.swift; sourceTree = "<group>"; };
-		497D40B6F1E74BBE904F6C0E /* OptimizedResumeViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OptimizedResumeViewModelTests.swift; sourceTree = "<group>"; };
 		4A5A8068E4FED9A03DB1E4D3 /* ResumeBuilder IOS APPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ResumeBuilder IOS APPTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4F7A31D34F7A31D34F7A31D3 /* ResumeDiagnosisViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeDiagnosisViewModelTests.swift; sourceTree = "<group>"; };
-		54F97ABB24B00AAE5333A2AA /* ResumeOptimizationParsingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationParsingTests.swift; sourceTree = "<group>"; };
-		6E5D4C3B2A19087F6E5D4C3B /* GuestDiagnosisContinuityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GuestDiagnosisContinuityTests.swift; sourceTree = "<group>"; };
 		76421689162B5723CAA363D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+<<<<<<< HEAD
 		8F7E6D5C4B3A29180F7E6D5C /* FitContinuationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitContinuationTests.swift; sourceTree = "<group>"; };
 		9C8B7A695847362514039281 /* RecommendationEvidenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecommendationEvidenceTests.swift; sourceTree = "<group>"; };
 		3C8E0A2F5D7B9F1A3C5E7A9B /* CopyClaimsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CopyClaimsTests.swift; sourceTree = "<group>"; };
@@ -79,6 +67,9 @@
 		FUNNELR0UT1NGFUNNELR002 /* FunnelEndingRoutingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FunnelEndingRoutingTests.swift; sourceTree = "<group>"; };
 		AN0N5E5510NAN0N5E5510N02 /* AnonymousSessionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnonymousSessionTests.swift; sourceTree = "<group>"; };
 		F0D9120D11C298E6A938B1BD /* ResumeOptimizationServiceSwiftTestingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ResumeOptimizationServiceSwiftTestingTests.swift; sourceTree = "<group>"; };
+=======
+		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+>>>>>>> origin/claude/loving-gagarin-6ccd76
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -98,6 +89,11 @@
 				AA55CC77EE99AA11BB22CC33 /* Exceptions for "ResumeBuilder IOS APP" folder in "ResumeBuilder IOS APP" target */,
 			);
 			path = "ResumeBuilder IOS APP";
+			sourceTree = "<group>";
+		};
+		EBBAC22F32DDC2060C87D2CC /* ResumeBuilder IOS APPTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ResumeBuilder IOS APPTests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -127,7 +123,7 @@
 				335AA7652FA77AB800FD6628 /* ResumeBuilder IOS APP */,
 				335AA7642FA77AB800FD6628 /* Products */,
 				BFB9678CFF121264B5745A8F /* Frameworks */,
-				EBBAC22E32DDC2060C87D2CB /* ResumeBuilder IOS APPTests */,
+				EBBAC22F32DDC2060C87D2CC /* ResumeBuilder IOS APPTests */,
 				CC00FF001122334455667788 /* Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
@@ -157,6 +153,7 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+<<<<<<< HEAD
 		EBBAC22E32DDC2060C87D2CB /* ResumeBuilder IOS APPTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -191,6 +188,8 @@
 			path = "ResumeBuilder IOS APPTests";
 			sourceTree = "<group>";
 		};
+=======
+>>>>>>> origin/claude/loving-gagarin-6ccd76
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -226,6 +225,9 @@
 			);
 			dependencies = (
 				E98585F8A43CA19D19848A64 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				EBBAC22F32DDC2060C87D2CC /* ResumeBuilder IOS APPTests */,
 			);
 			name = "ResumeBuilder IOS APPTests";
 			productName = "ResumeBuilder IOS APPTests";
@@ -297,6 +299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				B5A5E7F91C2D4E6F8091A3B5 /* RecommendationSafetyPolicyTests.swift in Sources */,
 				7A1C2E3F4B5D6E7F8A9B0C1D /* GuestDiagnosisContinuityTests.swift in Sources */,
 				3D2C1B0A9F8E7D6C5B4A3928 /* FitContinuationTests.swift in Sources */,
@@ -324,6 +327,8 @@
 				D4331EC10F9EBF14894862D8 /* ResumeOptimizationParsingTests.swift in Sources */,
 				1EB78A087240CEF9F78E15CF /* ResumeOptimizationServiceSwiftTestingTests.swift in Sources */,
 				D0D9FB3E25DE4245AC4DB3B5 /* RuntimeServicesTests.swift in Sources */,
+=======
+>>>>>>> origin/claude/loving-gagarin-6ccd76
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

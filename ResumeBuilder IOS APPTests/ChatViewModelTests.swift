@@ -83,5 +83,13 @@ private final class MockChatMessaging: ChatMessaging, @unchecked Sendable {
         throw ChatServiceError.missingToken
     }
 
+    func previewKeywordSuggestion(
+        optimizationId: String,
+        suggestionId: String,
+        token: String?
+    ) async throws -> KeywordSuggestionPreviewDTO {
+        throw ChatServiceError.missingToken
+    }
+
     func rejectChange(sessionId: String, changeId: String, token: String?) {}
 }

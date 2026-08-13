@@ -29,6 +29,42 @@
 
 **Not done:** No production data was rewritten, no backend was deployed, no App Store build was archived or uploaded, and PR #139 remains paused.
 
+## 2026-08-04 (later) — Convert the test target to a synchronized root group
+
+**Branch:** `claude/loving-gagarin-6ccd76` in worktree `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/loving-gagarin-6ccd76` (based on `claude/heuristic-gagarin-4bdc00` @ `8ba3258`, PR #140 — **not** on `main`)
+
+**Task:** Replace the test target's hand-maintained enrollment with a `PBXFileSystemSynchronizedRootGroup`, so new test files auto-enroll the way app files already do.
+
+**Files changed:** `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` only (+9 / −144). Added `EBBAC22F32DDC2060C87D2CC` as a `PBXFileSystemSynchronizedRootGroup` on `ResumeBuilder IOS APPTests`, referenced it from the test target's `fileSystemSynchronizedGroups`, swapped it into the root group's children, deleted the `EBBAC22E32DDC2060C87D2CB` `PBXGroup`, emptied the `FDB6C233CB7683E4F80DCDB3` Sources `files` list, and removed all 34 test `PBXFileReference` / `PBXBuildFile` entries. **No Swift file touched.**
+
+**Result:** **313 tests, 1 skipped, 0 failures.** Control run of the same command on the parent branch: 310 / 1 / 0. The +3 is `ScanViewModelTests`, now auto-enrolled. Reverse case proven: a throwaway `SyncGroupEnrollmentProbeTests.swift` with zero pbxproj references ran by name and took the suite to 314; deleting it returned it to 313 and the build system logged `Removed stale file` unprompted.
+
+**Decisions:** (1) **Based on PR #140, not `main`** — a synchronized group makes the 11 orphaned files *compile* but not *build*; PR #140's `@MainActor` and `MockChatMessaging` fixes are still required. This supersedes only PR #140's 44 pbxproj lines; if the two land in either order the conflict is confined to `project.pbxproj` and resolves to this version. (2) **Accepted `ScanViewModelTests`' auto-enrollment.** PR #139 (`claude/resumely-upload-instrumentation-25fad1` @ `bbb3ce1`) was re-checked and is still open. Its diff does not touch `project.pbxproj`, so when it lands the file leaves disk and the group stops compiling it — no conflict. Under the old explicit list, that merge would have left four dangling entries.
+
+**Chased and dismissed:** the first run reported 1 failure in `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` and reproduced twice, which looked like pollution from the newly-enrolled tests. Root cause was this worktree's `Secrets.xcconfig` being a copy of the **template**, so the real Supabase call failed as a `URLError` and the session was never cleared. Copying the real local config in made the same run green with no code change.
+
+**Next action:** Merge order between #139, #140 and this is free; resolve any `project.pbxproj` conflict to the synchronized-group version.
+
+---
+
+## 2026-08-04 — Enroll 11 orphaned test files in the test target
+
+**Branch:** `claude/heuristic-gagarin-4bdc00` in worktree `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/heuristic-gagarin-4bdc00` (based on `main` @ `5998004`)
+
+**Task:** Enroll 11 test files that existed on disk but had never been compiled, then triage whatever they surfaced.
+
+**Files changed:** `ResumeBuilder IOS APP.xcodeproj/project.pbxproj` (+44: file refs, build files, group children, Sources phase members for 11 files) and 7 test files — `ChatViewModelTests` (added the missing `previewKeywordSuggestion` stub to `MockChatMessaging`), `HomeActivationStateTests` / `JWTDecoderTests` / `OptimizationDetailCacheTests` / `PDFDownloadValidatorTests` / `ProfileAccountDisplayTests` (added `@MainActor`), `KeychainStoreTests` (added `@MainActor`, `tearDown()` → `tearDown() async throws`). **No production code touched.**
+
+**Result:** 278 → **310 tests, 1 skipped, 0 failures**. Baseline re-measured on this worktree by reverting the pbxproj (278, not the 279 in the brief). Delta of +32 matches the 11 files exactly, and each suite was confirmed by name in the run output.
+
+**Decisions:** (1) Fixed isolation on the test side with `@MainActor` rather than changing production isolation — matches 25 already-enrolled files. (2) Left `ScanViewModelTests` unenrolled after probing it (it compiles, 3 tests pass), because the unmerged branch `claude/resumely-upload-instrumentation-25fad1` deletes both it and `ScanViewModel`. (3) Deleted nothing. The four "deleted" APIs named in the brief still exist on `main`; the deletions are on that same unmerged branch.
+
+**Flagged, not fixed:** two vacuous tests in `AuthServiceResponseTests` (one decodes a locally-declared struct and touches no app code; one asserts a cast that can never succeed) and `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask`, which makes a real network call to Supabase and will fail offline. Fixing the last one needs an injection point on `AppState`, which is a production change.
+
+**Next action:** Convert the test target to a `PBXFileSystemSynchronizedRootGroup` so enrollment stops being manual, and revisit `ScanViewModelTests` once the upload-instrumentation branch resolves.
+
+---
+
 ## 2026-07-23 — Merge PR #121 and prepare 1.4.6 (16) for founder archive
 
 **Branch:** `codex/resumely-1.4.6-release-prep` in `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP-review-prompt`
