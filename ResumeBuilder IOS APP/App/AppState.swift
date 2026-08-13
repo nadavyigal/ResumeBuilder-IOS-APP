@@ -349,11 +349,23 @@ final class AppState {
         if let data = try? JSONEncoder().encode(optimizationReviewIds) {
             UserDefaults.standard.set(data, forKey: Self.optimizationReviewIdsKey)
         }
+        #if DEBUG
+        print("🔗 [REVIEWMAP] stored review=\(trimmed) for optimization=\(optimizationId)")
+        #endif
     }
 
     func reviewId(for optimizationId: String?) -> String? {
-        guard let optimizationId else { return nil }
-        return optimizationReviewIds[optimizationId]
+        guard let optimizationId else {
+            #if DEBUG
+            print("🔗 [REVIEWMAP] lookup with nil optimizationId")
+            #endif
+            return nil
+        }
+        let found = optimizationReviewIds[optimizationId]
+        #if DEBUG
+        print("🔗 [REVIEWMAP] lookup optimization=\(optimizationId) → \(found ?? "nil") (known: \(optimizationReviewIds.count))")
+        #endif
+        return found
     }
 
     func rememberSubmitPackage(

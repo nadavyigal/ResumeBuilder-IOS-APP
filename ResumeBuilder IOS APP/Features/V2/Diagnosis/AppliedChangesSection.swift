@@ -33,6 +33,9 @@ final class AppliedChangesViewModel {
     var currentScore: Int? { Self.percent(envelope?.review.atsPreview?.after) }
 
     func load(reviewId: String?, appState: AppState) async {
+        #if DEBUG
+        print("📄 [CHANGES] load reviewId=\(reviewId ?? "nil") hasEnvelope=\(envelope != nil) isLoading=\(isLoading)")
+        #endif
         guard let reviewId, envelope == nil, !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
@@ -42,8 +45,14 @@ final class AppliedChangesViewModel {
             }
             envelope = data
             flaggedGroupIds = OptimizationAutoApplyService.flaggedGroupIds(in: data)
+            #if DEBUG
+            print("📄 [CHANGES] loaded \(data.review.groupedChanges.count) grouped changes")
+            #endif
         } catch {
             errorMessage = error.localizedDescription
+            #if DEBUG
+            print("📄 [CHANGES] load FAILED: \(error.localizedDescription)")
+            #endif
         }
     }
 
