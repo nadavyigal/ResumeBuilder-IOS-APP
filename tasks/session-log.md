@@ -7,7 +7,7 @@
 
 **Branch:** `codex/resumely-activation-source`, clean worktree from `origin/main`.
 
-**Task:** Keep founder-reported 1.4.9 (26) frozen in App Store review while making the next-build Home upload funnel joinable by source.
+**Task:** Keep founder-reported 1.4.9 frozen in App Store review while making the next-build Home upload funnel joinable by source. The exact reviewed build is not confirmed from App Store Connect; build-27 telemetry is consistent with review traffic but is only an inference.
 
 **Changes:** Added `source` to `resume_file_selected`, passed `home` from the only reachable Home picker, and pinned the CTA → picker → selection property contract. Event timing and denominator semantics are unchanged.
 

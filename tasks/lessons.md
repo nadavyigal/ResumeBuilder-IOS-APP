@@ -14,6 +14,13 @@
 ---
 
 **Date:** 2026-08-13
+**Category:** TestFlight
+**Rule:** Never infer the App Store Connect review build from the repository's current version metadata; cite the exact ASC candidate when verified, otherwise state that the build is unconfirmed and label telemetry-based clues as inference.
+**Why:** The activation follow-up initially paired the founder's confirmed 1.4.9 review status with build 26 from `main`, while live external-looking build-27 telemetry showed ASC may already be ahead. The version claim was valid; the build claim was not verified.
+
+---
+
+**Date:** 2026-08-13
 **Category:** Build
 **Rule:** In zsh build wrappers, store an exit code in a task-specific variable rather than the read-only special parameter `status`.
 **Why:** The first filtered regression wrapper reached the build result but failed before reporting it because `status` is read-only in zsh; rerunning with `task_status` produced the intended evidence.

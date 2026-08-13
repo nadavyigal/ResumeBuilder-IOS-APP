@@ -6,9 +6,9 @@
 
 **No funnel meaning changed.** `resume_file_selected` still fires only after local preflight succeeds, so this is a property addition rather than a denominator reset. No filename, résumé content, job content, UI, navigation, account behavior, dependency, version, archive, upload, or App Store action changed.
 
-**Status:** Founder-reported **1.4.9 (26) is in App Store Connect review** as of 2026-08-13. That submitted binary is frozen. This story is next-build-only on `codex/resumely-activation-source`.
+**Status:** The founder reports **1.4.9 is in App Store Connect review** as of 2026-08-13. The exact reviewed build is not confirmed from App Store Connect, so no build number is asserted here. PostHog received one external-looking build-27 session on 2026-08-13; that is consistent with review traffic but is not proof of the submitted build. The reviewed binary remains frozen. This story merged in PR #171 and is next-build-only.
 **Current Phase:** App Review for 1.4.9; prepare measurement contract for the next build without touching the review submission.
-**Active Story:** Activation measurement follow-up — implemented and verified in PR #171, merge pending.
+**Active Story:** Activation measurement follow-up — implemented, verified, and merged in PR #171.
 **Last Completed Story:** Add `source` to the reachable Home `resume_file_selected` event.
 **Next Recommended Story:** After the next build is released, verify one exact-build clean path from `app_launched` through `optimized_viewed` and `export_success`; keep paste/sample upload work gated until the source-split picker data names the loss.
 **Blockers:** Effectiveness cannot be judged until a build containing this property is released and receives non-internal traffic.
