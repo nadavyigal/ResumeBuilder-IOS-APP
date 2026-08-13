@@ -59,7 +59,7 @@ final class TailorViewModel {
     }
 
     /// Copies the picked PDF into the sandbox temp dir and sets the URL + name.
-    func cachePickedFile(url: URL) {
+    func cachePickedFile(url: URL, source: String = "unknown") {
         let filename = url.lastPathComponent
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let ext = url.pathExtension.isEmpty ? "pdf" : url.pathExtension.lowercased()
@@ -91,6 +91,7 @@ final class TailorViewModel {
         errorMessage = nil
         let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
         AnalyticsService.shared.track(.resumeFileSelected(
+            source: source,
             fileType: pickedType,
             sizeBucket: Self.fileSizeBucket(for: candidateURL)
         ))

@@ -185,7 +185,9 @@ enum AnalyticsEvent: Sendable {
     case resumeUploadCTATapped(source: String)
     case resumeFilePickerOpened(source: String)
     case resumeFilePickerCancelled(source: String)
-    case resumeFileSelected(fileType: String, sizeBucket: String)
+    /// `source` keeps the selection joinable to the CTA and picker impression
+    /// that led to it without sending a filename or any résumé content.
+    case resumeFileSelected(source: String, fileType: String, sizeBucket: String)
     case resumeUploadPreflightRejected(reason: String)
     case resumeUploadStarted(fileType: String)
     case resumeUploadFailed(failureStage: String, errorCode: String)
@@ -392,8 +394,8 @@ enum AnalyticsEvent: Sendable {
              .resumeFilePickerOpened(let source),
              .resumeFilePickerCancelled(let source):
             return ["source": source]
-        case .resumeFileSelected(let fileType, let sizeBucket):
-            return ["file_type": fileType, "file_size_bucket": sizeBucket]
+        case .resumeFileSelected(let source, let fileType, let sizeBucket):
+            return ["source": source, "file_type": fileType, "file_size_bucket": sizeBucket]
         case .resumeUploadPreflightRejected(let reason):
             return ["reason": reason]
         case .resumeUploadStarted(let fileType), .resumeUploadSucceeded(let fileType):

@@ -315,7 +315,7 @@ final class AnalyticsServiceTests: XCTestCase {
             ["source": "home"],
             ["source": "home"],
             ["source": "home"],
-            ["file_type": "pdf", "file_size_bucket": "100kb-1mb"],
+            ["source": "home", "file_type": "pdf", "file_size_bucket": "100kb-1mb"],
             ["reason": "unreadable"],
             ["file_type": "pdf"],
             ["failure_stage": "upload", "error_code": "500"],
@@ -510,7 +510,7 @@ final class AnalyticsServiceTests: XCTestCase {
 
     func testLocalSelectionAndServerUploadCompletionRemainDistinctEvents() {
         XCTAssertEqual(
-            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            AnalyticsEvent.resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb").name,
             "resume_file_selected"
         )
         XCTAssertEqual(
@@ -518,9 +518,28 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_succeeded"
         )
         XCTAssertNotEqual(
-            AnalyticsEvent.resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb").name,
+            AnalyticsEvent.resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb").name,
             AnalyticsEvent.resumeUploadSucceeded(fileType: "pdf").name
         )
+    }
+
+    /// The upload step is only a measurable funnel when its impression, picker,
+    /// and terminal selection can be joined to the same reachable surface.
+    func testUploadFunnelEndsArePairableOnSource() {
+        let source = "home"
+        let ctaSeen = AnalyticsEvent.resumeUploadCTASeen(source: source).properties
+        let pickerOpened = AnalyticsEvent.resumeFilePickerOpened(source: source).properties
+        let fileSelected = AnalyticsEvent.resumeFileSelected(
+            source: source,
+            fileType: "docx",
+            sizeBucket: "100kb-1mb"
+        ).properties
+
+        XCTAssertEqual(ctaSeen["source"], source)
+        XCTAssertEqual(pickerOpened["source"], source)
+        XCTAssertEqual(fileSelected["source"], source)
+        XCTAssertEqual(fileSelected["file_type"], "docx")
+        XCTAssertEqual(fileSelected["file_size_bucket"], "100kb-1mb")
     }
 
     /// WP-51 regression. The preview renders from the optimization id alone, so a real
@@ -732,7 +751,7 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadCTATapped(source: "home"),
         .resumeFilePickerOpened(source: "home"),
         .resumeFilePickerCancelled(source: "home"),
-        .resumeFileSelected(fileType: "pdf", sizeBucket: "100kb-1mb"),
+        .resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb"),
         .resumeUploadPreflightRejected(reason: "unreadable"),
         .resumeUploadStarted(fileType: "pdf"),
         .resumeUploadFailed(failureStage: "upload", errorCode: "500"),

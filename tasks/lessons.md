@@ -13,6 +13,13 @@
 
 ---
 
+**Date:** 2026-08-13
+**Category:** Build
+**Rule:** In zsh build wrappers, store an exit code in a task-specific variable rather than the read-only special parameter `status`.
+**Why:** The first filtered regression wrapper reached the build result but failed before reporting it because `status` is read-only in zsh; rerunning with `task_status` produced the intended evidence.
+
+---
+
 **Date:** 2026-07-19
 **Category:** Auth
 **Rule:** Any user-initiated action that needs `session.accessToken` must go through `AppState.callWithFreshToken`, not a direct `session?.accessToken` grab — and any `catch` block that sets an error `@State` must have that state actually rendered somewhere in the view.

@@ -1,3 +1,16 @@
+# Activation measurement follow-up — next build after 1.4.9 (2026-08-13)
+
+Scope: make the Home upload step joinable without changing the 1.4.9 binary currently in App Store review.
+
+- [x] Add a red regression proving `resume_upload_cta_seen`, `resume_file_picker_opened`, and `resume_file_selected` carry the same `source`.
+- [x] Thread `source: "home"` from the reachable Home picker into `resume_file_selected`.
+- [x] Run the focused analytics regression, full iOS tests, and an app build.
+- [ ] Update progress/session memory and open a PR from a fresh `origin/main` worktree.
+
+Expected implementation files: `AnalyticsService.swift`, `TailorViewModel.swift`, `HomeTabView.swift`, and `AnalyticsServiceTests.swift`. No UI, dependency, version, archive, TestFlight, or App Store Connect change.
+
+---
+
 # P0: Full experience, one current score, one fit improvement (2026-08-09)
 
 - [x] Reproduce the live 1.4.7 failure against the latest production optimization without modifying production data.

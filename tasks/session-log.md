@@ -3,6 +3,18 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-08-13 — Next-build activation source contract
+
+**Branch:** `codex/resumely-activation-source`, clean worktree from `origin/main`.
+
+**Task:** Keep founder-reported 1.4.9 (26) frozen in App Store review while making the next-build Home upload funnel joinable by source.
+
+**Changes:** Added `source` to `resume_file_selected`, passed `home` from the only reachable Home picker, and pinned the CTA → picker → selection property contract. Event timing and denominator semantics are unchanged.
+
+**Validation:** The regression first failed to compile with `extra argument 'source' in call`. After implementation it passed 1/1. The full suite executed 314 tests with 1 intentional skip and 0 failures; the app build succeeded. No simulator smoke was required because there is no UI change.
+
+**Not done:** No version bump, archive, TestFlight upload, App Store Connect action, or change to the 1.4.9 submission. Production effectiveness requires a later released build and external traffic.
+
 ## 2026-08-09 — P0 optimized résumé content, score, and one-pass fit repair
 
 **Branches:** `codex/resumely-one-pass-fit-score` in the iOS repo and `codex/wp64-review-path-bullet-preservation` in the web repo.
