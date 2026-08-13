@@ -70,24 +70,66 @@ struct AppliedChangesSection: View {
     @State private var viewModel = AppliedChangesViewModel()
 
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            // The task lives on a view that is ALWAYS in the hierarchy.
+            //
+            // It used to hang off a `Group` whose every branch was false on the
+            // first render — not loading yet, no groups yet — so the Group
+            // produced no content, contributed nothing to layout, and never
+            // reliably received the task. `load()` therefore never ran, `groups`
+            // stayed empty, and the branch stayed false: a view that could not
+            // bootstrap itself.
+            //
+            // That is why no GET of /api/v1/optimization-reviews ever appeared
+            // in a device log, in any build, no matter what the review-id
+            // mapping did. Three fixes went into the data path before anyone
+            // read the view.
+            Color.clear
+                .frame(height: 0)
+                .accessibilityHidden(true)
+                .task(id: reviewId) {
+                    await viewModel.load(reviewId: reviewId, appState: appState)
+                }
+
             if viewModel.isLoading && viewModel.envelope == nil {
                 ProgressView()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, AppSpacing.lg)
             } else if !viewModel.groups.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    header
-                    scoreRow
-                    ForEach(viewModel.groups) { group in
-                        changeCard(group)
-                    }
+                header
+                scoreRow
+                ForEach(viewModel.groups) { group in
+                    changeCard(group)
                 }
+            } else if let message = viewModel.errorMessage {
+                // Never silently empty again. A section that renders nothing on
+                // failure is indistinguishable from one that was never asked to
+                // load, which is exactly what made this take four attempts.
+                unavailableNote(message)
+            } else if reviewId == nil {
+                unavailableNote(
+                    NSLocalizedString(
+                        "The list of changes is not available for this résumé.",
+                        comment: "Shown when no review is associated with the optimization"
+                    )
+                )
             }
         }
-        .task(id: reviewId) {
-            await viewModel.load(reviewId: reviewId, appState: appState)
+    }
+
+    private func unavailableNote(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("What changed")
+                .font(.appHeadline.weight(.bold))
+                .foregroundStyle(AppColors.textPrimary)
+            Text(message)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
     }
 
     private var header: some View {
