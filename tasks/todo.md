@@ -5,7 +5,7 @@ Scope: make the Home upload step joinable without changing the 1.4.9 binary curr
 - [x] Add a red regression proving `resume_upload_cta_seen`, `resume_file_picker_opened`, and `resume_file_selected` carry the same `source`.
 - [x] Thread `source: "home"` from the reachable Home picker into `resume_file_selected`.
 - [x] Run the focused analytics regression, full iOS tests, and an app build.
-- [ ] Update progress/session memory and open a PR from a fresh `origin/main` worktree.
+- [x] Update progress/session memory and open PR #171 from a fresh `origin/main` worktree.
 
 Expected implementation files: `AnalyticsService.swift`, `TailorViewModel.swift`, `HomeTabView.swift`, and `AnalyticsServiceTests.swift`. No UI, dependency, version, archive, TestFlight, or App Store Connect change.
 
