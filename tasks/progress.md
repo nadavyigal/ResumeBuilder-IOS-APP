@@ -1,5 +1,20 @@
 # Project Progress
 
+## 2026-08-13 — Next-build activation source is measurable; 1.4.9 review remains frozen
+
+**The missing join key is fixed for the next build.** `resume_upload_cta_seen` and `resume_file_picker_opened` already carried `source = home`, but `resume_file_selected` did not. The picker outcome therefore could not be joined back to the reachable upload surface without assuming every historical selection came from Home. The event now carries the same PII-safe `source`, threaded from `HomeTabView` through `TailorViewModel`, and a regression pins all three ends to one value.
+
+**No funnel meaning changed.** `resume_file_selected` still fires only after local preflight succeeds, so this is a property addition rather than a denominator reset. No filename, résumé content, job content, UI, navigation, account behavior, dependency, version, archive, upload, or App Store action changed.
+
+**Status:** Founder-reported **1.4.9 (26) is in App Store Connect review** as of 2026-08-13. That submitted binary is frozen. This story is next-build-only on `codex/resumely-activation-source`.
+**Current Phase:** App Review for 1.4.9; prepare measurement contract for the next build without touching the review submission.
+**Active Story:** Activation measurement follow-up — implemented and verified in PR #171, merge pending.
+**Last Completed Story:** Add `source` to the reachable Home `resume_file_selected` event.
+**Next Recommended Story:** After the next build is released, verify one exact-build clean path from `app_launched` through `optimized_viewed` and `export_success`; keep paste/sample upload work gated until the source-split picker data names the loss.
+**Blockers:** Effectiveness cannot be judged until a build containing this property is released and receives non-internal traffic.
+**Last Validation:** 2026-08-13 — red compile failure proved the missing `source` contract; focused regression 1/1 passed; full iOS suite 314 executed, 1 skipped, 0 failures; incremental app build succeeded on iPhone 17 simulator.
+**Last Updated:** 2026-08-13
+
 ## 2026-08-12 (later) — 1.4.9 (20) on TestFlight: flow rebuilt, analytics made countable, nothing yet walked on device
 
 **1.4.9 (20) uploaded 15:10 UTC.** Supersedes (19), which is also on TestFlight but predates every change below. 1.4.8 (18) remains the App Store release. Merged: #157 (analytics), #158 (flow), #159 (bump).
