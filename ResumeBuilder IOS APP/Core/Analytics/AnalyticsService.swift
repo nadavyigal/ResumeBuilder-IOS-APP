@@ -129,10 +129,23 @@ enum AnalyticsEvent: Sendable {
     case jobAdded(hasURL: Bool, hasPaste: Bool)
     case analysisCTATapped(source: String, flowVersion: AnalyticsFlowVersion, hasURL: Bool, hasPaste: Bool)
     case jobInputValidationShown(surface: String, reason: String)
-    case freeATSCompleted(scoreBucket: String)
+    /// `hasURL`/`hasPaste` become `job_source`. A scraped URL and a pasted
+    /// description are different inputs with different failure modes, so a
+    /// score that differs between them is otherwise unattributable.
+    case freeATSCompleted(scoreBucket: String, hasURL: Bool, hasPaste: Bool)
+    /// The score screen's "Sign in to Optimize" wall (WP-48 S2).
+    ///
+    /// A session-less guest is shown their match score and then told to sign in
+    /// before anything else happens. Until this event there was no way to tell a
+    /// guest who saw that wall and turned around from one who never got a score
+    /// at all — the two are the same absence in the funnel.
+    ///
+    /// `score_bucket` is the bucket the wall was shown alongside, so acceptance
+    /// can be read against what the user had just been told about their résumé.
+    case scoreScreenSignInTapped(source: String, scoreBucket: String)
     case signInCompleted
     case accountDeleted
-    case optimizationStarted(resumeId: String?, jobDescriptionId: String?)
+    case optimizationStarted(resumeId: String?, jobDescriptionId: String?, hasURL: Bool, hasPaste: Bool)
     /// One event name, two different moments — which is why the funnel built on
     /// it was unreadable.
     ///
@@ -183,8 +196,17 @@ enum AnalyticsEvent: Sendable {
     case fitCheckSkipped
     // Upload / import journey (WP-18)
     case resumeUploadCTATapped(source: String)
-    case resumeFilePickerOpened(source: String)
-    case resumeFilePickerCancelled(source: String)
+    /// `fileType`/`sizeBucket` describe the résumé the user is **already
+    /// holding** when the picker opens, or `"none"` when their hands are empty.
+    ///
+    /// Opened-then-cancelled means two different things depending on that:
+    /// nothing-to-nothing is a real drop-off at the upload step, while an
+    /// abandoned replacement is a user who still has a résumé and has lost
+    /// nothing. Pooled, they made the picker's cancel rate unreadable. The keys
+    /// match `resume_file_selected` so the whole step joins on one set of
+    /// columns.
+    case resumeFilePickerOpened(source: String, fileType: String, sizeBucket: String)
+    case resumeFilePickerCancelled(source: String, fileType: String, sizeBucket: String)
     /// `source` keeps the selection joinable to the CTA and picker impression
     /// that led to it without sending a filename or any résumé content.
     case resumeFileSelected(source: String, fileType: String, sizeBucket: String)
@@ -208,6 +230,7 @@ enum AnalyticsEvent: Sendable {
         case .analysisCTATapped: return "analysis_cta_tapped"
         case .jobInputValidationShown: return "job_input_validation_shown"
         case .freeATSCompleted: return "free_ats_completed"
+        case .scoreScreenSignInTapped: return "score_screen_signin_tapped"
         case .signInCompleted: return "sign_in_completed"
         case .accountDeleted: return "account_deleted"
         case .optimizationStarted: return "optimization_started"
@@ -267,10 +290,11 @@ enum AnalyticsEvent: Sendable {
         case .guestModeStarted, .anonymousSessionStarted, .signInCompleted, .accountDeleted,
              .fitCheckOptimizeTapped, .fitCheckSkipped, .secondJobStarted:
             return [:]
-        case .optimizationStarted(let resumeId, let jobDescriptionId):
+        case .optimizationStarted(let resumeId, let jobDescriptionId, let hasURL, let hasPaste):
             return Self.compactProperties([
                 "resume_id": resumeId,
                 "job_description_id": jobDescriptionId,
+                "job_source": Self.jobInputSource(hasURL: hasURL, hasPaste: hasPaste),
             ])
         case .optimizationCompleted(let optimizationId, let reviewId, let path):
             return Self.compactProperties([
@@ -318,8 +342,13 @@ enum AnalyticsEvent: Sendable {
             ]
         case .jobInputValidationShown(let surface, let reason):
             return ["surface": surface, "reason": reason]
-        case .freeATSCompleted(let scoreBucket):
-            return ["score_bucket": scoreBucket]
+        case .freeATSCompleted(let scoreBucket, let hasURL, let hasPaste):
+            return [
+                "score_bucket": scoreBucket,
+                "job_source": Self.jobInputSource(hasURL: hasURL, hasPaste: hasPaste),
+            ]
+        case .scoreScreenSignInTapped(let source, let scoreBucket):
+            return ["source": source, "score_bucket": scoreBucket]
         case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
         case .appStoreReviewRequested(let source):
@@ -390,11 +419,11 @@ enum AnalyticsEvent: Sendable {
                 "score_version": "ats_v2_legacy",
             ]
         case .resumeUploadCTATapped(let source),
-             .resumeUploadCTASeen(let source),
-             .resumeFilePickerOpened(let source),
-             .resumeFilePickerCancelled(let source):
+             .resumeUploadCTASeen(let source):
             return ["source": source]
-        case .resumeFileSelected(let source, let fileType, let sizeBucket):
+        case .resumeFilePickerOpened(let source, let fileType, let sizeBucket),
+             .resumeFilePickerCancelled(let source, let fileType, let sizeBucket),
+             .resumeFileSelected(let source, let fileType, let sizeBucket):
             return ["source": source, "file_type": fileType, "file_size_bucket": sizeBucket]
         case .resumeUploadPreflightRejected(let reason):
             return ["reason": reason]

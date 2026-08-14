@@ -1,5 +1,54 @@
 # Project Progress
 
+## 2026-08-14 — The three missing funnel events, and a `main` that could not build
+
+**`main` has been unbuildable since 2026-08-13.** `4df5860` ("Merge #141: make
+the test target auto-enroll new test files") committed unresolved conflict
+markers into `project.pbxproj` and `tasks/lessons.md`. Both parents of that
+merge are clean; the merge commit itself carries the markers. Every
+`xcodebuild` invocation since then fails before compiling with *"The project
+'ResumeBuilder IOS APP' is damaged and cannot be opened due to a parse error"*,
+and `plutil -lint` agrees. This is not a worktree artifact — the primary
+checkout fails identically. Nothing has been built or tested on this repo for a
+day and nobody noticed, because the failure looks like a local Xcode problem.
+
+**The resolution had a trap in it.** `project.pbxproj` resolves to #141's side
+(the synchronized test group it exists to install), but that branch predates the
+1.4.9 bump, so taking its file wholesale silently regresses `MARKETING_VERSION`
+to 1.4.7 and `CURRENT_PROJECT_VERSION` to 17 — the same shape as the 2026-07-16
+lesson. Versions were carried forward from `e385e1d`, and the resolution was
+checked by diffing the sorted set of build-setting lines against the conflicted
+file: identical, so no setting was dropped. `tasks/lessons.md` was a pure
+both-added conflict; every entry on both sides is kept. **The suite is 353 now,
+not 313** — auto-enrollment has been landed-but-inert since the bad merge.
+
+**WP-48 S2's three instrumentation gaps are closed.** (1)
+`score_screen_signin_tapped` did not exist; the wall it measures did — a live
+"Sign in to Optimize" button under the guest score. Without it a guest who saw
+their score and turned around was indistinguishable from one who never scored.
+(2) The picker's open/cancel pair now carries `file_type` and
+`file_size_bucket`. **These describe the résumé held at that moment, not the
+one being picked** — no file exists yet when the picker opens. That is the
+distinction the cancel rate needed: empty-handed-to-empty-handed is a real
+drop-off, an abandoned replacement is not. (3) `free_ats_completed` and
+`optimization_started` carry `job_source`; a scraped URL and a pasted
+description fail differently, so outcomes that differ between them were
+unattributable.
+
+**One naming inconsistency is shipping deliberately.** `analysis_cta_tapped`
+already spells this property `job_input_source`. The todo specified
+`job_source`, so that is what shipped; the two must be joined by hand in HogQL.
+
+**Status:** Next-build-only. 1.4.9 is LIVE (store-verified 2026-08-13 18:09Z);
+this changes no version, archive, or App Store artifact. No build was shipped.
+**Current Phase:** Instrumenting the next build's activation read while 1.4.9 is live.
+**Active Story:** WP-48 S2 funnel events — implemented, verified, PR open.
+**Last Completed Story:** `score_screen_signin_tapped`, picker held-file properties, and `job_source`.
+**Next Recommended Story:** Story B (ResumeBuilder Web, WP-49 anonymous carryover migration). On this repo: close or merge PR #174, and decide whether `job_source` should be renamed to match `job_input_source` before either has production data.
+**Blockers:** None. The events are unreadable until a build carrying them is released and receives non-internal traffic.
+**Last Validation:** 2026-08-14 — red run failed to compile on all three missing contracts (`no member 'scoreScreenSignInTapped'`, `extra arguments` ×4); `AnalyticsServiceTests` 36/36, 0 failures; full suite **353 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5) with `-testLanguage en`, plus swift-testing 5/5; `xcodebuild build` exit 0. No simulator walk — no UI changed, only tracking calls inside existing button actions.
+**Last Updated:** 2026-08-14
+
 ## 2026-08-13 — Next-build activation source is measurable; 1.4.9 review remains frozen
 
 **The missing join key is fixed for the next build.** `resume_upload_cta_seen` and `resume_file_picker_opened` already carried `source = home`, but `resume_file_selected` did not. The picker outcome therefore could not be joined back to the reachable upload surface without assuming every historical selection came from Home. The event now carries the same PII-safe `source`, threaded from `HomeTabView` through `TailorViewModel`, and a regression pins all three ends to one value.

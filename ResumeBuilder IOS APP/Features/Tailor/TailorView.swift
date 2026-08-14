@@ -68,7 +68,12 @@ struct TailorView: View {
                                 isFilled: viewModel.selectedResumeName?.isEmpty == false,
                                 action: {
                                     AnalyticsService.shared.track(.resumeUploadCTATapped(source: "tailor"))
-                                    AnalyticsService.shared.track(.resumeFilePickerOpened(source: "tailor"))
+                                    let held = viewModel.heldResume
+                                    AnalyticsService.shared.track(.resumeFilePickerOpened(
+                                        source: "tailor",
+                                        fileType: held.fileType,
+                                        sizeBucket: held.sizeBucket
+                                    ))
                                     isImporterPresented = true
                                 }
                             )
@@ -111,6 +116,17 @@ struct TailorView: View {
                                 .transition(.scale(scale: 0.95).combined(with: .opacity))
 
                             Button {
+                                // `TailorView` is not instantiated anywhere in
+                                // the app today (repo-wide grep, 2026-08-14) —
+                                // Home renders the live score screen. Kept in
+                                // step with it so the event does not acquire a
+                                // second, silently unemitting call site.
+                                AnalyticsService.shared.track(.scoreScreenSignInTapped(
+                                    source: "tailor",
+                                    scoreBucket: AnalyticsEvent.scoreBucket(
+                                        for: atsResult.score?.overall ?? 0
+                                    )
+                                ))
                                 showOnboarding = true
                             } label: {
                                 HStack(spacing: 8) {
@@ -180,13 +196,13 @@ struct TailorView: View {
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else {
-                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))
+                        trackPickerCancelled()
                         return
                     }
-                    viewModel.cachePickedFile(url: url)
+                    viewModel.cachePickedFile(url: url, source: "tailor")
                 case .failure(let error):
                     if (error as NSError).code == NSUserCancelledError {
-                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "tailor"))
+                        trackPickerCancelled()
                     } else {
                         viewModel.errorMessage = error.localizedDescription
                         AnalyticsService.shared.track(.resumeUploadErrorShown(errorCode: "picker_failure"))
@@ -260,6 +276,17 @@ struct TailorView: View {
     /// changes on, so every group is applied and the user goes straight to the
     /// finished résumé. What changed is explained on Resume Diagnosis, reached
     /// from there.
+    /// Read at cancel time, not at open time: a cancel leaves the selection
+    /// untouched, so this is what the user still has after backing out.
+    private func trackPickerCancelled() {
+        let held = viewModel.heldResume
+        AnalyticsService.shared.track(.resumeFilePickerCancelled(
+            source: "tailor",
+            fileType: held.fileType,
+            sizeBucket: held.sizeBucket
+        ))
+    }
+
     private func applyReviewAndLand(_ reviewId: String) async {
         // The apply endpoint mints a new optimization per call, so a second
         // entry here bills a second run and strands the first résumé.

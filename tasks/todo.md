@@ -92,9 +92,19 @@ Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-releas
 
 ## S2 instrumentation for 1.4.4 (after the blocking items)
 
-- [ ] `score_screen_signin_tapped` — absent, build it.
-- [ ] File type + size bucket on `resume_file_picker_opened` / `_cancelled` (outcome events already ship; reuse the `fileSizeBucket` helper at `TailorViewModel.swift:93`).
-- [ ] `job_source` (url vs paste) on `free_ats_completed` and `optimization_started`.
+- [x] `score_screen_signin_tapped` — built. The wall already existed as a live
+      button (`HomeTabView.freeCheckResultSection`); only the event was missing.
+      Carries `source` and the `score_bucket` it was shown alongside.
+- [x] File type + size bucket on `resume_file_picker_opened` / `_cancelled`.
+      **Read this before querying it:** at picker-open time no file has been
+      chosen yet, so these describe the résumé the user was **already holding**,
+      or `"none"`. That is the distinction the cancel rate needed —
+      nothing-to-nothing is a real drop-off, an abandoned replacement is not.
+- [x] `job_source` (url vs paste) on `free_ats_completed` and
+      `optimization_started`. Four values (`url`, `paste`, `url_and_paste`,
+      `none`) from the same helper `analysis_cta_tapped` uses — note that event
+      spells the property `job_input_source`, so the two names must be joined
+      by hand.
 
 ## Hand back to Portfolio HQ
 

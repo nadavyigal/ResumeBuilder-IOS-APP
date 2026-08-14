@@ -49,6 +49,12 @@ struct HomeTabView: View {
                 privacyReassurance
 
                 Button {
+                    AnalyticsService.shared.track(.scoreScreenSignInTapped(
+                        source: "home",
+                        scoreBucket: AnalyticsEvent.scoreBucket(
+                            for: atsResult.score?.overall ?? 0
+                        )
+                    ))
                     showOnboarding = true
                 } label: {
                     HStack(spacing: 8) {
@@ -339,14 +345,14 @@ struct HomeTabView: View {
                 case .success(let urls):
                     markImporterResolved()
                     guard let url = urls.first else {
-                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
+                        trackPickerCancelled()
                         return
                     }
                     viewModel.cachePickedFile(url: url, source: "home")
                 case .failure(let error):
                     markImporterResolved()
                     if (error as NSError).code == NSUserCancelledError {
-                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
+                        trackPickerCancelled()
                     } else {
                         viewModel.errorMessage = error.localizedDescription
                         AnalyticsService.shared.track(.resumeUploadErrorShown(errorCode: "picker_failure"))
@@ -458,7 +464,12 @@ struct HomeTabView: View {
     private func openResumeImporter() {
         secondJobContext = nil
         isImporterFlowActive = true
-        AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
+        let held = viewModel.heldResume
+        AnalyticsService.shared.track(.resumeFilePickerOpened(
+            source: "home",
+            fileType: held.fileType,
+            sizeBucket: held.sizeBucket
+        ))
         isImporterPresented = true
     }
 
@@ -466,10 +477,21 @@ struct HomeTabView: View {
         isImporterFlowActive = false
     }
 
+    /// Read at cancel time, not at open time: a cancel leaves the selection
+    /// untouched, so this is what the user still has after backing out.
+    private func trackPickerCancelled() {
+        let held = viewModel.heldResume
+        AnalyticsService.shared.track(.resumeFilePickerCancelled(
+            source: "home",
+            fileType: held.fileType,
+            sizeBucket: held.sizeBucket
+        ))
+    }
+
     private func trackImporterCancellationIfNeeded() {
         guard isImporterFlowActive else { return }
         isImporterFlowActive = false
-        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
+        trackPickerCancelled()
     }
 
     private func trackUploadCTASeenIfNeeded() {
@@ -494,8 +516,14 @@ struct HomeTabView: View {
             await viewModel.runFreeATS(appState: appState)
             if viewModel.atsResult?.score?.overall != nil {
                 let score = viewModel.atsResult?.score?.overall ?? 0
+                let evaluation = JobInputPolicy.evaluate(
+                    description: viewModel.jobDescription,
+                    urlString: viewModel.jobDescriptionURL
+                )
                 AnalyticsService.shared.track(.freeATSCompleted(
-                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
+                    scoreBucket: AnalyticsEvent.scoreBucket(for: score),
+                    hasURL: evaluation.hasURLInput,
+                    hasPaste: evaluation.hasDescriptionInput
                 ))
             }
         }
