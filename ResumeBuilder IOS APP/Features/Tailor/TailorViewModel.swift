@@ -97,8 +97,24 @@ final class TailorViewModel {
         ))
     }
 
+    /// The résumé held right now, described the PII-safe way the upload events
+    /// describe a selection: file type and coarse size bucket, never a name.
+    ///
+    /// `("none", "none")` when nothing is selected. The picker events carry this
+    /// so an opened-then-cancelled picker can be read as either a genuine
+    /// drop-off (empty-handed both sides) or an abandoned replacement.
+    var heldResume: (fileType: String, sizeBucket: String) {
+        Self.heldResumeDescriptor(for: selectedResumeURL)
+    }
+
+    static func heldResumeDescriptor(for url: URL?) -> (fileType: String, sizeBucket: String) {
+        guard let url else { return ("none", "none") }
+        let ext = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
+        return (ext, fileSizeBucket(for: url))
+    }
+
     /// PII-safe coarse file-size bucket for upload analytics.
-    private static func fileSizeBucket(for url: URL) -> String {
+    static func fileSizeBucket(for url: URL) -> String {
         let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? Int ?? -1
         switch bytes {
         case 0..<100_000: return "<100kb"
@@ -230,7 +246,12 @@ final class TailorViewModel {
             }
 
             // Step 2 — actually run the optimizer.
-            AnalyticsService.shared.track(.optimizationStarted(resumeId: resumeId, jobDescriptionId: jobDescriptionId))
+            AnalyticsService.shared.track(.optimizationStarted(
+                resumeId: resumeId,
+                jobDescriptionId: jobDescriptionId,
+                hasURL: !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                hasPaste: !jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ))
             let optimize = try await appState.callWithFreshToken { token in
                 try await self.optimizationService.optimize(
                     resumeId: resumeId,

@@ -209,6 +209,7 @@ final class AnalyticsServiceTests: XCTestCase {
             "analysis_cta_tapped",
             "job_input_validation_shown",
             "free_ats_completed",
+            "score_screen_signin_tapped",
             "sign_in_completed",
             "account_deleted",
             "optimization_started",
@@ -275,10 +276,11 @@ final class AnalyticsServiceTests: XCTestCase {
                 "score_version": "ats_v2_legacy",
             ],
             ["surface": "home", "reason": "description_too_short"],
-            ["score_bucket": "61-80"],
+            ["score_bucket": "61-80", "job_source": "url"],
+            ["source": "home", "score_bucket": "61-80"],
             [:],
             [:],
-            ["resume_id": "resume-1", "job_description_id": "job-1"],
+            ["resume_id": "resume-1", "job_description_id": "job-1", "job_source": "url"],
             // `path` separates the two moments this event name covers, and
             // `emitter` separates the client copy from the backend's.
             ["optimization_id": "opt-1", "review_id": "review-1", "path": "applied", "emitter": "client"],
@@ -313,8 +315,8 @@ final class AnalyticsServiceTests: XCTestCase {
             [:],
             [:],
             ["source": "home"],
-            ["source": "home"],
-            ["source": "home"],
+            ["source": "home", "file_type": "none", "file_size_bucket": "none"],
+            ["source": "home", "file_type": "pdf", "file_size_bucket": "100kb-1mb"],
             ["source": "home", "file_type": "pdf", "file_size_bucket": "100kb-1mb"],
             ["reason": "unreadable"],
             ["file_type": "pdf"],
@@ -528,7 +530,11 @@ final class AnalyticsServiceTests: XCTestCase {
     func testUploadFunnelEndsArePairableOnSource() {
         let source = "home"
         let ctaSeen = AnalyticsEvent.resumeUploadCTASeen(source: source).properties
-        let pickerOpened = AnalyticsEvent.resumeFilePickerOpened(source: source).properties
+        let pickerOpened = AnalyticsEvent.resumeFilePickerOpened(
+            source: source,
+            fileType: "none",
+            sizeBucket: "none"
+        ).properties
         let fileSelected = AnalyticsEvent.resumeFileSelected(
             source: source,
             fileType: "docx",
@@ -540,6 +546,99 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(fileSelected["source"], source)
         XCTAssertEqual(fileSelected["file_type"], "docx")
         XCTAssertEqual(fileSelected["file_size_bucket"], "100kb-1mb")
+    }
+
+    // MARK: WP-48 S2 instrumentation
+
+    /// The score screen tells a session-less guest to sign in before it will
+    /// optimize. That wall had no event, so every guest who saw their score and
+    /// stopped there was indistinguishable from one who never got a score —
+    /// the tap is the only thing separating "saw the wall" from "accepted it".
+    func testScoreScreenSignInTapIsNamedAndJoinableToTheScoreShown() {
+        let event = AnalyticsEvent.scoreScreenSignInTapped(source: "home", scoreBucket: "0-40")
+
+        XCTAssertEqual(event.name, "score_screen_signin_tapped")
+        XCTAssertEqual(event.properties["source"], "home")
+        XCTAssertEqual(
+            event.properties["score_bucket"],
+            "0-40",
+            "Without the bucket the wall cannot be read against the score that produced it"
+        )
+    }
+
+    /// A picker that opens and is cancelled means two different things depending
+    /// on whether the user was already holding a résumé: nothing-to-nothing is a
+    /// real drop-off, replacement-abandoned is not. Same keys as the outcome
+    /// events so the whole picker step joins on one set of columns.
+    func testPickerOpenAndCancelDescribeTheResumeHeldAtThatMoment() {
+        let emptyHanded = AnalyticsEvent.resumeFilePickerOpened(
+            source: "home",
+            fileType: "none",
+            sizeBucket: "none"
+        ).properties
+        XCTAssertEqual(emptyHanded["source"], "home")
+        XCTAssertEqual(emptyHanded["file_type"], "none")
+        XCTAssertEqual(emptyHanded["file_size_bucket"], "none")
+
+        let replacing = AnalyticsEvent.resumeFilePickerCancelled(
+            source: "home",
+            fileType: "docx",
+            sizeBucket: "1mb-5mb"
+        ).properties
+        XCTAssertEqual(replacing["source"], "home")
+        XCTAssertEqual(replacing["file_type"], "docx")
+        XCTAssertEqual(replacing["file_size_bucket"], "1mb-5mb")
+    }
+
+    /// The descriptor the picker events carry, measured off a real file.
+    func testHeldResumeDescriptorBucketsARealFileAndReportsNoneWhenEmptyHanded() throws {
+        let empty = TailorViewModel.heldResumeDescriptor(for: nil)
+        XCTAssertEqual(empty.fileType, "none")
+        XCTAssertEqual(empty.sizeBucket, "none")
+
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("held-resume-\(UUID().uuidString).docx")
+        try Data(repeating: 0x41, count: 200_000).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let held = TailorViewModel.heldResumeDescriptor(for: url)
+        XCTAssertEqual(held.fileType, "docx")
+        XCTAssertEqual(held.sizeBucket, "100kb-1mb")
+    }
+
+    /// A URL and a pasted description are not the same input: one is scraped
+    /// server-side and can fail or come back thin. Both the free check and the
+    /// paid run have to say which one they were fed, or a difference in outcome
+    /// between them is unattributable.
+    func testFreeCheckAndOptimizeStartRecordWhichJobInputWasUsed() {
+        XCTAssertEqual(
+            AnalyticsEvent.freeATSCompleted(scoreBucket: "41-60", hasURL: true, hasPaste: false)
+                .properties["job_source"],
+            "url"
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.freeATSCompleted(scoreBucket: "41-60", hasURL: false, hasPaste: true)
+                .properties["job_source"],
+            "paste"
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationStarted(
+                resumeId: "resume-1",
+                jobDescriptionId: "job-1",
+                hasURL: true,
+                hasPaste: true
+            ).properties["job_source"],
+            "url_and_paste"
+        )
+        XCTAssertEqual(
+            AnalyticsEvent.optimizationStarted(
+                resumeId: "resume-1",
+                jobDescriptionId: "job-1",
+                hasURL: false,
+                hasPaste: false
+            ).properties["job_source"],
+            "none"
+        )
     }
 
     /// WP-51 regression. The preview renders from the optimization id alone, so a real
@@ -713,10 +812,11 @@ final class AnalyticsServiceTests: XCTestCase {
         .jobAdded(hasURL: true, hasPaste: false),
         .analysisCTATapped(source: "home", flowVersion: .fitGateV1, hasURL: true, hasPaste: false),
         .jobInputValidationShown(surface: "home", reason: "description_too_short"),
-        .freeATSCompleted(scoreBucket: "61-80"),
+        .freeATSCompleted(scoreBucket: "61-80", hasURL: true, hasPaste: false),
+        .scoreScreenSignInTapped(source: "home", scoreBucket: "61-80"),
         .signInCompleted,
         .accountDeleted,
-        .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1"),
+        .optimizationStarted(resumeId: "resume-1", jobDescriptionId: "job-1", hasURL: true, hasPaste: false),
         .optimizationCompleted(optimizationId: "opt-1", reviewId: "review-1", path: .applied),
         .optimizationStateRecovered(optimizationId: "opt-1"),
         .optimizationStateRecoveryFailed(reason: "network", errorCode: "network_1009"),
@@ -749,8 +849,8 @@ final class AnalyticsServiceTests: XCTestCase {
         .fitCheckOptimizeTapped,
         .fitCheckSkipped,
         .resumeUploadCTATapped(source: "home"),
-        .resumeFilePickerOpened(source: "home"),
-        .resumeFilePickerCancelled(source: "home"),
+        .resumeFilePickerOpened(source: "home", fileType: "none", sizeBucket: "none"),
+        .resumeFilePickerCancelled(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb"),
         .resumeFileSelected(source: "home", fileType: "pdf", sizeBucket: "100kb-1mb"),
         .resumeUploadPreflightRejected(reason: "unreadable"),
         .resumeUploadStarted(fileType: "pdf"),
