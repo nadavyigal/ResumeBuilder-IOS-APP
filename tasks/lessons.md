@@ -673,7 +673,6 @@
 **Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
 **Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.
 
-<<<<<<< HEAD
 **Date:** 2026-08-05
 **Category:** Git
 **Rule:** "Is this branch's work already in `main`?" cannot be answered by `git log main..branch` or `git diff main...branch` once the PR was squash-merged. The squash rewrites the hash, so the local ref still looks unmerged, and the three-dot diff reports what the branch added since the merge base — which is non-empty for landed work too. Answer it by content: take a distinctive symbol the branch introduces and run `git grep <symbol> origin/main`.
@@ -688,7 +687,6 @@
 **Category:** Optimized résumé state
 **Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
 **Why:** One live run showed 43 as the original, 57 as the review projection, and 64 as the stored result while the screen presented all three. The same résumé accepted three ATS improvement runs because success did not create a durable completion state and the simplified panel omitted the success message.
-=======
 ---
 
 **Date:** 2026-08-04
@@ -715,4 +713,3 @@
 **Category:** Build
 **Rule:** Before diagnosing a suite failure in a worktree, check that `Secrets.xcconfig` holds real values and not the template placeholders. `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` fails deterministically with a placeholder `SUPABASE_ANON_KEY` and passes with a real one — it is a live-credential canary, not a unit test.
 **Why:** The synchronized-group conversion first reported 313 / 1 skip / 1 failure and the failure reproduced twice, which read exactly like cross-test pollution from the newly-enrolled `ScanViewModelTests` (the control branch was green at 310). It was not. The worktree's gitignored `Secrets.xcconfig` had been created from `Secrets.xcconfig.template` per the 2026-07-23 lesson, so the refresh call failed as a `URLError`; `AppState.shouldSignOutAfterRefreshFailure` correctly returns `false` for `URLError`, the session was never cleared, and `XCTAssertTrue(session == nil || accessToken != "stale")` failed. Copying in the real local `Secrets.xcconfig` made the identical run green. The 2026-07-23 lesson says to create the file from the template — that is enough to *build*, but not enough to run this test. Copy the real one from another worktree when running the full suite.
->>>>>>> origin/claude/loving-gagarin-6ccd76
