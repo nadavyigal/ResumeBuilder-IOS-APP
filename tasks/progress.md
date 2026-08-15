@@ -49,6 +49,33 @@ this changes no version, archive, or App Store artifact. No build was shipped.
 **Last Validation:** 2026-08-14 — red run failed to compile on all three missing contracts (`no member 'scoreScreenSignInTapped'`, `extra arguments` ×4); `AnalyticsServiceTests` 36/36, 0 failures; full suite **353 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5) with `-testLanguage en`, plus swift-testing 5/5; `xcodebuild build` exit 0. No simulator walk — no UI changed, only tracking calls inside existing button actions.
 **Last Updated:** 2026-08-14
 
+## 2026-08-15 — 1.4.9 is LIVE, its public cohort is empty, and the "4 of 20" gate was wrong three ways
+
+**1.4.9 is public**, store-verified `2026-08-13T18:09:33Z` (cache-busted Apple lookup, id 6776752349). The 2026-08-13 entry below ("1.4.9 (26) is in App Store Connect review") is superseded.
+
+**The activation gate reads 0, not 4.** Three independent errors, each sufficient on its own:
+
+1. **All four persons on 1.4.9 are internal.** Person-level exclusion (`max(is_internal_tester='true')` per `person_id`, then filter) returns **4 internal / 0 external**. One of the four is `nadav.yigal@gmail.com`. The published "4" is an unfiltered person count on `app_version = 1.4.9` — the exact error this file warned about on 2026-07-28: *"Exclusion must be person-level... every count derived that way was wrong."*
+2. **Every 1.4.9 event predates the public release.** The 1.4.9 event window is `2026-08-12T10:36:27Z` to `2026-08-13T07:12:12Z`, closing **11 hours before** the store went live. Those are TestFlight builds 19-27, not public users.
+3. **D7 is arithmetically impossible.** At the read (`2026-08-15 05:16Z`) 1.4.9 had been public 35.1 hours. D7 needs 168 hours per user. Earliest valid 1.4.9 D7 read: **2026-08-20 18:09Z**.
+
+**Since public release there have been zero iOS events of any kind.** The instrument is not at fault: build 27 emitted 21 events across 8 types at `2026-08-13T07:08-07:12Z`, so the SDK and the `is_internal_tester` envelope both work. Zero public events means zero public sessions. This is a distribution problem presenting as a measurement problem.
+
+**No window produces 4.** Clean activations (external persons with at least one `optimization_completed`, iOS only, person-level exclusion): 14d = 1, 30d = 3, 60d = 5, 90d = 6, **1.4.9-only = 0**. The gate has no stable value because window, version scope, and exclusion level were never pinned together. They now are, in the vault note `2026-08-15-weekly-measurement-contracts-and-gated-packets`.
+
+**The funnel is non-monotonic and therefore not currently a funnel.** Over 90 days, external persons, iOS: 102 `app_launched`, 31 `resume_upload_cta_seen`, 14 `resume_file_selected`, 13 `job_added`, 21 `fit_check_completed`, 5 `optimization_started`, 6 `optimization_completed`, 4 `optimized_viewed`, 4 `export_success`. `fit_check_completed` (21) exceeds `job_added` (13) and `optimization_completed` (6) exceeds `optimization_started` (5). Known causes: the server-side emitter copy of `optimization_completed`, and fit-check being reachable without the `job_added` path. **No percentage across these steps is trustworthy until step order is enforced or the steps are re-declared as independent milestones.** The dominant loss is the first step: 102 launched to 31 who ever saw the upload CTA.
+
+**The public build number is unverified.** Builds 19-27 all report `app_version = 1.4.9`; this file records (26) as submitted while (27) emitted afterwards; no post-release event exists to settle it. Read it off App Store Connect.
+
+**Status:** 1.4.9 public since 2026-08-13T18:09:33Z, build unverified, zero public sessions.
+**Current Phase:** Waiting for public traffic. No measurement work is actionable on an empty cohort.
+**Active Story:** None open. Three follow-up packets drafted **closed**, each gated: (A) ordered-funnel integrity, gated on the first external session; (B) exact-build cohort attribution, gated on ASC confirming both live builds; (C) RunSmart device-QA closure, gated on a connected device.
+**Last Completed Story:** Public 1.4.9 funnel proof and activation-gate correction.
+**Next Recommended Story:** Re-run the gate no earlier than **2026-08-20 18:09Z**. If the cohort is still empty at the 7-day mark, that is the finding, and it is a distribution finding.
+**Blockers:** Zero public sessions on 1.4.9. Live build number unknown.
+**Last Validation:** 2026-08-15 — PostHog project 270848 fingerprinted before reading; person-level exclusion returns 4 internal / 0 external on 1.4.9; post-release window returns zero iOS events; build 27 confirmed emitting pre-release.
+**Last Updated:** 2026-08-15
+
 ## 2026-08-13 — Next-build activation source is measurable; 1.4.9 review remains frozen
 
 **The missing join key is fixed for the next build.** `resume_upload_cta_seen` and `resume_file_picker_opened` already carried `source = home`, but `resume_file_selected` did not. The picker outcome therefore could not be joined back to the reachable upload surface without assuming every historical selection came from Home. The event now carries the same PII-safe `source`, threaded from `HomeTabView` through `TailorViewModel`, and a regression pins all three ends to one value.
