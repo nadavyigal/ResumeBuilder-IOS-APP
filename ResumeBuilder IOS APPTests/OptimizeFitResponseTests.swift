@@ -161,4 +161,48 @@ final class OptimizeFitResponseTests: XCTestCase {
         XCTAssertEqual(decoded.fit?.topGaps?.first?.title, "t")
         XCTAssertNil(decoded.fit?.topGaps?.first?.estimatedGain)
     }
+
+    /// Defense in depth, and the more important half of the fix.
+    ///
+    /// The specific field is now lenient, but the structural fault was that
+    /// ANY unreadable field in the preview block discarded a completed,
+    /// already-billed optimization. `fit` is decorative; `reviewId` is the
+    /// work. A preview we cannot read is worth losing, the run is not.
+    func testAnUnreadableFitBlockNeverCostsTheOptimization() throws {
+        // `currentScore` as a string is not something the backend sends today.
+        // That is the point: this is the shape of the NEXT contract drift, and
+        // it must cost the fit check rather than the whole optimization.
+        let hostile = """
+        {
+          "reviewId": "rev_survives",
+          "nextStep": "review",
+          "fit": { "currentScore": "not-a-number", "potentialScore": 51 }
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(OptimizeResponse.self, from: hostile)
+        XCTAssertEqual(decoded.reviewId, "rev_survives", "the run must survive an unreadable preview")
+        XCTAssertNil(decoded.fit, "the unreadable preview is dropped, not fatal")
+    }
+
+    /// `Int(exactly:)` rather than `Int(_:)`: the unlabelled initializer traps
+    /// on an out-of-range value, turning malformed network input into a crash.
+    func testAnAbsurdGainYieldsNoValueRatherThanACrash() throws {
+        let json = #"{"reviewId":"r","fit":{"topGaps":[{"title":"t","estimatedGain":1e308}]}}"#
+            .data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(OptimizeResponse.self, from: json)
+        XCTAssertEqual(decoded.fit?.topGaps?.first?.title, "t")
+        XCTAssertNil(decoded.fit?.topGaps?.first?.estimatedGain)
+    }
+
+    /// A gap still round-trips through encode, which the synthesized
+    /// `encode(to:)` handles now that the struct declares its own CodingKeys.
+    func testAGapRoundTripsThroughEncoding() throws {
+        let original = OptimizeFitGap(title: "Add metrics", estimatedGain: 3, category: "metrics")
+        let data = try JSONEncoder().encode(original)
+        let restored = try JSONDecoder().decode(OptimizeFitGap.self, from: data)
+        XCTAssertEqual(restored.title, "Add metrics")
+        XCTAssertEqual(restored.estimatedGain, 3)
+        XCTAssertEqual(restored.category, "metrics")
+    }
 }

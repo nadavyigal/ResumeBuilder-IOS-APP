@@ -66,7 +66,13 @@ struct OptimizeResponse: Decodable, Sendable {
             ?? container.decodeIfPresent(String.self, forKey: .review_id)
             ?? nestedData?.reviewId
         error = try container.decodeIfPresent(String.self, forKey: .error) ?? nestedData?.error
-        fit = try container.decodeIfPresent(OptimizeFitPreview.self, forKey: .fit) ?? nestedData?.fit
+        // Never fatal. `fit` is a preview shown between optimizing and
+        // accepting; `reviewId` is the completed work. Decoding it with `try`
+        // meant one unreadable field in this block discarded an optimization
+        // the server had already run and billed for, which is exactly what
+        // happened from 2026-08-28 when `estimatedGain` turned fractional.
+        // A preview we cannot read is worth losing. The run is not.
+        fit = (try? container.decodeIfPresent(OptimizeFitPreview.self, forKey: .fit)) ?? nestedData?.fit
 
         let topSections = try container.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections)
         let nestedSections = nestedData?.sections

@@ -1216,8 +1216,13 @@ struct OptimizeFitGap: Codable, Sendable {
         category = try c.decodeIfPresent(String.self, forKey: .category)
         if let intGain = try? c.decode(Int.self, forKey: .estimatedGain) {
             estimatedGain = intGain
-        } else if let doubleGain = try? c.decode(Double.self, forKey: .estimatedGain) {
-            estimatedGain = Int(doubleGain.rounded())
+        } else if let doubleGain = try? c.decode(Double.self, forKey: .estimatedGain),
+                  // `Int(exactly:)`, not `Int(_:)`. The unlabelled initializer
+                  // TRAPS on a value outside `Int`'s range, which would turn a
+                  // malformed number from the network into a crash instead of a
+                  // missing field. This returns nil there instead.
+                  let rounded = Int(exactly: doubleGain.rounded()) {
+            estimatedGain = rounded
         } else {
             estimatedGain = nil
         }
