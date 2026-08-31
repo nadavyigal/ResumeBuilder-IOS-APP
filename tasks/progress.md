@@ -27,12 +27,31 @@ absent, integers unchanged. Verified red before green: the new test failed with
 the exact production error, then passed. Full suite 356 tests, 1 skipped,
 0 failures on iPhone 17 / iOS 26.5 (9E2E82B6).
 
-**The client fix does not reach anyone until a build ships.** Installed App
-Store users stay broken until a new binary is reviewed and released. The
-one-line server mitigation (`Math.round(s.estimated_gain)` in
-`src/app/api/optimize/route.ts`) fixes every already-installed app on deploy
-and is the faster path; it is NOT done, and is awaiting the founder's go-ahead
-in the web repo.
+**Both halves shipped the same day.** The client fix (iOS #178, merged
+`8f24a2c`) cannot reach installed App Store users until a new binary is
+reviewed and released, so the server mitigation went out with it: web #151,
+merged `f6c5d9e`, deployed to production and aliased to
+`www.resumelybuilderai.com`, the domain the app actually calls. `toWireGain()`
+rounds at the API boundary, which repairs **every already-installed build**
+without a release. Nothing is lost by rounding: the app decodes
+`estimatedGain` and never renders it, and no web surface reads this endpoint's
+`topGaps`.
+
+**Review of the first commit widened the fix, and both additions were
+confirmed red first.** `fit` was decoded with `try`, so any unreadable field
+in a decorative preview block discarded a completed, already-billed
+optimization; it is now `try?`, and the run survives a preview it cannot
+read. And `Int(doubleGain.rounded())` used the unlabelled initializer, which
+traps on an out-of-range value, turning malformed network input into a crash;
+it is now `Int(exactly:)`.
+
+**Verified:** iOS merged `main` 359 tests / 1 skipped / 0 failures on iPhone 17
+iOS 26.5; web `npx jest src/lib/ats` 20 suites / 201 passed / 0 failures; eslint
+clean; production `/api/optimize` returns a clean 401 to an unauthenticated
+probe. **Not verified:** one real signed-in optimization end to end. CI's
+"Activation path E2E" runs against placeholder Supabase credentials and stubs
+the ATS route, so no automated test reaches the real endpoint. That check is a
+60-second manual retry in the app.
 
 **Why the suite never caught it:** `OptimizeFitResponseTests` hardcoded
 `"estimatedGain": 6` and `4`. The fixture was written 2026-07-26 and never

@@ -1032,3 +1032,53 @@ Cohort deliberately NOT read — not mature until ~2026-08-18 (0 of 20 clean upl
 
 Not done this session: S2 instrumentation implementation, `is_internal_tester` fix (S2-B),
 PR triage (#100, #96, #86), Hebrew/RTL PDF, Story 8 Home→Fit tap-through.
+
+## 2026-08-31 — "We couldn't parse the optimization response" on production
+
+**Reported:** optimizing a resume in the iOS app failed with "We couldn't parse
+the optimization response."
+
+**Root cause:** a cross-repo contract break, not an app bug. Web WP-59 S1
+(#147, 2026-08-28) changed `estimateImpact` to return one decimal. iOS decoded
+`fit.topGaps[].estimatedGain` into `Int?`, and Foundation's `JSONDecoder` does
+not coerce: a fractional number raises `dataCorrupted` ("Number 2.5 is not
+representable in Swift") and fails the WHOLE response. The server had already
+run and billed the optimization by then. Before WP-59, an unrelated 100x
+scaling bug clamped every gain to the integer 15, which is the only reason the
+contract ever held. The field is decoded and never rendered.
+
+**Why nothing caught it:** `OptimizeFitResponseTests` hardcoded
+`"estimatedGain": 6` and `4`, a fixture written 2026-07-26 that never tracked
+the backend, and the web had no test asserting what crosses the wire.
+
+**Files changed**
+- iOS `Core/API/Models/DomainModels.swift` — lenient Int-or-Double decode for
+  `OptimizeFitGap.estimatedGain`, via `Int(exactly:)` so a malformed number
+  cannot trap.
+- iOS `Services/ResumeOptimizationService.swift` — `fit` decodes with `try?`;
+  a preview we cannot read no longer costs the run.
+- iOS `ResumeBuilder IOS APPTests/OptimizeFitResponseTests.swift` — 5 tests.
+- iOS `.gitignore` — `.derivedData-*/`.
+- web `src/lib/ats/wire-gain.ts` + test, wired into `src/app/api/optimize/route.ts`.
+
+**Landed:** iOS #178 (`8f24a2c`), web #151 (`f6c5d9e`, deployed to production).
+
+**Tests run:** iOS merged `main` 359 / 1 skipped / 0 failures (iPhone 17, iOS
+26.5, device 9E2E82B6). Web `npx jest src/lib/ats` 20 suites / 201 passed / 0
+failures. eslint clean. Production `/api/optimize` returns a clean 401 to an
+unauthenticated probe. Every new test was confirmed failing before its fix.
+
+**NOT done / open**
+- No real signed-in optimization was run end to end. CI's "Activation path E2E"
+  uses placeholder Supabase credentials and stubs `/api/public/ats-check`, so
+  nothing automated reaches the real endpoint. Founder retry is the check.
+- `ATSSuggestion.estimatedGain` and the `decodeInt(for:)` helper in
+  `DomainModels.swift` still use the trapping `Int(_:)` on a Double. Same
+  latent crash, left alone to keep #178 tight. Flagged as a follow-up task.
+- `Workers Builds: match1resume1to1job` fails on the web repo. Pre-existing:
+  red on every one of the last 6 commits, well before this change. A
+  permanently red check trains everyone to ignore CI and is worth fixing or
+  removing.
+
+**Next action:** retry an optimization in the installed app. The server fix
+means the current build should already work, with no App Store release needed.
