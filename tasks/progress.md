@@ -1,5 +1,43 @@
 # Project Progress
 
+## 2026-08-31 — Every optimization on production has failed since 2026-08-28
+
+**The error the founder hit is a contract break, not a flake.**
+`ResumeOptimizationService.optimize` reports "We couldn't parse the
+optimization response" on exactly one condition: HTTP 2xx whose body fails to
+decode as `OptimizeResponse`. The body that fails is the `fit` block
+`/api/optimize` has returned since 2026-07-26, and the field that fails it is
+`fit.topGaps[].estimatedGain`.
+
+**Cause is on the web side, three days before the report.** Web WP-59 S1
+(#147, merged 2026-08-28, on `origin/main`) rewrote `estimateImpact` to return
+`Math.round(value * 10) / 10`; its own comment states every real value lands
+between 0.36 and 3.75, and `expandKeywordSuggestion` floors split gains to one
+decimal too. Before WP-59 a 100x scaling bug pushed every suggestion past a
+clamp of 15, so every gain serialized as the integer `15`. That accident is the
+only reason `OptimizeFitGap.estimatedGain: Int?` ever decoded. A fractional
+gain does not degrade one field: `JSONDecoder` throws `dataCorrupted`
+("Number 2.5 is not representable in Swift") and the whole response is lost,
+taking the completed, paid-for optimization with it.
+
+**Fixed on the client, and the fix is one struct.** `OptimizeFitGap` now uses
+the lenient Int-or-Double decoder that `ATSSuggestion` two structs above it
+already had for the same `estimated_gain` field. Rounds for display, nil when
+absent, integers unchanged. Verified red before green: the new test failed with
+the exact production error, then passed. Full suite 356 tests, 1 skipped,
+0 failures on iPhone 17 / iOS 26.5 (9E2E82B6).
+
+**The client fix does not reach anyone until a build ships.** Installed App
+Store users stay broken until a new binary is reviewed and released. The
+one-line server mitigation (`Math.round(s.estimated_gain)` in
+`src/app/api/optimize/route.ts`) fixes every already-installed app on deploy
+and is the faster path; it is NOT done, and is awaiting the founder's go-ahead
+in the web repo.
+
+**Why the suite never caught it:** `OptimizeFitResponseTests` hardcoded
+`"estimatedGain": 6` and `4`. The fixture was written 2026-07-26 and never
+tracked the backend.
+
 ## 2026-08-14 — The three missing funnel events, and a `main` that could not build
 
 **`main` has been unbuildable since 2026-08-13.** `4df5860` ("Merge #141: make
@@ -652,7 +690,7 @@ Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026
 Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
 Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
 Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
-Last Updated: 2026-08-04
+Last Updated: 2026-08-31
 
 **D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
 

@@ -13,6 +13,13 @@
 
 ---
 
+**Date:** 2026-08-31
+**Category:** API
+**Rule:** Never decode a server-side *score gain* or other computed metric into a non-optional-typed `Int`; use the lenient Int-or-Double shape `ATSSuggestion` already uses. A fractional number does not degrade one field, it throws `dataCorrupted` ("Number 2.5 is not representable in Swift") and fails the **entire** response decode.
+**Why:** Every optimization on production failed with "We couldn't parse the optimization response" from 2026-08-28. `/api/optimize` returns `fit.topGaps[].estimatedGain`, and web WP-59 S1 (#147) changed `estimateImpact` to return `Math.round(value * 10) / 10` (every real value between 0.36 and 3.75). Before WP-59 every gain was clamped to a flat integer 15, which is the only reason `OptimizeFitGap.estimatedGain: Int?` ever worked. `OptimizeFitResponseTests` stayed green throughout because its fixture hardcoded `"estimatedGain": 6` and `4`. **A fixture that predates a backend change is not a contract test.** Two structs away, `ATSSuggestion` already had the lenient Int-or-Double decoder for the same `estimated_gain` field, so the pattern existed and this struct was simply never given it. Also note the blast radius: a client-side decode fix cannot reach installed users until a new App Store build ships, so the same class of break is better mitigated by rounding on the server first.
+
+---
+
 **Date:** 2026-08-13
 **Category:** TestFlight
 **Rule:** Never infer the App Store Connect review build from the repository's current version metadata; cite the exact ASC candidate when verified, otherwise state that the build is unconfirmed and label telemetry-based clues as inference.
