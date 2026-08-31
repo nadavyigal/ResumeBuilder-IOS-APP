@@ -124,7 +124,11 @@ struct ATSAuthScoreResult: Codable, Sendable {
             }
             if let value = try? c.decode(Double.self, forKey: key) {
                 let scaled = value <= 1 ? value * 100 : value
-                return Int(scaled.rounded())
+                // `Int(exactly:)`, not `Int(_:)`. The unlabelled initializer
+                // TRAPS on a value outside `Int`'s range or on NaN, which would
+                // turn a malformed number from the network into a crash instead
+                // of a missing field.
+                return Int(exactly: scaled.rounded())
             }
             return nil
         }
@@ -226,7 +230,8 @@ struct ATSSubScores: Codable, Sendable, Equatable {
             return value
         }
         if let value = try? container.decode(Double.self, forKey: key) {
-            return Int(value.rounded())
+            // `Int(exactly:)`: `Int(_:)` traps on an out-of-range or NaN value.
+            return Int(exactly: value.rounded())
         }
         return nil
     }
@@ -263,8 +268,13 @@ struct ATSAuthSuggestion: Codable, Identifiable, Sendable {
         quickWin = try c.decodeIfPresent(Bool.self, forKey: .quickWin)
         if let ig = try? c.decode(Int.self, forKey: .estimatedGain) {
             estimatedGain = ig
-        } else if let d = try? c.decode(Double.self, forKey: .estimatedGain) {
-            estimatedGain = Int(d.rounded())
+        } else if let d = try? c.decode(Double.self, forKey: .estimatedGain),
+                  // `Int(exactly:)`, not `Int(_:)`. The unlabelled initializer
+                  // TRAPS on a value outside `Int`'s range, which would turn a
+                  // malformed number from the network into a crash instead of a
+                  // missing field. This returns nil there instead.
+                  let rounded = Int(exactly: d.rounded()) {
+            estimatedGain = rounded
         } else {
             estimatedGain = nil
         }
@@ -322,9 +332,12 @@ struct ATSRescanResponse: Decodable, Sendable {
             let c = try decoder.singleValueContainer()
             if let i = try? c.decode(Int.self) {
                 value = i
-            } else if let d = try? c.decode(Double.self) {
-                let scaled = d <= 1 ? d * 100 : d
-                value = Int(scaled.rounded())
+            } else if let d = try? c.decode(Double.self),
+                      // `Int(exactly:)`: `Int(_:)` traps out of range. `value`
+                      // is not optional here, so an unusable number falls
+                      // through to the throw below rather than crashing.
+                      let scaled = Int(exactly: (d <= 1 ? d * 100 : d).rounded()) {
+                value = scaled
             } else {
                 throw DecodingError.dataCorruptedError(in: c, debugDescription: "Cannot decode ATS score fraction")
             }
@@ -507,12 +520,19 @@ struct OptimizationHistoryItem: Codable, Identifiable, Sendable {
 
 private extension KeyedDecodingContainer where K == DynamicCodingKey {
     func decodeString(for keys: [String]) throws -> String? {
+        // `try?`, not `try`. `decodeIfPresent` THROWS (it does not return nil)
+        // when the key is present but holds the wrong shape -- a fractional or
+        // out-of-range number for `Int`, a number for `String`. With a bare
+        // `try` the first branch aborted the whole decode and the fallback
+        // branches below were unreachable, which is the same failure mode as
+        // the fractional `estimated_gain` break. `try?` lets a key that does
+        // not fit one representation fall through to the next.
         for key in keys {
             let codingKey = DynamicCodingKey(key)
-            if let value = try decodeIfPresent(String.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(String.self, forKey: codingKey) {
                 return value
             }
-            if let value = try decodeIfPresent(Int.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Int.self, forKey: codingKey) {
                 return String(value)
             }
         }
@@ -520,15 +540,22 @@ private extension KeyedDecodingContainer where K == DynamicCodingKey {
     }
 
     func decodePercent(for keys: [String]) throws -> Int? {
+        // `try?`, not `try`. `decodeIfPresent` THROWS (it does not return nil)
+        // when the key is present but holds the wrong shape -- a fractional or
+        // out-of-range number for `Int`, a number for `String`. With a bare
+        // `try` the first branch aborted the whole decode and the fallback
+        // branches below were unreachable, which is the same failure mode as
+        // the fractional `estimated_gain` break. `try?` lets a key that does
+        // not fit one representation fall through to the next.
         for key in keys {
             let codingKey = DynamicCodingKey(key)
-            if let value = try decodeIfPresent(Int.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Int.self, forKey: codingKey) {
                 return normalizePercent(Double(value))
             }
-            if let value = try decodeIfPresent(Double.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Double.self, forKey: codingKey) {
                 return normalizePercent(value)
             }
-            if let value = try decodeIfPresent(String.self, forKey: codingKey),
+            if let value = try? decodeIfPresent(String.self, forKey: codingKey),
                let number = Double(value) {
                 return normalizePercent(number)
             }
@@ -538,17 +565,32 @@ private extension KeyedDecodingContainer where K == DynamicCodingKey {
 
     private func normalizePercent(_ value: Double) -> Int {
         let percent = value <= 1 ? value * 100 : value
-        return min(100, max(0, Int(percent.rounded())))
+        // Clamp in `Double` space BEFORE converting. `Int(_:)` traps on a value
+        // outside `Int`'s range or on NaN, so a clamp applied after the
+        // conversion never runs on the input that needs it. `max(0, .nan)` is
+        // 0 and `min(100, 1e308)` is 100, so `clamped` is always in 0...100.
+        let clamped = min(100, max(0, percent))
+        return Int(exactly: clamped.rounded()) ?? 0
     }
 
     func decodeInt(for keys: [String]) throws -> Int? {
+        // `try?`, not `try`. `decodeIfPresent` THROWS (it does not return nil)
+        // when the key is present but holds the wrong shape -- a fractional or
+        // out-of-range number for `Int`, a number for `String`. With a bare
+        // `try` the first branch aborted the whole decode and the fallback
+        // branches below were unreachable, which is the same failure mode as
+        // the fractional `estimated_gain` break. `try?` lets a key that does
+        // not fit one representation fall through to the next.
         for key in keys {
             let codingKey = DynamicCodingKey(key)
-            if let value = try decodeIfPresent(Int.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Int.self, forKey: codingKey) {
                 return value
             }
-            if let value = try decodeIfPresent(Double.self, forKey: codingKey) {
-                return Int(value.rounded())
+            if let value = try? decodeIfPresent(Double.self, forKey: codingKey) {
+                // `Int(exactly:)`: `Int(_:)` traps on an out-of-range or NaN
+                // value. A number we cannot represent is a missing field, not
+                // a crash.
+                return Int(exactly: value.rounded())
             }
         }
         return nil
@@ -747,9 +789,10 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
         contact = try c.decodeIfPresent(JSONValue.self, forKey: .contact)
         if let intScore = try? c.decode(Int.self, forKey: .atsScore) {
             atsScore = intScore
-        } else if let d = try? c.decode(Double.self, forKey: .atsScore) {
-            let scaled = d <= 1 ? d * 100 : d
-            atsScore = Int(scaled.rounded())
+        } else if let d = try? c.decode(Double.self, forKey: .atsScore),
+                  // `Int(exactly:)`: `Int(_:)` traps out of range.
+                  let scaled = Int(exactly: (d <= 1 ? d * 100 : d).rounded()) {
+            atsScore = scaled
         } else {
             atsScore = nil
         }
@@ -1741,10 +1784,16 @@ struct ExpertWorkflowApplyResponseDTO: Decodable, Sendable {
         updatedFields = try c.decodeIfPresent([String].self, forKey: .updatedFields) ?? []
         atsImpact = try c.decodeIfPresent(ExpertAtsImpactResult.self, forKey: .atsImpact)
         applyMode = try c.decodeIfPresent(String.self, forKey: .applyMode)
-        if let sid = try c.decodeIfPresent(Int.self, forKey: .selectionIndex) {
+        // `try?` on the `Int` branch: `decodeIfPresent` throws rather than
+        // returning nil when the key holds a fractional or out-of-range
+        // number, so a bare `try` here aborted the whole apply response and
+        // left the `Double` branch below unreachable.
+        if let sid = try? c.decodeIfPresent(Int.self, forKey: .selectionIndex) {
             selectionIndex = sid
-        } else if let dn = try c.decodeIfPresent(Double.self, forKey: .selectionIndex) {
-            selectionIndex = Int(dn.rounded())
+        } else if let dn = try? c.decodeIfPresent(Double.self, forKey: .selectionIndex),
+                  // `Int(exactly:)`: `Int(_:)` traps out of range.
+                  let rounded = Int(exactly: dn.rounded()) {
+            selectionIndex = rounded
         } else {
             selectionIndex = nil
         }

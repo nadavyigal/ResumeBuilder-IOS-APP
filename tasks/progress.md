@@ -1,5 +1,50 @@
 # Project Progress
 
+## 2026-08-31 — The #178 trap, closed everywhere it existed
+
+**Same defect, ten more sites.** PR #178 replaced `Int(_:)` with
+`Int(exactly:)` in `OptimizeFitGap` because the unlabelled initializer TRAPS
+(kills the process; it does not throw) on a `Double` outside `Int`'s range or
+on NaN. That exact line survived at eight more decode sites in
+`DomainModels.swift` — `ATSAuthSuggestion.estimated_gain` (the one reported),
+`ATSAuthScoreResult`, `ATSSubScores`, `ATSRescanResponse.LossyCodingInt`,
+`ApplicationItem.ats_score`, `ExpertWorkflowApplyResponseDTO.selection_index`,
+`decodeInt(for:)` and `normalizePercent` — plus a byte-identical
+`normalizePercent` in `FitVerdict.swift`. All of them decode untrusted network
+numbers, so a malformed value from the backend was a crash, not a dropped
+field.
+
+**`normalizePercent` was clamping too late.** It read
+`min(100, max(0, Int(percent.rounded())))`, so the clamp ran *after* the
+conversion and never protected the only input that needed it. It now clamps in
+`Double` space first, which also absorbs NaN (`max(0, .nan)` is 0).
+
+**The bigger find: the trap was hiding dead code.** `decodeInt(for:)`,
+`decodePercent(for:)` and `decodeString(for:)` (both files), and
+`selection_index`, used a bare `try decodeIfPresent(...)`. `decodeIfPresent`
+THROWS when a key is present but holds the wrong shape — it returns nil only
+for absent/null — so the first branch aborted the whole decode and every
+fallback beneath it was unreachable. These helpers exist specifically to accept
+fractional numbers and could never reach that code: `decodePercent` could not
+decode the `0.82` it was written for, and a fractional `estimated_gain` killed
+`ATSOptimizationBlocker` the same way it killed `OptimizeFitGap` on production.
+Switching to `try?` is what makes the `Int(exactly:)` fix reachable at all.
+Confirmed empirically with a standalone `swift` script, not by reading.
+
+**Status:** Landed on `claude/beautiful-benz-4d49f6`. Next-build-only, like
+#178 — installed App Store users are unaffected until a binary ships.
+**Last Validation:** 2026-08-31 — new `DecoderNumberSafetyTests` 18/18; full
+suite **377 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5)
+with `-testLanguage en -testRegion US`. The `selection_index` test failed on
+the first run against a real thrown `DecodingError`, which is how the bare-`try`
+reachability bug was found; it passes after the `try?` fix. No UI changed, so
+no simulator walk.
+**Not done:** the ~15 `Int(x.rounded())` sites in view/formatting code
+(`ExpertReportView`, `OptimizedResumeViewModel`, `AppliedChangesSection` and
+others). Those read already-decoded values rather than network input, so they
+are a smaller risk and a separate story.
+**Last Updated:** 2026-08-31
+
 ## 2026-08-31 — Every optimization on production has failed since 2026-08-28
 
 **The error the founder hit is a contract break, not a flake.**

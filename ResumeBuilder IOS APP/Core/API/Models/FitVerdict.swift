@@ -174,9 +174,16 @@ private extension KeyedDecodingContainer where K == DynamicCodingKey {
     }
 
     func decodeString(for keys: [String]) throws -> String? {
+        // `try?`, not `try`. `decodeIfPresent` THROWS (it does not return nil)
+        // when the key is present but holds the wrong shape -- a fractional or
+        // out-of-range number for `Int`, a number for `String`. With a bare
+        // `try` the first branch aborted the whole decode and the fallback
+        // branches below were unreachable, which is the same failure mode as
+        // the fractional `estimated_gain` break. `try?` lets a key that does
+        // not fit one representation fall through to the next.
         for key in keys {
             let codingKey = DynamicCodingKey(key)
-            if let value = try decodeIfPresent(String.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(String.self, forKey: codingKey) {
                 let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
                 return trimmed.isEmpty ? nil : trimmed
             }
@@ -185,15 +192,22 @@ private extension KeyedDecodingContainer where K == DynamicCodingKey {
     }
 
     func decodePercent(for keys: [String]) throws -> Int? {
+        // `try?`, not `try`. `decodeIfPresent` THROWS (it does not return nil)
+        // when the key is present but holds the wrong shape -- a fractional or
+        // out-of-range number for `Int`, a number for `String`. With a bare
+        // `try` the first branch aborted the whole decode and the fallback
+        // branches below were unreachable, which is the same failure mode as
+        // the fractional `estimated_gain` break. `try?` lets a key that does
+        // not fit one representation fall through to the next.
         for key in keys {
             let codingKey = DynamicCodingKey(key)
-            if let value = try decodeIfPresent(Int.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Int.self, forKey: codingKey) {
                 return normalizePercent(Double(value))
             }
-            if let value = try decodeIfPresent(Double.self, forKey: codingKey) {
+            if let value = try? decodeIfPresent(Double.self, forKey: codingKey) {
                 return normalizePercent(value)
             }
-            if let value = try decodeIfPresent(String.self, forKey: codingKey),
+            if let value = try? decodeIfPresent(String.self, forKey: codingKey),
                let number = Double(value) {
                 return normalizePercent(number)
             }
@@ -212,7 +226,12 @@ private extension KeyedDecodingContainer where K == DynamicCodingKey {
 
     private func normalizePercent(_ value: Double) -> Int {
         let percent = value <= 1 ? value * 100 : value
-        return min(100, max(0, Int(percent.rounded())))
+        // Clamp in `Double` space BEFORE converting. `Int(_:)` traps on a value
+        // outside `Int`'s range or on NaN, so a clamp applied after the
+        // conversion never runs on the input that needs it. `max(0, .nan)` is
+        // 0 and `min(100, 1e308)` is 100, so `clamped` is always in 0...100.
+        let clamped = min(100, max(0, percent))
+        return Int(exactly: clamped.rounded()) ?? 0
     }
 }
 
