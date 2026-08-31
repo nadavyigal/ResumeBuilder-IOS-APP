@@ -1,5 +1,43 @@
 # Project Progress
 
+## 2026-08-31 — Every optimization on production has failed since 2026-08-28
+
+**The error the founder hit is a contract break, not a flake.**
+`ResumeOptimizationService.optimize` reports "We couldn't parse the
+optimization response" on exactly one condition: HTTP 2xx whose body fails to
+decode as `OptimizeResponse`. The body that fails is the `fit` block
+`/api/optimize` has returned since 2026-07-26, and the field that fails it is
+`fit.topGaps[].estimatedGain`.
+
+**Cause is on the web side, three days before the report.** Web WP-59 S1
+(#147, merged 2026-08-28, on `origin/main`) rewrote `estimateImpact` to return
+`Math.round(value * 10) / 10`; its own comment states every real value lands
+between 0.36 and 3.75, and `expandKeywordSuggestion` floors split gains to one
+decimal too. Before WP-59 a 100x scaling bug pushed every suggestion past a
+clamp of 15, so every gain serialized as the integer `15`. That accident is the
+only reason `OptimizeFitGap.estimatedGain: Int?` ever decoded. A fractional
+gain does not degrade one field: `JSONDecoder` throws `dataCorrupted`
+("Number 2.5 is not representable in Swift") and the whole response is lost,
+taking the completed, paid-for optimization with it.
+
+**Fixed on the client, and the fix is one struct.** `OptimizeFitGap` now uses
+the lenient Int-or-Double decoder that `ATSSuggestion` two structs above it
+already had for the same `estimated_gain` field. Rounds for display, nil when
+absent, integers unchanged. Verified red before green: the new test failed with
+the exact production error, then passed. Full suite 356 tests, 1 skipped,
+0 failures on iPhone 17 / iOS 26.5 (9E2E82B6).
+
+**The client fix does not reach anyone until a build ships.** Installed App
+Store users stay broken until a new binary is reviewed and released. The
+one-line server mitigation (`Math.round(s.estimated_gain)` in
+`src/app/api/optimize/route.ts`) fixes every already-installed app on deploy
+and is the faster path; it is NOT done, and is awaiting the founder's go-ahead
+in the web repo.
+
+**Why the suite never caught it:** `OptimizeFitResponseTests` hardcoded
+`"estimatedGain": 6` and `4`. The fixture was written 2026-07-26 and never
+tracked the backend.
+
 ## 2026-08-14 — The three missing funnel events, and a `main` that could not build
 
 **`main` has been unbuildable since 2026-08-13.** `4df5860` ("Merge #141: make

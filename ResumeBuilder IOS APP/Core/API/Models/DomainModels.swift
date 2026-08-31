@@ -1184,8 +1184,44 @@ struct OptimizeFitPreview: Codable, Sendable {
 
 struct OptimizeFitGap: Codable, Sendable {
     let title: String?
+    /// Points this gap is worth, rounded for display.
+    ///
+    /// The wire value is NOT an integer and has not been one since WP-59 S1
+    /// (web #147, 2026-08-28): `estimateImpact` returns
+    /// `Math.round(value * 10) / 10`, and every real value lands between 0.36
+    /// and 3.75. Decoding straight into `Int` made `JSONDecoder` throw
+    /// "Number 2.5 is not representable in Swift", a `dataCorrupted` error
+    /// that failed the WHOLE `OptimizeResponse`, so a fractional gap in a
+    /// preview block took down the entire optimization with
+    /// "We couldn't parse the optimization response."
+    ///
+    /// Same lenient shape `ATSSuggestion` above already uses for
+    /// `estimated_gain`; this struct was simply never given it.
     let estimatedGain: Int?
     let category: String?
+
+    init(title: String?, estimatedGain: Int?, category: String?) {
+        self.title = title
+        self.estimatedGain = estimatedGain
+        self.category = category
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case title, estimatedGain, category
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        category = try c.decodeIfPresent(String.self, forKey: .category)
+        if let intGain = try? c.decode(Int.self, forKey: .estimatedGain) {
+            estimatedGain = intGain
+        } else if let doubleGain = try? c.decode(Double.self, forKey: .estimatedGain) {
+            estimatedGain = Int(doubleGain.rounded())
+        } else {
+            estimatedGain = nil
+        }
+    }
 }
 
 struct TailorResponse: Codable, Sendable {

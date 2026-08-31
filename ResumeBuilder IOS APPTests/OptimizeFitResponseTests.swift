@@ -96,4 +96,69 @@ final class OptimizeFitResponseTests: XCTestCase {
             : .optimizationReview(reviewId: legacy.reviewId!)
         XCTAssertEqual(legacyRoute, .optimizationReview(reviewId: "rev_9"))
     }
+
+    /// The production break, 2026-08-31.
+    ///
+    /// `estimatedGain` is not an integer and has not been one since WP-59 S1
+    /// (web #147, 2026-08-28). `estimateImpact` now returns
+    /// `Math.round(value * 10) / 10`, and its own comment states every real
+    /// value lands between 0.36 and 3.75. `expandKeywordSuggestion` floors the
+    /// split gain to one decimal as well. Before WP-59 every suggestion was
+    /// clamped to a flat integer 15, which is the only reason `Int?` ever
+    /// worked and the only reason the fixture above still passes.
+    ///
+    /// A fractional gain makes `JSONDecoder` throw "Number 2.5 is not
+    /// representable in Swift", which fails the whole `OptimizeResponse`
+    /// decode, which `ResumeOptimizationService.optimize` catches as
+    /// `DecodingError` and reports as "We couldn't parse the optimization
+    /// response." Every optimization on production ends there.
+    func testAFractionalGainDoesNotKillTheWholeResponse() throws {
+        let live = """
+        {
+          "reviewId": "rev_777",
+          "nextStep": "review",
+          "fit": {
+            "currentScore": 34,
+            "potentialScore": 51,
+            "delta": 17,
+            "displayScores": true,
+            "confidence": 0.74,
+            "scoreVersion": "ats_v2.1_wp59",
+            "topGaps": [
+              { "title": "Add Kubernetes in context on your resume", "estimatedGain": 2.5, "category": "keywords" },
+              { "title": "Add at least one metric to your most recent role", "estimatedGain": 3.75, "category": "metrics" },
+              { "title": "Add Terraform in context on your resume", "estimatedGain": 0.6, "category": "keywords" }
+            ]
+          }
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(OptimizeResponse.self, from: live)
+
+        XCTAssertEqual(decoded.reviewId, "rev_777", "the run must survive a fractional gain")
+        XCTAssertEqual(decoded.fit?.currentScore, 34)
+        XCTAssertEqual(decoded.fit?.topGaps?.count, 3)
+        // Rounded for display, matching the ATSSuggestion decoder that already
+        // solved this one struct away.
+        XCTAssertEqual(decoded.fit?.topGaps?.first?.estimatedGain, 3, "2.5 rounds to 3")
+        XCTAssertEqual(decoded.fit?.topGaps?[1].estimatedGain, 4, "3.75 rounds to 4")
+        XCTAssertEqual(decoded.fit?.topGaps?[2].estimatedGain, 1, "0.6 rounds to 1")
+    }
+
+    /// An integer gain still decodes: older backends and whole-number values.
+    func testAnIntegerGainStillDecodes() throws {
+        let json = #"{"reviewId":"r","fit":{"topGaps":[{"title":"t","estimatedGain":6,"category":"metrics"}]}}"#
+            .data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(OptimizeResponse.self, from: json)
+        XCTAssertEqual(decoded.fit?.topGaps?.first?.estimatedGain, 6)
+    }
+
+    /// A gap with no gain at all is not a decode failure.
+    func testAMissingGainIsNotAFailure() throws {
+        let json = #"{"reviewId":"r","fit":{"topGaps":[{"title":"t","category":"metrics"}]}}"#
+            .data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(OptimizeResponse.self, from: json)
+        XCTAssertEqual(decoded.fit?.topGaps?.first?.title, "t")
+        XCTAssertNil(decoded.fit?.topGaps?.first?.estimatedGain)
+    }
 }
