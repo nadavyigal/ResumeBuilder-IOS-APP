@@ -121,13 +121,19 @@ struct ExpertReportView: View {
     }
 
     private func pct(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        return "\(Int(value.rounded()))%"
+        // Deliberately NOT `displayPercent`: this field has always been
+        // rendered unscaled, and folding in the 0...1 rule would turn a genuine
+        // score of 1.0 into "100%". The trap is what needed fixing, not the
+        // wire format -- an unrepresentable value reads as "no value".
+        guard let value, let rounded = value.safeRoundedInt else { return "—" }
+        return "\(rounded)%"
     }
 
     private func pts(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        let rounded = Int(value.rounded())
+        // A signed points delta, not a percentage, so this must NOT be clamped
+        // to 0...100. An unrepresentable value has no honest rendering, so it
+        // reads as "no value" rather than as a made-up number.
+        guard let value, let rounded = value.safeRoundedInt else { return "—" }
         if rounded > 0 { return "+\(rounded) pts" }
         return "\(rounded) pts"
     }

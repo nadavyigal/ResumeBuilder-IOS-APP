@@ -120,7 +120,7 @@ enum ExpertResumeSectionMapping {
 
     private static func intFromFlexible(_ val: JSONValue?) -> Int? {
         guard let val else { return nil }
-        if case .number(let n) = val { return Int(n.rounded()) }
+        if case .number(let n) = val { return n.safeRoundedInt }
         if case .string(let s) = val { return Int(s) }
         return nil
     }

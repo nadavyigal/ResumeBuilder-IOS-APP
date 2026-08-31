@@ -1,5 +1,42 @@
 # Project Progress
 
+## 2026-08-31 — The Int(_:) trap, swept out of the view layer too
+
+**Follow-up to the same-day decoder sweep; the last 16 sites.** `Int(_:)` on a
+`Double` traps on an out-of-range or NaN value. After the decoders were fixed,
+16 more sites remained across 10 files. Three of them turned out to be
+network-reachable rather than "just formatting": `newAtsScore` and
+`PendingScoreDecrease.kept/measured` read straight off the expert apply DTO,
+and `intFromFlexible` in `ExpertReportParsing`/`ExpertResumeSectionMapping`
+converts a raw `JSONValue` number.
+
+**One primitive instead of 26 copies.** `Core/Extensions/Double+SafeInt.swift`
+adds `safeRoundedInt` (nil when unrepresentable) and `displayPercent` (scales
+`0...1`, clamps `0...100` in `Double` space *before* converting). The bug
+recurred this many times because no shared helper existed. Both members are
+`nonisolated` — the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`,
+so an unannotated `extension Double` member will not compile inside
+`ExpertWorkflowService`.
+
+**The trap fix must not smuggle in a scaling change.** Sweeping
+`displayPercent` everywhere silently altered four sites that had never applied
+the `0...1` rule. Backed out: `ExpertAtsImpactResult.kept/measured` feeds the
+"would lower your match score from %d%% to %d%%" dialog, so scaling would report
+a genuine 1.0 as "100%" in a decision the user acts on; its siblings
+`before`/`after` render unscaled in `ExpertReportView.pct`, which settled it.
+`pts` is a signed delta and must never be clamped to `0...100`. Sites that
+already scaled use `displayPercent`; sites that did not use `safeRoundedInt`.
+
+**Status:** Landed on `claude/beautiful-benz-4d49f6`, same branch/PR as the
+decoder sweep. `grep -rn "Int(.*rounded()"` now matches only a doc comment.
+**Last Validation:** 2026-08-31 — new `DoubleSafeIntTests` 12/12; full suite
+**389 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5) with
+`-testLanguage en -testRegion US`, plus swift-testing 5/5.
+**Not done:** no simulator walk. The changed views render the same string for
+every representable value, so there is nothing visual to confirm; the behaviour
+that changed is only reachable with a malformed backend number.
+**Last Updated:** 2026-08-31
+
 ## 2026-08-31 — The #178 trap, closed everywhere it existed
 
 **Same defect, ten more sites.** PR #178 replaced `Int(_:)` with

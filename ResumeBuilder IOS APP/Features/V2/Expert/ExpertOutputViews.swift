@@ -322,7 +322,7 @@ struct ExpertATSReportView: View {
                         .font(.appCaption.weight(.semibold))
                         .foregroundStyle(AppColors.textSecondary)
                     Spacer()
-                    Text("\(Int(score.rounded()))%")
+                    Text(scoreLabel(score))
                         .font(.appSubheadline.weight(.bold))
                         .foregroundStyle(AppColors.textPrimary)
                 }
@@ -386,8 +386,12 @@ struct ExpertATSReportView: View {
     }
 
     private func scoreLabel(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        return "\(Int(value.rounded()))%"
+        // Deliberately NOT `displayPercent`: this field has always been
+        // rendered unscaled, and folding in the 0...1 rule would turn a genuine
+        // score of 1.0 into "100%". The trap is what needed fixing, not the
+        // wire format -- an unrepresentable value reads as "no value".
+        guard let value, let rounded = value.safeRoundedInt else { return "—" }
+        return "\(rounded)%"
     }
 }
 

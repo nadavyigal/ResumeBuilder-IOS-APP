@@ -594,7 +594,7 @@ final class OptimizedResumeViewModel {
         // score. No measurement means no update (WP-45 D8).
         guard let reported = applyResult.newAtsScore else { return }
 
-        let score = Int((reported <= 1 ? reported * 100 : reported).rounded())
+        let score = reported.displayPercent
         switch stage {
         case .expert:
             atsScoreAfterExpert = score
@@ -1256,6 +1256,10 @@ struct PendingScoreDecrease: Identifiable, Equatable, Sendable {
     let measured: Double
 
     var id: String { "\(runId ?? "none"):\(measured)" }
-    var keptPercent: Int { Int((kept ?? 0).rounded()) }
-    var measuredPercent: Int { Int(measured.rounded()) }
+    // `safeRoundedInt`, not `Int(_:)`: both values arrive as `Double` on the
+    // apply response, so an out-of-range number from the backend would trap.
+    // Deliberately unscaled, matching the sibling `before`/`after` fields on
+    // `ExpertAtsImpactResult` and the message in `ExpertWorkflowService`.
+    var keptPercent: Int { (kept ?? 0).safeRoundedInt ?? 0 }
+    var measuredPercent: Int { measured.safeRoundedInt ?? 0 }
 }
