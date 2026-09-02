@@ -1,5 +1,21 @@
 # Project Progress
 
+## 2026-09-02 — PR #142 rebuilt on main with deterministic auth tests
+
+The useful commit from the stale stacked PR was replayed on current `main`; its
+junk WIP commit and obsolete progress history were dropped. `AppState` now
+depends on an injected `AuthClient` for restore, clear, refresh, and account
+deletion while anonymous sign-in remains on the concrete service. The three weak
+auth tests now exercise app code without a live Supabase request.
+
+**Status:** Ready to merge after focused tests and the integrated release suite.
+**Current Phase:** Next App Store release integration.
+**Active Story:** Review and land the four open iOS PRs.
+**Last Completed Story:** Rebuilt PR #142 on current main without its stale base or WIP commit.
+**Next Recommended Story:** Resolve PR #147 against the current submit flow, then run the integrated release checks.
+**Blockers:** None.
+**Last Updated:** 2026-09-02
+
 ## 2026-08-31 — The Int(_:) trap, swept out of the view layer too
 
 **Follow-up to the same-day decoder sweep; the last 16 sites.** `Int(_:)` on a
