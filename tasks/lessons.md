@@ -15,6 +15,11 @@
 
 **Date:** 2026-09-02
 **Category:** Build
+**Rule:** When replaying an old feature branch after a safety parameter was added to a service call, resolve every call site explicitly to the current safe default and let a fresh build enumerate any stale signatures.
+**Why:** PR #147 predated `acceptScoreDecrease`; its production call and two protocol test doubles no longer compiled, and the nonisolated spies also could not decode the now-main-actor apply DTO. The production call keeps `false`; the spies match the full signature and run on `@MainActor` like the existing suite's expert spies.
+
+**Date:** 2026-09-02
+**Category:** Build
 **Rule:** When a `nonisolated` wire DTO constructs a model that inherits the app target's default `MainActor` isolation, mark only the construction method `@MainActor`; do not broaden the DTO or the model's isolation to silence the compiler.
 **Why:** Replaying PR #142 on current main failed because `GoTrueResponse.makeSession()` was nonisolated while `AuthSession.init` is main-actor isolated.
 
@@ -706,6 +711,14 @@
 **Category:** iOS / StoreKit
 **Rule:** Never spend a one-shot claim before the thing it is claiming for is known to have happened. `requestReview()` returns nothing and iOS may silently decline, so writing the per-version keychain claim before the call means a single suppressed presentation permanently costs that user their only prompt. Related: a TestFlight build cannot verify the review prompt at all — `resolveInternalTester` returns true for `sandboxReceipt`, and the gate excludes internal testers by design, so the walk must run on the App Store build.
 **Why:** Twelve days live with the prompt shipped and zero ratings. The gate at `ReviewPromptGate.swift:57` claims first and calls `requestReview()` second, from `.sheet(onDismiss:)` — during the share sheet's teardown, which is one of the documented conditions under which StoreKit declines to present. Before fixing it, read `app_store_review_requested` on the live version: if it is zero the prompt was never attempted and the problem is the funnel, not the gate.
+
+**Date:** 2026-08-09
+**Category:** Test
+**Rule:** To smoke a screen behind the optimization gate without an account, seed the simulator's `UserDefaults` directly: `xcrun simctl spawn <udid> defaults write <bundle-id> latest_optimization_id -string "smoke-opt-1"`, plus `defaults write <bundle-id> <key> -data <hex>` for any `Codable` record the screen reads, then launch with `--smoke-open-optimized-tab`. The preview pane shows its signed-out error, but every locally-derived affordance renders for real.
+**Why:** Story 2 of the export-package work changed the Optimized bottom bar, whose copy branches on `appState.submitPackageRecord(for:)`. `--smoke-open-optimized-tab` alone only selects the tab — with no `latestOptimizationId` the tab is the locked teaser, so the changed UI was unreachable. Seeding the record twice (once populated, once deleted) captured both copy branches on device in two launches. The bundle id is `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, which is not the `com.resumely.*` id a first guess reaches for; read it from the built `Info.plist` with PlistBuddy rather than guessing.
+**Clean up afterwards — this is the part that bites.** The XCTest host *is* the app, so it shares that defaults domain: a leftover `latest_optimization_id` failed `FirstSessionJourneyTests.testLateRecoverySuccessDoesNotRestoreOptimizationAfterSignOut` and `RuntimeServicesTests.testBootstrapClearsPersistedMockOptimizationId` on the very next full run, both asserting nil and both reading back `"smoke-opt-1"`. Two red tests with no code change between runs, in files nowhere near the diff. `defaults delete` every seeded key before the next suite run, and if a suite fails on a state assertion right after a seeded smoke, suspect the seed before the diff.
+
+---
 
 **Date:** 2026-08-09
 **Category:** Optimized résumé state

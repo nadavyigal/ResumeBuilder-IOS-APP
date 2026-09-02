@@ -26,6 +26,11 @@ struct OptimizedResumeView: View {
     // Download & copy
     @State private var isDownloadingPDF = false
     @State private var pdfTempURL: URL? = nil
+    /// Everything the last export produced, résumé first. Drives the share sheet.
+    @State private var packageFileURLs: [URL] = []
+    @State private var exportIncludedCoverLetter = false
+    @State private var exportIncludedScreeningAnswers = false
+    @State private var exportCoverLetterFailed = false
     @State private var showPDFShare = false
     @State private var pendingReviewOptimizationId: String? = nil
     @State private var showCopyConfirmation = false
@@ -281,8 +286,8 @@ struct OptimizedResumeView: View {
             manualEditSheet
         }
         .sheet(isPresented: $showPDFShare, onDismiss: handlePDFShareDismissed) {
-            if let url = pdfTempURL {
-                ShareSheet(items: [url])
+            if !packageFileURLs.isEmpty {
+                ShareSheet(items: packageFileURLs)
                     .ignoresSafeArea()
             }
         }
@@ -694,7 +699,7 @@ struct OptimizedResumeView: View {
             }
 
             GradientButton(
-                title: "Preview & Export PDF",
+                title: "Export application package",
                 icon: "arrow.down.doc.fill",
                 isLoading: isDownloadingPDF
             ) {
@@ -702,10 +707,16 @@ struct OptimizedResumeView: View {
             }
             .disabled(viewModel.optimizationIdentifier == nil || isDownloadingPDF)
 
+            // What this export will carry, stated before the tap rather than after it.
+            Text(pendingPackageSummary)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             Button {
                 openSubmitPackage()
             } label: {
-                Label("Submit Package", systemImage: "paperplane.fill")
+                Label("Save this application to Me", systemImage: "tray.and.arrow.down.fill")
                     .font(.appSubheadline.weight(.semibold))
                     .foregroundStyle(AppColors.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 46)
@@ -1009,16 +1020,77 @@ struct OptimizedResumeView: View {
     }
 
     private func openSubmitPackage() {
-        submitVM = SubmitApplicationViewModel(resumeProvider: viewModel)
+        submitVM = SubmitApplicationViewModel(
+            resumeProvider: viewModel,
+            storedArtifacts: appState.submitPackageRecord(for: viewModel.optimizationIdentifier)
+        )
         showSubmitPackageSheet = true
+    }
+
+    /// Names the artifacts this optimization actually has, so Export never promises
+    /// something the share sheet will not contain.
+    private var pendingPackageSummary: LocalizedStringKey {
+        let record = appState.submitPackageRecord(for: viewModel.optimizationIdentifier)
+        switch (record?.hasCoverLetter == true, record?.hasScreeningAnswers == true) {
+        case (true, true):
+            return "Includes your résumé, cover letter, and screening answers."
+        case (true, false):
+            return "Includes your résumé and cover letter."
+        case (false, true):
+            return "Includes your résumé and screening answers."
+        case (false, false):
+            return "Résumé only. Write a cover letter in Expert to include one."
+        }
+    }
+
+    private var exportSuccessHeadline: LocalizedStringKey {
+        switch (exportIncludedCoverLetter, exportIncludedScreeningAnswers) {
+        case (true, true):
+            return "Exported: résumé, cover letter, screening answers"
+        case (true, false):
+            return "Exported: résumé and cover letter"
+        case (false, true):
+            return "Exported: résumé and screening answers"
+        case (false, false):
+            return "Résumé exported"
+        }
+    }
+
+    /// Only when there is genuinely no letter to attach. This state is also restored on
+    /// relaunch from the persisted export flag, where the in-memory result flags are all
+    /// false — without the record check it would tell a user who already has a cover
+    /// letter that they have none.
+    private var shouldOfferCoverLetterAfterExport: Bool {
+        !exportIncludedCoverLetter
+            && appState.submitPackageRecord(for: viewModel.optimizationIdentifier)?.hasCoverLetter != true
     }
 
     private var exportSuccessActions: some View {
         VStack(spacing: AppSpacing.sm) {
-            Label("PDF exported successfully", systemImage: "checkmark.circle.fill")
+            Label(exportSuccessHeadline, systemImage: "checkmark.circle.fill")
                 .font(.appSubheadline.weight(.semibold))
                 .foregroundStyle(AppColors.accentTeal)
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+            // What shipped, and what did not. The founder's device walk exported after
+            // running the cover-letter mode and had no way to tell the letter was
+            // missing until they opened the files.
+            if exportCoverLetterFailed {
+                Text("Your cover letter could not be attached this time. The résumé was exported.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else if shouldOfferCoverLetterAfterExport {
+                Button {
+                    onSwitchTab(.expert)
+                } label: {
+                    Label("No cover letter yet — write one in Expert", systemImage: "arrow.right.circle")
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.accentTeal)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
 
             HStack(spacing: AppSpacing.md) {
                 Button {
@@ -1062,6 +1134,10 @@ struct OptimizedResumeView: View {
                 renderedHTML: renderedPreviewHTML
             )
             pdfTempURL = result.fileURL
+            packageFileURLs = result.packageFileURLs
+            exportIncludedCoverLetter = result.includedCoverLetter
+            exportIncludedScreeningAnswers = result.includedScreeningAnswers
+            exportCoverLetterFailed = result.coverLetterFailed
             pendingReviewOptimizationId = result.optimizationId
             showPDFShare = true
             showExportSuccess = true
@@ -1077,6 +1153,7 @@ struct OptimizedResumeView: View {
     @MainActor
     private func handlePDFShareDismissed() {
         pdfTempURL = nil
+        packageFileURLs = []
         defer { pendingReviewOptimizationId = nil }
 
         guard let optimizationId = pendingReviewOptimizationId,
@@ -1342,6 +1419,26 @@ private struct SubmitApplicationSheet: View {
             ) {
                 Task {
                     await vm.submit(token: accessToken)
+                    // Anything this run generated becomes durable immediately, so the
+                    // next Export attaches it without waiting for a save to Me.
+                    if let package = vm.package {
+                        appState.rememberExpertArtifacts(
+                            for: package.optimizationId,
+                            coverLetterText: package.coverLetterText,
+                            coverLetterRunId: package.coverLetterRunId,
+                            coverLetterSelectionIndex: package.coverLetterSelectionIndex,
+                            screeningAnswers: package.screeningAnswers.map {
+                                SubmitPackageCachedScreeningAnswer(
+                                    id: $0.id,
+                                    question: $0.question,
+                                    answer: $0.answer,
+                                    evidenceUsed: $0.evidenceUsed,
+                                    confidenceNote: $0.confidenceNote
+                                )
+                            },
+                            screeningRunId: package.screeningRunId
+                        )
+                    }
                 }
             }
             .disabled(!vm.canSubmit)

@@ -39,7 +39,9 @@ final class ExpertModesViewModel {
     private(set) var optimizationId: String
     /// When `nil` (e.g. opened from **Track**), apply still runs on the server but local resume sections are not merged.
     private let resumeViewModel: OptimizedResumeViewModel?
-    private let service: ExpertWorkflowService
+    private let service: any ExpertWorkflowServiceProtocol
+    /// When `nil` (previews, tests that do not care), completed runs are not persisted.
+    private let appState: AppState?
 
     // Saved reports from GET /applications/:id/expert-reports
     private(set) var savedReports: [ApplicationExpertReportItem] = []
@@ -54,12 +56,14 @@ final class ExpertModesViewModel {
         optimizationId: String,
         resumeViewModel: OptimizedResumeViewModel?,
         applicationId: String? = nil,
-        service: ExpertWorkflowService = ExpertWorkflowService()
+        service: any ExpertWorkflowServiceProtocol = ExpertWorkflowService(),
+        appState: AppState? = nil
     ) {
         self.optimizationId = optimizationId
         self.resumeViewModel = resumeViewModel
         self.applicationId = applicationId
         self.service = service
+        self.appState = appState
         for t in ExpertWorkflowType.allCases {
             phaseByType[t] = .idle
         }
@@ -93,14 +97,16 @@ final class ExpertModesViewModel {
     }
 
     func seedReadyPhase(workflowType: ExpertWorkflowType, snapshot: ExpertWorkflowRunSnapshot) {
-        phaseByType[workflowType] = .ready(ExpertRunUIState(
+        let state = ExpertRunUIState(
             workflowType: workflowType,
             runId: snapshot.runId,
             status: snapshot.status,
             output: snapshot.output,
             missingEvidence: snapshot.missingEvidence,
             needsUserInput: snapshot.status == "needs_user_input"
-        ))
+        )
+        phaseByType[workflowType] = .ready(state)
+        persistArtifacts(for: workflowType, state: state)
     }
 
     func phase(for type: ExpertWorkflowType) -> ExpertCardPhase {
@@ -121,6 +127,9 @@ final class ExpertModesViewModel {
 
     func setSelectedVariantIndex(_ index: Int, for type: ExpertWorkflowType) {
         selectedVariantIndexByType[type] = index
+        if case .ready(let state) = phaseByType[type] {
+            persistArtifacts(for: type, state: state)
+        }
     }
 
     func run(_ type: ExpertWorkflowType, token: String?) async {
@@ -147,6 +156,7 @@ final class ExpertModesViewModel {
             )
             phaseByType[type] = .ready(state)
             initializeSelectionIfNeeded(for: type, parsedOutput: state.parsedOutput)
+            persistArtifacts(for: type, state: state)
         } catch ExpertWorkflowServiceError.premiumRequired(let message) {
             phaseByType[type] = .failed(message)
         } catch {
@@ -185,7 +195,8 @@ final class ExpertModesViewModel {
                 token: token,
                 selectionIndex: selectionIndex,
                 screeningSelectedIndices: screeningIndices,
-                selectedFields: selectedFields
+                selectedFields: selectedFields,
+                acceptScoreDecrease: false
             )
             if let resumeViewModel {
                 resumeViewModel.mergeExpertApply(workflowType: type, output: state.output, applyResult: dto)
@@ -244,6 +255,55 @@ final class ExpertModesViewModel {
         }
     }
 
+    /// Stores the standalone artifacts a completed run produced, so Export and Submit
+    /// can use them later instead of paying to generate them again.
+    ///
+    /// Deliberately keyed on the run completing, not on the user tapping Apply: the
+    /// 2026-08-09 device walk ran the cover-letter mode and reasonably expected the
+    /// letter in the export. For these two workflow types Apply mainly records a
+    /// server-side variant choice, so gating on it would reproduce that surprise.
+    /// Workflows that rewrite the résumé itself have no standalone artifact to store.
+    private func persistArtifacts(for type: ExpertWorkflowType, state: ExpertRunUIState) {
+        guard let appState else { return }
+        let parsed = state.parsedOutput
+
+        switch type {
+        case .coverLetterArchitect:
+            let index = clampedSelectionIndex(
+                selectedVariantIndexByType[type] ?? parsed.recommendedIndex,
+                count: parsed.coverLetterVariants.count
+            )
+            guard let index,
+                  let letter = parsed.coverLetterVariants[safe: index]?.letter,
+                  !letter.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else { return }
+            appState.rememberExpertArtifacts(
+                for: optimizationId,
+                coverLetterText: letter,
+                coverLetterRunId: state.runId,
+                coverLetterSelectionIndex: index
+            )
+        case .screeningAnswerStudio:
+            let answers = parsed.screeningAnswers
+            guard !answers.isEmpty else { return }
+            appState.rememberExpertArtifacts(
+                for: optimizationId,
+                screeningAnswers: answers.map {
+                    SubmitPackageCachedScreeningAnswer(
+                        id: $0.id,
+                        question: $0.question,
+                        answer: $0.answer,
+                        evidenceUsed: $0.evidenceUsed,
+                        confidenceNote: $0.confidenceNote
+                    )
+                },
+                screeningRunId: state.runId
+            )
+        default:
+            return
+        }
+    }
+
     private func initializeSelectionIfNeeded(for type: ExpertWorkflowType, parsedOutput: ExpertOutputParsed) {
         guard type == .professionalSummaryLab || type == .coverLetterArchitect else { return }
         let count = type == .professionalSummaryLab
@@ -256,6 +316,12 @@ final class ExpertModesViewModel {
         guard count > 0 else { return nil }
         let raw = index ?? 0
         return min(max(raw, 0), count - 1)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 
