@@ -1,5 +1,27 @@
 # Project Progress
 
+## 2026-09-02 — App Store version 1.5.0 release candidate
+
+Version 1.5.0 packages the four September 2 integrations already merged to
+`main`: full application-package export (résumé, existing cover letter, and
+screening answers), crash-safe numeric decoding and display conversion, and a
+deterministic authentication test seam. The founder-created App Store version
+and its marketing wording are preserved; only version-specific What's New copy
+will be added during submission preparation.
+
+Build 28 is selected because local archive evidence reaches 1.4.9 (26) and
+production telemetry proves 1.4.9 build 27 existed. The repository's stale
+build 26 therefore cannot be reused.
+
+**Status:** Automated release gates passed; App Store distribution export is waiting on macOS Keychain approval.
+**Current Phase:** Export, upload, TestFlight physical-device smoke, and ASC review preparation.
+**Active Story:** Validate and submit version 1.5.0 without overwriting founder-edited marketing metadata.
+**Last Completed Story:** All four open PRs merged and worktree cleanup completed.
+**Next Recommended Story:** Approve the Apple Distribution certificate prompt, upload build 28, then run the authenticated physical-device smoke.
+**Blockers:** macOS Keychain approval is required to export with Apple Distribution signing; authenticated physical-device smoke remains founder-controlled; final ASC review submission requires action-time confirmation.
+**Last Validation:** 2026-09-02 — 420 XCTest cases (1 skipped, 0 failures) plus Swift Testing 5/5; five iPhone 17 cold launches and one iPhone SE launch; signed Release archive/store validation passed; bundle 1.5.0 (28), correct bundle/team/Sign in with Apple entitlement, non-local API, zero bundled Markdown files.
+**Last Updated:** 2026-09-02
+
 ## 2026-09-02 — Four-PR cleanup is release-ready; #147 is the final merge vehicle
 
 PRs #180 and #173 merged cleanly. PR #142 was rebuilt from its one useful commit

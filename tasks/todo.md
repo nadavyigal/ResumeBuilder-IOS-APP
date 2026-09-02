@@ -5,7 +5,10 @@
 - [x] Rebuild PR #142 on current `main`, drop its junk WIP commit, pass 7 focused auth tests, and merge it.
 - [x] Rebuild PR #147 on current `main`, preserve newer analytics and score-decrease safeguards, pass 65 focused tests and the full 420-test suite, and smoke the changed Optimized UI.
 - [ ] Merge PR #147 after its refreshed GitHub checks pass.
-- [ ] Confirm the exact App Store marketing wording, choose the next marketing/build numbers against App Store Connect, then archive and run the physical TestFlight journey before submission.
+- [x] Merge PR #147 after its refreshed GitHub checks pass.
+- [x] Preserve the founder-edited App Store marketing wording and select version 1.5.0 (28), above every observed 1.4.9 build (through 27).
+- [ ] Pass the full simulator suite, signed Release archive, export validation, and release privacy/configuration audit.
+- [ ] Upload build 28, attach it to App Store version 1.5.0, add version-specific What's New notes, and stop for founder confirmation immediately before submission.
 
 ---
 

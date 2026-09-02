@@ -15,6 +15,16 @@
 
 **Date:** 2026-09-02
 **Category:** Build
+**Rule:** If Git reports truncated packfiles or an invalid base-tree object, stop committing in that object database and recover through a fresh clone; do not delete or rewrite shared packs while other worktrees and the founder's dirty checkout depend on them.
+**Why:** The 1.5.0 release commit failed at tree construction because two shared packfiles were "far too short" and a tracked workspace object was unreadable. The validated source and archive remained intact, so a clean clone was safer than an in-place destructive repair.
+
+**Date:** 2026-09-02
+**Category:** TestFlight
+**Rule:** Audit the root of every signed archive for unintended source-adjacent resources; file-system-synchronized Xcode groups automatically copy non-source files unless each internal document is a target membership exception.
+**Why:** The first 1.5.0 archive succeeded but bundled 11 internal Markdown troubleshooting and agent-prompt files. They contained no detected credential assignment, but they are not runtime assets and must not ship.
+
+**Date:** 2026-09-02
+**Category:** Build
 **Rule:** When replaying an old feature branch after a safety parameter was added to a service call, resolve every call site explicitly to the current safe default and let a fresh build enumerate any stale signatures.
 **Why:** PR #147 predated `acceptScoreDecrease`; its production call and two protocol test doubles no longer compiled, and the nonisolated spies also could not decode the now-main-actor apply DTO. The production call keeps `false`; the spies match the full signature and run on `@MainActor` like the existing suite's expert spies.
 
