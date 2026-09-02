@@ -1,5 +1,27 @@
 # Project Progress
 
+## 2026-09-02 — Four-PR cleanup is release-ready; #147 is the final merge vehicle
+
+PRs #180 and #173 merged cleanly. PR #142 was rebuilt from its one useful commit
+onto current `main`, retargeted from its closed stacked base, tested 7/7, and
+merged without its junk WIP commit. PR #147 was replayed onto that result and
+resolved by keeping current build settings, current funnel analytics, and
+`acceptScoreDecrease: false` at every Expert apply call.
+
+The final product scope is appropriate for the next binary: crash-safe numeric
+decoding plus a founder-approved Export flow that shares the résumé, existing
+cover letter, and screening answers as one application package. Submit reuses
+those artifacts instead of regenerating them.
+
+**Status:** PR #147 ready to merge after refreshed GitHub checks; no source or test blocker.
+**Current Phase:** Next App Store release integration; exact marketing wording and ASC version/build selection remain.
+**Active Story:** Merge PR #147, then prepare the next archive/TestFlight candidate.
+**Last Completed Story:** Rebuilt and verified all four open PRs against current main.
+**Next Recommended Story:** Confirm the App Store marketing wording, inspect ASC for the next version/build, then run archive and authenticated physical-device package export.
+**Blockers:** App Store wording is not specified yet; a real-device share-sheet/package walk is required before submission.
+**Last Validation:** 2026-09-02 — PR #147 focused 65/65; full iOS 26.5 suite 420 tests, 1 skipped, 0 failures, plus Swift Testing 5/5; simulator smoke rendered the updated Optimized export controls and the temporary seed was deleted.
+**Last Updated:** 2026-09-02
+
 ## 2026-09-02 — PR #142 rebuilt on main with deterministic auth tests
 
 The useful commit from the stale stacked PR was replayed on current `main`; its

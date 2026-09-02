@@ -1,3 +1,14 @@
+# 2026-09-02 — Open-PR cleanup and next App Store release
+
+- [x] Review and merge PR #180 (safe numeric decoding/display conversions).
+- [x] Review and merge PR #173 (Career Evidence Pilot draft documentation only).
+- [x] Rebuild PR #142 on current `main`, drop its junk WIP commit, pass 7 focused auth tests, and merge it.
+- [x] Rebuild PR #147 on current `main`, preserve newer analytics and score-decrease safeguards, pass 65 focused tests and the full 420-test suite, and smoke the changed Optimized UI.
+- [ ] Merge PR #147 after its refreshed GitHub checks pass.
+- [ ] Confirm the exact App Store marketing wording, choose the next marketing/build numbers against App Store Connect, then archive and run the physical TestFlight journey before submission.
+
+---
+
 # Activation measurement follow-up — next build after 1.4.9 (2026-08-13)
 
 Scope: make the Home upload step joinable without changing the 1.4.9 binary currently in App Store review.
