@@ -29,8 +29,14 @@ enum ExpertWorkflowServiceError: LocalizedError, Sendable {
                     "This change would lower your match score from %d%% to %d%%.",
                     comment: "Expert run refused because it would reduce the score"
                 ),
-                Int((kept ?? 0).rounded()),
-                Int(measured.rounded())
+                // NOT `displayPercent`: `kept`/`measured` are siblings of
+                // `before`/`after` in `ExpertAtsImpactResult` and have always
+                // been rendered unscaled. Folding in the 0...1 rule would
+                // report a genuine score of 1.0 as "100%" inside a dialog the
+                // user makes a decision on. `?? 0` only differs from the old
+                // `Int(_:)` where that used to trap.
+                (kept ?? 0).safeRoundedInt ?? 0,
+                measured.safeRoundedInt ?? 0
             )
         }
     }

@@ -500,10 +500,10 @@ struct OptimizationReviewView: View {
                     viewModel: OptimizedResumeViewModel(
                         optimizationId: optId,
                         atsScoreBefore: viewModel.envelope.flatMap(\.review.atsPreview).flatMap {
-                            $0.before.map { Int(($0 <= 1 ? $0 * 100 : $0).rounded()) }
+                            $0.before.map(\.displayPercent)
                         },
                         atsScoreAfter: viewModel.envelope.flatMap(\.review.atsPreview).flatMap {
-                            $0.after.map { Int(($0 <= 1 ? $0 * 100 : $0).rounded()) }
+                            $0.after.map(\.displayPercent)
                         },
                         jobTitle: viewModel.envelope?.jobDescription?.title,
                         company: viewModel.envelope?.jobDescription?.company
@@ -600,8 +600,7 @@ struct OptimizationReviewView: View {
     }
 
     private func percentLabel(_ value: Double) -> String {
-        let p = value <= 1 ? value * 100 : value
-        return "\(Int(p.rounded()))%"
+        "\(value.displayPercent)%"
     }
 }
 
