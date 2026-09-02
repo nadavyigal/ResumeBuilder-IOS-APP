@@ -32,6 +32,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Core/API/Secrets.swift.example,
+				Features/Tailor/CLAUDE_CODE_COMPLETE_BACKEND_PROMPT.md,
+				Features/Tailor/INVESTIGATION_PREVIEW_STILL_NOT_SHOWING.md,
+				Features/Tailor/SIMPLE_MOCKED_TEST.md,
+				Features/Tailor/URGENT_DIAGNOSTIC_CHECKLIST.md,
+				Features/V2/Improve/CLAUDE_CODE_BACKEND_INVESTIGATION_PROMPT.md,
+				Features/V2/Improve/CRITICAL_FIXES_PREVIEW_AND_LIBRARY.md,
+				Features/V2/Improve/PASTE_INTO_CLAUDE_CODE.md,
+				Features/V2/Improve/PREVIEW_NOT_SHOWING_COMPLETE_DEBUG.md,
+				Features/V2/Preview/OPTIMIZED_RESUME_NOT_SHOWING_FIX.md,
+				Features/V2/Preview/QUICK_FIX_OPTIMIZED_RESUME.md,
+				Services/FIX_FILE_PERMISSION_ERROR.md,
 			);
 			target = 335AA7622FA77AB800FD6628 /* ResumeBuilder IOS APP */;
 		};
@@ -366,7 +377,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -375,7 +386,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.9;
+				MARKETING_VERSION = 1.5.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -399,7 +410,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "ResumeBuilder IOS APP/ResumeBuilder_IOS_APP.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 28;
 				DEVELOPMENT_TEAM = 8VC4R5M425;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -408,7 +419,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.9;
+				MARKETING_VERSION = 1.5.0;
 				POSTHOG_HOST = "https://us.i.posthog.com";
 				PRODUCT_BUNDLE_IDENTIFIER = "Resumebuilder-IOS.ResumeBuilder-IOS-APP";
 				PRODUCT_NAME = "$(TARGET_NAME)";
