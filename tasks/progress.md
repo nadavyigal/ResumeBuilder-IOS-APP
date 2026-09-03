@@ -53,6 +53,15 @@ cache-busted Apple lookup, excludes internal testers person-level, scopes to exa
 print a partial figure. Two runs on the same day are byte-identical. The read for
 1.5.0 (28) is below.
 
+### Validation
+
+`xcodebuild test -scheme "ResumeBuilder IOS APP" -destination 'platform=iOS
+Simulator,id=9E2E82B6-DC56-4162-846F-B96AE74867E7' -testLanguage en` —
+**TEST SUCCEEDED**, 420 executed, 419 passed, 1 skipped, 0 failures. Three
+earlier attempts on `BEC1533B` executed no tests at all (CoreSimulatorService
+contention with a concurrent RunSmart suite); that is a device problem, not a
+source one. No Swift was changed by this work.
+
 **Status:** 1.5.0 (28) live since 2026-09-02T19:44:22Z. Activation not yet
 measurable; earliest honest D7 read **2026-09-09T19:44Z**.
 **Last Updated:** 2026-09-03

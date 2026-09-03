@@ -16,7 +16,7 @@
 **Date:** 2026-09-03
 **Category:** Testing
 **Rule:** Never run two `xcodebuild test` invocations against the same CoreSimulatorService. The second dies with `Mach error -308 - (ipc/mig) server died` from `IDELaunchiPhoneSimulatorLauncher`, or hangs at `SwiftStdLibTool` with the device booted and no further output — zero test cases, zero assertion failures, which reads exactly like a source regression and is not one. Recover with `killall -9 CoreSimulatorService`, but **kill your own xcodebuild by PID**: `pkill -f "xcodebuild test -scheme <name>"` also matches any monitor or wait shell whose command line contains that string, and kills those too.
-**Why:** WP-73's validation run collided with a concurrent RunSmart suite on the same Mac. Three attempts produced no executed tests; the change under test touched no Swift at all (two version literals, two new standalone scripts, four Markdown files).
+**Why:** WP-73's validation run collided with a concurrent RunSmart suite on the same Mac. Three attempts on `iPhone 17 Pro` (26.5, `BEC1533B`) produced no executed tests at all. A fourth on `iPhone 17` (`9E2E82B6`) — the device auto-memory already names as the validated one — ran the full suite in 7.7 seconds: 420 executed, 419 passed, 1 skipped, 0 failures. **Switch device before you conclude anything about the source.**
 
 ---
 
