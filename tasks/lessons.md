@@ -14,6 +14,13 @@
 ---
 
 **Date:** 2026-09-03
+**Category:** Testing
+**Rule:** Never run two `xcodebuild test` invocations against the same CoreSimulatorService. The second dies with `Mach error -308 - (ipc/mig) server died` from `IDELaunchiPhoneSimulatorLauncher`, or hangs at `SwiftStdLibTool` with the device booted and no further output — zero test cases, zero assertion failures, which reads exactly like a source regression and is not one. Recover with `killall -9 CoreSimulatorService`, but **kill your own xcodebuild by PID**: `pkill -f "xcodebuild test -scheme <name>"` also matches any monitor or wait shell whose command line contains that string, and kills those too.
+**Why:** WP-73's validation run collided with a concurrent RunSmart suite on the same Mac. Three attempts produced no executed tests; the change under test touched no Swift at all (two version literals, two new standalone scripts, four Markdown files).
+
+---
+
+**Date:** 2026-09-03
 **Category:** Analytics / HogQL
 **Rule:** Never derive a step boolean in the same `SELECT` that aggregates it. `ifNull(min(if(...)) IS NOT NULL, 0)` returns 0 for every person in HogQL even where the timestamp exists. Aggregate the per-person timestamps at one level, derive `selected`/`started`/`done` at the level above, count them at the level above that — and give the outer aliases different names from the inner columns or ClickHouse raises `illegal_aggregation`.
 **Why:** WP-73's ordered funnel reported 0/0/0 external and 0/0/0 internal on 1.4.9 (26) while a direct event count showed 3 people selecting, 3 starting and 2 completing. A funnel that returns all zeros looks exactly like "no users", which at this app's traffic is also the expected answer — two indistinguishable causes for one output.
