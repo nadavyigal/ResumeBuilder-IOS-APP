@@ -25,6 +25,7 @@
 
 ## After Implementation
 - Xcode build check required before "done"
+- `scripts/validate-store-version.sh` before any release-shaped change
 - Run relevant tests in `ResumeBuilder IOS APPTests/`
 - Simulator smoke test for any UI change
 - Mark `tasks/todo.md` items done

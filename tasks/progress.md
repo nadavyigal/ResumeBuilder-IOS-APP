@@ -1,5 +1,62 @@
 # Project Progress
 
+### Activation read — 1.5.0 (28) — as of 2026-09-03T00:00:00Z
+
+- **Result:** not yet measurable — earliest valid D7 read 2026-09-09T19:44:22Z
+- Store release anchor: 2026-09-02T19:44:22Z (cache-busted Apple lookup, live version 1.5.0)
+- Window: 2026-08-14T00:00:00Z .. 2026-09-03T00:00:00Z (clamped to the 2026-08-14 boundary (free ATS score))
+- Scope: exact `app_version = 1.5.0` and `build_number = 28`, `$lib = resumely-ios-urlsession`
+- Primary activation `optimization_completed`; `export_success` is the secondary diagnostic only
+- Earliest valid D7 read: 2026-09-09T19:44:22Z
+- Produced by `scripts/measurement_contract.py`, all seven steps.
+
+## 2026-09-03 — `main` names the shipped build, and the activation read is a command
+
+**The repo now describes the binary the public is running.** `origin/main` read
+`MARKETING_VERSION = 1.4.9` / `CURRENT_PROJECT_VERSION = 26` while the App Store
+served 1.5.0. The 1.5.0 bump had been made in `/private/tmp/resumebuilder-release-1.5.0`
+and never committed — the third instance of this drift (2026-07-16, 2026-08-14,
+2026-09-02). `project.pbxproj` is now `1.5.0` / `28`, and the sorted set of
+build-setting lines is otherwise byte-identical before and after.
+
+### Confirmed release facts
+
+| Version | Build | Store release (Apple, cache-busted) | Build provenance |
+|---|---|---|---|
+| 1.4.9 | 27 | 2026-08-13T18:09:33Z | App Store Connect (founder-confirmed) |
+| 1.5.0 | 28 | 2026-09-02T19:44:22Z | Release archive + TestFlight report + telemetry; **App Store Connect confirmation still outstanding** |
+
+1.5.0's build number is the one place this record is not ASC-sourced. App Store
+Connect was not reachable from the session that made this change. Three
+independent local sources agree on 28 and none contradicts it: the uncommitted
+release worktree's `project.pbxproj`, `docs/qa/reports/testflight-1.5.0-2026-09-02.md`,
+and PostHog, where `app_version = 1.5.0` has only ever appeared with
+`build_number = 28`. Confirm it on the ASC version page when that page is
+reachable; if it says anything other than 28, correct `CURRENT_PROJECT_VERSION`
+and re-run `scripts/validate-store-version.sh`.
+
+### Drift is now checked, not remembered
+
+`scripts/validate-store-version.sh` fails when `MARKETING_VERSION` disagrees with
+the live App Store version, read from a cache-busted Apple lookup rather than from
+this file. It is wired into `AGENTS.md`'s Verification Before Done, `CLAUDE.md`'s
+After Implementation, and the TestFlight checklist. That is what makes the fix
+above a one-time correction rather than a recurring one.
+
+### The weekly contract is runnable
+
+`python3 scripts/measurement_contract.py` executes all seven steps of the pinned
+contract (Builder OS `2026-08-15-weekly-measurement-contracts-and-gated-packets`)
+against PostHog project 270848 and prints a labelled result. It anchors on the
+cache-busted Apple lookup, excludes internal testers person-level, scopes to exact
+`app_version` **and** `build_number`, states n with every rate, and refuses to
+print a partial figure. Two runs on the same day are byte-identical. The read for
+1.5.0 (28) is below.
+
+**Status:** 1.5.0 (28) live since 2026-09-02T19:44:22Z. Activation not yet
+measurable; earliest honest D7 read **2026-09-09T19:44Z**.
+**Last Updated:** 2026-09-03
+
 ## 2026-09-02 — Four-PR cleanup is release-ready; #147 is the final merge vehicle
 
 PRs #180 and #173 merged cleanly. PR #142 was rebuilt from its one useful commit
@@ -176,6 +233,13 @@ the ATS route, so no automated test reaches the real endpoint. That check is a
 **Why the suite never caught it:** `OptimizeFitResponseTests` hardcoded
 `"estimatedGain": 6` and `4`. The fixture was written 2026-07-26 and never
 tracked the backend.
+
+## 2026-08-19 — Hebrew App Store videos recut to 51→78
+
+User rejected the 59→67 Match Check jump. Re-recorded on the metrics résumé + harder JD pair. The take on screen is **51 → 78**; overlay matches. Draft Hebrew 30s and 15s renders are in the Remotion repo (`out/resumely-he-30s.mp4`, `out/resumely-howto-he-15s.mp4`). English `s11`–`s16` untouched. Videos remain draft: no VO.
+
+**Status:** Waiting on founder review of the 51→78 drafts.
+**Last Updated:** 2026-08-19
 
 ## 2026-08-14 — The three missing funnel events, and a `main` that could not build
 

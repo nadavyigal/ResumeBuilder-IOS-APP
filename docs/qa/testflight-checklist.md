@@ -33,6 +33,7 @@
   - Notifications (if push used)
 - [ ] `CFBundleShortVersionString` (Marketing Version) is correct
 - [ ] `CFBundleVersion` (Build Number) is incremented from previous TestFlight upload
+- [ ] `scripts/validate-store-version.sh` passes — the repo names the version the App Store is actually serving (drift has shipped three times: 2026-07-16, 2026-08-14, 2026-09-02)
 
 ---
 

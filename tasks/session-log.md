@@ -3,6 +3,53 @@
 > One entry per work session. Most recent first.
 > Update at the end of every session before closing.
 
+## 2026-09-03 — WP-73: the repo names its shipped build; the contract became a command
+
+**Branch:** `claude/work-packet-wp-73-2bb08c`, worktree from `origin/main` (5ff6a23).
+
+**Task:** WP-73. Make `main` describe the binary the public runs, and replace the
+seven-step manual activation ritual with something runnable.
+
+**Result:**
+- `project.pbxproj` is `1.5.0` / `28`. The bump existed only in an uncommitted
+  worktree at `/private/tmp/resumebuilder-release-1.5.0`. The sorted set of
+  build-setting lines differs in exactly those two values.
+- `scripts/measurement_contract.py` runs all seven contract steps. On 1.5.0 (28)
+  step 3 fires: every event on that build predates the 2026-09-02T19:44:22Z
+  release, so the cohort is pre-release and the read is zero, then step 6 labels
+  it `not yet measurable` with earliest valid D7 2026-09-09T19:44:22Z.
+- `scripts/validate-store-version.sh` fails on a deliberately wrong
+  `MARKETING_VERSION` and passes on the corrected repo. Wired into AGENTS.md,
+  CLAUDE.md and the TestFlight checklist.
+- Landed the stranded 2026-08-19 Hebrew-video records. The local `main` working
+  tree was 15 days **older** than `origin/main`, so only the genuinely new
+  entries were taken and the stale copies were discarded.
+
+**Two things worth keeping:**
+- HogQL silently returns 0 for `min(if(...)) IS NOT NULL` evaluated in the same
+  SELECT that aggregates it. The funnel read 0/0/0 while the raw events showed
+  3/3/2. Fixed by deriving step booleans one level above the aggregation.
+- A worktree cannot build without `Secrets.xcconfig`; it is gitignored and lives
+  only in the primary checkout. Copy it in before the first `xcodebuild`.
+
+**Not done:** App Store Connect could not be reached, so 1.5.0's build number is
+archive/telemetry-confirmed rather than ASC-confirmed. No App Store metadata was
+touched; the 1.5.1 metadata release remains founder work.
+
+## 2026-08-19 — Hebrew App Store cuts: metrics résumé, 51→78
+
+**Repos:** Remotion `resumely` on `main`. iOS checkout was on `chore/land-stranded-work-2026-08-19` and was not used for the recording.
+
+**Task:** Rebuild Hebrew 1.4.9 videos after the 59→67 Match Check jump was rejected. Re-record with the metrics résumé + harder JD pair.
+
+**Result:** Recorded take is **51 → 78** (dry run was 51→76; older measure was 51→75). Overlay is `"51% עד 78%"`. Replaced Hebrew `s17`–`s22` only; English `s11`–`s16` MD5 unchanged.
+
+**Draft outputs (not committed, no VO):**
+- `Remotion - video/resumely/out/resumely-he-30s.mp4` — 1080×1920, 30fps, 900 frames
+- `Remotion - video/resumely/out/resumely-howto-he-15s.mp4` — 1080×1920, 30fps, 450 frames
+
+**Not done:** PR, voice-over, English 29→48 recut, scoring-engine changes.
+
 ## 2026-08-13 — Next-build activation source contract
 
 **Branch:** `codex/resumely-activation-source`, clean worktree from `origin/main`.

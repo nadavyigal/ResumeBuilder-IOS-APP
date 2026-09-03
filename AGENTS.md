@@ -26,7 +26,15 @@
 - Xcode build must succeed (no errors)
 - Relevant tests must pass
 - Simulator smoke test for any UI change
+- `scripts/validate-store-version.sh` must pass before any release-shaped change —
+  it fails when `MARKETING_VERSION` disagrees with the live App Store version
 - Update `tasks/todo.md` and `tasks/progress.md`
+
+## Measurement
+The pinned weekly activation contract is a command, not a ritual:
+`python3 scripts/measurement_contract.py`. It runs all seven steps, refuses to
+print a partial figure, and two runs on the same day agree byte for byte. Do not
+hand-assemble activation numbers; do not report `export_success` as the headline.
 
 ## Self-Learning Rule
 After any mistake, correction, failed build, or bad pattern: add a lesson to `tasks/lessons.md` immediately using the lesson template.

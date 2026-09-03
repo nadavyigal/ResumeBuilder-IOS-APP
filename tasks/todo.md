@@ -1,3 +1,15 @@
+# 2026-09-03 — WP-73: describe the shipped build, make the activation read runnable
+
+- [x] S1. `MARKETING_VERSION = 1.5.0`, `CURRENT_PROJECT_VERSION = 28`; sorted build-setting diff shows only those two values moved.
+- [x] S2. Land the stranded 2026-08-19 records against `origin/main`, discarding the stale copies upstream already had.
+- [x] S3. `scripts/measurement_contract.py` — all seven contract steps, step 3 included; two same-day runs byte-identical.
+- [x] S4. `scripts/validate-store-version.sh` — fails on drift, passes on the corrected repo; wired into AGENTS.md, CLAUDE.md and the TestFlight checklist.
+- [ ] **Founder:** confirm 1.5.0's build number on the App Store Connect version page. Everything local says 28; ASC has not been read.
+- [ ] **2026-09-09T19:44Z or later:** run `python3 scripts/measurement_contract.py` for the first honest 1.5.0 D7 read.
+- [ ] **Founder:** 1.5.1 metadata release to remove `pass ATS screening` from the live listing, once App Store Connect commits saves again.
+
+---
+
 # 2026-09-02 — Open-PR cleanup and next App Store release
 
 - [x] Review and merge PR #180 (safe numeric decoding/display conversions).

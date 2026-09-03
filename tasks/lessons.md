@@ -13,6 +13,27 @@
 
 ---
 
+**Date:** 2026-09-03
+**Category:** Analytics / HogQL
+**Rule:** Never derive a step boolean in the same `SELECT` that aggregates it. `ifNull(min(if(...)) IS NOT NULL, 0)` returns 0 for every person in HogQL even where the timestamp exists. Aggregate the per-person timestamps at one level, derive `selected`/`started`/`done` at the level above, count them at the level above that — and give the outer aliases different names from the inner columns or ClickHouse raises `illegal_aggregation`.
+**Why:** WP-73's ordered funnel reported 0/0/0 external and 0/0/0 internal on 1.4.9 (26) while a direct event count showed 3 people selecting, 3 starting and 2 completing. A funnel that returns all zeros looks exactly like "no users", which at this app's traffic is also the expected answer — two indistinguishable causes for one output.
+
+---
+
+**Date:** 2026-09-03
+**Category:** Build
+**Rule:** A fresh worktree cannot build or test: `Secrets.xcconfig` is gitignored and exists only in the primary checkout. Copy it in before the first `xcodebuild`, and never stage it. The failure reads `Unable to open base configuration reference file` and reports `** TEST FAILED **` with zero test cases executed, which is easy to mistake for the known simulator host crash.
+**Why:** WP-73's first validation run failed this way on iOS 26.5 with no assertion failures at all.
+
+---
+
+**Date:** 2026-09-03
+**Category:** Release
+**Rule:** The version bump belongs in the commit that ships, not in the release worktree. When a release is cut from a throwaway checkout, `main` keeps describing the previous binary and nothing notices. `scripts/validate-store-version.sh` now fails on that drift; run it before calling any release-shaped change done.
+**Why:** 1.5.0 shipped 2026-09-02 while `origin/main` still read `1.4.9` / `26`. The bump was sitting uncommitted in `/private/tmp/resumebuilder-release-1.5.0`. Third instance: 2026-07-16, 2026-08-14, 2026-09-02.
+
+---
+
 **Date:** 2026-09-02
 **Category:** Build
 **Rule:** When replaying an old feature branch after a safety parameter was added to a service call, resolve every call site explicitly to the current safe default and let a fresh build enumerate any stale signatures.
@@ -33,12 +54,24 @@
 **Rule:** To prove concurrent callers coalesce, hold the first stubbed request open until the second caller has reached the shared in-flight task, then assert one underlying call and both results.
 **Why:** An immediate stub result can finish and clear `refreshTask` before the second task arrives, making the test scheduler-dependent.
 
+**Date:** 2026-09-02
+**Category:** Build
+**Rule:** If `actool` and `AssetCatalogSimulatorAgent` remain idle during `CompileAssetCatalogVariant`, stop only the current build and retry the integrated tree with a fresh DerivedData path before judging source health.
+**Why:** PR #180's focused regression run compiled the app but then made no progress for nearly five minutes in asset-catalog processing; the process tree showed an idle `actool`/simulator agent and no compiler or test failure.
+
 ---
 
 **Date:** 2026-08-31
 **Category:** API
 **Rule:** Never decode a server-side *score gain* or other computed metric into a non-optional-typed `Int`; use the lenient Int-or-Double shape `ATSSuggestion` already uses. A fractional number does not degrade one field, it throws `dataCorrupted` ("Number 2.5 is not representable in Swift") and fails the **entire** response decode.
 **Why:** Every optimization on production failed with "We couldn't parse the optimization response" from 2026-08-28. `/api/optimize` returns `fit.topGaps[].estimatedGain`, and web WP-59 S1 (#147) changed `estimateImpact` to return `Math.round(value * 10) / 10` (every real value between 0.36 and 3.75). Before WP-59 every gain was clamped to a flat integer 15, which is the only reason `OptimizeFitGap.estimatedGain: Int?` ever worked. `OptimizeFitResponseTests` stayed green throughout because its fixture hardcoded `"estimatedGain": 6` and `4`. **A fixture that predates a backend change is not a contract test.** Two structs away, `ATSSuggestion` already had the lenient Int-or-Double decoder for the same `estimated_gain` field, so the pattern existed and this struct was simply never given it. Also note the blast radius: a client-side decode fix cannot reach installed users until a new App Store build ships, so the same class of break is better mitigated by rounding on the server first.
+
+---
+
+**Date:** 2026-08-19
+**Category:** UX
+**Rule:** Hebrew App Store Match Check cuts must use the metrics résumé + harder JD pair, and the overlay must copy the pixels on that take — never a prior dry-run number and never a small jump like 59→67.
+**Why:** The user rejected the 59→67 cut as not strong enough and asked to re-record on the pair that had measured 51→75. The same assets then scored 51→76 on a dry run and **51→78 on the recorded take**. Overlay is `"51% עד 78%"`. Do not invent 85+; the engine does not land there honestly.
 
 ---
 
