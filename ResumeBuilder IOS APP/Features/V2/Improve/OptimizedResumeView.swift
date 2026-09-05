@@ -32,6 +32,8 @@ struct OptimizedResumeView: View {
     @State private var exportIncludedScreeningAnswers = false
     @State private var exportCoverLetterFailed = false
     @State private var showPDFShare = false
+    @State private var shareOutcome: ShareOutcome?
+    @State private var shareOptimizationId: String?
     @State private var pendingReviewOptimizationId: String? = nil
     @State private var showCopyConfirmation = false
     @State private var showExportSuccess = false
@@ -166,6 +168,8 @@ struct OptimizedResumeView: View {
             renderedPreviewHTML = nil
             pdfTempURL = nil
             showPDFShare = false
+            shareOutcome = nil
+            shareOptimizationId = nil
             showExportSuccess = appState.isExportComplete(for: newId)
             viewModel.restoreSavedResumeState(appState: appState)
             viewModel.restoreATSImprovementState(appState: appState)
@@ -286,8 +290,12 @@ struct OptimizedResumeView: View {
             manualEditSheet
         }
         .sheet(isPresented: $showPDFShare, onDismiss: handlePDFShareDismissed) {
-            if !packageFileURLs.isEmpty {
-                ShareSheet(items: packageFileURLs)
+            if !packageFileURLs.isEmpty, let id = shareOptimizationId {
+                ShareSheet(items: packageFileURLs) { outcome in
+                    guard shareOptimizationId == id else { return }
+                    shareOutcome = outcome
+                    AnalyticsService.shared.track(.exportShareResult(optimizationId: id, outcome: outcome.rawValue))
+                }
                     .ignoresSafeArea()
             }
         }
@@ -1044,15 +1052,22 @@ struct OptimizedResumeView: View {
     }
 
     private var exportSuccessHeadline: LocalizedStringKey {
+        if let shareOutcome {
+            switch shareOutcome {
+            case .completed: return "Shared via selected activity"
+            case .cancelled: return "Sharing cancelled. File ready."
+            case .failed: return "Sharing failed. File ready to retry."
+            }
+        }
         switch (exportIncludedCoverLetter, exportIncludedScreeningAnswers) {
         case (true, true):
-            return "Exported: résumé, cover letter, screening answers"
+            return "Files ready: résumé, cover letter, screening answers"
         case (true, false):
-            return "Exported: résumé and cover letter"
+            return "Files ready: résumé and cover letter"
         case (false, true):
-            return "Exported: résumé and screening answers"
+            return "Files ready: résumé and screening answers"
         case (false, false):
-            return "Résumé exported"
+            return "File ready: résumé"
         }
     }
 
@@ -1076,7 +1091,7 @@ struct OptimizedResumeView: View {
             // running the cover-letter mode and had no way to tell the letter was
             // missing until they opened the files.
             if exportCoverLetterFailed {
-                Text("Your cover letter could not be attached this time. The résumé was exported.")
+                Text("Your cover letter could not be attached this time. The résumé file is ready.")
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -1138,6 +1153,8 @@ struct OptimizedResumeView: View {
             exportIncludedCoverLetter = result.includedCoverLetter
             exportIncludedScreeningAnswers = result.includedScreeningAnswers
             exportCoverLetterFailed = result.coverLetterFailed
+            shareOutcome = nil
+            shareOptimizationId = result.optimizationId
             pendingReviewOptimizationId = result.optimizationId
             showPDFShare = true
             showExportSuccess = true

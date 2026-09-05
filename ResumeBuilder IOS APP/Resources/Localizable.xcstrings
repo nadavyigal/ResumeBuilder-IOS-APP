@@ -1,6 +1,86 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Shared via selected activity" : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שותף באמצעות הפעולה שנבחרה"
+          }
+        }
+      }
+    },
+    "Sharing cancelled. File ready." : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "השיתוף בוטל. הקובץ מוכן."
+          }
+        }
+      }
+    },
+    "Sharing failed. File ready to retry." : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "השיתוף נכשל. הקובץ מוכן לניסיון נוסף."
+          }
+        }
+      }
+    },
+    "Files ready: résumé, cover letter, screening answers" : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקבצים מוכנים: קורות חיים, מכתב מקדים ותשובות לשאלות סינון"
+          }
+        }
+      }
+    },
+    "Files ready: résumé and cover letter" : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקבצים מוכנים: קורות חיים ומכתב מקדים"
+          }
+        }
+      }
+    },
+    "Files ready: résumé and screening answers" : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקבצים מוכנים: קורות חיים ותשובות לשאלות סינון"
+          }
+        }
+      }
+    },
+    "File ready: résumé" : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הקובץ מוכן: קורות חיים"
+          }
+        }
+      }
+    },
+    "Your cover letter could not be attached this time. The résumé file is ready." : {
+      "localizations": {
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן לצרף את המכתב המקדים הפעם. קובץ קורות החיים מוכן."
+          }
+        }
+      }
+    },
     "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer." : {
       "localizations" : {
         "he" : {

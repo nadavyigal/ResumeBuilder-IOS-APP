@@ -792,3 +792,18 @@
 **Category:** Parsing
 **Rule:** When making one of these sites crash-safe, do NOT also change its scaling. Check whether the site already applied the `value <= 1 ? value * 100 : value` rule and preserve that answer exactly. Sites that scaled get `displayPercent`; sites that did not get `safeRoundedInt`. Sibling fields off the same DTO must agree.
 **Why:** Sweeping `displayPercent` over every percentage site silently changed behaviour at four call sites that had never scaled. `ExpertAtsImpactResult.kept/measured` was the dangerous one: it feeds the "this change would lower your match score from %d%% to %d%%" dialog, so scaling would have reported a genuine score of 1.0 as "100%" in a decision the user acts on. Its siblings `before`/`after` render unscaled in `ExpertReportView.pct`, which is what settled the question. Also: a signed delta (`pts`) must never be clamped to 0...100.
+
+**Date:** 2026-09-05
+**Category:** Analytics / UX
+**Rule:** Keep artifact-ready export milestones backward compatible and report sharing only from the activity controller completion handler, once per presentation.
+**Why:** Export completion and “Exported” copy were set before the share sheet appeared; cancellation therefore looked like successful sharing. New callback tests first failed on the missing outcome contract, then drove the repair.
+
+**Date:** 2026-09-05
+**Category:** Analytics
+**Rule:** Clamp public funnel events to release while retaining person-level tester exclusion across the full query window, and enforce 168-hour maturity per selection rather than only per release.
+**Why:** The inherited WP-73 script could admit prerelease QA after a later public event unlocked the build and could count users too young for D7. Its credential-file fallback also contradicted the packet's environment-only contract; reuse required reviewing semantics, not just copying a runnable command.
+
+**Date:** 2026-09-05
+**Category:** Testing
+**Rule:** A temporary SwiftUI smoke harness must return the environment-dependent View itself, not evaluate its computed subview in a static factory before environment injection.
+**Why:** The first synthetic export-card harness exited on launch because the factory evaluated an AppState-dependent card outside the mounted view; the harness was corrected, with no production-code defect inferred.

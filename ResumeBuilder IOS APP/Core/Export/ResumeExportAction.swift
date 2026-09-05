@@ -58,6 +58,8 @@ enum ResumeExportAction {
                 )
             )
 
+            // Historical export completion means validated artifact readiness, not sharing
+            // or employer submission. Keep this activation/review contract compatible.
             appState.markExportComplete(for: optimizationId)
             analytics.track(.exportSuccess(
                 optimizationId: optimizationId,

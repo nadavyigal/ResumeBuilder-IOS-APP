@@ -238,11 +238,40 @@ extension View {
     }
 }
 
+enum ShareOutcome: String, Sendable {
+    case completed, cancelled, failed
+}
+
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
+    var onCompletion: (ShareOutcome) -> Void = { _ in }
+
+    @MainActor
+    final class Coordinator {
+        private var didComplete = false
+        private let onCompletion: (ShareOutcome) -> Void
+
+        init(onCompletion: @escaping (ShareOutcome) -> Void) {
+            self.onCompletion = onCompletion
+        }
+
+        func connect(to controller: UIActivityViewController) {
+            controller.completionWithItemsHandler = { [self] _, completed, _, error in
+                // UIKit delivers this handler on the main thread. An error wins even
+                // if an activity also reports completed. Never collect returned items.
+                guard !didComplete else { return }
+                didComplete = true
+                onCompletion(error != nil ? .failed : (completed ? .completed : .cancelled))
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(onCompletion: onCompletion) }
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        context.coordinator.connect(to: controller)
+        return controller
     }
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

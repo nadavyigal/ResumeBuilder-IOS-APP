@@ -1,3 +1,11 @@
+# 2026-09-05 — Portfolio first batch: export/share truth
+
+Changed optimized export copy, wired actual ShareSheet callbacks with per-presentation deduplication, added outcome analytics and Hebrew strings. Preserved export_success readiness semantics and review gate after dismissal. Verified existing guest continuity without an onboarding change. Reused WP-73 scripts with release/maturity fixes; six offline tests and live drift checks pass. Full iOS run 426 passed/1 skipped/0 failed; final focused run 41 passed. See `docs/qa/reports/2026-09-05-export-share-truth.md` for fixed-window production-evidence limitations and simulator results. No shared vault/dashboard edits.
+
+Next: PR review, reconcile open #182, separate founder-controlled physical-device check before release. Worktree `/Users/nadavyigal/.codex/worktrees/02e9/ResumeBuilder IOS APP`, branch `codex/export-share-truth`.
+
+---
+
 # Session Log — ResumeBuilder iOS
 
 > One entry per work session. Most recent first.
