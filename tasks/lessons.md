@@ -1,3 +1,7 @@
+## 2026-09-05 — Cohort age is not a conversion deadline
+
+A mature D7 denominator also needs an upper conversion bound. Test generated query logic with late converters and current internal-person classification, not only SQL string fragments. Fail incomplete backend responses rather than treating them as empty cohorts.
+
 # Lessons — ResumeBuilder iOS
 
 > Self-learning memory. Read at the start of every task.

@@ -122,7 +122,9 @@ def query(sql: str, api_key: str) -> list[list]:
     except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
         raise ContractError(f"PostHog read failed: {exc}") from exc
     results = payload.get("results")
-    return results if isinstance(results, list) else []
+    if not isinstance(results, list):
+        raise ContractError("PostHog response has no completed results array")
+    return results
 
 
 def apple_lookup() -> tuple[str, datetime.datetime]:
@@ -288,8 +290,8 @@ def cohort_funnel(
 ) -> dict:
     """Steps 4 and 5 in one pass: person-level exclusion, then an ordered funnel.
 
-    Internal-ness and cohort membership are decided per `person_id` over the
-    whole window. The funnel timestamps are scoped to the exact build, so a
+    Internal-ness uses current persons records, independent of event snapshots.
+    Cohort membership is decided per person over the fixed window. The funnel timestamps are scoped to the exact build, so a
     person who upgraded mid-window contributes only their in-cohort path, and
     each step requires the previous step's timestamp to come first. Only
     post-release selections at least 168 hours old enter counts and rates;
@@ -299,7 +301,7 @@ def cohort_funnel(
         f"(properties.app_version = {lit(version)} AND properties.build_number = {lit(build)})"
     )
 
-    # Keep exclusion across the whole fixed window, but admit only public
+    # Use current person classification and admit only public
     # events to the funnel. A later public event must not unlock prerelease QA.
     public = f"({in_cohort} AND timestamp >= {dt_lit(max(start, released))})"
     mature_by = as_of - datetime.timedelta(hours=D7_HOURS)
@@ -333,13 +335,13 @@ FROM (
     cohort,
     ifNull(t_sel <= {dt_lit(mature_by)}, 0) AS selected,
     ifNull(t_sel > {dt_lit(mature_by)}, 0) AS pending,
-    ifNull(t_start >= t_sel, 0)     AS started,
-    ifNull(t_done >= t_start, 0)    AS done,
-    ifNull(t_export >= t_sel, 0)    AS exported
+    ifNull(t_start >= t_sel AND t_start <= t_sel + INTERVAL 168 HOUR, 0) AS started,
+    ifNull(t_done >= t_start AND t_done <= t_sel + INTERVAL 168 HOUR, 0) AS done,
+    ifNull(t_export >= t_sel AND t_export <= t_sel + INTERVAL 168 HOUR, 0) AS exported
   FROM (
     SELECT
       person_id,
-      max(properties.is_internal_tester IN ('true', 'True')) AS internal,
+      max(person_id IN (SELECT id FROM persons WHERE lower(toString(properties.is_internal_tester)) IN ('true', '1'))) AS internal,
       max({public})                                          AS cohort,
       {first(DENOMINATOR_EVENT, "t_sel")},
       {first(FUNNEL_MIDDLE_EVENT, "t_start")},
@@ -360,6 +362,8 @@ FROM (
         "ext_people ext_selected ext_started ext_completed ext_exported "
         "int_people int_selected int_started int_completed int_exported ext_pending"
     ).split()
+    if len(rows[0]) != len(keys):
+        raise ContractError("Funnel query returned an unexpected result shape")
     return dict(zip(keys, (int(value) for value in rows[0])))
 
 
@@ -478,11 +482,11 @@ def build_report(args, api_key: str) -> tuple[str, str]:
     ):
         # ---- Steps 4 and 5 ----------------------------------------------
         counts = cohort_funnel(api_key, version, str(build), start, as_of, release_ts)
-        add("Step 4  Person-level exclusion (max(is_internal_tester) per person_id)")
+        add("Step 4  Person-level exclusion (current persons table, not event snapshots)")
         add(f"        external people in cohort : {counts['ext_people']}")
         add(f"        internal people in cohort : {counts['int_people']}  (reported, never merged)")
         add("")
-        add("Step 5  Ordered funnel, external users, exact build; only users with 168h since selection")
+        add("Step 5  Ordered funnel, external users, exact build; conversions within 168h of selection; only mature users")
         add(f"        public events since : {stamp(max(start, release_ts))}")
         add(f"        selection cutoff    : {stamp(as_of - datetime.timedelta(hours=D7_HOURS))}")
         add(f"        immature selections : {counts['ext_pending']} (excluded from counts and rates)")
@@ -537,7 +541,7 @@ def build_report(args, api_key: str) -> tuple[str, str]:
         f"- Primary activation `{PRIMARY_ACTIVATION_EVENT}`; `{SECONDARY_DIAGNOSTIC_EVENT}` is the secondary diagnostic only",
         f"- Earliest valid D7 read: {stamp(earliest_valid)} (release lower bound; each user needs 168h since selection)",
         f"- Public funnel starts: {stamp(max(start, release_ts))}; mature selection cutoff: {stamp(as_of - datetime.timedelta(hours=D7_HOURS))}",
-        "- Person-level internal exclusion spans the full fixed window; immature selections do not enter rates.",
+        "- Internal exclusion uses current person records; immature selections do not enter rates.",
     ]
     if detail:
         record_lines.append(f"- External funnel: {'; '.join(detail)}")

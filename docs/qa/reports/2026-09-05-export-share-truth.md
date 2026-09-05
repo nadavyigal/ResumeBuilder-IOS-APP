@@ -1,3 +1,11 @@
+## 2026-09-05 — Merge review corrections
+
+Review found that maturity excluded young users but still admitted conversions after day seven. The corrected report caps start, completion and export at 168 hours after selection, excludes internal users using current persons records, and rejects incomplete query responses. An adversarial SQL fixture covers late conversion, exact day-seven boundary, immature users, current internal classification without an event flag, and prerelease activity.
+
+Validation: seven Python tests pass; the new regression fails against the original implementation. Previously verified focused Xcode result: 41 passed, zero failures. Original implementation report records 426 passed, one skipped in the full suite. Review edits affect only measurement scripts and documentation, not Swift. Final HogQL changes have offline SQL-logic coverage but have not been rerun live: the PostHog connector needs reauthentication and the environment has no API key. Earlier live-query evidence below predates these corrections.
+
+Merge vehicle: #183 incorporates the useful #182 scripts; close #182 as superseded after merging. Next: authenticated physical-device export, cancel, retry and Files/Mail delivery check before release. No release/submission performed.
+
 # September 5 — export/share truth and measurement integration
 
 ## Changed behavior
