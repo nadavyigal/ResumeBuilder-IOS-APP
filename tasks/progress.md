@@ -1,3 +1,25 @@
+## 2026-09-05 — Merge review corrections
+
+Review found that maturity excluded young users but still admitted conversions after day seven. The corrected report caps start, completion and export at 168 hours after selection, excludes internal users using current persons records, and rejects incomplete query responses. An adversarial SQL fixture covers late conversion, exact day-seven boundary, immature users, current internal classification without an event flag, and prerelease activity.
+
+Validation: seven Python tests pass; the new regression fails against the original implementation. Previously verified focused Xcode result: 41 passed, zero failures. Original implementation report records 426 passed, one skipped in the full suite. Review edits affect only measurement scripts and documentation, not Swift. Final HogQL changes have offline SQL-logic coverage but have not been rerun live: the PostHog connector needs reauthentication and the environment has no API key. Earlier live-query evidence below predates these corrections.
+
+Merge vehicle: #183 incorporates the useful #182 scripts; close #182 as superseded after merging. Next: authenticated physical-device export, cancel, retry and Files/Mail delivery check before release. No release/submission performed.
+
+# 2026-09-05 — Export/share truth bounded batch
+
+Implemented distinct artifact-ready and activity-completion/cancellation/failure feedback. Historical `export_success`, persisted export state, application-package extras and review eligibility remain unchanged. Existing Home guest continuity required no repair; final focused export/package/auth/continuity tests passed 41/41, after the full suite passed 426 with one skip and zero failures.
+
+Reused open WP-73 #182 scripts and repaired post-release cohort boundaries, 168-hour per-user maturity, small-step rate suppression and environment-only credentials. Six script tests pass; store drift validator passes current 1.5.0 and rejects synthetic 0.0.0. Main already contains 1.5.0 (28), #181/#147/#142. Build 28 has repo/archive/telemetry evidence; ASC selection was not independently verified.
+
+Live fixed read [2026-08-14T00:00:00Z, 2026-09-05T00:00:00Z): 25 exact-build events, four people, all prerelease/internal. Apple release boundary 2026-09-02T19:44:22Z; no production activation rate. D7 earliest 2026-09-09T19:44:22Z, and 168 hours per individual user. Details and limitations: `docs/qa/reports/2026-09-05-export-share-truth.md`.
+
+**Status:** Validated; focused branch ready for PR review. Final build passed after removing the temporary fixture; iPhone 17/SE visual captures are in the evidence report. No deployment or submission.
+**Next action:** Review this PR with #182 to avoid duplicate script landing, then schedule a separate physical-device authenticated share/retry check before release.
+**Last Updated:** 2026-09-05
+
+---
+
 # Project Progress
 
 ## 2026-09-02 — App Store version 1.5.0 release candidate

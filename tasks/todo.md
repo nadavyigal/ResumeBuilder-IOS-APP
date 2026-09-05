@@ -1,3 +1,15 @@
+# 2026-09-05 — Export/share truth first batch
+
+As a user, I want file readiness and share outcomes distinguished so I know what happened.
+- [x] Preserve artifact-ready export analytics and review eligibility; connect UIKit completion with one outcome per presentation.
+- [x] Test success, cancellation, error precedence, deduplication/repeated presentation and package extras.
+- [x] Verify existing guest continuity and authentication tests; fix only reproduced blockers.
+- [x] Inspect WP-73 without recreating its measurement command; record release/window/maturity evidence.
+- [x] Final restored-source build, tests, simulator smoke and evidence records.
+- [x] Commit and push focused branch for PR review.
+
+Expected source files: ResumeExportAction.swift, ResumePreviewExportView.swift, OptimizedResumeView.swift, AnalyticsService.swift; tests in existing ExportCompletionTests.swift. No dependencies, release/configuration or web changes.
+
 # 2026-09-02 — Open-PR cleanup and next App Store release
 
 - [x] Review and merge PR #180 (safe numeric decoding/display conversions).

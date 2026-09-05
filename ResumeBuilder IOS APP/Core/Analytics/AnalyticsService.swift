@@ -173,6 +173,7 @@ enum AnalyticsEvent: Sendable {
     /// ever exports a full application package.
     case exportSuccess(optimizationId: String, hasCoverLetter: Bool = false, hasScreeningAnswers: Bool = false)
     case appStoreReviewRequested(source: String)
+    case exportShareResult(optimizationId: String, outcome: String)
     case exportFailed(optimizationId: String, errorCode: String)
     case diagnosisViewed(matchScore: Int)
     case recommendationViewed(surface: String, safetyState: String, reviewId: String?, itemId: String?)
@@ -252,6 +253,7 @@ enum AnalyticsEvent: Sendable {
         case .exportStarted: return "export_started"
         case .exportSuccess: return "export_success"
         case .appStoreReviewRequested: return "app_store_review_requested"
+        case .exportShareResult: return "export_share_result"
         case .exportFailed: return "export_failed"
         case .diagnosisViewed: return "diagnosis_viewed"
         case .recommendationViewed: return "recommendation_viewed"
@@ -357,6 +359,8 @@ enum AnalyticsEvent: Sendable {
                 "has_cover_letter": hasCoverLetter ? "true" : "false",
                 "has_screening_answers": hasScreeningAnswers ? "true" : "false",
             ]
+        case .exportShareResult(let optimizationId, let outcome):
+            return ["optimization_id": optimizationId, "outcome": outcome]
         case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
         case .appStoreReviewRequested(let source):

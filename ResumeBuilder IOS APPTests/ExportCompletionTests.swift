@@ -1,8 +1,46 @@
 import XCTest
+import UIKit
 @testable import ResumeBuilder_IOS_APP
 
 @MainActor
 final class ExportCompletionTests: XCTestCase {
+    func testShareSheetReportsSupportedOutcomesOncePerPresentation() {
+        for (completed, error, expected) in [
+            (true, nil, ShareOutcome.completed),
+            (false, nil, ShareOutcome.cancelled),
+            (false, NSError(domain: "synthetic", code: 1), ShareOutcome.failed),
+            (true, NSError(domain: "synthetic", code: 1), ShareOutcome.failed)
+        ] {
+            var outcomes: [ShareOutcome] = []
+            let coordinator = ShareSheet.Coordinator { outcomes.append($0) }
+            let controller = UIActivityViewController(activityItems: ["test"], applicationActivities: nil)
+            coordinator.connect(to: controller)
+            controller.completionWithItemsHandler?(nil, completed, nil, error)
+            controller.completionWithItemsHandler?(nil, completed, nil, error)
+            XCTAssertEqual(outcomes, [expected])
+        }
+    }
+
+    func testRepeatedSharePresentationGetsIndependentCompletion() {
+        var outcomes: [ShareOutcome] = []
+        for _ in 0..<2 {
+            let coordinator = ShareSheet.Coordinator { outcomes.append($0) }
+            let controller = UIActivityViewController(activityItems: ["test"], applicationActivities: nil)
+            coordinator.connect(to: controller)
+            controller.completionWithItemsHandler?(nil, true, nil, nil)
+        }
+        XCTAssertEqual(outcomes, [.completed, .completed])
+    }
+
+    func testShareOutcomeAnalyticsDoesNotChangeArtifactReadyContract() {
+        for outcome in [ShareOutcome.completed, .cancelled, .failed] {
+            let event = AnalyticsEvent.exportShareResult(optimizationId: "opt-share", outcome: outcome.rawValue)
+            XCTAssertEqual(event.name, "export_share_result")
+            XCTAssertEqual(event.properties, ["optimization_id": "opt-share", "outcome": outcome.rawValue])
+        }
+        XCTAssertEqual(AnalyticsEvent.exportSuccess(optimizationId: "opt-share").name, "export_success")
+    }
+
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: AppState.exportCompletionKey)
         UserDefaults.standard.removeObject(forKey: AppState.latestOptimizationKey)

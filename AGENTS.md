@@ -23,6 +23,7 @@
 | Self-improvement | `.agent-os/workflows/self-improvement.md` |
 
 ## Verification Before Done
+- When reconciling shipped-build truth, run `scripts/validate-store-version.sh` and `python3 -m unittest discover -s scripts -p 'test_measurement_contract.py'`; a planned future release may intentionally differ from the store and must be labelled as such.
 - Xcode build must succeed (no errors)
 - Relevant tests must pass
 - Simulator smoke test for any UI change
