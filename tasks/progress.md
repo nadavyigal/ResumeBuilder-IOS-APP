@@ -1,3 +1,88 @@
+## 2026-09-09 — 1.5.1 (29) submitted, Waiting for Review
+
+**Status:** Submitted. Confirmed `1.5.1 Waiting for Review` on the App Store Connect version page.
+**Current Phase:** Resumely listing correction and activation (WP-75, Q4 Objective A).
+**Active Story:** None. Awaiting Apple review.
+**Last Completed Story:** WP-75 S2 — the corrected listing is filed.
+
+### What shipped in the binary
+
+PR #184 (WP-75 S1/S4) and PR #185 (Hebrew leak in the English upload card), merged
+2026-09-09. Both were green in isolation and had **never been built together**; they
+also conflicted in this file. Validated on the merged tree: `xcodebuild build`
+SUCCEEDED, and `xcodebuild test` on iPhone 17 / iOS 26.5 returned **433 tests, 432
+passed, 0 failed, 1 skipped**.
+
+Version bump 1.5.0 (28) → **1.5.1 (29)**. 1.5.0 (28) has been live since
+2026-09-02T19:44:22Z, so build 28 could not be uploaded again. The bump was guarded
+with a sorted before/after diff of every build-setting line in `project.pbxproj`:
+exactly four lines changed, one pair per build configuration. That is the check the
+2026-08-14 version regression exists to force.
+
+### What shipped in the metadata
+
+The live description claimed resumes "pass ATS screening" and that templates are
+"ATS-friendly". Neither is supportable. Both are gone. The description now leads with
+the actual product ("Paste the job you are applying for...") and says "Resumely Match
+Score", which the old text never did once.
+
+**The subtitle was not what WP-75 said it was.** The packet asserted `Paste Job. Free
+Match Score`; the live subtitle is `Resume & CV Maker`. The accepted keyword field had
+been built by excluding `paste`, `job`, `free`, `match`, `score` as already-indexed —
+none of which are in the real subtitle. Pasting it would have **removed `job` from the
+keywords entirely**. Recomputed against the real name and subtitle and filed at exactly
+100/100 characters:
+
+```
+job,match,score,cover letter,career,tailor,application,export,template,optimize,interview,hiring,pdf
+```
+
+Pre-change field, captured before overwriting because no public API exposes it:
+`resume,CV,job,career,AI,builder,cover letter,professional,template,interview,hiring`
+
+### Two stale-wording defects fixed on the ASC page
+
+- App Review notes claimed "Saved resume library is disabled in v1.0 (backend not yet
+  live)". False — that feature is wired across `AppState`, `Endpoints` and
+  `RuntimeServices`, and the note described v1.0 on a 1.5.1 submission.
+- The review path made sign-in step 1, which is wrong for a guest-first app and made
+  the review depend on the demo account working, in a product whose Supabase host was
+  NXDOMAIN as recently as 2026-08-30. Rewritten so the core path needs no account.
+
+`IAP is disabled` kept, verified against `BackendConfig.isMonetizationEnabled = false`.
+No Sign in with Apple exists anywhere in the codebase.
+
+### Disclosed, not fixed
+
+- **Screenshots still carry the ATS claims.** "Templates that pass ATS and impress
+  recruiters" is a headline on screenshot 7; screenshots 1, 2 and 10 say "ATS score" /
+  "ATS match", contradicting the decision that the product name is "Resumely Match
+  Score". Founder decided to ship anyway. The rebuild is now overdue for two reasons.
+- **Eight export-flow strings have no Hebrew translation** (`Export application
+  package`, `Save this application to Me`, and six siblings). Xcode added them to
+  `Localizable.xcstrings` during the 1.5.1 archive. Verified no translation was lost:
+  948 → 956 keys, 0 removed, 0 keys lost their Hebrew. They were already English-only,
+  so this is a disclosure, not a regression — but it is in the export flow, which is
+  the north-star action.
+- **Copyright reads `2025 Nadav Yigal`** on a 2026 submission. Cosmetic, pre-existing.
+
+### Release settings
+
+Automatic release on approval, all users immediately, **Keep existing rating**. Because
+release is automatic, take the publish timestamp from the store, not from the
+submission time. That timestamp becomes the fourth Resumely measurement boundary.
+
+**Blockers:** none. Awaiting Apple.
+**Next Recommended Story:** on approval, run the three cache-busted lookup polls and
+confirm the ATS string is absent, then record the publish timestamp here and on the
+vault `ResumeBuilder` living page. WP-75 S5 is date-gated to 2026-09-16 and needs
+`AGENTIC_OS_POSTHOG_API_KEY` exported before `scripts/measurement_contract.py` can run.
+**Last Validation:** 2026-09-09 — 433 tests, 432 passed, 0 failed, 1 skipped, on the
+merged tree with the version bump applied.
+**Last Updated:** 2026-09-09
+
+---
+
 ## 2026-09-09 — 1.5.1 (29) prepared for submission
 
 Both 2026-09-09 branches merged and the version bumped for release. 1.5.0 (28) is
