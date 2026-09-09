@@ -2,6 +2,18 @@
 
 A mature D7 denominator also needs an upper conversion bound. Test generated query logic with late converters and current internal-person classification, not only SQL string fragments. Fail incomplete backend responses rather than treating them as empty cohorts.
 
+**Date:** 2026-09-09
+**Category:** UX
+**Rule:** Changing a user-facing English string is a two-file change: `NSLocalizedString` keys ARE the lookup keys in `Resources/Localizable.xcstrings`, so editing the English text orphans its Hebrew translation and leaves the old claim live for HE users. Grep the catalog for the old string before editing, and update key + `he` value together. Verify by grepping the built `.app/he.lproj/Localizable.strings`, not just the source.
+**Why:** WP-75 S4 removed a false "export unlimited PDFs" claim from the Me tab. Both affected strings had `state: translated` Hebrew values that asserted the same thing (`ולייצא PDF בלי הגבלה`). Fixing only the Swift would have shipped the corrected claim in English and the uncorrected claim in Hebrew, while also silently dropping both translations to the English fallback. The catalog has 948 keys and two languages, so nothing about this fails loudly.
+
+**Date:** 2026-09-09
+**Category:** UX
+**Rule:** Before "fixing" reported guest-gating copy, check which flag the surface actually reads. `AppState.isAuthenticated` means *real account* (`session?.isAccountSession == true`); `hasSession`/`canOptimize` include anonymous sessions. A surface gated on `canOptimize` is already correct for guests and needs no change.
+**Why:** Growth's WP-75 first-run review reported the sign-in-to-export implication on the "Me and free-check" copy. The free-check surface was already correct: `HomeTabView` gates its wall on `canOptimize` and `HomeActivationState.atsComplete` was already scoped by comment to users with no session at all. Only the Me tab's `signInValueCard` was actually false. Editing the free-check copy on the strength of the report would have been a regression against a deliberate earlier fix.
+
+---
+
 # Lessons — ResumeBuilder iOS
 
 > Self-learning memory. Read at the start of every task.
