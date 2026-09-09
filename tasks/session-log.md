@@ -6,6 +6,26 @@ Next: PR review, reconcile open #182, separate founder-controlled physical-devic
 
 ---
 
+# 2026-09-09 — WP-75 S1 baseline and S4 export-claim correction
+
+**Branch:** `claude/resumely-live-listing-fix-c3180c`. **Worktree:** `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/resumely-live-listing-fix-c3180c`. **PR:** https://github.com/nadavyigal/ResumeBuilder-IOS-APP/pull/184
+
+**Task:** Execute WP-75. S2/S3 are founder-only (App Store Connect) and S5 is gated to 2026-09-16, so scope was S1 and S4.
+
+**S1.** Baseline recorded in `tasks/progress.md`, read 2026-09-09T06:13:40Z: arrivals for the four most recent complete weeks, verbatim live 1.5.0 description (round-trip verified against the lookup response), and a pre-publish ATS poll returning three consecutive `True`. Three items recorded as missing rather than guessed — the D7 activation count (WP-73's `scripts/measurement_contract.py` has landed but stops without `AGENTIC_OS_POSTHOG_API_KEY`, and 1.5.0's earliest honest D7 read is 13.5h after the reading); the subtitle and keyword field (no public API exposes either); and the 2026-08-24 arrivals week, which is absent from the Portfolio HQ payload and is logged as absent, not zero. Portfolio HQ's `northStar` 4 is labelled "D7 export" and was logged as the export diagnostic, not activation, per `measurement_contract.py`.
+
+**S4.** Growth's claim held but not on the surface it named. The free-check copy was already correct: `HomeTabView` gates on `canOptimize` and `HomeActivationState.atsComplete` was already scoped by comment. Untouched. The live false claim was the Me tab's `signInValueCard`. Verified no auth gate exists: `ResumeExportAction.exportPDF` guards on `optimizationIdentifier` alone and `BackendConfig.isMonetizationEnabled` is false. Removed the export clause rather than adding a "no account needed" line, which would go false if the paywall returns. Also corrected the identical claim in `AccountDisplayInfo.guest.subtitle` (currently non-rendering; fixed as a latent trap). Updated both Hebrew translations in `Localizable.xcstrings`, which the English key change would otherwise have orphaned.
+
+**Validation:** New regression test run **red first** against the pre-fix strings, then green. Full suite on iPhone 17 `9E2E82B6` (iOS 26.5), `-testLanguage en -testRegion US`: 425 XCTest, 1 skipped, 0 failures, plus 5 Swift Testing. Guest Me tab smoke-tested on device in English and Hebrew; corrected Hebrew confirmed in the built `he.lproj`.
+
+**Decisions:** Moved the value-card copy into `AccountDisplayInfo` so the claim is testable without SwiftUI, matching that type's stated purpose. Did not adopt Growth PR #3's funnel figures, per S1.
+
+**Not done:** S2 and S3 (App Store Connect, founder-only) and S5 (not before 2026-09-16). No version bump, archive, or submission. Spotted but did not fix: Hebrew fragments ("או", "עד") render in the English upload card — pre-existing, unrelated, filed separately.
+
+**Next session:** Founder files S2, pasting the pre-change subtitle and keyword field into the S1 baseline first, then S3 (publish timestamp + three consecutive `False` polls + vault living-page note as the fourth measurement boundary).
+
+---
+
 # Session Log — ResumeBuilder iOS
 
 > One entry per work session. Most recent first.
