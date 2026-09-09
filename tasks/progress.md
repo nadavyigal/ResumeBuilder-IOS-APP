@@ -1,3 +1,25 @@
+## 2026-09-09 — Hebrew leak in the English upload card
+
+The Home/onboarding upload-card subtitle rendered "PDF או DOCX · 5 עד MB" with the
+HE/EN toggle on EN. Root cause is not the string catalog: `Localizable.xcstrings` is
+correct (source language `en`, one `he` translation, no bad `en` entry, no fragment
+composition). The subtitle was the only visible `NSLocalizedString` on that card, so it
+resolved once during body evaluation under Hebrew and never re-resolved on the switch,
+while every neighbouring `Text("literal")` re-resolved from the environment locale.
+Instrumented evidence: `setAppLanguage(en)` fired, and `uploadHero`'s body did not
+re-run. Fixed by moving the card's copy into `UploadCardCopy` as `LocalizedStringKey`.
+
+**Status:** Fixed and verified. Xcode Debug build succeeds; full suite 426 tests, 1 skipped, 0 failures (twice, consecutively) on device 9E2E82B6 (iOS 26.5) with `-testLanguage en -testRegion US`. One earlier full run under simulator load reported 17 failures across unrelated suites and did not reproduce; treated as the known XCTest host instability, not a regression.
+**Current Phase:** Localization correctness on the guest onboarding surface.
+**Active Story:** None — story complete.
+**Last Completed Story:** Upload-card Hebrew-in-EN fix plus `UploadCardLocalizationTests` regression guard.
+**Next Recommended Story:** Same bug class remains at 24 constant-key `NSLocalizedString` display sites in 5 files (FitCheckView 7, ProfileView 7, FitVerdictView 5, OptimizeFitCheckView 4, TailorView 1). Convert them to `LocalizedStringKey`, or decide instead on the one-line root fix of keying the app root on `localization.language` (which fixes all sites but resets view state on every switch).
+**Blockers:** None.
+**Last Validation:** 2026-09-09, 426 tests passed / 1 skipped / 0 failures, plus simulator smoke test in HE and EN on 9E2E82B6.
+**Last Updated:** 2026-09-09
+
+---
+
 ## 2026-09-05 — Merge review corrections
 
 Review found that maturity excluded young users but still admitted conversions after day seven. The corrected report caps start, completion and export at 168 hours after selection, excludes internal users using current persons records, and rejects incomplete query responses. An adversarial SQL fixture covers late conversion, exact day-seven boundary, immature users, current internal classification without an event flag, and prerelease activity.

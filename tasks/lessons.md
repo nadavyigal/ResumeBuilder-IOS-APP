@@ -1,3 +1,17 @@
+## 2026-09-09 — A localized String in a SwiftUI body freezes at the language it was built in
+
+`NSLocalizedString` / `String(localized:)` resolve eagerly during body evaluation and
+hand back a plain `String`. The runtime language override (`Bundle.setAppLanguage`)
+mutates a global that SwiftUI cannot observe, so if the enclosing body is not
+re-evaluated on a live HE/EN switch, the previous language's text stays on screen.
+`Text("literal")` is a `LocalizedStringKey` and is resolved at render time against
+`.environment(\.locale, …)`, which is why every neighbouring string switched correctly
+and only the `NSLocalizedString` one leaked Hebrew into the English upload card.
+Rule: user-facing copy in a view body is `LocalizedStringKey`, never a resolved `String`.
+Corollary: `ViewThatFits` candidates are evaluated in the layout pass, so an
+`@Observable` read that only happens inside one (here `languageSwitcher` reading
+`localization.language`) does not register a body dependency.
+
 ## 2026-09-05 — Cohort age is not a conversion deadline
 
 A mature D7 denominator also needs an upper conversion bound. Test generated query logic with late converters and current internal-person classification, not only SQL string fragments. Fail incomplete backend responses rather than treating them as empty cohorts.
