@@ -2506,13 +2506,13 @@
         }
       }
     },
-    "Create a free account to save every optimization, sync across devices, and export unlimited PDFs." : {
+    "Create a free account to save every optimization and sync across devices." : {
       "comment" : "Guest sign-in value card body",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "צור חשבון חינמי כדי לשמור כל אופטימיזציה, לסנכרן בין מכשירים ולייצא PDF בלי הגבלה."
+            "value" : "צור חשבון חינמי כדי לשמור כל אופטימיזציה ולסנכרן בין מכשירים."
           }
         }
       }
@@ -7677,12 +7677,12 @@
         }
       }
     },
-    "Sign in to save optimizations and export PDFs" : {
+    "Sign in to save optimizations and sync across devices" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "התחבר כדי לשמור אופטימיזציות ולייצא PDF"
+            "value" : "התחבר כדי לשמור אופטימיזציות ולסנכרן בין מכשירים"
           }
         }
       }

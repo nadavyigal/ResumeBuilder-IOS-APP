@@ -22,10 +22,28 @@ enum AccountDisplayInfo: Equatable, Sendable {
     var subtitle: String {
         switch self {
         case .guest:
-            return NSLocalizedString("Sign in to save optimizations and export PDFs", comment: "")
+            return NSLocalizedString("Sign in to save optimizations and sync across devices", comment: "")
         case .authenticated:
             return NSLocalizedString("Active account", comment: "")
         }
+    }
+
+    /// Body copy for the guest sign-in value card in the Me tab.
+    ///
+    /// Lives here rather than inline in `ProfileView` so the claims it makes are
+    /// testable without SwiftUI, like every other label in this type.
+    ///
+    /// Names only what an account actually adds. Export is deliberately absent:
+    /// `ResumeExportAction.exportPDF` gates on `optimizationIdentifier` alone,
+    /// `BackendConfig.isMonetizationEnabled` is false, and Home routes anonymous
+    /// sessions through on `canOptimize` — so a guest shown this card can
+    /// already export, and telling them otherwise costs the export the north
+    /// star measures (WP-75 S4).
+    static var guestValueProposition: String {
+        NSLocalizedString(
+            "Create a free account to save every optimization and sync across devices.",
+            comment: "Guest sign-in value card body"
+        )
     }
 
     var showsSignIn: Bool {

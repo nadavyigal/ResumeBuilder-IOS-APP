@@ -1,3 +1,30 @@
+## 2026-09-09 — 1.5.1 (29) prepared for submission
+
+Both 2026-09-09 branches merged and the version bumped for release. 1.5.0 (28) is
+already live (2026-09-02T19:44:22Z), so build 28 cannot be uploaded again; App Store
+Connect rejects a duplicate build number. `MARKETING_VERSION` 1.5.0 -> **1.5.1**,
+`CURRENT_PROJECT_VERSION` 28 -> **29**.
+
+Guarded the bump the way the 2026-08-14 regression required: sorted the full set of
+build-setting lines in `project.pbxproj` before and after, and diffed. Exactly four
+lines changed, two `CURRENT_PROJECT_VERSION` and two `MARKETING_VERSION`, one pair per
+build configuration. Nothing else moved.
+
+**Validated on the merged tree, not on either branch separately.** Both PRs were green
+in isolation and had never been built together; they also conflicted in this file.
+
+- `xcodebuild build`, iPhone 17 simulator, Debug: **BUILD SUCCEEDED**
+- `xcodebuild test`, iPhone 17 (iOS 26.5), `-testLanguage en -testRegion US`:
+  **433 tests, 432 passed, 0 failed, 1 skipped**
+
+Carries: the WP-75 S4 export-claim correction (#184) and the Hebrew-leak fix in the
+English upload card (#185). Listing text (WP-75 S2/S3) is metadata-only and needs no
+build; it is founder work in App Store Connect and is not gated on this release.
+
+**Last Updated:** 2026-09-09
+
+---
+
 ## 2026-09-09 — Hebrew leak in the English upload card
 
 The Home/onboarding upload-card subtitle rendered "PDF או DOCX · 5 עד MB" with the
@@ -16,6 +43,151 @@ re-run. Fixed by moving the card's copy into `UploadCardCopy` as `LocalizedStrin
 **Next Recommended Story:** Same bug class remains at 24 constant-key `NSLocalizedString` display sites in 5 files (FitCheckView 7, ProfileView 7, FitVerdictView 5, OptimizeFitCheckView 4, TailorView 1). Convert them to `LocalizedStringKey`, or decide instead on the one-line root fix of keying the app root on `localization.language` (which fixes all sites but resets view state on every switch).
 **Blockers:** None.
 **Last Validation:** 2026-09-09, 426 tests passed / 1 skipped / 0 failures, plus simulator smoke test in HE and EN on 9E2E82B6.
+## 2026-09-09 — WP-75 S1 pre-publish baseline, and S4 export-claim correction
+
+### S1. Baseline, read at 2026-09-09T06:13:40Z
+
+Recorded **before** any listing change, so S5 has something to compare against.
+Live version 1.5.0, released 2026-09-02T19:44:22Z, App Store id 6776752349.
+
+**Weekly non-internal arrivals — four most recent complete weeks.**
+Source: Agentic OS `dashboard/site-data/portfolio-hq-founder.json`, `today.briefing.arrivals`,
+payload stamped `sources.northStar = 2026-09-09`. Weeks are week-start dates.
+
+| Week starting | People |
+|---|---|
+| 2026-08-10 | 3 |
+| 2026-08-17 | 2 |
+| 2026-08-24 | **not present in the payload** |
+| 2026-08-31 | 2 |
+
+The 2026-08-24 week is **absent from the series, not zero**. The payload jumps from
+2026-08-17 straight to 2026-08-31. It is not recorded here as 0, and it must not be
+smoothed or interpolated in S5; either the source gains that week or S5 states the gap.
+The week starting 2026-09-07 is still in progress and is excluded as incomplete.
+Direction reported by the payload: `falling`. This is the 2/week the directive cites.
+
+**Clean D7 activation against the EXD-022 target of 20: NOT DERIVED. Two separate reasons.**
+
+1. *The command exists but could not run.* WP-73 has landed as
+   `scripts/measurement_contract.py`. It stopped with:
+   `STOPPED: AGENTIC_OS_POSTHOG_API_KEY is not set. This script reads credentials only from
+   the environment; export it and re-run.` No key is present in this environment, and the
+   script deliberately refuses to read credential files. So the two numbers were **not**
+   derived by the contract.
+2. *1.5.0 is not old enough yet.* The earliest honest D7 read for 1.5.0 is
+   2026-09-09T19:44:22Z (release + 168h). This baseline was read at 06:13Z the same day,
+   i.e. **~13.5 hours before a D7 figure for 1.5.0 can legitimately exist.**
+
+The Portfolio HQ payload does carry `portfolio.ventures[0].northStar` with value 4, target 20,
+label "D7 export, native iOS, internal testers excluded", status "measured". That number
+is **deliberately not adopted here as the activation baseline**: its label is *export*, and
+`measurement_contract.py` states that primary activation is `optimization_completed` while
+`export_success` is a secondary diagnostic, naming Agentic OS `north_star.py` as the thing
+that queries the diagnostic and saying do not copy it. Recorded as the export diagnostic, 4,
+not as the activation count.
+
+Per WP-75 S1, the funnel figures quoted in Growth's exchange PR #3 ("7 clean unique
+exporters", "105 -> 4") are **not** carried forward: they disagree with the canonical count
+of 4, name no window, and state no internal-exclusion method.
+
+**Verbatim live listing text, before the change.** Apple keeps no public history of this.
+
+- **Name:** `Resume AI - CV Builder` (verified via iTunes lookup)
+- **Subtitle:** NOT captured. No public Apple API exposes the subtitle, and the storefront
+  page renders it client-side. WP-75 asserts it is `Paste Job. Free Match Score` and that it
+  must not be touched; that string is recorded here as **packet-asserted, unverified against
+  the live store**. The founder must paste the true value from App Store Connect.
+- **Keyword field:** NOT captured, and not capturable. The keyword field is never public.
+  Founder must paste the pre-change value from App Store Connect before editing it.
+- **Description (verbatim, 1551 characters):**
+
+    Resume AI is your intelligent career companion, helping you craft professional resumes and CVs that get noticed by employers and pass ATS screening.
+
+    KEY FEATURES:
+
+    AI-Powered Resume Builder
+    Let our advanced AI analyze job descriptions and tailor your resume content to match exactly what employers are looking for. No more guessing what to include.
+
+    Professional Templates
+    Choose from a library of sleek, modern resume templates designed by career experts. Each template is ATS-friendly and optimized for real job applications.
+
+    Smart Content Suggestions
+    Get intelligent suggestions for your experience, skills, and achievements. Our AI helps you highlight your best qualities in the most impactful way.
+
+    Edit Anywhere, Anytime
+    Build and update your resume on the go with our intuitive mobile interface. Make quick edits before an interview or craft a full resume from scratch.
+
+    Export and Share
+    Export your finished resume as a PDF or share it directly with recruiters. Your professional document is always ready when you need it.
+
+    Multiple Resume Versions
+    Create and manage multiple resume versions for different job types or industries. Always have the right resume ready for every opportunity.
+
+    Cover Letter Support
+    Complement your resume with AI-generated cover letters personalized to each job application.
+
+    Whether you are a recent graduate, changing careers, or climbing the corporate ladder, Resume AI gives you the tools to present your best professional self.
+
+    Download Resume AI today and take the first step toward your next opportunity.
+
+**Pre-publish ATS poll**, the same command S3 uses as its pass condition, run now to show the
+baseline state. Three consecutive readings, varying the query parameter:
+
+    1.5.0 True
+    1.5.0 True
+    1.5.0 True
+
+`True` means the ATS string is still present. S3's pass condition is three consecutive
+`False` **after** the founder publishes.
+
+### S2 / S3 — not done, founder-only
+
+S2 (filing the corrected description and keyword field) and S3 (recording the publish
+timestamp) require App Store Connect, which no agent opens. They remain open. The corrected
+description and the accepted 99-character keyword field are ready to paste in
+`executive-os/work-packets/WP-75-resumely-correct-the-live-listing.md`.
+
+### S4. In-app claim corrected and verified
+
+Growth's claim held, but not where it was reported. Verified against the current build:
+
+- `ResumeExportAction.exportPDF` guards on `optimizationIdentifier` only — no auth gate.
+- `BackendConfig.isMonetizationEnabled = false`, so no export cap is live.
+- `AppState.isAuthenticated` is `session?.isAccountSession == true`, i.e. **real accounts
+  only**; an anonymous-session guest reads as `false` and still sees guest copy.
+- Home is already correct: `HomeTabView` gates the sign-in wall on `canOptimize`, and
+  `HomeActivationState.atsComplete` carries a comment scoping it to users with no session
+  at all. **The free-check surface needed no change.**
+
+The live false claim was in the **Me tab**, `ProfileView.signInValueCard`:
+"Create a free account to save every optimization, sync across devices, and export unlimited
+PDFs." A guest shown that card can already export, unlimited, today.
+
+Corrected to "Create a free account to save every optimization and sync across devices." The
+two remaining benefits are real: history is gated on `isAuthenticated` (`HistoryView`), and
+sync genuinely needs an account. Export is simply removed rather than replaced with a
+"no account needed" reassurance, because that would become false if the paywall returns.
+
+`AccountDisplayInfo.guest.subtitle` carried the same false claim ("...and export PDFs") and
+was corrected identically. Note it does **not** currently render: `ProfileView.profileSubtitle`
+short-circuits `.guest` to "Not signed in". It was fixed as a latent trap, not a live defect.
+
+Both strings had Hebrew translations asserting the same thing. The English keys were changed,
+which orphans them, so `Localizable.xcstrings` was updated in place: the new Hebrew was
+derived by deleting the export clause from the already-approved translations, keeping the
+existing wording for syncing between devices. Catalog still holds 948 keys.
+
+**Out of scope, per the packet:** export as primary CTA after Match Check, the 100-word paste
+rule, the accept-optimisation step, and splitting share-completed from PDF-built analytics.
+
+**Status:** S1 baseline recorded; S4 corrected and verified. S2/S3 blocked on founder (App Store Connect). S5 gated to 2026-09-16.
+**Current Phase:** WP-75 listing correction.
+**Active Story:** WP-75 S4 (done, in review).
+**Last Completed Story:** WP-75 S1 + S4.
+**Next Recommended Story:** Founder files S2 in App Store Connect, pasting the subtitle and old keyword field into this baseline first; then S3.
+**Blockers:** App Store Connect is founder-only. `AGENTIC_OS_POSTHOG_API_KEY` absent, so the D7 activation number is still underived. Subtitle and keyword field are missing from the baseline until the founder pastes them.
+**Last Validation:** 2026-09-09 — full suite on iPhone 17 `9E2E82B6` (iOS 26.5), `-testLanguage en -testRegion US`: 425 XCTest, 1 skipped, 0 failures, plus 5 Swift Testing passed. New regression test goes red on the pre-fix copy and green after. Guest Me tab smoke-tested on device in both English and Hebrew.
 **Last Updated:** 2026-09-09
 
 ---
