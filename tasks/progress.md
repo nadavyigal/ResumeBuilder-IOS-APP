@@ -1,3 +1,48 @@
+## 2026-09-09 — 1.5.1 (29) prepared for submission
+
+Both 2026-09-09 branches merged and the version bumped for release. 1.5.0 (28) is
+already live (2026-09-02T19:44:22Z), so build 28 cannot be uploaded again; App Store
+Connect rejects a duplicate build number. `MARKETING_VERSION` 1.5.0 -> **1.5.1**,
+`CURRENT_PROJECT_VERSION` 28 -> **29**.
+
+Guarded the bump the way the 2026-08-14 regression required: sorted the full set of
+build-setting lines in `project.pbxproj` before and after, and diffed. Exactly four
+lines changed, two `CURRENT_PROJECT_VERSION` and two `MARKETING_VERSION`, one pair per
+build configuration. Nothing else moved.
+
+**Validated on the merged tree, not on either branch separately.** Both PRs were green
+in isolation and had never been built together; they also conflicted in this file.
+
+- `xcodebuild build`, iPhone 17 simulator, Debug: **BUILD SUCCEEDED**
+- `xcodebuild test`, iPhone 17 (iOS 26.5), `-testLanguage en -testRegion US`:
+  **433 tests, 432 passed, 0 failed, 1 skipped**
+
+Carries: the WP-75 S4 export-claim correction (#184) and the Hebrew-leak fix in the
+English upload card (#185). Listing text (WP-75 S2/S3) is metadata-only and needs no
+build; it is founder work in App Store Connect and is not gated on this release.
+
+**Last Updated:** 2026-09-09
+
+---
+
+## 2026-09-09 — Hebrew leak in the English upload card
+
+The Home/onboarding upload-card subtitle rendered "PDF או DOCX · 5 עד MB" with the
+HE/EN toggle on EN. Root cause is not the string catalog: `Localizable.xcstrings` is
+correct (source language `en`, one `he` translation, no bad `en` entry, no fragment
+composition). The subtitle was the only visible `NSLocalizedString` on that card, so it
+resolved once during body evaluation under Hebrew and never re-resolved on the switch,
+while every neighbouring `Text("literal")` re-resolved from the environment locale.
+Instrumented evidence: `setAppLanguage(en)` fired, and `uploadHero`'s body did not
+re-run. Fixed by moving the card's copy into `UploadCardCopy` as `LocalizedStringKey`.
+
+**Status:** Fixed and verified. Xcode Debug build succeeds; full suite 426 tests, 1 skipped, 0 failures (twice, consecutively) on device 9E2E82B6 (iOS 26.5) with `-testLanguage en -testRegion US`. One earlier full run under simulator load reported 17 failures across unrelated suites and did not reproduce; treated as the known XCTest host instability, not a regression.
+**Current Phase:** Localization correctness on the guest onboarding surface.
+**Active Story:** None — story complete.
+**Last Completed Story:** Upload-card Hebrew-in-EN fix plus `UploadCardLocalizationTests` regression guard.
+**Next Recommended Story:** Same bug class remains at 24 constant-key `NSLocalizedString` display sites in 5 files (FitCheckView 7, ProfileView 7, FitVerdictView 5, OptimizeFitCheckView 4, TailorView 1). Convert them to `LocalizedStringKey`, or decide instead on the one-line root fix of keying the app root on `localization.language` (which fixes all sites but resets view state on every switch).
+**Blockers:** None.
+**Last Validation:** 2026-09-09, 426 tests passed / 1 skipped / 0 failures, plus simulator smoke test in HE and EN on 9E2E82B6.
 ## 2026-09-09 — WP-75 S1 pre-publish baseline, and S4 export-claim correction
 
 ### S1. Baseline, read at 2026-09-09T06:13:40Z

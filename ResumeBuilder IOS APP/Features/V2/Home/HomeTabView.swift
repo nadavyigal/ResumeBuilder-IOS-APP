@@ -880,7 +880,13 @@ struct HomeTabView: View {
                             .font(.title3.weight(.black))
                             .foregroundStyle(AppColors.textPrimary)
 
-                        Text(viewModel.selectedResumeName?.isEmpty == false ? (viewModel.selectedResumeName ?? "") : NSLocalizedString("PDF or DOCX · up to 5 MB", comment: ""))
+                        Group {
+                            if let name = viewModel.selectedResumeName, !name.isEmpty {
+                                Text(name)
+                            } else {
+                                Text(UploadCardCopy.subtitle)
+                            }
+                        }
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(viewModel.selectedResumeName?.isEmpty == false ? AppColors.accentSky : AppColors.textSecondary)
                             .lineLimit(2)
@@ -938,7 +944,11 @@ struct HomeTabView: View {
             .shadow(color: AppColors.accentSky.opacity(0.22), radius: 28, y: 12)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? NSLocalizedString("Résumé selected. Choose a different file.", comment: "") : NSLocalizedString("Upload your résumé. PDF or DOCX up to 5 megabytes.", comment: ""))
+        .accessibilityLabel(
+            viewModel.selectedResumeName?.isEmpty == false
+                ? UploadCardCopy.selectedAccessibilityLabel
+                : UploadCardCopy.uploadAccessibilityLabel
+        )
         .onAppear(perform: trackUploadCTASeenIfNeeded)
     }
 

@@ -1,3 +1,29 @@
+# 2026-09-09 — Upload card rendered Hebrew in English mode
+
+**Branch:** `claude/reverent-williamson-4a3d1d`.
+**Worktree:** `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/reverent-williamson-4a3d1d`.
+
+**Files changed:** `ResumeBuilder IOS APP/Features/V2/Home/HomeTabView.swift`,
+`ResumeBuilder IOS APP/Features/V2/Home/UploadCardCopy.swift` (new),
+`ResumeBuilder IOS APPTests/UploadCardLocalizationTests.swift` (new),
+`tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md`.
+
+**Decisions:** Fixed the reported screen only. The identical bug class exists at 24 other
+display sites in 5 files; converting them all would breach the scope gate, and the
+alternative one-line root fix (`.id(localization.language)` on the app root) resets view
+state on every language switch, which is a product call rather than a bug fix.
+
+**Tests:** Full suite twice, 426 passed / 1 skipped / 0 failures on 9E2E82B6 (iOS 26.5),
+`-testLanguage en -testRegion US`, `-derivedDataPath /private/tmp/claude-501/rb-dd`.
+Simulator smoke test: fresh install launches in HE (correct), first tap on EN now renders
+"PDF or DOCX · up to 5 MB" (previously Hebrew), tapping back to HE restores Hebrew.
+
+**Not done:** The 24 remaining `NSLocalizedString` display sites. No release or submission.
+
+**Next action:** Decide between per-site conversion and the root-level identity fix.
+
+---
+
 # 2026-09-05 — Portfolio first batch: export/share truth
 
 Changed optimized export copy, wired actual ShareSheet callbacks with per-presentation deduplication, added outcome analytics and Hebrew strings. Preserved export_success readiness semantics and review gate after dismissal. Verified existing guest continuity without an onboarding change. Reused WP-73 scripts with release/maturity fixes; six offline tests and live drift checks pass. Full iOS run 426 passed/1 skipped/0 failed; final focused run 41 passed. See `docs/qa/reports/2026-09-05-export-share-truth.md` for fixed-window production-evidence limitations and simulator results. No shared vault/dashboard edits.
