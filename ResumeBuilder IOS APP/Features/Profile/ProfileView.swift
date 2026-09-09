@@ -201,13 +201,10 @@ struct ProfileView: View {
                 .font(.title3.weight(.black))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text(NSLocalizedString(
-                "Create a free account to save every optimization, sync across devices, and export unlimited PDFs.",
-                comment: "Guest sign-in value card body"
-            ))
-            .font(.subheadline)
-            .foregroundStyle(AppColors.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
+            Text(AccountDisplayInfo.guestValueProposition)
+                .font(.subheadline)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             Button {
                 onboardingStartsInSignUp = true
