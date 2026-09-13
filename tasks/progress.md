@@ -1,3 +1,35 @@
+# 2026-09-13 — 1.5.1 (29) live; listing correction verified
+
+**Status:** Live. Three cache-busted iTunes lookup reads on 2026-09-13 returned
+version 1.5.1 with `currentVersionReleaseDate = 2026-09-09T16:51:52Z` and confirmed
+the exact phrase `pass ATS screening` is absent from the public description.
+
+**Current Phase:** Resumely activation measurement, Q4 Objective A.
+**Active Story:** None. WP-77 is ready in Agentic OS to correct the mixed-birthday
+`guest_mode_started` -> `resume_upload_cta_seen` read before any UI change.
+**Last Completed Story:** WP-75 S3 — corrected listing live, UTC publish timestamp
+recorded, and the unsupported description claim removed from the public surface.
+
+The publish timestamp is the fourth Resumely measurement boundary. Events before
+and after `2026-09-09T16:51:52Z` are separate series and must not be combined into
+one listing-effect trend.
+
+**Known remainder:** App Store screenshots still carry the previously disclosed ATS
+wording. The founder explicitly accepted this remainder for 1.5.1; it was not fixed
+or re-approved in this status update.
+
+**Next Recommended Story:** Execute Agentic OS WP-77 first. On or after 2026-09-16,
+run WP-75 S5 only with WP-77's aligned cohort contract; do not reuse the withdrawn
+99 -> 33 CTA-reach figure.
+**Blockers:** Live PostHog access is required for WP-77. The Codex PostHog connection
+required reauthentication on 2026-09-13, so no replacement rate was derived here.
+**Last Validation:** 2026-09-13 — three public lookup reads returned
+`1.5.1 2026-09-09T16:51:52Z False`, where `False` means the unsupported phrase was
+absent. No build or tests run because no product code changed.
+**Last Updated:** 2026-09-13
+
+---
+
 ## 2026-09-09 — 1.5.1 (29) submitted, Waiting for Review
 
 **Status:** Submitted. Confirmed `1.5.1 Waiting for Review` on the App Store Connect version page.
