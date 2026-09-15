@@ -1,86 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Shared via selected activity" : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שותף באמצעות הפעולה שנבחרה"
-          }
-        }
-      }
-    },
-    "Sharing cancelled. File ready." : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "השיתוף בוטל. הקובץ מוכן."
-          }
-        }
-      }
-    },
-    "Sharing failed. File ready to retry." : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "השיתוף נכשל. הקובץ מוכן לניסיון נוסף."
-          }
-        }
-      }
-    },
-    "Files ready: résumé, cover letter, screening answers" : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הקבצים מוכנים: קורות חיים, מכתב מקדים ותשובות לשאלות סינון"
-          }
-        }
-      }
-    },
-    "Files ready: résumé and cover letter" : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הקבצים מוכנים: קורות חיים ומכתב מקדים"
-          }
-        }
-      }
-    },
-    "Files ready: résumé and screening answers" : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הקבצים מוכנים: קורות חיים ותשובות לשאלות סינון"
-          }
-        }
-      }
-    },
-    "File ready: résumé" : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הקובץ מוכן: קורות חיים"
-          }
-        }
-      }
-    },
-    "Your cover letter could not be attached this time. The résumé file is ready." : {
-      "localizations": {
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "לא ניתן לצרף את המכתב המקדים הפעם. קובץ קורות החיים מוכן."
-          }
-        }
-      }
-    },
     "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer." : {
       "localizations" : {
         "he" : {
@@ -2457,6 +2377,7 @@
       }
     },
     "Cover Letter" : {
+      "comment" : "export filename component",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3031,6 +2952,7 @@
       }
     },
     "Evidence: %@" : {
+      "comment" : "export file line",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3170,6 +3092,9 @@
         }
       }
     },
+    "Export application package" : {
+
+    },
     "export_download_pdf" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3183,6 +3108,16 @@
           "stringUnit" : {
             "state" : "needs_translation",
             "value" : "הורד PDF"
+          }
+        }
+      }
+    },
+    "File ready: résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקובץ מוכן: קורות חיים"
           }
         }
       }
@@ -3203,6 +3138,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הקובץ חייב להיות בגודל 5 MB או פחות. ייצאו קובץ PDF או DOCX קטן יותר ונסו שוב."
+          }
+        }
+      }
+    },
+    "Files ready: résumé and cover letter" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקבצים מוכנים: קורות חיים ומכתב מקדים"
+          }
+        }
+      }
+    },
+    "Files ready: résumé and screening answers" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקבצים מוכנים: קורות חיים ותשובות לשאלות סינון"
+          }
+        }
+      }
+    },
+    "Files ready: résumé, cover letter, screening answers" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקבצים מוכנים: קורות חיים, מכתב מקדים ותשובות לשאלות סינון"
           }
         }
       }
@@ -3833,6 +3798,15 @@
           }
         }
       }
+    },
+    "Includes your résumé and cover letter." : {
+
+    },
+    "Includes your résumé and screening answers." : {
+
+    },
+    "Includes your résumé, cover letter, and screening answers." : {
+
     },
     "Increased qualified applications by 23% by rebuilding the resume workflow around role-specific keywords, recruiter language, and measurable outcomes." : {
       "localizations" : {
@@ -4904,6 +4878,9 @@
         }
       }
     },
+    "No cover letter yet — write one in Expert" : {
+
+    },
     "No expert analysis yet" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5117,6 +5094,9 @@
           }
         }
       }
+    },
+    "Note: %@" : {
+      "comment" : "export file line"
     },
     "OK" : {
       "localizations" : {
@@ -5676,6 +5656,7 @@
       }
     },
     "PDF exported successfully" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5858,6 +5839,7 @@
       }
     },
     "Preview & Export PDF" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6326,7 +6308,7 @@
       }
     },
     "Resume" : {
-      "extractionState" : "stale",
+      "comment" : "export filename component",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6416,6 +6398,9 @@
           }
         }
       }
+    },
+    "Résumé only. Write a cover letter in Expert to include one." : {
+
     },
     "Resume PDF" : {
       "localizations" : {
@@ -6943,6 +6928,9 @@
         }
       }
     },
+    "Save this application to Me" : {
+
+    },
     "Save this resume?" : {
       "localizations" : {
         "he" : {
@@ -7230,6 +7218,7 @@
       }
     },
     "Screening Answers" : {
+      "comment" : "export file heading\nexport filename component",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7539,6 +7528,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שתף ציון"
+          }
+        }
+      }
+    },
+    "Shared via selected activity" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שותף באמצעות הפעולה שנבחרה"
+          }
+        }
+      }
+    },
+    "Sharing cancelled. File ready." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השיתוף בוטל. הקובץ מוכן."
+          }
+        }
+      }
+    },
+    "Sharing failed. File ready to retry." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השיתוף נכשל. הקובץ מוכן לניסיון נוסף."
           }
         }
       }
@@ -9498,6 +9517,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ניצלת את כל קרדיטי האופטימיזציה שלך. שדרג את התוכנית כדי להמשיך."
+          }
+        }
+      }
+    },
+    "Your cover letter could not be attached this time. The résumé file is ready." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא ניתן לצרף את המכתב המקדים הפעם. קובץ קורות החיים מוכן."
           }
         }
       }
