@@ -10,9 +10,11 @@
 
 On PostHog 270848, query end `2026-09-24T06:00:00Z`: 39 real people whose first-ever
 `guest_mode_started` is on or after 2026-07-08 (the `resume_upload_cta_seen` birthday),
-testers excluded per person. **32 of 39 (82.1%)** emitted CTA-seen in the same launch;
-**32 of 36 (88.9%)** among builds that can emit it. Both clear the 80% bar. 18 tapped and
-18 opened the picker (46.2%, ever-fired, not a sequence).
+testers excluded per person. **32 of 39 (82.1%)** emitted CTA-seen from 60 seconds before
+their first guest event through the query end; **32 of 36 (88.9%)** among builds that can
+emit it. Both clear the 80% bar. 18 tapped and 18 opened the picker (46.2%, ever-fired, not
+a sequence). The query measures reach through its end, not first-launch attribution for
+all 32 impressions.
 
 **WP-76's 99 -> 33 was three measurement defects, not users missing the CTA.**
 
