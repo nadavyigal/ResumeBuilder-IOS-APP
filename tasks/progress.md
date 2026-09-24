@@ -1,4 +1,44 @@
-# 2026-09-13 — 1.5.1 (29) live; listing correction verified
+# 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
+
+**Status:** Measured, read-only. No product, analytics or UI change.
+
+**Current Phase:** Resumely activation measurement, Q4 Objective A.
+**Active Story:** None.
+**Last Completed Story:** WP-77, remeasure upload-CTA reach on a valid common cohort.
+**Next Recommended Story:** Per WP-77's verdict rule, diagnose the next measured loss after
+`resume_file_picker_opened`. Do not open a Home UI or lifecycle packet on this evidence.
+
+On PostHog 270848, query end `2026-09-24T06:00:00Z`: 39 real people whose first-ever
+`guest_mode_started` is on or after 2026-07-08 (the `resume_upload_cta_seen` birthday),
+testers excluded per person. **32 of 39 (82.1%)** emitted CTA-seen from 60 seconds before
+their first guest event through the query end; **32 of 36 (88.9%)** among builds that can
+emit it. Both clear the 80% bar. 18 tapped and 18 opened the picker (46.2%, ever-fired, not
+a sequence). The query measures reach through its end, not first-launch attribution for
+all 32 impressions.
+
+**WP-76's 99 -> 33 was three measurement defects, not users missing the CTA.**
+
+- Mixed event birthdays across a 100-day window.
+- 3 people on a client that sends no `app_version` and has never emitted CTA-seen for anyone.
+- An ordering race in this app. `guest_mode_started` is sent after
+  `await appState.bootstrapAndRefreshSession()` in `ResumeBuilder_IOS_APPApp.swift:41-45`,
+  while `HomeTabView.uploadHero` sends CTA-seen on appear. Ten people's CTA-seen landed 0 to
+  2 seconds before their guest event in the same launch, so a strict "after the guest event"
+  rule drops them. That is the whole gap between 56.4% and 82.1%.
+
+**Worth knowing for any future funnel on this app:**
+
+- Anything anchored on `guest_mode_started` with strict ordering undercounts same-launch
+  events.
+- PostHog's `$app_version` is never set. The version lives in `app_version` and
+  `build_number`.
+- Build `1.3 (9)` under-emits CTA-seen (3 impressions against 10 taps).
+
+**Uncertainty:** n = 39, and the margin on the full denominator is one person (31 of 39
+would fail). Full query, columns, rows and method are in Agentic OS
+`executive-os/work-packets/WP-77-resumely-remeasure-upload-cta-reach.md`.
+
+## 2026-09-13 — 1.5.1 (29) live; listing correction verified
 
 **Status:** Live. Three cache-busted iTunes lookup reads on 2026-09-13 returned
 version 1.5.1 with `currentVersionReleaseDate = 2026-09-09T16:51:52Z` and confirmed
