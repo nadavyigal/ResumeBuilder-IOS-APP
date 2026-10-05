@@ -1,33 +1,3 @@
-## 2026-09-09 — A localized String in a SwiftUI body freezes at the language it was built in
-
-`NSLocalizedString` / `String(localized:)` resolve eagerly during body evaluation and
-hand back a plain `String`. The runtime language override (`Bundle.setAppLanguage`)
-mutates a global that SwiftUI cannot observe, so if the enclosing body is not
-re-evaluated on a live HE/EN switch, the previous language's text stays on screen.
-`Text("literal")` is a `LocalizedStringKey` and is resolved at render time against
-`.environment(\.locale, …)`, which is why every neighbouring string switched correctly
-and only the `NSLocalizedString` one leaked Hebrew into the English upload card.
-Rule: user-facing copy in a view body is `LocalizedStringKey`, never a resolved `String`.
-Corollary: `ViewThatFits` candidates are evaluated in the layout pass, so an
-`@Observable` read that only happens inside one (here `languageSwitcher` reading
-`localization.language`) does not register a body dependency.
-
-## 2026-09-05 — Cohort age is not a conversion deadline
-
-A mature D7 denominator also needs an upper conversion bound. Test generated query logic with late converters and current internal-person classification, not only SQL string fragments. Fail incomplete backend responses rather than treating them as empty cohorts.
-
-**Date:** 2026-09-09
-**Category:** UX
-**Rule:** Changing a user-facing English string is a two-file change: `NSLocalizedString` keys ARE the lookup keys in `Resources/Localizable.xcstrings`, so editing the English text orphans its Hebrew translation and leaves the old claim live for HE users. Grep the catalog for the old string before editing, and update key + `he` value together. Verify by grepping the built `.app/he.lproj/Localizable.strings`, not just the source.
-**Why:** WP-75 S4 removed a false "export unlimited PDFs" claim from the Me tab. Both affected strings had `state: translated` Hebrew values that asserted the same thing (`ולייצא PDF בלי הגבלה`). Fixing only the Swift would have shipped the corrected claim in English and the uncorrected claim in Hebrew, while also silently dropping both translations to the English fallback. The catalog has 948 keys and two languages, so nothing about this fails loudly.
-
-**Date:** 2026-09-09
-**Category:** UX
-**Rule:** Before "fixing" reported guest-gating copy, check which flag the surface actually reads. `AppState.isAuthenticated` means *real account* (`session?.isAccountSession == true`); `hasSession`/`canOptimize` include anonymous sessions. A surface gated on `canOptimize` is already correct for guests and needs no change.
-**Why:** Growth's WP-75 first-run review reported the sign-in-to-export implication on the "Me and free-check" copy. The free-check surface was already correct: `HomeTabView` gates its wall on `canOptimize` and `HomeActivationState.atsComplete` was already scoped by comment to users with no session at all. Only the Me tab's `signInValueCard` was actually false. Editing the free-check copy on the strength of the report would have been a regression against a deliberate earlier fix.
-
----
-
 # Lessons — ResumeBuilder iOS
 
 > Self-learning memory. Read at the start of every task.
@@ -40,52 +10,6 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Category:** Build | SwiftUI | API | Resume Output | PDF | Template | UX | Auth | TestFlight | General
 **Rule:** _One sentence rule to follow in future tasks._
 **Why:** _What went wrong or what the user corrected._
-
----
-
-**Date:** 2026-09-02
-**Category:** Build
-**Rule:** If Git reports truncated packfiles or an invalid base-tree object, stop committing in that object database and recover through a fresh clone; do not delete or rewrite shared packs while other worktrees and the founder's dirty checkout depend on them.
-**Why:** The 1.5.0 release commit failed at tree construction because two shared packfiles were "far too short" and a tracked workspace object was unreadable. The validated source and archive remained intact, so a clean clone was safer than an in-place destructive repair.
-
-**Date:** 2026-09-02
-**Category:** TestFlight
-**Rule:** Audit the root of every signed archive for unintended source-adjacent resources; file-system-synchronized Xcode groups automatically copy non-source files unless each internal document is a target membership exception.
-**Why:** The first 1.5.0 archive succeeded but bundled 11 internal Markdown troubleshooting and agent-prompt files. They contained no detected credential assignment, but they are not runtime assets and must not ship.
-
-**Date:** 2026-09-02
-**Category:** Build
-**Rule:** When replaying an old feature branch after a safety parameter was added to a service call, resolve every call site explicitly to the current safe default and let a fresh build enumerate any stale signatures.
-**Why:** PR #147 predated `acceptScoreDecrease`; its production call and two protocol test doubles no longer compiled, and the nonisolated spies also could not decode the now-main-actor apply DTO. The production call keeps `false`; the spies match the full signature and run on `@MainActor` like the existing suite's expert spies.
-
-**Date:** 2026-09-02
-**Category:** Build
-**Rule:** When a `nonisolated` wire DTO constructs a model that inherits the app target's default `MainActor` isolation, mark only the construction method `@MainActor`; do not broaden the DTO or the model's isolation to silence the compiler.
-**Why:** Replaying PR #142 on current main failed because `GoTrueResponse.makeSession()` was nonisolated while `AuthSession.init` is main-actor isolated.
-
-**Date:** 2026-09-02
-**Category:** Testing
-**Rule:** A test that reaches authentication network code must prove its behavior with an injected client; never let a live backend failure accidentally satisfy the assertion.
-**Why:** PR #142's refresh-coalescing test passed only because Supabase rejected a bogus token and cleared the session; offline it did not test coalescing and failed for an unrelated transport reason.
-
-**Date:** 2026-09-02
-**Category:** Testing
-**Rule:** To prove concurrent callers coalesce, hold the first stubbed request open until the second caller has reached the shared in-flight task, then assert one underlying call and both results.
-**Why:** An immediate stub result can finish and clear `refreshTask` before the second task arrives, making the test scheduler-dependent.
-
----
-
-**Date:** 2026-08-31
-**Category:** API
-**Rule:** Never decode a server-side *score gain* or other computed metric into a non-optional-typed `Int`; use the lenient Int-or-Double shape `ATSSuggestion` already uses. A fractional number does not degrade one field, it throws `dataCorrupted` ("Number 2.5 is not representable in Swift") and fails the **entire** response decode.
-**Why:** Every optimization on production failed with "We couldn't parse the optimization response" from 2026-08-28. `/api/optimize` returns `fit.topGaps[].estimatedGain`, and web WP-59 S1 (#147) changed `estimateImpact` to return `Math.round(value * 10) / 10` (every real value between 0.36 and 3.75). Before WP-59 every gain was clamped to a flat integer 15, which is the only reason `OptimizeFitGap.estimatedGain: Int?` ever worked. `OptimizeFitResponseTests` stayed green throughout because its fixture hardcoded `"estimatedGain": 6` and `4`. **A fixture that predates a backend change is not a contract test.** Two structs away, `ATSSuggestion` already had the lenient Int-or-Double decoder for the same `estimated_gain` field, so the pattern existed and this struct was simply never given it. Also note the blast radius: a client-side decode fix cannot reach installed users until a new App Store build ships, so the same class of break is better mitigated by rounding on the server first.
-
----
-
-**Date:** 2026-08-13
-**Category:** TestFlight
-**Rule:** Never infer the App Store Connect review build from the repository's current version metadata; cite the exact ASC candidate when verified, otherwise state that the build is unconfirmed and label telemetry-based clues as inference.
-**Why:** The activation follow-up initially paired the founder's confirmed 1.4.9 review status with build 26 from `main`, while live external-looking build-27 telemetry showed ASC may already be ahead. The version claim was valid; the build claim was not verified.
 
 ---
 
@@ -742,6 +666,7 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Rule:** `FitCheckViewModelTests` asserts English UI copy, so it fails whenever the simulator is left in Hebrew from a prior HE smoke — always pass `-testLanguage en -testRegion US` for the canonical suite run, and treat a locale-shaped failure as a stale simulator, not a regression.
 **Why:** The first 1.4.5 suite run showed 2 failures in `FitCheckViewModelTests`, both comparing a Hebrew string against an English literal (`"התחבר תחילה."` vs `"Please sign in first."`). The simulator had been left in HE by an earlier smoke test. Re-running the same tests with `-testLanguage en` passed 24/24. The tests hardcode localized copy instead of comparing against `NSLocalizedString`, which makes them locale-fragile; worth fixing separately, but the immediate rule is to pin the language on every suite invocation so results are comparable across runs.
 
+<<<<<<< HEAD
 **Date:** 2026-08-05
 **Category:** Git
 **Rule:** "Is this branch's work already in `main`?" cannot be answered by `git log main..branch` or `git diff main...branch` once the PR was squash-merged. The squash rewrites the hash, so the local ref still looks unmerged, and the three-dot diff reports what the branch added since the merge base — which is non-empty for landed work too. Answer it by content: take a distinctive symbol the branch introduces and run `git grep <symbol> origin/main`.
@@ -753,17 +678,10 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Why:** Twelve days live with the prompt shipped and zero ratings. The gate at `ReviewPromptGate.swift:57` claims first and calls `requestReview()` second, from `.sheet(onDismiss:)` — during the share sheet's teardown, which is one of the documented conditions under which StoreKit declines to present. Before fixing it, read `app_store_review_requested` on the live version: if it is zero the prompt was never attempted and the problem is the funnel, not the gate.
 
 **Date:** 2026-08-09
-**Category:** Test
-**Rule:** To smoke a screen behind the optimization gate without an account, seed the simulator's `UserDefaults` directly: `xcrun simctl spawn <udid> defaults write <bundle-id> latest_optimization_id -string "smoke-opt-1"`, plus `defaults write <bundle-id> <key> -data <hex>` for any `Codable` record the screen reads, then launch with `--smoke-open-optimized-tab`. The preview pane shows its signed-out error, but every locally-derived affordance renders for real.
-**Why:** Story 2 of the export-package work changed the Optimized bottom bar, whose copy branches on `appState.submitPackageRecord(for:)`. `--smoke-open-optimized-tab` alone only selects the tab — with no `latestOptimizationId` the tab is the locked teaser, so the changed UI was unreachable. Seeding the record twice (once populated, once deleted) captured both copy branches on device in two launches. The bundle id is `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, which is not the `com.resumely.*` id a first guess reaches for; read it from the built `Info.plist` with PlistBuddy rather than guessing.
-**Clean up afterwards — this is the part that bites.** The XCTest host *is* the app, so it shares that defaults domain: a leftover `latest_optimization_id` failed `FirstSessionJourneyTests.testLateRecoverySuccessDoesNotRestoreOptimizationAfterSignOut` and `RuntimeServicesTests.testBootstrapClearsPersistedMockOptimizationId` on the very next full run, both asserting nil and both reading back `"smoke-opt-1"`. Two red tests with no code change between runs, in files nowhere near the diff. `defaults delete` every seeded key before the next suite run, and if a suite fails on a state assertion right after a seeded smoke, suspect the seed before the diff.
-
----
-
-**Date:** 2026-08-09
 **Category:** Optimized résumé state
 **Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
 **Why:** One live run showed 43 as the original, 57 as the review projection, and 64 as the stored result while the screen presented all three. The same résumé accepted three ATS improvement runs because success did not create a durable completion state and the simplified panel omitted the success message.
+=======
 ---
 
 **Date:** 2026-08-04
@@ -790,50 +708,4 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Category:** Build
 **Rule:** Before diagnosing a suite failure in a worktree, check that `Secrets.xcconfig` holds real values and not the template placeholders. `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` fails deterministically with a placeholder `SUPABASE_ANON_KEY` and passes with a real one — it is a live-credential canary, not a unit test.
 **Why:** The synchronized-group conversion first reported 313 / 1 skip / 1 failure and the failure reproduced twice, which read exactly like cross-test pollution from the newly-enrolled `ScanViewModelTests` (the control branch was green at 310). It was not. The worktree's gitignored `Secrets.xcconfig` had been created from `Secrets.xcconfig.template` per the 2026-07-23 lesson, so the refresh call failed as a `URLError`; `AppState.shouldSignOutAfterRefreshFailure` correctly returns `false` for `URLError`, the session was never cleared, and `XCTAssertTrue(session == nil || accessToken != "stale")` failed. Copying in the real local `Secrets.xcconfig` made the identical run green. The 2026-07-23 lesson says to create the file from the template — that is enough to *build*, but not enough to run this test. Copy the real one from another worktree when running the full suite.
-
----
-
-**Date:** 2026-08-14
-**Category:** Analytics / measurement contracts
-**Rule:** Before instrumenting a step's *entry* event with a property describing the thing the user is about to choose, check that the thing exists yet. `resume_file_picker_opened` fires before any file is picked, so "file type + size on picker opened" can only mean the file already held. Say which one it is in the event's doc comment and in the todo, or the first person to query it will read an empty-hands `"none"` as a missing value.
-**Why:** WP-48 S2 asked for file type and size bucket on `resume_file_picker_opened`/`_cancelled`. Taken literally that is unimplementable. The useful reading — describe the résumé held at that moment — is what makes the cancel rate readable at all: empty-handed-to-empty-handed is a genuine drop-off at the upload step, an abandoned replacement is a user who lost nothing, and pooled they cancel out.
-
-**Date:** 2026-08-14
-**Category:** Git
-**Rule:** A merge commit can carry unresolved conflict markers into `main` with both parents clean. When any `xcodebuild` fails with "The project is damaged and cannot be opened due to a parse error", run `plutil -lint` on `project.pbxproj` and `git grep -l '^<<<<<<< HEAD' HEAD` before suspecting Xcode, your worktree, or your own diff. Resolving a `project.pbxproj` conflict in favour of an older branch re-imports its `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` — carry those forward from the main side, then prove nothing was dropped by diffing the sorted set of `KEY = value;` build-setting lines against the conflicted file.
-**Why:** `4df5860` left markers in `project.pbxproj` and `tasks/lessons.md`. `main` had been unbuildable for a day and it read as a local environment problem — the primary checkout failed identically, which is what ruled that out. Taking #141's side wholesale would have regressed 1.4.9 (26) to 1.4.7 (17), the 2026-07-16 trap. Symptom of the same bad merge: the suite jumped 313 → 353 once the file parsed, because test auto-enrollment had been landed-but-inert the whole time.
-
-**Date:** 2026-08-31
-**Category:** Parsing
-**Rule:** In a `Decodable` initializer, never write `Int(someDouble.rounded())`. The unlabelled `Int(_:)` TRAPS — it kills the process, it does not throw — on a value outside `Int`'s range or on NaN. Use `Int(exactly:)` and treat nil as a missing field. Where the result must be non-optional, either throw a `DecodingError` or clamp in `Double` space BEFORE converting (`min(100, max(0, percent))` handles NaN, because `max(0, .nan)` is 0).
-**Why:** PR #178 fixed this in `OptimizeFitGap`; the same line existed at eight more sites in `DomainModels.swift` plus a copy in `FitVerdict.swift`. These decode untrusted network numbers, so a malformed value from the backend was a crash rather than a dropped field. `normalizePercent` was the subtle one: it clamped with `min(100, max(0, Int(percent.rounded())))`, so the clamp ran *after* the conversion and never protected the only input that needed it.
-
-**Date:** 2026-08-31
-**Category:** Parsing
-**Rule:** In these lenient "try Int, else try Double, else try String" decode chains, the fallback branches only run if each attempt uses `try?`. `decodeIfPresent` THROWS when the key is present but holds the wrong shape — it returns nil only for absent/null. A bare `try decodeIfPresent(Int.self, ...)` on `2.5` or `1e308` aborts the entire decode, so every branch beneath it is dead code.
-**Why:** `decodeInt(for:)`, `decodePercent(for:)` and `decodeString(for:)` (in both `DomainModels.swift` and `FitVerdict.swift`), and `ExpertWorkflowApplyResponseDTO.selection_index`, all used a bare `try`. They existed specifically to accept fractional numbers and could never reach that code — the same production break as the fractional `estimated_gain` in #178, hiding in five more decoders. `decodePercent` could not decode the `0.82` it was written for. Verified empirically with a standalone `swift` script rather than by reading; the `Int(exactly:)` fix alone was unreachable dead code until the `try?` change landed.
-
-**Date:** 2026-08-31
-**Category:** Parsing
-**Rule:** There is now one primitive for this: `Double.safeRoundedInt` (nil when unrepresentable) and `Double.displayPercent` (scales 0...1, clamps 0...100) in `Core/Extensions/Double+SafeInt.swift`. Never write `Int(x.rounded())` again — `grep -rn "Int(.*rounded()"` should only ever match that file's doc comment. Mark such extension members `nonisolated`: the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, so an unannotated `extension Double` member is main-actor bound and will not compile inside a `Sendable` service.
-**Why:** The bug recurred at 26 sites across 10 files precisely because there was no shared primitive; each site re-derived the same broken line. Two of the three fixed batches were found only by grepping after the reported site was fixed.
-
-**Date:** 2026-08-31
-**Category:** Parsing
-**Rule:** When making one of these sites crash-safe, do NOT also change its scaling. Check whether the site already applied the `value <= 1 ? value * 100 : value` rule and preserve that answer exactly. Sites that scaled get `displayPercent`; sites that did not get `safeRoundedInt`. Sibling fields off the same DTO must agree.
-**Why:** Sweeping `displayPercent` over every percentage site silently changed behaviour at four call sites that had never scaled. `ExpertAtsImpactResult.kept/measured` was the dangerous one: it feeds the "this change would lower your match score from %d%% to %d%%" dialog, so scaling would have reported a genuine score of 1.0 as "100%" in a decision the user acts on. Its siblings `before`/`after` render unscaled in `ExpertReportView.pct`, which is what settled the question. Also: a signed delta (`pts`) must never be clamped to 0...100.
-
-**Date:** 2026-09-05
-**Category:** Analytics / UX
-**Rule:** Keep artifact-ready export milestones backward compatible and report sharing only from the activity controller completion handler, once per presentation.
-**Why:** Export completion and “Exported” copy were set before the share sheet appeared; cancellation therefore looked like successful sharing. New callback tests first failed on the missing outcome contract, then drove the repair.
-
-**Date:** 2026-09-05
-**Category:** Analytics
-**Rule:** Clamp public funnel events to release while retaining person-level tester exclusion across the full query window, and enforce 168-hour maturity per selection rather than only per release.
-**Why:** The inherited WP-73 script could admit prerelease QA after a later public event unlocked the build and could count users too young for D7. Its credential-file fallback also contradicted the packet's environment-only contract; reuse required reviewing semantics, not just copying a runnable command.
-
-**Date:** 2026-09-05
-**Category:** Testing
-**Rule:** A temporary SwiftUI smoke harness must return the environment-dependent View itself, not evaluate its computed subview in a static factory before environment injection.
-**Why:** The first synthetic export-card harness exited on launch because the factory evaluated an AppState-dependent card outside the mounted view; the harness was corrected, with no production-code defect inferred.
+>>>>>>> origin/claude/loving-gagarin-6ccd76

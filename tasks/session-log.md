@@ -1,57 +1,3 @@
-# 2026-09-09 — Upload card rendered Hebrew in English mode
-
-**Branch:** `claude/reverent-williamson-4a3d1d`.
-**Worktree:** `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/reverent-williamson-4a3d1d`.
-
-**Files changed:** `ResumeBuilder IOS APP/Features/V2/Home/HomeTabView.swift`,
-`ResumeBuilder IOS APP/Features/V2/Home/UploadCardCopy.swift` (new),
-`ResumeBuilder IOS APPTests/UploadCardLocalizationTests.swift` (new),
-`tasks/lessons.md`, `tasks/progress.md`, `tasks/session-log.md`.
-
-**Decisions:** Fixed the reported screen only. The identical bug class exists at 24 other
-display sites in 5 files; converting them all would breach the scope gate, and the
-alternative one-line root fix (`.id(localization.language)` on the app root) resets view
-state on every language switch, which is a product call rather than a bug fix.
-
-**Tests:** Full suite twice, 426 passed / 1 skipped / 0 failures on 9E2E82B6 (iOS 26.5),
-`-testLanguage en -testRegion US`, `-derivedDataPath /private/tmp/claude-501/rb-dd`.
-Simulator smoke test: fresh install launches in HE (correct), first tap on EN now renders
-"PDF or DOCX · up to 5 MB" (previously Hebrew), tapping back to HE restores Hebrew.
-
-**Not done:** The 24 remaining `NSLocalizedString` display sites. No release or submission.
-
-**Next action:** Decide between per-site conversion and the root-level identity fix.
-
----
-
-# 2026-09-05 — Portfolio first batch: export/share truth
-
-Changed optimized export copy, wired actual ShareSheet callbacks with per-presentation deduplication, added outcome analytics and Hebrew strings. Preserved export_success readiness semantics and review gate after dismissal. Verified existing guest continuity without an onboarding change. Reused WP-73 scripts with release/maturity fixes; six offline tests and live drift checks pass. Full iOS run 426 passed/1 skipped/0 failed; final focused run 41 passed. See `docs/qa/reports/2026-09-05-export-share-truth.md` for fixed-window production-evidence limitations and simulator results. No shared vault/dashboard edits.
-
-Next: PR review, reconcile open #182, separate founder-controlled physical-device check before release. Worktree `/Users/nadavyigal/.codex/worktrees/02e9/ResumeBuilder IOS APP`, branch `codex/export-share-truth`.
-
----
-
-# 2026-09-09 — WP-75 S1 baseline and S4 export-claim correction
-
-**Branch:** `claude/resumely-live-listing-fix-c3180c`. **Worktree:** `/Users/nadavyigal/Documents/Projects /ResumeBuilder/ResumeBuilder IOS APP/.claude/worktrees/resumely-live-listing-fix-c3180c`. **PR:** https://github.com/nadavyigal/ResumeBuilder-IOS-APP/pull/184
-
-**Task:** Execute WP-75. S2/S3 are founder-only (App Store Connect) and S5 is gated to 2026-09-16, so scope was S1 and S4.
-
-**S1.** Baseline recorded in `tasks/progress.md`, read 2026-09-09T06:13:40Z: arrivals for the four most recent complete weeks, verbatim live 1.5.0 description (round-trip verified against the lookup response), and a pre-publish ATS poll returning three consecutive `True`. Three items recorded as missing rather than guessed — the D7 activation count (WP-73's `scripts/measurement_contract.py` has landed but stops without `AGENTIC_OS_POSTHOG_API_KEY`, and 1.5.0's earliest honest D7 read is 13.5h after the reading); the subtitle and keyword field (no public API exposes either); and the 2026-08-24 arrivals week, which is absent from the Portfolio HQ payload and is logged as absent, not zero. Portfolio HQ's `northStar` 4 is labelled "D7 export" and was logged as the export diagnostic, not activation, per `measurement_contract.py`.
-
-**S4.** Growth's claim held but not on the surface it named. The free-check copy was already correct: `HomeTabView` gates on `canOptimize` and `HomeActivationState.atsComplete` was already scoped by comment. Untouched. The live false claim was the Me tab's `signInValueCard`. Verified no auth gate exists: `ResumeExportAction.exportPDF` guards on `optimizationIdentifier` alone and `BackendConfig.isMonetizationEnabled` is false. Removed the export clause rather than adding a "no account needed" line, which would go false if the paywall returns. Also corrected the identical claim in `AccountDisplayInfo.guest.subtitle` (currently non-rendering; fixed as a latent trap). Updated both Hebrew translations in `Localizable.xcstrings`, which the English key change would otherwise have orphaned.
-
-**Validation:** New regression test run **red first** against the pre-fix strings, then green. Full suite on iPhone 17 `9E2E82B6` (iOS 26.5), `-testLanguage en -testRegion US`: 425 XCTest, 1 skipped, 0 failures, plus 5 Swift Testing. Guest Me tab smoke-tested on device in English and Hebrew; corrected Hebrew confirmed in the built `he.lproj`.
-
-**Decisions:** Moved the value-card copy into `AccountDisplayInfo` so the claim is testable without SwiftUI, matching that type's stated purpose. Did not adopt Growth PR #3's funnel figures, per S1.
-
-**Not done:** S2 and S3 (App Store Connect, founder-only) and S5 (not before 2026-09-16). No version bump, archive, or submission. Spotted but did not fix: Hebrew fragments ("או", "עד") render in the English upload card — pre-existing, unrelated, filed separately.
-
-**Next session:** Founder files S2, pasting the pre-change subtitle and keyword field into the S1 baseline first, then S3 (publish timestamp + three consecutive `False` polls + vault living-page note as the fourth measurement boundary).
-
----
-
 # Session Log — ResumeBuilder iOS
 
 > One entry per work session. Most recent first.
@@ -61,7 +7,7 @@ Next: PR review, reconcile open #182, separate founder-controlled physical-devic
 
 **Branch:** `codex/resumely-activation-source`, clean worktree from `origin/main`.
 
-**Task:** Keep founder-reported 1.4.9 frozen in App Store review while making the next-build Home upload funnel joinable by source. The exact reviewed build is not confirmed from App Store Connect; build-27 telemetry is consistent with review traffic but is only an inference.
+**Task:** Keep founder-reported 1.4.9 (26) frozen in App Store review while making the next-build Home upload funnel joinable by source.
 
 **Changes:** Added `source` to `resume_file_selected`, passed `home` from the only reachable Home picker, and pinned the CTA → picker → selection property contract. Event timing and denominator semantics are unchanged.
 
@@ -1086,53 +1032,3 @@ Cohort deliberately NOT read — not mature until ~2026-08-18 (0 of 20 clean upl
 
 Not done this session: S2 instrumentation implementation, `is_internal_tester` fix (S2-B),
 PR triage (#100, #96, #86), Hebrew/RTL PDF, Story 8 Home→Fit tap-through.
-
-## 2026-08-31 — "We couldn't parse the optimization response" on production
-
-**Reported:** optimizing a resume in the iOS app failed with "We couldn't parse
-the optimization response."
-
-**Root cause:** a cross-repo contract break, not an app bug. Web WP-59 S1
-(#147, 2026-08-28) changed `estimateImpact` to return one decimal. iOS decoded
-`fit.topGaps[].estimatedGain` into `Int?`, and Foundation's `JSONDecoder` does
-not coerce: a fractional number raises `dataCorrupted` ("Number 2.5 is not
-representable in Swift") and fails the WHOLE response. The server had already
-run and billed the optimization by then. Before WP-59, an unrelated 100x
-scaling bug clamped every gain to the integer 15, which is the only reason the
-contract ever held. The field is decoded and never rendered.
-
-**Why nothing caught it:** `OptimizeFitResponseTests` hardcoded
-`"estimatedGain": 6` and `4`, a fixture written 2026-07-26 that never tracked
-the backend, and the web had no test asserting what crosses the wire.
-
-**Files changed**
-- iOS `Core/API/Models/DomainModels.swift` — lenient Int-or-Double decode for
-  `OptimizeFitGap.estimatedGain`, via `Int(exactly:)` so a malformed number
-  cannot trap.
-- iOS `Services/ResumeOptimizationService.swift` — `fit` decodes with `try?`;
-  a preview we cannot read no longer costs the run.
-- iOS `ResumeBuilder IOS APPTests/OptimizeFitResponseTests.swift` — 5 tests.
-- iOS `.gitignore` — `.derivedData-*/`.
-- web `src/lib/ats/wire-gain.ts` + test, wired into `src/app/api/optimize/route.ts`.
-
-**Landed:** iOS #178 (`8f24a2c`), web #151 (`f6c5d9e`, deployed to production).
-
-**Tests run:** iOS merged `main` 359 / 1 skipped / 0 failures (iPhone 17, iOS
-26.5, device 9E2E82B6). Web `npx jest src/lib/ats` 20 suites / 201 passed / 0
-failures. eslint clean. Production `/api/optimize` returns a clean 401 to an
-unauthenticated probe. Every new test was confirmed failing before its fix.
-
-**NOT done / open**
-- No real signed-in optimization was run end to end. CI's "Activation path E2E"
-  uses placeholder Supabase credentials and stubs `/api/public/ats-check`, so
-  nothing automated reaches the real endpoint. Founder retry is the check.
-- `ATSSuggestion.estimatedGain` and the `decodeInt(for:)` helper in
-  `DomainModels.swift` still use the trapping `Int(_:)` on a Double. Same
-  latent crash, left alone to keep #178 tight. Flagged as a follow-up task.
-- `Workers Builds: match1resume1to1job` fails on the web repo. Pre-existing:
-  red on every one of the last 6 commits, well before this change. A
-  permanently red check trains everyone to ignore CI and is worth fixing or
-  removing.
-
-**Next action:** retry an optimization in the installed app. The server fix
-means the current build should already work, with no App Store release needed.

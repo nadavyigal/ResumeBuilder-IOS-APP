@@ -49,12 +49,6 @@ struct HomeTabView: View {
                 privacyReassurance
 
                 Button {
-                    AnalyticsService.shared.track(.scoreScreenSignInTapped(
-                        source: "home",
-                        scoreBucket: AnalyticsEvent.scoreBucket(
-                            for: atsResult.score?.overall ?? 0
-                        )
-                    ))
                     showOnboarding = true
                 } label: {
                     HStack(spacing: 8) {
@@ -345,14 +339,14 @@ struct HomeTabView: View {
                 case .success(let urls):
                     markImporterResolved()
                     guard let url = urls.first else {
-                        trackPickerCancelled()
+                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
                         return
                     }
                     viewModel.cachePickedFile(url: url, source: "home")
                 case .failure(let error):
                     markImporterResolved()
                     if (error as NSError).code == NSUserCancelledError {
-                        trackPickerCancelled()
+                        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
                     } else {
                         viewModel.errorMessage = error.localizedDescription
                         AnalyticsService.shared.track(.resumeUploadErrorShown(errorCode: "picker_failure"))
@@ -464,12 +458,7 @@ struct HomeTabView: View {
     private func openResumeImporter() {
         secondJobContext = nil
         isImporterFlowActive = true
-        let held = viewModel.heldResume
-        AnalyticsService.shared.track(.resumeFilePickerOpened(
-            source: "home",
-            fileType: held.fileType,
-            sizeBucket: held.sizeBucket
-        ))
+        AnalyticsService.shared.track(.resumeFilePickerOpened(source: "home"))
         isImporterPresented = true
     }
 
@@ -477,21 +466,10 @@ struct HomeTabView: View {
         isImporterFlowActive = false
     }
 
-    /// Read at cancel time, not at open time: a cancel leaves the selection
-    /// untouched, so this is what the user still has after backing out.
-    private func trackPickerCancelled() {
-        let held = viewModel.heldResume
-        AnalyticsService.shared.track(.resumeFilePickerCancelled(
-            source: "home",
-            fileType: held.fileType,
-            sizeBucket: held.sizeBucket
-        ))
-    }
-
     private func trackImporterCancellationIfNeeded() {
         guard isImporterFlowActive else { return }
         isImporterFlowActive = false
-        trackPickerCancelled()
+        AnalyticsService.shared.track(.resumeFilePickerCancelled(source: "home"))
     }
 
     private func trackUploadCTASeenIfNeeded() {
@@ -516,14 +494,8 @@ struct HomeTabView: View {
             await viewModel.runFreeATS(appState: appState)
             if viewModel.atsResult?.score?.overall != nil {
                 let score = viewModel.atsResult?.score?.overall ?? 0
-                let evaluation = JobInputPolicy.evaluate(
-                    description: viewModel.jobDescription,
-                    urlString: viewModel.jobDescriptionURL
-                )
                 AnalyticsService.shared.track(.freeATSCompleted(
-                    scoreBucket: AnalyticsEvent.scoreBucket(for: score),
-                    hasURL: evaluation.hasURLInput,
-                    hasPaste: evaluation.hasDescriptionInput
+                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
                 ))
             }
         }
@@ -880,13 +852,7 @@ struct HomeTabView: View {
                             .font(.title3.weight(.black))
                             .foregroundStyle(AppColors.textPrimary)
 
-                        Group {
-                            if let name = viewModel.selectedResumeName, !name.isEmpty {
-                                Text(name)
-                            } else {
-                                Text(UploadCardCopy.subtitle)
-                            }
-                        }
+                        Text(viewModel.selectedResumeName?.isEmpty == false ? (viewModel.selectedResumeName ?? "") : NSLocalizedString("PDF or DOCX · up to 5 MB", comment: ""))
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(viewModel.selectedResumeName?.isEmpty == false ? AppColors.accentSky : AppColors.textSecondary)
                             .lineLimit(2)
@@ -944,11 +910,7 @@ struct HomeTabView: View {
             .shadow(color: AppColors.accentSky.opacity(0.22), radius: 28, y: 12)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(
-            viewModel.selectedResumeName?.isEmpty == false
-                ? UploadCardCopy.selectedAccessibilityLabel
-                : UploadCardCopy.uploadAccessibilityLabel
-        )
+        .accessibilityLabel(viewModel.selectedResumeName?.isEmpty == false ? NSLocalizedString("Résumé selected. Choose a different file.", comment: "") : NSLocalizedString("Upload your résumé. PDF or DOCX up to 5 megabytes.", comment: ""))
         .onAppear(perform: trackUploadCTASeenIfNeeded)
     }
 

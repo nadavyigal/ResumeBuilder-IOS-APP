@@ -92,8 +92,7 @@ struct ApplicationDetailView: View {
                 expertVM = ExpertModesViewModel(
                     optimizationId: oid,
                     resumeViewModel: resumeVM,
-                    applicationId: vm.item.id,
-                    appState: appState
+                    applicationId: vm.item.id
                 )
             }
             await vm.refresh(token: token)

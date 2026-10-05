@@ -94,9 +94,7 @@ extension ATSSubScores {
         guard !nums.isEmpty else { return nil }
         let sum = nums.reduce(0, +)
         let average = Double(sum) / Double(nums.count)
-        // An average of `Int`s is always representable, but `safeRoundedInt`
-        // keeps the rule uniform: no unlabelled `Int(_:)` on a `Double`.
-        return average.safeRoundedInt
+        return Int(average.rounded())
     }
 
     /// Four UI pillars aligned with the web compact breakdown (derived from ATS v2 subscores).

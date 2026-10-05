@@ -26,30 +26,12 @@ struct SubmitPackageCachedScreeningAnswer: Codable, Sendable, Equatable, Identif
     let confidenceNote: String?
 }
 
-/// The one durable record of what has been produced for an optimization. Expert writes
-/// it as soon as a run completes, Export reads it to assemble the application package,
-/// and Submit reuses it instead of regenerating the same artifacts.
-///
-/// The run ids are optional because records persisted before the export-package work
-/// have none; a record with text but no run id is still usable, it just cannot be
-/// re-applied server-side.
 struct SubmitPackageCacheRecord: Codable, Sendable, Equatable {
     let optimizationId: String
     let sourceURLString: String?
     let coverLetterText: String?
     let screeningAnswers: [SubmitPackageCachedScreeningAnswer]
     let savedAt: Date
-    let coverLetterRunId: String?
-    let coverLetterSelectionIndex: Int?
-    let screeningRunId: String?
-
-    var hasCoverLetter: Bool {
-        coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-    }
-
-    var hasScreeningAnswers: Bool {
-        !screeningAnswers.isEmpty
-    }
 }
 
 enum OptimizationRecoveryState: Sendable, Equatable {
@@ -125,16 +107,13 @@ final class AppState {
 
     let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationHistoryService: any OptimizationHistoryServiceProtocol
-    private let authClient: any AuthClient
     private let anonymousSessionKey = "anonymous_ats_session_id"
     private var refreshTask: Task<String, Error>?
 
     init(
-        optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService(),
-        authClient: any AuthClient = AuthService.shared
+        optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService()
     ) {
         self.optimizationHistoryService = optimizationHistoryService
-        self.authClient = authClient
     }
 
     /// Whether the user has a **real account**.
@@ -172,7 +151,7 @@ final class AppState {
     }
 
     func bootstrap() {
-        session = authClient.restoreSession()
+        session = AuthService.shared.restoreSession()
         // Account sessions only — the guard lives in the analytics service so it
         // is testable, and is load-bearing: identifying an anonymous session here
         // splits one guest into two unlinked PostHog people.
@@ -243,7 +222,7 @@ final class AppState {
     }
 
     func signOut() {
-        authClient.clearSession()
+        AuthService.shared.clearSession()
         optimizationRecoveryGeneration &+= 1
         session = nil
         creditsBalance = 0
@@ -275,7 +254,7 @@ final class AppState {
     /// Deletes the account server-side, then clears all local state.
     func deleteAccount() async throws {
         try await callWithFreshToken { token in
-            try await self.authClient.deleteAccount(accessToken: token)
+            try await AuthService.shared.deleteAccount(accessToken: token)
         }
         AnalyticsService.shared.track(.accountDeleted)
         signOut()
@@ -393,13 +372,9 @@ final class AppState {
         for optimizationId: String,
         sourceURLString: String?,
         coverLetterText: String?,
-        screeningAnswers: [SubmitPackageCachedScreeningAnswer],
-        coverLetterRunId: String? = nil,
-        coverLetterSelectionIndex: Int? = nil,
-        screeningRunId: String? = nil
+        screeningAnswers: [SubmitPackageCachedScreeningAnswer]
     ) {
         guard !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        let existing = submitPackageRecords[optimizationId]
         let trimmedSourceURL = sourceURLString?.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedCoverLetter = coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines)
         let record = SubmitPackageCacheRecord(
@@ -407,74 +382,20 @@ final class AppState {
             sourceURLString: trimmedSourceURL?.isEmpty == false ? trimmedSourceURL : nil,
             coverLetterText: trimmedCoverLetter?.isEmpty == false ? trimmedCoverLetter : nil,
             screeningAnswers: screeningAnswers,
-            savedAt: Date(),
-            coverLetterRunId: coverLetterRunId ?? existing?.coverLetterRunId,
-            coverLetterSelectionIndex: coverLetterSelectionIndex ?? existing?.coverLetterSelectionIndex,
-            screeningRunId: screeningRunId ?? existing?.screeningRunId
+            savedAt: Date()
         )
         submitPackageRecords[optimizationId] = record
         if let sourceURLString = record.sourceURLString {
             rememberJobURL(sourceURLString, for: optimizationId)
         }
-        persistSubmitPackageRecords()
-    }
-
-    /// Records expert artifacts the moment a run produces them, without disturbing
-    /// anything another surface already stored.
-    ///
-    /// `nil` means "leave whatever is there"; a value replaces it. Empty text and empty
-    /// answer lists are treated as `nil` rather than as erasures, so a run that produced
-    /// nothing can never make Export advertise an artifact it cannot deliver — and never
-    /// leaves behind an empty record that reads as "artifacts exist".
-    func rememberExpertArtifacts(
-        for optimizationId: String,
-        coverLetterText: String? = nil,
-        coverLetterRunId: String? = nil,
-        coverLetterSelectionIndex: Int? = nil,
-        screeningAnswers: [SubmitPackageCachedScreeningAnswer]? = nil,
-        screeningRunId: String? = nil
-    ) {
-        guard !optimizationId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        let existing = submitPackageRecords[optimizationId]
-
-        let trimmedCoverLetter = coverLetterText?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let incomingCoverLetter = trimmedCoverLetter?.isEmpty == false ? trimmedCoverLetter : nil
-        let incomingAnswers = screeningAnswers?.isEmpty == false ? screeningAnswers : nil
-
-        let mergedCoverLetter = incomingCoverLetter ?? existing?.coverLetterText
-        let mergedAnswers = incomingAnswers ?? existing?.screeningAnswers ?? []
-
-        // Nothing to remember and nothing already remembered: write no record at all.
-        guard mergedCoverLetter != nil || !mergedAnswers.isEmpty else { return }
-
-        submitPackageRecords[optimizationId] = SubmitPackageCacheRecord(
-            optimizationId: optimizationId,
-            sourceURLString: existing?.sourceURLString,
-            coverLetterText: mergedCoverLetter,
-            screeningAnswers: mergedAnswers,
-            savedAt: Date(),
-            coverLetterRunId: incomingCoverLetter == nil
-                ? existing?.coverLetterRunId
-                : (coverLetterRunId ?? existing?.coverLetterRunId),
-            coverLetterSelectionIndex: incomingCoverLetter == nil
-                ? existing?.coverLetterSelectionIndex
-                : (coverLetterSelectionIndex ?? existing?.coverLetterSelectionIndex),
-            screeningRunId: incomingAnswers == nil
-                ? existing?.screeningRunId
-                : (screeningRunId ?? existing?.screeningRunId)
-        )
-        persistSubmitPackageRecords()
+        if let data = try? JSONEncoder().encode(submitPackageRecords) {
+            UserDefaults.standard.set(data, forKey: Self.submitPackageRecordsKey)
+        }
     }
 
     func submitPackageRecord(for optimizationId: String?) -> SubmitPackageCacheRecord? {
         guard let optimizationId else { return nil }
         return submitPackageRecords[optimizationId]
-    }
-
-    private func persistSubmitPackageRecords() {
-        if let data = try? JSONEncoder().encode(submitPackageRecords) {
-            UserDefaults.standard.set(data, forKey: Self.submitPackageRecordsKey)
-        }
     }
 
     private static func loadExportCompletion() -> ExportCompletionRecord? {
@@ -632,7 +553,7 @@ final class AppState {
         guard JWTDecoder.shouldRefresh(accessToken: currentSession.accessToken) else { return }
 
         do {
-            let newSession = try await authClient.refreshSession(refreshToken: refreshToken)
+            let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
             session = newSession
         } catch {
             if shouldSignOutAfterRefreshFailure(error) {
@@ -654,7 +575,7 @@ final class AppState {
 
         let task = Task<String, Error> { @MainActor in
             do {
-                let newSession = try await self.authClient.refreshSession(refreshToken: refreshToken)
+                let newSession = try await AuthService.shared.refreshSession(refreshToken: refreshToken)
                 self.session = newSession
                 return newSession.accessToken
             } catch {

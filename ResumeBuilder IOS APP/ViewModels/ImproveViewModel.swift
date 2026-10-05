@@ -241,12 +241,7 @@ final class ImproveViewModel {
         guard let resumeId else {
             throw ResumeOptimizationError.missingResumeId
         }
-        AnalyticsService.shared.track(.optimizationStarted(
-            resumeId: resumeId,
-            jobDescriptionId: jobDescriptionId,
-            hasURL: !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            hasPaste: !jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        ))
+        AnalyticsService.shared.track(.optimizationStarted(resumeId: resumeId, jobDescriptionId: jobDescriptionId))
         let response = try await optimizationService.optimize(
             resumeId: resumeId,
             jobDescriptionId: jobDescriptionId,

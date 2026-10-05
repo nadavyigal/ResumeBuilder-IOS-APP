@@ -39,8 +39,7 @@ struct ExpertTabView: View {
             resumeViewModel: OptimizedResumeViewModel(
                 optimizationId: id,
                 jobURLString: appState.jobURL(for: id)
-            ),
-            appState: appState
+            )
         )
     }
 

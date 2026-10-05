@@ -59,7 +59,8 @@ final class AppliedChangesViewModel {
     /// The backend has sent both 0-1 fractions and 0-100 percentages on this
     /// field, so normalise rather than trusting either.
     private static func percent(_ value: Double?) -> Int? {
-        value?.displayPercent
+        guard let value else { return nil }
+        return Int((value <= 1 ? value * 100 : value).rounded())
     }
 }
 

@@ -1,29 +1,3 @@
-# 2026-09-05 — Export/share truth first batch
-
-As a user, I want file readiness and share outcomes distinguished so I know what happened.
-- [x] Preserve artifact-ready export analytics and review eligibility; connect UIKit completion with one outcome per presentation.
-- [x] Test success, cancellation, error precedence, deduplication/repeated presentation and package extras.
-- [x] Verify existing guest continuity and authentication tests; fix only reproduced blockers.
-- [x] Inspect WP-73 without recreating its measurement command; record release/window/maturity evidence.
-- [x] Final restored-source build, tests, simulator smoke and evidence records.
-- [x] Commit and push focused branch for PR review.
-
-Expected source files: ResumeExportAction.swift, ResumePreviewExportView.swift, OptimizedResumeView.swift, AnalyticsService.swift; tests in existing ExportCompletionTests.swift. No dependencies, release/configuration or web changes.
-
-# 2026-09-02 — Open-PR cleanup and next App Store release
-
-- [x] Review and merge PR #180 (safe numeric decoding/display conversions).
-- [x] Review and merge PR #173 (Career Evidence Pilot draft documentation only).
-- [x] Rebuild PR #142 on current `main`, drop its junk WIP commit, pass 7 focused auth tests, and merge it.
-- [x] Rebuild PR #147 on current `main`, preserve newer analytics and score-decrease safeguards, pass 65 focused tests and the full 420-test suite, and smoke the changed Optimized UI.
-- [ ] Merge PR #147 after its refreshed GitHub checks pass.
-- [x] Merge PR #147 after its refreshed GitHub checks pass.
-- [x] Preserve the founder-edited App Store marketing wording and select version 1.5.0 (28), above every observed 1.4.9 build (through 27).
-- [ ] Pass the full simulator suite, signed Release archive, export validation, and release privacy/configuration audit.
-- [ ] Upload build 28, attach it to App Store version 1.5.0, add version-specific What's New notes, and stop for founder confirmation immediately before submission.
-
----
-
 # Activation measurement follow-up — next build after 1.4.9 (2026-08-13)
 
 Scope: make the Home upload step joinable without changing the 1.4.9 binary currently in App Store review.
@@ -112,25 +86,14 @@ Decision: the cohort is NOT mature (0 of 20 clean uploaders, 9 hours post-releas
 ## Blocking fixes before the 2026-08-18 read
 
 - [x] **S2-A.** `resume_upload_succeeded` is emitted after the sign-in guard (`TailorViewModel.swift:146` vs `:172`), so it is unreachable for guests and cannot measure S1. Redesignate `resume_file_selected` as the canonical upload denominator and update the Story 10 contract + canonical HogQL. (Docs/query change, no app risk — preferred over moving the call site.)
-- [x] **S2-B.** `is_internal_tester` reported `false` on a pre-release 1.4.3 Debug/TestFlight build (person `c7494f9d`). Fix the classifier so gate runs cannot enter the clean cohort. **Fixed by #161 (2026-08-12), shipped in 1.4.9 (21) and later; verified 2026-08-14.** `resolveInternalTester` now resolves through DEBUG, `--internal-tester`, `RESUMELY_INTERNAL_TESTER=1`, a TestFlight sandbox receipt, `INTERNAL_TESTER_USER_IDS`, and `INTERNAL_TESTER_EMAILS`; both lists are populated in the local `Secrets.xcconfig`, which is what the old build was missing.
-- [ ] **S2-B follow-up: filter the cohort on the *person* property, not the event property.** Person-on-events snapshots `is_internal_tester` at ingest, so the founder's pre-fix events keep `is_internal_tester = false` for ever even though person `a6441489` now reads `true`. Verified 2026-08-14: founder events on 1.4.8 (2026-08-12T07:33) still carry `false`. A cohort query filtering the event property re-admits every pre-1.4.9 (21) gate run. Filter on `person.properties.is_internal_tester`, or exclude `marketing_version` below 1.4.9, before the 2026-08-18 read.
+- [ ] **S2-B.** `is_internal_tester` reported `false` on a pre-release 1.4.3 Debug/TestFlight build (person `c7494f9d`). Fix the classifier so gate runs cannot enter the clean cohort.
 - [x] Re-baseline: the 12.5% figure came from the legacy `resume_uploaded` event that 1.4.3 no longer emits. Like-for-like baseline on `resume_file_selected` is **10.0% (1/10)**. Win threshold stays ≥6 of 20.
 
 ## S2 instrumentation for 1.4.4 (after the blocking items)
 
-- [x] `score_screen_signin_tapped` — built. The wall already existed as a live
-      button (`HomeTabView.freeCheckResultSection`); only the event was missing.
-      Carries `source` and the `score_bucket` it was shown alongside.
-- [x] File type + size bucket on `resume_file_picker_opened` / `_cancelled`.
-      **Read this before querying it:** at picker-open time no file has been
-      chosen yet, so these describe the résumé the user was **already holding**,
-      or `"none"`. That is the distinction the cancel rate needed —
-      nothing-to-nothing is a real drop-off, an abandoned replacement is not.
-- [x] `job_source` (url vs paste) on `free_ats_completed` and
-      `optimization_started`. Four values (`url`, `paste`, `url_and_paste`,
-      `none`) from the same helper `analysis_cta_tapped` uses — note that event
-      spells the property `job_input_source`, so the two names must be joined
-      by hand.
+- [ ] `score_screen_signin_tapped` — absent, build it.
+- [ ] File type + size bucket on `resume_file_picker_opened` / `_cancelled` (outcome events already ship; reuse the `fileSizeBucket` helper at `TailorViewModel.swift:93`).
+- [ ] `job_source` (url vs paste) on `free_ats_completed` and `optimization_started`.
 
 ## Hand back to Portfolio HQ
 
