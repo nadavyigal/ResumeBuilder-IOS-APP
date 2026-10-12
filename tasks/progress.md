@@ -1,3 +1,22 @@
+# 2026-10-12: No "Company Name Job Position" placeholder header
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Resumely activation measurement, Q4 Objective A.
+**Active Story:** None.
+**Last Completed Story:** iOS capture bugs (Maya fixture). The four bugs were traced:
+1 `{targetTitle}` and 2 `similar role` are web suggestion bugs (web PR #168, with the
+extractor cleanup in web PR #167); 3 the placeholder header is a web default, now also
+dropped at decode here (`JobLabel.normalized` in `DomainModels.swift`) so already-saved
+rows stop showing it; 4 job phrases added to bullets is the web optimize pipeline, handed
+to the session that owns #167.
+**Next Recommended Story:** after #167/#168 deploy, re-run the Maya capture to confirm 1 and 2 on device.
+**Blockers:** none.
+**Last Validation:** 2026-10-12: full iOS suite 433 tests, 0 failures, 1 skipped; new
+`JobLabelPlaceholderTests` 5/5 (failed before the fix); simulator run against production
+in the Hebrew guest flow: match check still shows the server-side `similar role` (web fix not deployed), optimized preview no longer shows the `Company Name Job Position` card.
+**Last Updated:** 2026-10-12
+
 # 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
 
 **Status:** Measured, read-only. No product, analytics or UI change.
