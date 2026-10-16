@@ -49,7 +49,8 @@ final class FitCheckViewModel {
     }
 
     var jobInputEvaluation: JobInputPolicy.Evaluation {
-        JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
+        // The fit check posts to the public free check, which needs 100 words.
+        JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL, destination: .publicCheck)
     }
 
     var canCheck: Bool {
@@ -75,7 +76,11 @@ final class FitCheckViewModel {
         guard evaluation.isReady else {
             errorMessage = evaluation.validationMessage
             if let reason = evaluation.blockingReason?.analyticsValue {
-                AnalyticsService.shared.track(.jobInputValidationShown(surface: "fit", reason: reason))
+                AnalyticsService.shared.track(.jobInputValidationShown(
+                    surface: "fit",
+                    reason: reason,
+                    wordCountBucket: evaluation.wordCountBucket
+                ))
             }
             return
         }

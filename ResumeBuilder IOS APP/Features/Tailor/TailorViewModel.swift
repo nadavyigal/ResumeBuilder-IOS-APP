@@ -325,7 +325,7 @@ final class TailorViewModel {
             errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return
         }
-        let jobInput = JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL)
+        let jobInput = JobInputPolicy.evaluate(description: jobDescription, urlString: jobDescriptionURL, destination: .publicCheck)
         guard jobInput.isReady else {
             errorMessage = jobInput.validationMessage
             return
