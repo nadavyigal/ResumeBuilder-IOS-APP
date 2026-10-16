@@ -10,7 +10,7 @@ so a company really named "Position" survives. Earlier (2026-10-12): the four Ma
 bugs were traced; web #167 and #168 are merged and live, so bugs 1 and 2 are fixed on the server.
 **Next Recommended Story:** G2b; then re-run the Maya capture on device to confirm the header.
 **Blockers:** none.
-**Last Validation:** 2026-10-16: 3 new cross-field tests in `JobLabelPlaceholderTests` failed
+**Last Validation:** 2026-10-16 (round 2): `JobLabel` is `Sendable` (AGENTS.md:41), pinned by a compile-time test; full suite 437 tests, 0 failures, 1 skipped. 2026-10-16: 3 new cross-field tests in `JobLabelPlaceholderTests` failed
 with the shared set (9 assertion failures), 8/8 after the split; full iOS suite 436 tests,
 1 skipped, 1 failure in `FirstSessionJourneyTests.testLateRecoveryFailureDoesNotOverwriteNewerOptimization`
 ("before timeout"), which passed on rerun (13/13 with `JobLabelPlaceholderTests` 8/8); iPhone 17 Pro

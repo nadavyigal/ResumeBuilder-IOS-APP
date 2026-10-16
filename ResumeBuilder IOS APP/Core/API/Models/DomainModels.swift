@@ -444,7 +444,7 @@ struct BulkDeleteResponse: Codable, Sendable {
 ///
 /// Each default belongs to the field the server writes it into, so a company
 /// really named "Position" is kept (PR #188 review, 2026-10-13).
-enum JobLabel {
+enum JobLabel: Sendable {
     private static let titlePlaceholders: Set<String> = ["job position", "position"]
     private static let companyPlaceholders: Set<String> = ["company name"]
 

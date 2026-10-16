@@ -107,6 +107,13 @@ final class JobLabelPlaceholderTests: XCTestCase {
         XCTAssertEqual(application.jobTitle, "Company Name")
     }
 
+    /// AGENTS.md: every new type is `Sendable` or `@MainActor` (Swift 6 strict
+    /// concurrency). This does not compile if `JobLabel` loses its conformance.
+    func testJobLabelIsSendable() {
+        func requireSendable<T: Sendable>(_: T.Type) {}
+        requireSendable(JobLabel.self)
+    }
+
     func testEachFieldDropsOnlyItsOwnSentinel() {
         XCTAssertNil(JobLabel.title("Position"))
         XCTAssertNil(JobLabel.title(" job position "))

@@ -1,3 +1,12 @@
+## 2026-10-16 — A Hebrew smoke run leaves the simulator in Hebrew, and 17 unit tests fail
+
+`--smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which persists
+`app_selected_language` in the app's UserDefaults on that simulator. The unit tests run in the
+same app host, so the next full run had 17 failures expecting English filenames and copy
+("קורות חיים.pdf" instead of "Resume.pdf"). A rerun once the setting read "en" passed 437/437.
+Rule: after a `--smoke-he` run, relaunch with English (or reset `app_selected_language`)
+before running the suite, and read language-shaped failures as state first.
+
 ## 2026-10-12 — The backend's "unknown" defaults are strings, not nulls
 
 When the web API cannot read a job's title or company it stores the literal strings
