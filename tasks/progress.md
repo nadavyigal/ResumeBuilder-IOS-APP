@@ -15,7 +15,11 @@ Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew co
 **Last Validation:** 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
 send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
 smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
-Hebrew RTL, both claims unselected, toggle works.
+Hebrew RTL, both claims unselected, toggle works. Production simulator run (Hebrew UI, guest, Maya
+fixture): fit check 46 to 59, accept showed the sheet with one real held claim unselected, Continue
+without confirming applied and landed on the tailored résumé.
+**Last Updated:** 2026-10-16
+
 # 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
 
 **Status:** PR open, not merged, no build submitted.
