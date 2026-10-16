@@ -57,9 +57,62 @@ final class JobLabelPlaceholderTests: XCTestCase {
     }
 
     func testLabelThatOnlyContainsAPlaceholderWordIsKept() {
-        XCTAssertEqual(JobLabel.normalized("Senior Position Manager"), "Senior Position Manager")
-        XCTAssertEqual(JobLabel.normalized("Company Name Ltd"), "Company Name Ltd")
-        XCTAssertNil(JobLabel.normalized("   "))
-        XCTAssertNil(JobLabel.normalized(nil))
+        XCTAssertEqual(JobLabel.title("Senior Position Manager"), "Senior Position Manager")
+        XCTAssertEqual(JobLabel.company("Company Name Ltd"), "Company Name Ltd")
+        XCTAssertNil(JobLabel.title("   "))
+        XCTAssertNil(JobLabel.company(nil))
+    }
+
+    // A sentinel belongs to the field the server writes it into (PR #188 review,
+    // 2026-10-13): "Position" and "Job Position" are title defaults, "Company Name"
+    // is the company default. A company really named "Position" must survive.
+
+    func testCompanyNamedPositionIsKeptEverywhere() throws {
+        let detail = try decode(
+            OptimizationDetailDTO.self,
+            #"{"sections": [], "job_title": "Data Analyst", "company": "Position"}"#
+        )
+        XCTAssertEqual(detail.company, "Position")
+
+        let jd = try decode(
+            OptimizationReviewJobDescriptionDTO.self,
+            #"{"title": "Data Analyst", "company": "Job Position"}"#
+        )
+        XCTAssertEqual(jd.company, "Job Position")
+
+        let history = try decode(
+            OptimizationHistoryItem.self,
+            #"{"id": "o1", "job_title": "Data Analyst", "company_name": "Position"}"#
+        )
+        XCTAssertEqual(history.company, "Position")
+
+        let application = try decode(
+            ApplicationItem.self,
+            #"{"id": "a1", "job_title": "Data Analyst", "company_name": "Position"}"#
+        )
+        XCTAssertEqual(application.companyName, "Position")
+    }
+
+    func testTitleCalledCompanyNameIsKept() throws {
+        let detail = try decode(
+            OptimizationDetailDTO.self,
+            #"{"sections": [], "job_title": "Company Name", "company": "Kesher Commerce"}"#
+        )
+        XCTAssertEqual(detail.jobTitle, "Company Name")
+
+        let application = try decode(
+            ApplicationItem.self,
+            #"{"id": "a1", "job_title": "Company Name", "company_name": "Kesher Commerce"}"#
+        )
+        XCTAssertEqual(application.jobTitle, "Company Name")
+    }
+
+    func testEachFieldDropsOnlyItsOwnSentinel() {
+        XCTAssertNil(JobLabel.title("Position"))
+        XCTAssertNil(JobLabel.title(" job position "))
+        XCTAssertNil(JobLabel.company("Company Name"))
+        XCTAssertEqual(JobLabel.company("Position"), "Position")
+        XCTAssertEqual(JobLabel.company("Job Position"), "Job Position")
+        XCTAssertEqual(JobLabel.title("Company Name"), "Company Name")
     }
 }

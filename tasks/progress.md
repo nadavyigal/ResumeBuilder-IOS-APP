@@ -1,21 +1,21 @@
-# 2026-10-12: No "Company Name Job Position" placeholder header
+# 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
 
 **Status:** PR open, not merged, no build submitted.
 
-**Current Phase:** Resumely activation measurement, Q4 Objective A.
-**Active Story:** None.
-**Last Completed Story:** iOS capture bugs (Maya fixture). The four bugs were traced:
-1 `{targetTitle}` and 2 `similar role` are web suggestion bugs (web PR #168, with the
-extractor cleanup in web PR #167); 3 the placeholder header is a web default, now also
-dropped at decode here (`JobLabel.normalized` in `DomainModels.swift`) so already-saved
-rows stop showing it; 4 job phrases added to bullets is the web optimize pipeline, handed
-to the session that owns #167.
-**Next Recommended Story:** after #167/#168 deploy, re-run the Maya capture to confirm 1 and 2 on device.
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md`.
+**Active Story:** G2b, the iOS "Add only if true" review screen (next, on its own branch).
+**Last Completed Story:** PR #188 review fix: title and company sentinels split
+(`JobLabel.title` drops "Job Position" / "Position", `JobLabel.company` drops "Company Name"),
+so a company really named "Position" survives. Earlier (2026-10-12): the four Maya capture
+bugs were traced; web #167 and #168 are merged and live, so bugs 1 and 2 are fixed on the server.
+**Next Recommended Story:** G2b; then re-run the Maya capture on device to confirm the header.
 **Blockers:** none.
-**Last Validation:** 2026-10-12: full iOS suite 433 tests, 0 failures, 1 skipped; new
-`JobLabelPlaceholderTests` 5/5 (failed before the fix); simulator run against production
-in the Hebrew guest flow: match check still shows the server-side `similar role` (web fix not deployed), optimized preview no longer shows the `Company Name Job Position` card.
-**Last Updated:** 2026-10-12
+**Last Validation:** 2026-10-16: 3 new cross-field tests in `JobLabelPlaceholderTests` failed
+with the shared set (9 assertion failures), 8/8 after the split; full iOS suite 436 tests,
+1 skipped, 1 failure in `FirstSessionJourneyTests.testLateRecoveryFailureDoesNotOverwriteNewerOptimization`
+("before timeout"), which passed on rerun (13/13 with `JobLabelPlaceholderTests` 8/8); iPhone 17 Pro
+simulator. No new simulator flow run: the change is decode-only and covered by the tests.
+**Last Updated:** 2026-10-16
 
 # 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
 

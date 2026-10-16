@@ -4,9 +4,11 @@ When the web API cannot read a job's title or company it stores the literal stri
 "Job Position" / "Company Name" (and the review flow falls back to "Position"). They
 decode as ordinary non-nil values, so every `if let title = ...` header rendered them:
 the optimized preview read `Company Name Job Position` (Maya capture, 2026-10-12).
-Rule: label fields from the API go through `JobLabel.normalized` at decode, so
-"unknown" is `nil` everywhere at once instead of being checked per view. Fixing the
-web default (PR #168) does not fix rows that are already saved, so both sides are needed.
+Rule: label fields from the API go through `JobLabel.title` / `JobLabel.company` at
+decode, so "unknown" is `nil` everywhere at once instead of being checked per view.
+Fixing the web default (PR #168) does not fix rows that are already saved, so both sides
+are needed. Each sentinel belongs to its own field: one shared set erased a company really
+named "Position" (PR #188 review, 2026-10-16).
 
 ## 2026-09-09 — A localized String in a SwiftUI body freezes at the language it was built in
 
