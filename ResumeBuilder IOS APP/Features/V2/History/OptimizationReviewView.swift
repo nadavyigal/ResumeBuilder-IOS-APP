@@ -328,8 +328,10 @@ final class OptimizationReviewViewModel {
             before: data.review.atsPreview?.before,
             after: data.review.atsPreview?.after
         ).isNonPositive
+        // "Add only if true" claims start unselected: only the user can confirm them.
         includedGroupIds = Set(data.review.groupedChanges.compactMap { group in
-            assessment(for: group).defaultIncluded(reviewHasNonPositiveDelta: nonPositive) ? group.id : nil
+            !group.isConfirmClaim
+                && assessment(for: group).defaultIncluded(reviewHasNonPositiveDelta: nonPositive) ? group.id : nil
         })
         viewedGroupIds.removeAll()
         blockedGroupIds.removeAll()

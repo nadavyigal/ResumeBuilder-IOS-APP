@@ -931,6 +931,16 @@
         }
       }
     },
+    "Add only if true" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להוסיף רק אם נכון"
+          }
+        }
+      }
+    },
     "Add only truthful terms that appear in the target job." : {
       "localizations" : {
         "he" : {
@@ -2196,6 +2206,16 @@
         }
       }
     },
+    "Continue to my résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך לקורות החיים שלי"
+          }
+        }
+      }
+    },
     "Continue to optimize" : {
       "localizations" : {
         "he" : {
@@ -2715,6 +2735,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סגירת הודעת שחזור האופטימיזציה"
+          }
+        }
+      }
+    },
+    "Don't add" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא להוסיף"
           }
         }
       }
@@ -3624,6 +3654,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אם תאשרו את הניסוח המותאם"
+          }
+        }
+      }
+    },
+    "If you confirm" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אם תאשרו"
           }
         }
       }
@@ -5064,6 +5104,16 @@
         }
       }
     },
+    "Not on your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא מופיע בקורות החיים"
+          }
+        }
+      }
+    },
     "Not signed in" : {
       "comment" : "Guest account status",
       "localizations" : {
@@ -5097,6 +5147,16 @@
     },
     "Note: %@" : {
       "comment" : "export file line"
+    },
+    "Now it says" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כרגע כתוב"
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -8526,6 +8586,16 @@
         }
       }
     },
+    "These lines match the job, but your résumé does not say them. Add only what is true for you." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורות האלה מתאימות למשרה, אבל קורות החיים שלכם לא אומרים אותן. הוסיפו רק מה שנכון לגביכם."
+          }
+        }
+      }
+    },
     "This change would lower your match score from %d%% to %d%%." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8564,6 +8634,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "זו חבילת מעקב פנימית. השמירה מוסיפה אותה לאזור האישי; היא לא שולחת שום דבר למגייס."
+          }
+        }
+      }
+    },
+    "This line uses the job's words. Is it true for you?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורה הזו משתמשת במילים של המשרה. זה נכון לגביכם?"
           }
         }
       }
@@ -9455,6 +9535,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "כן!"
+          }
+        }
+      }
+    },
+    "Yes, add it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כן, להוסיף"
           }
         }
       }

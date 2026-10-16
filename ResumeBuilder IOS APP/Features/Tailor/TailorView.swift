@@ -34,6 +34,8 @@ struct TailorView: View {
     @State private var libraryViewModel = ResumeLibraryViewModel()
     // Fit-First Triage — behind BackendConfig.isFitCheckEnabled
     @State private var showFitCheck = false
+    /// A review with "Add only if true" lines waiting for the user (G2b).
+    @State private var pendingPhraseConfirmation: PendingPhraseConfirmation?
     @State private var fitCheckViewModel = FitCheckViewModel()
 
     var body: some View {
@@ -178,6 +180,13 @@ struct TailorView: View {
                 }
                 .preferredColorScheme(.dark)
             }
+            .sheet(item: $pendingPhraseConfirmation) { pending in
+                AddOnlyIfTrueView(
+                    claims: pending.claims,
+                    onContinue: { confirmed in Task { await applyConfirmedAndLand(pending, confirmed: confirmed) } },
+                    onCancel: { pendingPhraseConfirmation = nil }
+                )
+            }
             // The "Save this resume?" confirmation dialog was removed here
             // (founder, device test 2026-07-27). Saving is already offered
             // further down the page, so this interrupted the journey to ask a
@@ -294,9 +303,33 @@ struct TailorView: View {
         viewModel.isOptimizing = true
         defer { viewModel.isOptimizing = false }
         do {
-            let result = try await OptimizationAutoApplyService()
-                .applyAll(reviewId: reviewId, appState: appState)
+            let service = OptimizationAutoApplyService()
+            let envelope = try await service.load(reviewId: reviewId, appState: appState)
+            // Lines the résumé never says wait for the user: nothing is applied
+            // until they choose on the "Add only if true" sheet (G2b).
+            if !ConfirmPhraseSelection.claims(in: envelope).isEmpty {
+                pendingPhraseConfirmation = PendingPhraseConfirmation(reviewId: reviewId, envelope: envelope)
+                return
+            }
+            let result = try await service.apply(reviewId: reviewId, envelope: envelope, confirmed: [], appState: appState)
             appState.rememberReviewId(reviewId, for: result.optimizationId)
+            landOnOptimizedResume(result.optimizationId)
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            viewModel.isConnectionError = TailorViewModel.isConnectivityError(error)
+        }
+    }
+
+    /// Continue on the "Add only if true" sheet: every change plus the lines the user confirmed.
+    private func applyConfirmedAndLand(_ pending: PendingPhraseConfirmation, confirmed: Set<String>) async {
+        guard !viewModel.isOptimizing else { return }
+        viewModel.isOptimizing = true
+        defer { viewModel.isOptimizing = false }
+        pendingPhraseConfirmation = nil
+        do {
+            let result = try await OptimizationAutoApplyService()
+                .apply(reviewId: pending.reviewId, envelope: pending.envelope, confirmed: confirmed, appState: appState)
+            appState.rememberReviewId(pending.reviewId, for: result.optimizationId)
             landOnOptimizedResume(result.optimizationId)
         } catch {
             viewModel.errorMessage = error.localizedDescription

@@ -94,7 +94,46 @@ struct DiagnosisSmokeHarness: View {
         )
     }
 
+    /// `--smoke-confirm` renders the "Add only if true" sheet (G2b) with the
+    /// claims the web guard held back on the Maya fixture (2026-10-12).
+    private var wantsConfirm: Bool {
+        ProcessInfo.processInfo.arguments.contains("--smoke-confirm")
+    }
+
+    private var confirmFixture: [ReviewChangeGroupDTO] {
+        let json = """
+        {"review": {"id": "smoke", "grouped_changes_json": [
+          {"id": "experience", "section": "experience", "title": "Experience", "summary": "", "before_excerpt": "", "after_excerpt": ""},
+          {"id": "confirm-1", "section": "experience", "title": "Add only if true", "summary": "",
+           "before_excerpt": "Built weekly sales dashboards in Looker.",
+           "after_excerpt": "Built weekly sales dashboards in Looker and presented insights to non-technical stakeholders.",
+           "confirm": {"requires": "experience", "kept": "Built weekly sales dashboards in Looker.",
+                       "proposed": "Built weekly sales dashboards in Looker and presented insights to non-technical stakeholders.",
+                       "terms": ["non-technical stakeholders"], "estimated_gain": 3}},
+          {"id": "confirm-2", "section": "experience", "title": "Add only if true", "summary": "",
+           "before_excerpt": "", "after_excerpt": "Owned the weekly KPI report for sales leadership.",
+           "confirm": {"requires": "experience", "kept": null,
+                       "proposed": "Owned the weekly KPI report for sales leadership.",
+                       "terms": ["sales leadership"], "estimated_gain": null}}
+        ]}}
+        """
+        let envelope = try? JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
+        return envelope.map(ConfirmPhraseSelection.claims(in:)) ?? []
+    }
+
     var body: some View {
+        if wantsConfirm {
+            // The sheet brings its own NavigationStack.
+            AddOnlyIfTrueView(claims: confirmFixture, onContinue: { _ in }, onCancel: {})
+                .task {
+                    if wantsHebrew { LocalizationManager.shared.setLanguage(.hebrew) }
+                }
+        } else {
+            standardBody
+        }
+    }
+
+    private var standardBody: some View {
         NavigationStack {
             if wantsFitCheck {
                 OptimizeFitCheckView(

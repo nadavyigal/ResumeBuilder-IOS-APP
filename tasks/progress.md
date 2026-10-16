@@ -1,3 +1,21 @@
+# 2026-10-16: G2b, iOS "Add only if true"
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md` G2b.
+**Active Story:** G2b, this PR.
+**Last Completed Story:** G2b. The optimize request now sends `confirmJobPhrases: true`, so the web
+holds back job-post lines the résumé never says. Before anything is applied, a new "Add only if true"
+sheet (`Features/V2/Home/AddOnlyIfTrueView.swift`) lists them unselected; Continue applies every change
+plus only the lines the user confirmed (`ConfirmPhraseSelection` in `OptimizationAutoApplyService.swift`).
+Wired into both apply paths (`HomeTabView`, `TailorView`). Auto-apply, the legacy review screen and
+Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew copy in the catalog.
+**Next Recommended Story:** founder: device check of the full flow, then a build; G1b screenshots.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
+send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
+smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
+Hebrew RTL, both claims unselected, toggle works.
 # 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
 
 **Status:** PR open, not merged, no build submitted.

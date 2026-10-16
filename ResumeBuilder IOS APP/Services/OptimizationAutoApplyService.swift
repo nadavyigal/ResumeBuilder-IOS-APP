@@ -44,19 +44,34 @@ struct OptimizationAutoApplyService {
         self.api = api
     }
 
-    /// Loads the review, applies every group, and returns the new optimization.
+    /// Loads the review, applies every change, and returns the new optimization.
+    /// "Add only if true" claims are never applied this way: only the user can
+    /// confirm one (see `load` and `apply(reviewId:envelope:confirmed:appState:)`).
+    func applyAll(reviewId: String, appState: AppState) async throws -> Result {
+        let envelope = try await load(reviewId: reviewId, appState: appState)
+        return try await apply(reviewId: reviewId, envelope: envelope, confirmed: [], appState: appState)
+    }
+
+    /// The review as the server built it, including any "Add only if true" claims.
+    func load(reviewId: String, appState: AppState) async throws -> OptimizationReviewEnvelope {
+        try await appState.callWithFreshToken { token in
+            try await api.get(endpoint: .optimizationReview(id: reviewId), token: token)
+        }
+    }
+
+    /// Applies every change in the review plus the claims the user confirmed.
     ///
     /// Emits the same analytics the review screen did, so the funnel keeps its
     /// shape across this change: `optimization_apply_started` →
     /// `optimization_apply_succeeded` → `optimization_completed(path: .applied)`.
-    /// `approved_group_count` therefore now reports every group rather than the
-    /// user's selection, which is exactly what is happening.
-    func applyAll(reviewId: String, appState: AppState) async throws -> Result {
-        let envelope: OptimizationReviewEnvelope = try await appState.callWithFreshToken { token in
-            try await api.get(endpoint: .optimizationReview(id: reviewId), token: token)
-        }
-
-        let allGroupIds = envelope.review.groupedChanges.map(\.id)
+    /// `approved_group_count` reports every change sent, confirmed claims included.
+    func apply(
+        reviewId: String,
+        envelope: OptimizationReviewEnvelope,
+        confirmed: Set<String>,
+        appState: AppState
+    ) async throws -> Result {
+        let allGroupIds = ConfirmPhraseSelection.approvedGroupIds(in: envelope, confirmed: confirmed)
         let flagged = Self.flaggedGroupIds(in: envelope)
 
         AnalyticsService.shared.track(
@@ -111,7 +126,7 @@ struct OptimizationAutoApplyService {
         ).isNonPositive
 
         return Set(
-            envelope.review.groupedChanges.compactMap { group in
+            envelope.review.groupedChanges.filter { !$0.isConfirmClaim }.compactMap { group in
                 let assessment = RecommendationSafetyPolicy.assess(
                     before: group.beforeExcerpt,
                     after: group.afterExcerpt,
@@ -122,5 +137,29 @@ struct OptimizationAutoApplyService {
                     : group.id
             }
         )
+    }
+}
+
+/// Which review groups go to the apply endpoint (G2b, "Add only if true").
+///
+/// Every section change is applied, as before. A held-back claim is applied only
+/// when the user confirmed it and there is something to add it to: its section
+/// change is in the review, or the server marked it standalone. Same rule as the
+/// web review page (`isConfirmAvailable`). Unknown ids are ignored.
+enum ConfirmPhraseSelection {
+    /// The claims to ask the user about, in the server's order.
+    static func claims(in envelope: OptimizationReviewEnvelope) -> [ReviewChangeGroupDTO] {
+        let groups = envelope.review.groupedChanges
+        let sections = Set(groups.filter { !$0.isConfirmClaim }.map(\.section))
+        return groups.filter { group in
+            guard let claim = group.confirm else { return false }
+            return claim.standalone || sections.contains(claim.requires)
+        }
+    }
+
+    static func approvedGroupIds(in envelope: OptimizationReviewEnvelope, confirmed: Set<String>) -> [String] {
+        let changes = envelope.review.groupedChanges.filter { !$0.isConfirmClaim }.map(\.id)
+        let claims = claims(in: envelope).map(\.id).filter { confirmed.contains($0) }
+        return changes + claims
     }
 }

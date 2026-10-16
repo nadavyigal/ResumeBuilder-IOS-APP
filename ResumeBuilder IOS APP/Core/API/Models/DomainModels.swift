@@ -1928,11 +1928,50 @@ struct ReviewChangeGroupDTO: Decodable, Identifiable, Sendable {
     let afterExcerpt: String
     /// Optional backend evidence (contract v2). Absent on pre-contract reviews.
     let evidence: ReviewEvidenceDTO?
+    /// Present only on an "Add only if true" item (sent when the optimize request
+    /// carries `confirmJobPhrases: true`). Such a group is never applied unless the
+    /// user confirms it.
+    let confirm: ReviewConfirmClaimDTO?
+
+    var isConfirmClaim: Bool { confirm != nil }
 
     private enum CodingKeys: String, CodingKey {
-        case id, section, title, summary, evidence
+        case id, section, title, summary, evidence, confirm
         case beforeExcerpt = "before_excerpt"
         case afterExcerpt = "after_excerpt"
+    }
+}
+
+/// A job-post phrase the optimizer wrote and the web guard held back because the
+/// résumé never states it (web `ReviewConfirmClaim`, `src/types/optimization-review.ts`).
+/// Confirming puts `proposed` back into the résumé.
+struct ReviewConfirmClaimDTO: Decodable, Sendable {
+    /// The section change this edits ("summary", "experience", "projects").
+    let requires: String
+    /// What the résumé says in its place now, or nil when the whole line was held back.
+    let kept: String?
+    /// What the optimizer wrote; restored when the user confirms.
+    let proposed: String
+    /// The job-post words the résumé does not use.
+    let terms: [String]
+    /// Score points confirming adds, measured when the review was created.
+    let estimatedGain: Int?
+    /// True when there is no section change to attach to, so the item applies on its own.
+    let standalone: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case requires, kept, proposed, terms, standalone
+        case estimatedGain = "estimated_gain"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        requires = try c.decode(String.self, forKey: .requires)
+        kept = try c.decodeIfPresent(String.self, forKey: .kept)
+        proposed = try c.decode(String.self, forKey: .proposed)
+        terms = try c.decodeIfPresent([String].self, forKey: .terms) ?? []
+        estimatedGain = (try? c.decodeIfPresent(Double.self, forKey: .estimatedGain)).flatMap { $0 }.map { Int($0.rounded()) }
+        standalone = try c.decodeIfPresent(Bool.self, forKey: .standalone) ?? false
     }
 }
 

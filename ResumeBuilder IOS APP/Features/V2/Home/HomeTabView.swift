@@ -13,6 +13,8 @@ struct HomeTabView: View {
 
     @State private var isImporterPresented = false
     @State private var journeyRoute: FirstSessionJourneyRoute?
+    /// A review with "Add only if true" lines waiting for the user (G2b).
+    @State private var pendingPhraseConfirmation: PendingPhraseConfirmation?
     @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
@@ -120,6 +122,13 @@ struct HomeTabView: View {
                     onEditTargetJob: { journeyRoute = nil },
                     isApplying: isApplyingReview
                 )
+                .sheet(item: $pendingPhraseConfirmation) { pending in
+                    AddOnlyIfTrueView(
+                        claims: pending.claims,
+                        onContinue: { confirmed in Task { await applyConfirmedAndLand(pending, confirmed: confirmed) } },
+                        onCancel: { pendingPhraseConfirmation = nil }
+                    )
+                }
             case .diagnosis:
                 if let diagnosisViewModel {
                     ResumeDiagnosisView(
@@ -605,28 +614,63 @@ struct HomeTabView: View {
         isApplyingReview = true
         defer { isApplyingReview = false }
         do {
-            let result = try await OptimizationAutoApplyService()
-                .applyAll(reviewId: reviewId, appState: appState)
-            appState.rememberReviewId(reviewId, for: result.optimizationId)
-            FirstSessionJourneyTransition.completeApply(
-                optimizationId: result.optimizationId,
-                persist: { optimizationId in
-                    FitBaselineStore.shared.carryForward(
-                        from: viewModel.uploadResponse?.resumeId,
-                        to: optimizationId
-                    )
-                    FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
-                    appState.latestOptimizationId = optimizationId
-                    appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
-                    viewModel.pendingSaveResumeId = optimizationId
-                    journeyRoute = nil
-                },
-                showPreview: onShowOptimizedPreview
+            let service = OptimizationAutoApplyService()
+            let envelope = try await service.load(reviewId: reviewId, appState: appState)
+            // Lines the résumé never says wait for the user: nothing is applied
+            // until they choose on the "Add only if true" sheet (G2b).
+            if !ConfirmPhraseSelection.claims(in: envelope).isEmpty {
+                pendingPhraseConfirmation = PendingPhraseConfirmation(reviewId: reviewId, envelope: envelope)
+                return
+            }
+            try await applyAndLand(reviewId: reviewId, envelope: envelope, confirmed: [], service: service)
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+            journeyRoute = nil
+        }
+    }
+
+    /// Continue on the "Add only if true" sheet: every change plus the lines the user confirmed.
+    private func applyConfirmedAndLand(_ pending: PendingPhraseConfirmation, confirmed: Set<String>) async {
+        guard !isApplyingReview else { return }
+        isApplyingReview = true
+        defer { isApplyingReview = false }
+        pendingPhraseConfirmation = nil
+        do {
+            try await applyAndLand(
+                reviewId: pending.reviewId,
+                envelope: pending.envelope,
+                confirmed: confirmed,
+                service: OptimizationAutoApplyService()
             )
         } catch {
             viewModel.errorMessage = error.localizedDescription
             journeyRoute = nil
         }
+    }
+
+    private func applyAndLand(
+        reviewId: String,
+        envelope: OptimizationReviewEnvelope,
+        confirmed: Set<String>,
+        service: OptimizationAutoApplyService
+    ) async throws {
+        let result = try await service.apply(reviewId: reviewId, envelope: envelope, confirmed: confirmed, appState: appState)
+        appState.rememberReviewId(reviewId, for: result.optimizationId)
+        FirstSessionJourneyTransition.completeApply(
+            optimizationId: result.optimizationId,
+            persist: { optimizationId in
+                FitBaselineStore.shared.carryForward(
+                    from: viewModel.uploadResponse?.resumeId,
+                    to: optimizationId
+                )
+                FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
+                appState.latestOptimizationId = optimizationId
+                appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+                viewModel.pendingSaveResumeId = optimizationId
+                journeyRoute = nil
+            },
+            showPreview: onShowOptimizedPreview
+        )
     }
 
     private func continueOptimization() async {
