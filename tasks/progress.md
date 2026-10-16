@@ -12,7 +12,7 @@ Wired into both apply paths (`HomeTabView`, `TailorView`). Auto-apply, the legac
 Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew copy in the catalog.
 **Next Recommended Story:** founder: device check of the full flow, then a build; G1b screenshots.
 **Blockers:** App Store submission is a founder step.
-**Last Validation:** 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
+**Last Validation:** 2026-10-16 (round 2, PR #189 review): the flow moved into `Features/V2/Home/PhraseConfirmationFlow.swift` and its sheet onto Home's NavigationStack, so the no-fit-preview path asks too; legacy `Features/Tailor/TailorView.swift` is back to main (the app never shows it). `AddOnlyIfTrueTests` 13/13 (4 new: no fit preview applies directly, held lines wait for the user, no held lines apply at once, cancel applies nothing); full suite 450 tests, 0 failures, 1 skipped; smoke `--smoke-confirm-flow` showed the sheet with no destination and over a pushed one, Continue applied 1 confirmed, Cancel applied nothing. Rebased onto #188 (6bd13b6). Earlier 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
 send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
 smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
 Hebrew RTL, both claims unselected, toggle works. Production simulator run (Hebrew UI, guest, Maya

@@ -116,6 +116,75 @@ final class AddOnlyIfTrueTests: XCTestCase {
         XCTAssertEqual(AppliedChangesViewModel.appliedGroups(in: env).map(\.id), ["summary"])
     }
 
+    // MARK: Flow (PR #189 review: no fit preview)
+
+    private func fit(_ current: Int?) -> OptimizeFitPreview {
+        let json = current.map { #"{"currentScore": \#($0), "potentialScore": 59}"# } ?? #"{"potentialScore": 59}"#
+        return try! JSONDecoder().decode(OptimizeFitPreview.self, from: Data(json.utf8))
+    }
+
+    func testWithoutAFitPreviewHomeAppliesTheReviewDirectly() {
+        XCTAssertEqual(HomeJourneyNextStep.after(optimizationId: nil, reviewId: "r1", fit: nil), .applyReview(reviewId: "r1"))
+        XCTAssertEqual(HomeJourneyNextStep.after(optimizationId: nil, reviewId: "r1", fit: fit(nil)), .applyReview(reviewId: "r1"))
+        XCTAssertEqual(HomeJourneyNextStep.after(optimizationId: nil, reviewId: "r1", fit: fit(46)), .fitCheck(reviewId: "r1"))
+        XCTAssertEqual(HomeJourneyNextStep.after(optimizationId: "o1", reviewId: "r1", fit: fit(46)), .diagnosis(optimizationId: "o1"))
+        XCTAssertEqual(HomeJourneyNextStep.after(optimizationId: nil, reviewId: nil, fit: nil), .stay)
+    }
+
+    /// Records what the flow sends to the apply endpoint, without a network or `AppState`.
+    @MainActor private final class FakeBackend {
+        let envelope: OptimizationReviewEnvelope
+        var applied: [Set<String>] = []
+        init(_ envelope: OptimizationReviewEnvelope) { self.envelope = envelope }
+        var backend: PhraseConfirmationBackend {
+            PhraseConfirmationBackend(
+                load: { _ in self.envelope },
+                apply: { _, envelope, confirmed in
+                    self.applied.append(confirmed)
+                    return OptimizationAutoApplyService.Result(optimizationId: "opt-1", envelope: envelope, flaggedGroupIds: [])
+                }
+            )
+        }
+    }
+
+    /// The direct-apply path (no fit check) still waits for the user when the review holds lines.
+    func testAReviewWithHeldLinesWaitsForTheUserBeforeApplying() async throws {
+        let fake = FakeBackend(try envelope([summaryGroup, experienceGroup, experienceClaim].joined(separator: ",")))
+        let flow = PhraseConfirmationFlow()
+
+        guard case .awaitingConfirmation = try await flow.start(reviewId: "review-1", backend: fake.backend) else {
+            return XCTFail("expected the flow to wait for the user")
+        }
+        XCTAssertTrue(fake.applied.isEmpty, "nothing is applied before the user chooses")
+        let pending = try XCTUnwrap(flow.pending)
+        XCTAssertEqual(pending.claims.map(\.id), ["confirm-1"])
+
+        let result = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
+        XCTAssertEqual(result.optimizationId, "opt-1")
+        XCTAssertEqual(fake.applied, [["confirm-1"]])
+        XCTAssertNil(flow.pending)
+    }
+
+    func testAReviewWithoutHeldLinesAppliesAtOnce() async throws {
+        let fake = FakeBackend(try envelope([summaryGroup, experienceGroup].joined(separator: ",")))
+        let flow = PhraseConfirmationFlow()
+
+        guard case .applied = try await flow.start(reviewId: "review-1", backend: fake.backend) else {
+            return XCTFail("expected an immediate apply")
+        }
+        XCTAssertEqual(fake.applied, [[]])
+        XCTAssertNil(flow.pending)
+    }
+
+    func testCancelAppliesNothing() async throws {
+        let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
+        let flow = PhraseConfirmationFlow()
+        _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
+        flow.cancel()
+        XCTAssertNil(flow.pending)
+        XCTAssertTrue(fake.applied.isEmpty)
+    }
+
     // MARK: Copy
 
     private func extractKey(_ key: LocalizedStringKey) -> String {
