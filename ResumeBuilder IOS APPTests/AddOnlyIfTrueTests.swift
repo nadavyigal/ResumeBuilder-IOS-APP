@@ -132,15 +132,23 @@ final class AddOnlyIfTrueTests: XCTestCase {
     }
 
     /// Records what the flow sends to the apply endpoint, without a network or `AppState`.
+    struct ApplyFailed: Error {}
+
     @MainActor private final class FakeBackend {
         let envelope: OptimizationReviewEnvelope
         var applied: [Set<String>] = []
+        /// How many apply calls fail before one succeeds.
+        var failuresLeft = 0
         init(_ envelope: OptimizationReviewEnvelope) { self.envelope = envelope }
         var backend: PhraseConfirmationBackend {
             PhraseConfirmationBackend(
                 load: { _ in self.envelope },
                 apply: { _, envelope, confirmed in
                     self.applied.append(confirmed)
+                    if self.failuresLeft > 0 {
+                        self.failuresLeft -= 1
+                        throw ApplyFailed()
+                    }
                     return OptimizationAutoApplyService.Result(optimizationId: "opt-1", envelope: envelope, flaggedGroupIds: [])
                 }
             )
@@ -185,6 +193,61 @@ final class AddOnlyIfTrueTests: XCTestCase {
         XCTAssertTrue(fake.applied.isEmpty)
     }
 
+    // MARK: Review findings on fa57a5c (2026-10-17)
+
+    /// A failed apply (network, 5xx) keeps the sheet and the user's choices, with an
+    /// error, so Continue can be tried again; only a successful apply clears it.
+    func testAFailedApplyKeepsTheConfirmationForARetry() async throws {
+        let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
+        fake.failuresLeft = 1
+        let flow = PhraseConfirmationFlow()
+        _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
+        let pending = try XCTUnwrap(flow.pending)
+
+        do {
+            _ = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
+            XCTFail("expected the first apply to fail")
+        } catch {}
+        XCTAssertNotNil(flow.pending, "the sheet stays up after a failed apply")
+        XCTAssertNotNil(flow.applyError)
+        XCTAssertFalse(flow.isApplying)
+
+        let result = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
+        XCTAssertEqual(result.optimizationId, "opt-1")
+        XCTAssertNil(flow.pending)
+        XCTAssertNil(flow.applyError)
+        XCTAssertEqual(fake.applied, [["confirm-1"], ["confirm-1"]])
+    }
+
+    /// An out-of-range gain is "unavailable", never a crash (`Int(_:)` traps).
+    func testAnOutOfRangeGainDecodesAsUnavailable() throws {
+        let huge = experienceClaim.replacingOccurrences(of: #""estimated_gain": 3"#, with: #""estimated_gain": 1e308"#)
+        let review = try envelope([experienceGroup, huge].joined(separator: ",")).review
+        XCTAssertNil(review.groupedChanges[1].confirm?.estimatedGain)
+        let negative = experienceClaim.replacingOccurrences(of: #""estimated_gain": 3"#, with: #""estimated_gain": -1e308"#)
+        XCTAssertNil(try envelope([experienceGroup, negative].joined(separator: ",")).review.groupedChanges[1].confirm?.estimatedGain)
+    }
+
+    /// The legacy Optimization Review screen (reached from ImproveView) applies a claim
+    /// only while its section change is included, or when it is standalone: the web rule.
+    func testTheReviewScreenSendsOnlyClaimsTheUserCanUse() throws {
+        let env = try envelope([summaryGroup, experienceGroup, experienceClaim, projectsClaim, standaloneClaim].joined(separator: ","))
+        let everything: Set<String> = ["summary", "experience", "confirm-1", "confirm-2", "confirm-3"]
+        XCTAssertEqual(
+            ConfirmPhraseSelection.approvedGroupIds(in: env, included: everything),
+            ["summary", "experience", "confirm-1", "confirm-3"]
+        )
+        // Without the experience change, its claim has nothing to attach to.
+        XCTAssertEqual(
+            ConfirmPhraseSelection.approvedGroupIds(in: env, included: ["summary", "confirm-1", "confirm-3"]),
+            ["summary", "confirm-3"]
+        )
+        XCTAssertFalse(ConfirmPhraseSelection.canInclude("confirm-2", in: env, included: everything))
+        XCTAssertTrue(ConfirmPhraseSelection.canInclude("confirm-1", in: env, included: ["experience"]))
+        XCTAssertFalse(ConfirmPhraseSelection.canInclude("confirm-1", in: env, included: []))
+        XCTAssertTrue(ConfirmPhraseSelection.canInclude("summary", in: env, included: []))
+    }
+
     // MARK: Copy
 
     private func extractKey(_ key: LocalizedStringKey) -> String {
@@ -198,7 +261,10 @@ final class AddOnlyIfTrueTests: XCTestCase {
     func testEveryLineIsTranslatedToHebrew() throws {
         let path = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
         let hebrew = try XCTUnwrap(Bundle(path: path))
-        let keys = AddOnlyIfTrueCopy.all.map(extractKey) + [AddOnlyIfTrueCopy.gainFormat]
+        let keys = AddOnlyIfTrueCopy.all.map(extractKey) + [
+            AddOnlyIfTrueCopy.gainFormat,
+            "We could not apply your changes. Check your connection and try again.",
+        ]
 
         for key in keys {
             let translated = hebrew.localizedString(forKey: key, value: nil, table: nil)

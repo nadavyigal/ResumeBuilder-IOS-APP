@@ -632,6 +632,9 @@ struct HomeTabView: View {
             let result = try await phraseConfirmation.finish(pending, confirmed: confirmed, backend: .service(appState))
             land(result, reviewId: pending.reviewId)
         } catch {
+            // The sheet stays up with the error and the user's choices: Continue retries
+            // this review. Leaving it, or clearing the route, would force a new optimization.
+            if phraseConfirmation.pending != nil { return }
             viewModel.errorMessage = error.localizedDescription
             journeyRoute = nil
         }

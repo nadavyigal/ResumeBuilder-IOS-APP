@@ -85,12 +85,19 @@ final class OptimizationReviewViewModel {
     }
 
     func toggleInclude(groupId: String) {
-        guard let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
+        guard let envelope, let group = envelope.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
         let safety = assessment(for: group)
         guard safety.canSelect else { return }
+        // An "Add only if true" claim can be added only while its section change is in.
+        if !includedGroupIds.contains(groupId),
+           !ConfirmPhraseSelection.canInclude(groupId, in: envelope, included: includedGroupIds) {
+            return
+        }
         let evidenceState = evidence(for: group).isEmpty ? "without_evidence" : "with_evidence"
         if includedGroupIds.contains(groupId) {
             includedGroupIds.remove(groupId)
+            // Claims that edited this section have nothing to attach to any more.
+            includedGroupIds = Set(ConfirmPhraseSelection.approvedGroupIds(in: envelope, included: includedGroupIds))
             AnalyticsService.shared.track(
                 .recommendationSkipped(
                     surface: "optimization_review",
@@ -230,7 +237,10 @@ final class OptimizationReviewViewModel {
     }
 
     private func apply(with token: String) async throws {
-        let body: [String: Any] = ["approvedGroupIds": Array(includedGroupIds)]
+        // Claims whose section change was left out have nothing to attach to (web rule).
+        let approved = envelope.map { ConfirmPhraseSelection.approvedGroupIds(in: $0, included: includedGroupIds) }
+            ?? Array(includedGroupIds)
+        let body: [String: Any] = ["approvedGroupIds": approved]
         let result: OptimizationReviewApplyResponseDTO = try await api.postJSON(
             endpoint: .optimizationReviewApply(id: reviewId),
             body: body,

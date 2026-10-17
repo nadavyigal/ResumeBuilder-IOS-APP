@@ -1970,7 +1970,11 @@ struct ReviewConfirmClaimDTO: Decodable, Sendable {
         kept = try c.decodeIfPresent(String.self, forKey: .kept)
         proposed = try c.decode(String.self, forKey: .proposed)
         terms = try c.decodeIfPresent([String].self, forKey: .terms) ?? []
-        estimatedGain = (try? c.decodeIfPresent(Double.self, forKey: .estimatedGain)).flatMap { $0 }.map { Int($0.rounded()) }
+        // `Int(exactly:)`: `Int(_:)` traps on an out-of-range value such as 1e308, which
+        // would crash the whole review over an optional display figure.
+        estimatedGain = (try? c.decodeIfPresent(Double.self, forKey: .estimatedGain))
+            .flatMap { $0 }
+            .flatMap { Int(exactly: $0.rounded()) }
         standalone = try c.decodeIfPresent(Bool.self, forKey: .standalone) ?? false
     }
 }

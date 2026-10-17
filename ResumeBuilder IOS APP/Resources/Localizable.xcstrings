@@ -9393,6 +9393,17 @@
         }
       }
     },
+    "We could not apply your changes. Check your connection and try again." : {
+      "comment" : "Add only if true: the apply request failed; Continue retries",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להחיל את השינויים. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
     "We could not finish tailoring your résumé. Please try again." : {
       "extractionState" : "manual",
       "localizations" : {

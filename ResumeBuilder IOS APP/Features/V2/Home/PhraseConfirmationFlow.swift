@@ -42,8 +42,12 @@ final class PhraseConfirmationFlow {
         case awaitingConfirmation
     }
 
-    /// Set while held lines wait for the user. Drives the sheet.
+    /// Set while held lines wait for the user. Drives the sheet. Cleared only by a
+    /// successful apply or by Cancel, so a failed apply keeps the user's choices.
     var pending: PendingPhraseConfirmation?
+    /// Shown on the sheet after a failed apply; Continue tries again.
+    private(set) var applyError: String?
+    private(set) var isApplying = false
 
     /// Loads the review. With held lines, waits for the user; without, applies every change.
     func start(reviewId: String, backend: PhraseConfirmationBackend) async throws -> Outcome {
@@ -61,13 +65,27 @@ final class PhraseConfirmationFlow {
         confirmed: Set<String>,
         backend: PhraseConfirmationBackend
     ) async throws -> OptimizationAutoApplyService.Result {
-        pending = nil
-        return try await backend.apply(confirmation.reviewId, confirmation.envelope, confirmed)
+        isApplying = true
+        defer { isApplying = false }
+        do {
+            let result = try await backend.apply(confirmation.reviewId, confirmation.envelope, confirmed)
+            applyError = nil
+            pending = nil
+            return result
+        } catch {
+            // The sheet stays up with the same choices; Continue retries the same review.
+            applyError = NSLocalizedString(
+                "We could not apply your changes. Check your connection and try again.",
+                comment: "Add only if true: the apply request failed; Continue retries"
+            )
+            throw error
+        }
     }
 
     /// Cancel on the sheet: nothing is applied.
     func cancel() {
         pending = nil
+        applyError = nil
     }
 }
 
@@ -81,9 +99,12 @@ extension View {
         sheet(item: Binding(get: { flow.pending }, set: { if $0 == nil { flow.cancel() } })) { pending in
             AddOnlyIfTrueView(
                 claims: pending.claims,
+                errorMessage: flow.applyError,
+                isApplying: flow.isApplying,
                 onContinue: { confirmed in onContinue(pending, confirmed) },
                 onCancel: { flow.cancel() }
             )
+            .interactiveDismissDisabled(flow.isApplying)
         }
     }
 }

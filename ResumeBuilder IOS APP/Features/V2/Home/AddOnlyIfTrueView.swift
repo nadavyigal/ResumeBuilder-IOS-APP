@@ -36,6 +36,9 @@ struct PendingPhraseConfirmation: Identifiable {
 /// one. Continue applies all the other changes plus the lines the user confirmed.
 struct AddOnlyIfTrueView: View {
     let claims: [ReviewChangeGroupDTO]
+    /// Set after a failed apply; the choices stay and Continue tries again.
+    var errorMessage: String? = nil
+    var isApplying: Bool = false
     let onContinue: (Set<String>) -> Void
     let onCancel: () -> Void
 
@@ -56,7 +59,16 @@ struct AddOnlyIfTrueView: View {
                         }
                     }
 
-                    GradientButton(title: AddOnlyIfTrueCopy.continueAction) {
+                    if let errorMessage {
+                        Text(verbatim: errorMessage)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.accentViolet)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("addOnlyIfTrue.error")
+                    }
+
+                    GradientButton(title: AddOnlyIfTrueCopy.continueAction, isLoading: isApplying) {
+                        guard !isApplying else { return }
                         onContinue(confirmed)
                     }
                     .padding(.top, AppSpacing.sm)

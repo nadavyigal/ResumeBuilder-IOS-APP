@@ -157,6 +157,25 @@ enum ConfirmPhraseSelection {
         }
     }
 
+    /// The Optimization Review screen, where the user can also leave section changes out:
+    /// a claim counts only while its section change is included, or when it is standalone
+    /// (the web's `isConfirmAvailable`).
+    static func canInclude(_ groupId: String, in envelope: OptimizationReviewEnvelope, included: Set<String>) -> Bool {
+        let groups = envelope.review.groupedChanges
+        guard let group = groups.first(where: { $0.id == groupId }) else { return false }
+        guard let claim = group.confirm else { return true }
+        if claim.standalone { return true }
+        return groups.contains { !$0.isConfirmClaim && $0.section == claim.requires && included.contains($0.id) }
+    }
+
+    /// What the Optimization Review screen sends: the included groups, minus any claim
+    /// that has nothing to attach to. Server order.
+    static func approvedGroupIds(in envelope: OptimizationReviewEnvelope, included: Set<String>) -> [String] {
+        envelope.review.groupedChanges
+            .map(\.id)
+            .filter { included.contains($0) && canInclude($0, in: envelope, included: included) }
+    }
+
     static func approvedGroupIds(in envelope: OptimizationReviewEnvelope, confirmed: Set<String>) -> [String] {
         let changes = envelope.review.groupedChanges.filter { !$0.isConfirmClaim }.map(\.id)
         let claims = claims(in: envelope).map(\.id).filter { confirmed.contains($0) }
