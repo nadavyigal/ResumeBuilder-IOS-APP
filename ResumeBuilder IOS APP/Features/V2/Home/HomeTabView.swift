@@ -383,13 +383,13 @@ struct HomeTabView: View {
         return types
     }()
 
-    /// Tailoring needs 50 words; without a session the text goes to the public free
-    /// check, which still needs 100 (`runAnalysis`).
+    /// Tailoring needs 50 words; the public free check (no session, or the fit check
+    /// when it is on) still needs 100 (`runAnalysis`, `prepareFitCheck`).
     private var jobInputEvaluation: JobInputPolicy.Evaluation {
         JobInputPolicy.evaluate(
             description: viewModel.jobDescription,
             urlString: viewModel.jobDescriptionURL,
-            destination: appState.canOptimize ? .optimize : .publicCheck
+            destination: .firstSession(canOptimize: appState.canOptimize, isFitCheckEnabled: BackendConfig.isFitCheckEnabled)
         )
     }
 

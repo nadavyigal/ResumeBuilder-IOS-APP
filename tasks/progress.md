@@ -7,8 +7,8 @@
 **Last Completed Story:** Job input policy. Tailoring needs 50 pasted words (was 100); the public free check, used with no session and by the fit check, still needs 100. A job link is found inside pasted share text, and a bare domain gets https://. `job_input_validation_shown` carries `word_count_bucket` (0, 1-24, 25-49, 50-99, 100+), never the text. English and Hebrew messages state the minimum for where the text goes.
 **Next Recommended Story:** a "no job post yet" path for people who type no job at all (P3, P5 in the 2026-10-16 read); then read `word_count_bucket` after the next build.
 **Blockers:** App Store submission is a founder step.
-**Last Validation:** 2026-10-16: new `JobInputPolicyTests` 12/12 (5 fail with the old 100-word floor and strict link parser); `FitCheckViewModelTests` updated for the two reversed behaviours; full suite 440 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator).
-**Last Updated:** 2026-10-16
+**Last Validation:** 2026-10-17 (review round): Home and Tailor pick the rule with `Destination.firstSession(canOptimize:isFitCheckEnabled:)`, so the fit check (100 words) cannot drift from Home; Tailor now sends `word_count_bucket`; the unused "at least 100 words" fit key is removed. `JobInputPolicyTests` 13/13; full suite 441 tests, 0 failures, 1 skipped. 2026-10-16: new `JobInputPolicyTests` 12/12 (5 fail with the old 100-word floor and strict link parser); `FitCheckViewModelTests` updated for the two reversed behaviours; full suite 440 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator).
+**Last Updated:** 2026-10-17
 
 # 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
 

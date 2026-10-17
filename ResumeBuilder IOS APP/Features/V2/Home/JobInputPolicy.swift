@@ -18,6 +18,13 @@ struct JobInputPolicy: Sendable {
         /// The public free check, used without a session and by the fit check.
         case publicCheck
 
+        /// Where a first-session surface (Home, Tailor) sends the text: the public check
+        /// without a session, and also when the fit check is on, because the fit check
+        /// re-evaluates the same text against the public check. Otherwise tailoring.
+        static func firstSession(canOptimize: Bool, isFitCheckEnabled: Bool) -> Destination {
+            canOptimize && !isFitCheckEnabled ? .optimize : .publicCheck
+        }
+
         var minimumWordCount: Int {
             switch self {
             case .optimize: return JobInputPolicy.minimumPastedWordCount

@@ -5552,18 +5552,6 @@
         }
       }
     },
-    "Paste the full job description (at least 100 words) so we can check your fit accurately." : {
-      "comment" : "FitCheckViewModel validation error",
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדבק את תיאור המשרה המלא (לפחות 100 מילים) כדי שנוכל לבדוק את ההתאמה שלך במדויק."
-          }
-        }
-      }
-    },
     "Paste the full job description or add a job link so we can check your fit accurately." : {
       "extractionState" : "stale",
       "localizations" : {

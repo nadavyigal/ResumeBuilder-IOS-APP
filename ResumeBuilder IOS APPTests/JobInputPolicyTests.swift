@@ -70,6 +70,18 @@ final class JobInputPolicyTests: XCTestCase {
         XCTAssertEqual(evaluation.blockingReason, .invalidURL)
     }
 
+    // MARK: Which rule a first-session surface uses
+
+    /// Home and Tailor send the text to the public check (100 words) when there is no
+    /// session, and also when the fit check is on, because `prepareFitCheck` hands the
+    /// same text to `FitCheckViewModel` (`.publicCheck`). Otherwise it goes to tailoring (50).
+    func testFirstSessionDestinationFollowsWhereTheTextGoes() {
+        XCTAssertEqual(JobInputPolicy.Destination.firstSession(canOptimize: true, isFitCheckEnabled: false), .optimize)
+        XCTAssertEqual(JobInputPolicy.Destination.firstSession(canOptimize: true, isFitCheckEnabled: true), .publicCheck)
+        XCTAssertEqual(JobInputPolicy.Destination.firstSession(canOptimize: false, isFitCheckEnabled: false), .publicCheck)
+        XCTAssertEqual(JobInputPolicy.Destination.firstSession(canOptimize: false, isFitCheckEnabled: true), .publicCheck)
+    }
+
     // MARK: Messages and analytics
 
     func testMessagesStateTheMinimumForTheDestination() {
