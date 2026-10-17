@@ -1,3 +1,15 @@
+# 2026-10-12 — Never show the server's "Job Position" / "Company Name" placeholders
+
+As a user, I want the optimized preview header to show the real job or nothing, never `Company Name Job Position`.
+Root cause is on the web (`upload-resume` saved its sentinels for every pasted job; fixed in web PR #168). Rows already saved, and URL scrapes that fail, still carry them, so iOS must treat them as missing.
+- [x] Failing decode tests: sentinels become nil; real values survive.
+- [x] One normalizer in `DomainModels.swift`, applied in OptimizationDetailDTO, OptimizationHistoryItem, ApplicationItem, OptimizationReviewJobDescriptionDTO.
+- [x] Build, focused tests, full suite.
+- [x] Simulator: preview header for a pasted job without a parseable title shows no placeholder.
+- [x] Commit, push, PR.
+
+Expected source files: `Core/API/Models/DomainModels.swift`; tests in new `ResumeBuilder IOS APPTests/JobLabelPlaceholderTests.swift`. No dependencies, no UI file changes.
+
 # 2026-09-05 — Export/share truth first batch
 
 As a user, I want file readiness and share outcomes distinguished so I know what happened.
