@@ -24,7 +24,14 @@ final class AppliedChangesViewModel {
         self.api = api
     }
 
-    var groups: [ReviewChangeGroupDTO] { envelope?.review.groupedChanges ?? [] }
+    var groups: [ReviewChangeGroupDTO] { envelope.map(Self.appliedGroups(in:)) ?? [] }
+
+    /// The section changes, which are always applied. "Add only if true" claims
+    /// are left out: the server does not record which ones the user confirmed,
+    /// so listing them here could show a claim as applied that was declined.
+    static func appliedGroups(in envelope: OptimizationReviewEnvelope) -> [ReviewChangeGroupDTO] {
+        envelope.review.groupedChanges.filter { !$0.isConfirmClaim }
+    }
 
     /// The score before the rewrite, as a percentage.
     var originalScore: Int? { Self.percent(envelope?.review.atsPreview?.before) }

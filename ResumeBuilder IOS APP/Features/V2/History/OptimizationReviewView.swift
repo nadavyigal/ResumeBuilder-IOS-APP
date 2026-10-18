@@ -41,7 +41,15 @@ final class OptimizationReviewViewModel {
     }
 
     var selectableGroupCount: Int {
-        envelope?.review.groupedChanges.filter { assessment(for: $0).canSelect }.count ?? 0
+        envelope?.review.groupedChanges.filter { canToggle($0) || includedGroupIds.contains($0.id) }.count ?? 0
+    }
+
+    /// Whether the card's control can do anything: safe to select, and for an "Add only
+    /// if true" claim, its section change is included (or it is standalone).
+    func canToggle(_ group: ReviewChangeGroupDTO) -> Bool {
+        guard assessment(for: group).canSelect, let envelope else { return false }
+        return includedGroupIds.contains(group.id)
+            || ConfirmPhraseSelection.canInclude(group.id, in: envelope, included: includedGroupIds)
     }
 
     func assessment(for group: ReviewChangeGroupDTO) -> RecommendationSafetyPolicy.Assessment {
@@ -85,12 +93,19 @@ final class OptimizationReviewViewModel {
     }
 
     func toggleInclude(groupId: String) {
-        guard let group = envelope?.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
+        guard let envelope, let group = envelope.review.groupedChanges.first(where: { $0.id == groupId }) else { return }
         let safety = assessment(for: group)
         guard safety.canSelect else { return }
+        // An "Add only if true" claim can be added only while its section change is in.
+        if !includedGroupIds.contains(groupId),
+           !ConfirmPhraseSelection.canInclude(groupId, in: envelope, included: includedGroupIds) {
+            return
+        }
         let evidenceState = evidence(for: group).isEmpty ? "without_evidence" : "with_evidence"
         if includedGroupIds.contains(groupId) {
             includedGroupIds.remove(groupId)
+            // Claims that edited this section have nothing to attach to any more.
+            includedGroupIds = Set(ConfirmPhraseSelection.approvedGroupIds(in: envelope, included: includedGroupIds))
             AnalyticsService.shared.track(
                 .recommendationSkipped(
                     surface: "optimization_review",
@@ -230,7 +245,10 @@ final class OptimizationReviewViewModel {
     }
 
     private func apply(with token: String) async throws {
-        let body: [String: Any] = ["approvedGroupIds": Array(includedGroupIds)]
+        // Claims whose section change was left out have nothing to attach to (web rule).
+        let approved = envelope.map { ConfirmPhraseSelection.approvedGroupIds(in: $0, included: includedGroupIds) }
+            ?? Array(includedGroupIds)
+        let body: [String: Any] = ["approvedGroupIds": approved]
         let result: OptimizationReviewApplyResponseDTO = try await api.postJSON(
             endpoint: .optimizationReviewApply(id: reviewId),
             body: body,
@@ -328,8 +346,10 @@ final class OptimizationReviewViewModel {
             before: data.review.atsPreview?.before,
             after: data.review.atsPreview?.after
         ).isNonPositive
+        // "Add only if true" claims start unselected: only the user can confirm them.
         includedGroupIds = Set(data.review.groupedChanges.compactMap { group in
-            assessment(for: group).defaultIncluded(reviewHasNonPositiveDelta: nonPositive) ? group.id : nil
+            !group.isConfirmClaim
+                && assessment(for: group).defaultIncluded(reviewHasNonPositiveDelta: nonPositive) ? group.id : nil
         })
         viewedGroupIds.removeAll()
         blockedGroupIds.removeAll()
@@ -444,6 +464,7 @@ struct OptimizationReviewView: View {
                             evidence: viewModel.evidence(for: group),
                             isIncluded: viewModel.includedGroupIds.contains(group.id),
                             isLocked: viewModel.isAlreadyApplied,
+                            isAvailable: viewModel.canToggle(group),
                             onToggle: { viewModel.toggleInclude(groupId: group.id) },
                             onViewed: { viewModel.markViewed(groupId: group.id) }
                         )
@@ -610,6 +631,8 @@ private struct ReviewChangeCard: View {
     let evidence: RecommendationEvidence
     let isIncluded: Bool
     let isLocked: Bool
+    /// False for an "Add only if true" claim whose section change is left out.
+    var isAvailable: Bool = true
     let onToggle: () -> Void
     let onViewed: () -> Void
 
@@ -626,7 +649,7 @@ private struct ReviewChangeCard: View {
                     }
                     .font(.appCaption)
                     .foregroundStyle(AppColors.gradientMid)
-                    .disabled(!safety.canSelect)
+                    .disabled(!safety.canSelect || !isAvailable)
                 }
             }
 

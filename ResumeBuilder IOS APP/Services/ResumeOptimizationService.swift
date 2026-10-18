@@ -151,6 +151,9 @@ enum OptimizeRequestBody {
             "resumeId": resumeId,
             "jobDescriptionId": jobDescriptionId,
             "optimization_mode": defaultMode,
+            // Job-post phrases the résumé never states come back as "Add only if
+            // true" items for the user to confirm (G2b), instead of being written in.
+            "confirmJobPhrases": true,
             "quality_profile": [
                 "rewrite_depth": "substantial",
                 "fact_policy": "preserve_user_facts",

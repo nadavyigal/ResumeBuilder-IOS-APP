@@ -94,7 +94,55 @@ struct DiagnosisSmokeHarness: View {
         )
     }
 
+    /// `--smoke-confirm` renders the "Add only if true" sheet (G2b) with the
+    /// claims the web guard held back on the Maya fixture (2026-10-12).
+    private var wantsConfirm: Bool {
+        ProcessInfo.processInfo.arguments.contains("--smoke-confirm")
+    }
+
+    private var confirmFixture: [ReviewChangeGroupDTO] {
+        let json = """
+        {"review": {"id": "smoke", "grouped_changes_json": [
+          {"id": "experience", "section": "experience", "title": "Experience", "summary": "", "before_excerpt": "", "after_excerpt": ""},
+          {"id": "confirm-1", "section": "experience", "title": "Add only if true", "summary": "",
+           "before_excerpt": "Built weekly sales dashboards in Looker.",
+           "after_excerpt": "Built weekly sales dashboards in Looker and presented insights to non-technical stakeholders.",
+           "confirm": {"requires": "experience", "kept": "Built weekly sales dashboards in Looker.",
+                       "proposed": "Built weekly sales dashboards in Looker and presented insights to non-technical stakeholders.",
+                       "terms": ["non-technical stakeholders"], "estimated_gain": 3}},
+          {"id": "confirm-2", "section": "experience", "title": "Add only if true", "summary": "",
+           "before_excerpt": "", "after_excerpt": "Owned the weekly KPI report for sales leadership.",
+           "confirm": {"requires": "experience", "kept": null,
+                       "proposed": "Owned the weekly KPI report for sales leadership.",
+                       "terms": ["sales leadership"], "estimated_gain": null}}
+        ]}}
+        """
+        let envelope = try? JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
+        return envelope.map(ConfirmPhraseSelection.claims(in:)) ?? []
+    }
+
+    /// `--smoke-confirm-flow` mounts the sheet the way Home does, on the stack, and
+    /// starts `PhraseConfirmationFlow` with the fixture: with no destination (Home's
+    /// direct-apply path, no fit preview), or over a pushed one with `--smoke-fit`.
+    private var wantsConfirmFlow: Bool {
+        ProcessInfo.processInfo.arguments.contains("--smoke-confirm-flow")
+    }
+
     var body: some View {
+        if wantsConfirmFlow {
+            ConfirmFlowSmoke(claims: confirmFixture, overPushedDestination: wantsFitCheck)
+        } else if wantsConfirm {
+            // The sheet brings its own NavigationStack.
+            AddOnlyIfTrueView(claims: confirmFixture, onContinue: { _ in }, onCancel: {})
+                .task {
+                    if wantsHebrew { LocalizationManager.shared.setLanguage(.hebrew) }
+                }
+        } else {
+            standardBody
+        }
+    }
+
+    private var standardBody: some View {
         NavigationStack {
             if wantsFitCheck {
                 OptimizeFitCheckView(
@@ -120,4 +168,61 @@ struct DiagnosisSmokeHarness: View {
         }
     }
 }
+/// The stack-level sheet, driven by the real flow and a fake backend.
+private struct ConfirmFlowSmoke: View {
+    let claims: [ReviewChangeGroupDTO]
+    let overPushedDestination: Bool
+    @State private var flow = PhraseConfirmationFlow()
+    @State private var pushed: String?
+    @State private var applied = "nothing applied"
+
+    var body: some View {
+        NavigationStack {
+            Text(verbatim: "Home root · \(applied)")
+                .navigationDestination(item: $pushed) { _ in Text(verbatim: "Fit check (pushed)") }
+        }
+        .phraseConfirmationSheet(flow) { pending, confirmed in
+            Task {
+                let result = try? await flow.finish(pending, confirmed: confirmed, backend: backend)
+                applied = "applied \(result?.optimizationId ?? "-") with \(confirmed.count) confirmed"
+            }
+        }
+        .task {
+            if overPushedDestination {
+                pushed = "fit"
+                try? await Task.sleep(nanoseconds: 600_000_000)
+            }
+            _ = try? await flow.start(reviewId: "smoke", backend: backend)
+        }
+    }
+
+    private var backend: PhraseConfirmationBackend {
+        let json = """
+        {"review": {"id": "smoke", "grouped_changes_json": [
+          {"id": "experience", "section": "experience", "title": "Experience", "summary": "", "before_excerpt": "", "after_excerpt": ""}
+        ]}}
+        """
+        let base = try! JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
+        let claims = self.claims
+        return PhraseConfirmationBackend(
+            load: { _ in
+                // The fixture's claims plus their experience change.
+                let groups = """
+                {"review": {"id": "smoke", "grouped_changes_json": [
+                  {"id": "experience", "section": "experience", "title": "Experience", "summary": "", "before_excerpt": "", "after_excerpt": ""},
+                  {"id": "confirm-1", "section": "experience", "title": "Add only if true", "summary": "",
+                   "before_excerpt": "", "after_excerpt": "",
+                   "confirm": {"requires": "experience", "kept": "\(claims.first?.confirm?.kept ?? "")",
+                               "proposed": "\(claims.first?.confirm?.proposed ?? "")", "terms": [], "estimated_gain": 3}}
+                ]}}
+                """
+                return (try? JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(groups.utf8))) ?? base
+            },
+            apply: { _, envelope, _ in
+                OptimizationAutoApplyService.Result(optimizationId: "smoke-opt", envelope: envelope, flaggedGroupIds: [])
+            }
+        )
+    }
+}
 #endif
+

@@ -43,6 +43,17 @@
         }
       }
     },
+    "Your changes were saved. Open History to see your tailored résumé." : {
+      "comment" : "Add only if true: the apply landed on the server but its result could not be loaded",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינויים נשמרו. פתחו את ההיסטוריה כדי לראות את קורות החיים המותאמים."
+          }
+        }
+      }
+    },
     "—" : {
       "localizations" : {
         "he" : {
@@ -925,6 +936,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הוסף מילות מפתח חסרות לתפקיד היכן שהן נכונות."
+          }
+        }
+      }
+    },
+    "Add only if true" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להוסיף רק אם נכון"
           }
         }
       }
@@ -2193,6 +2214,16 @@
         }
       }
     },
+    "Continue to my résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך לקורות החיים שלי"
+          }
+        }
+      }
+    },
     "Continue to optimize" : {
       "localizations" : {
         "he" : {
@@ -2712,6 +2743,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סגירת הודעת שחזור האופטימיזציה"
+          }
+        }
+      }
+    },
+    "Don't add" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא להוסיף"
           }
         }
       }
@@ -3620,6 +3661,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אם תאשרו את הניסוח המותאם"
+          }
+        }
+      }
+    },
+    "If you confirm" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אם תאשרו"
           }
         }
       }
@@ -5060,6 +5111,16 @@
         }
       }
     },
+    "Not on your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא מופיע בקורות החיים"
+          }
+        }
+      }
+    },
     "Not signed in" : {
       "comment" : "Guest account status",
       "localizations" : {
@@ -5093,6 +5154,16 @@
     },
     "Note: %@" : {
       "comment" : "export file line"
+    },
+    "Now it says" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כרגע כתוב"
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -8509,6 +8580,16 @@
         }
       }
     },
+    "These lines match the job, but your résumé does not say them. Add only what is true for you." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורות האלה מתאימות למשרה, אבל קורות החיים שלכם לא אומרים אותן. הוסיפו רק מה שנכון לגביכם."
+          }
+        }
+      }
+    },
     "This change would lower your match score from %d%% to %d%%." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8547,6 +8628,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "זו חבילת מעקב פנימית. השמירה מוסיפה אותה לאזור האישי; היא לא שולחת שום דבר למגייס."
+          }
+        }
+      }
+    },
+    "This line uses the job's words. Is it true for you?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורה הזו משתמשת במילים של המשרה. זה נכון לגביכם?"
           }
         }
       }
@@ -9296,6 +9387,17 @@
         }
       }
     },
+    "We could not apply your changes. Check your connection and try again." : {
+      "comment" : "Add only if true: the apply request failed; Continue retries",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להחיל את השינויים. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
     "We could not finish tailoring your résumé. Please try again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9438,6 +9540,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "כן!"
+          }
+        }
+      }
+    },
+    "Yes, add it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כן, להוסיף"
           }
         }
       }

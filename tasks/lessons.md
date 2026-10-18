@@ -1,3 +1,14 @@
+## 2026-10-16 — An opt-in API flag is only safe if every consumer of the response knows the new item
+
+The web optimizer holds back job-post lines the résumé never says when the request
+carries `confirmJobPhrases: true`, and returns them as review groups the user must
+confirm. iOS applied every review group automatically (`applyAll`), so sending the
+flag alone would have confirmed every held claim for the user, the exact thing the
+flag exists to prevent. Rule: before opting into a response shape, list every place
+that reads it (here: auto-apply, the legacy review screen's default selection, and
+Resume Diagnosis's "applied" list) and make the new item opt-in at each one.
+`ConfirmPhraseSelection` is the one rule for which group ids go to apply.
+
 ## 2026-10-16 — A client gate stricter than the server it feeds loses users
 
 The Home job step required 100 pasted words and a link with http(s)://, copied from the web

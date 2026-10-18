@@ -1,3 +1,32 @@
+# 2026-10-16: G2b, iOS "Add only if true"
+
+**Status:** PR open, not merged, no build submitted.
+
+**2026-10-18, founder-session review fix:** the timeout recovery read `review.optimizationId`, but the
+live review endpoint (`/api/v1/optimization-reviews/[id]`, web `service.ts:75-90`) returns only
+`applied_at`, so the recovery never fired. The test fixture had invented `optimization_id`. Now:
+`applied_at` set with no id closes the sheet with "Your changes were saved. Open History..."
+(`PhraseConfirmationError.appliedWithoutResult`) instead of a retry the server refuses. Server-shaped
+fixture is the test default. `AddOnlyIfTrueTests` 20/20.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md` G2b.
+**Active Story:** G2b, this PR.
+**Last Completed Story:** G2b. The optimize request now sends `confirmJobPhrases: true`, so the web
+holds back job-post lines the résumé never says. Before anything is applied, a new "Add only if true"
+sheet (`Features/V2/Home/AddOnlyIfTrueView.swift`) lists them unselected; Continue applies every change
+plus only the lines the user confirmed (`ConfirmPhraseSelection` in `OptimizationAutoApplyService.swift`).
+Wired into Home's apply paths (fit check and direct apply, `HomeTabView`); the unused legacy `TailorView` screen is unchanged. Auto-apply, the legacy review screen and
+Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew copy in the catalog.
+**Next Recommended Story:** founder: device check of the full flow, then a build; G1b screenshots.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-18 (round 4): merged main after the #188 squash (this branch's #188 commits are identical to it). A failed apply now reads the review back and lands as success when the server already applied it (timeout after commit), Cancel is disabled and ignored while an apply is in flight, and the Optimization Review screen disables and stops counting claims whose section is left out. 3 new tests fail without each fix; `AddOnlyIfTrueTests` 19/19; full suite 456 tests, 0 failures, 1 skipped. 2026-10-17 (round 3, PR #189 review): an out-of-range `estimated_gain` (1e308) is "unavailable" instead of a crash; the Optimization Review screen sends a claim only while its section change is included (or standalone); a failed apply keeps the sheet, the choices and a retryable error. 3 new tests reproduce each on fa57a5c (the old decode crashes with "Double value cannot be converted to Int"); `AddOnlyIfTrueTests` 16/16; full suite 453 tests, 0 failures, 1 skipped. 2026-10-16 (round 2, PR #189 review): the flow moved into `Features/V2/Home/PhraseConfirmationFlow.swift` and its sheet onto Home's NavigationStack, so the no-fit-preview path asks too; legacy `Features/Tailor/TailorView.swift` is back to main (the app never shows it). `AddOnlyIfTrueTests` 13/13 (4 new: no fit preview applies directly, held lines wait for the user, no held lines apply at once, cancel applies nothing); full suite 450 tests, 0 failures, 1 skipped; smoke `--smoke-confirm-flow` showed the sheet with no destination and over a pushed one, Continue applied 1 confirmed, Cancel applied nothing. Rebased onto #188 (6bd13b6). Earlier 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
+send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
+smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
+Hebrew RTL, both claims unselected, toggle works. Production simulator run (Hebrew UI, guest, Maya
+fixture): fit check 46 to 59, accept showed the sheet with one real held claim unselected, Continue
+without confirming applied and landed on the tailored résumé.
+**Last Updated:** 2026-10-16
+
 # 2026-10-16: The Home job step asks only what the server needs
 
 **Status:** PR open, not merged, no build submitted.
