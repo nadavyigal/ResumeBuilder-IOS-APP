@@ -390,10 +390,13 @@ struct HomeTabView: View {
         return types
     }()
 
+    /// Tailoring needs 50 words; the public free check (no session, or the fit check
+    /// when it is on) still needs 100 (`runAnalysis`, `prepareFitCheck`).
     private var jobInputEvaluation: JobInputPolicy.Evaluation {
         JobInputPolicy.evaluate(
             description: viewModel.jobDescription,
-            urlString: viewModel.jobDescriptionURL
+            urlString: viewModel.jobDescriptionURL,
+            destination: .firstSession(canOptimize: appState.canOptimize, isFitCheckEnabled: BackendConfig.isFitCheckEnabled)
         )
     }
 
@@ -554,8 +557,13 @@ struct HomeTabView: View {
     }
 
     private func trackJobInputValidationIfNeeded() {
-        guard let reason = jobInputValidationTrackingPolicy.consume(jobInputEvaluation.blockingReason) else { return }
-        AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
+        let evaluation = jobInputEvaluation
+        guard let reason = jobInputValidationTrackingPolicy.consume(evaluation.blockingReason) else { return }
+        AnalyticsService.shared.track(.jobInputValidationShown(
+            surface: "home",
+            reason: reason,
+            wordCountBucket: evaluation.wordCountBucket
+        ))
     }
 
     private func prepareFitCheck() async {

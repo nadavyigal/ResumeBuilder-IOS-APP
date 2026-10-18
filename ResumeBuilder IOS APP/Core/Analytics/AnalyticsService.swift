@@ -128,7 +128,9 @@ enum AnalyticsEvent: Sendable {
     case resumeUploaded(fileType: String)
     case jobAdded(hasURL: Bool, hasPaste: Bool)
     case analysisCTATapped(source: String, flowVersion: AnalyticsFlowVersion, hasURL: Bool, hasPaste: Bool)
-    case jobInputValidationShown(surface: String, reason: String)
+    /// `wordCountBucket`: how much job text was pasted ("0", "1-24", "25-49", "50-99", "100+"),
+    /// never the text itself.
+    case jobInputValidationShown(surface: String, reason: String, wordCountBucket: String? = nil)
     /// `hasURL`/`hasPaste` become `job_source`. A scraped URL and a pasted
     /// description are different inputs with different failure modes, so a
     /// score that differs between them is otherwise unattributable.
@@ -344,8 +346,10 @@ enum AnalyticsEvent: Sendable {
                 "requirement_count_bucket": "unknown",
                 "score_version": "ats_v2_legacy",
             ]
-        case .jobInputValidationShown(let surface, let reason):
-            return ["surface": surface, "reason": reason]
+        case .jobInputValidationShown(let surface, let reason, let wordCountBucket):
+            var properties = ["surface": surface, "reason": reason]
+            if let wordCountBucket { properties["word_count_bucket"] = wordCountBucket }
+            return properties
         case .freeATSCompleted(let scoreBucket, let hasURL, let hasPaste):
             return [
                 "score_bucket": scoreBucket,

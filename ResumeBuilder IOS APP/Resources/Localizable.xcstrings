@@ -397,13 +397,12 @@
         }
       }
     },
-    "%lld of 100 words required when pasting" : {
-      "comment" : "Live pasted job description word count",
+    "%lld of %lld words required when pasting" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld מתוך 100 מילים נדרשות בהדבקה"
+            "value" : "%1$lld מתוך %2$lld מילים נדרשות בהדבקה"
           }
         }
       }
@@ -810,13 +809,12 @@
         }
       }
     },
-    "Add a job link or paste at least 100 words from the job description." : {
-      "comment" : "Job input is empty",
+    "Add a job link or paste at least %lld words from the job description." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הוסיפו קישור למשרה או הדביקו לפחות 100 מילים מתיאור המשרה."
+            "value" : "הוסיפו קישור למשרה או הדביקו לפחות %lld מילים מתיאור המשרה."
           }
         }
       }
@@ -1735,13 +1733,12 @@
         }
       }
     },
-    "Check the job link or paste at least 100 words from the job description, then try again." : {
-      "comment" : "Server rejected expected job input validation",
+    "Check the job link or paste more of the job description, then try again." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "בדקו את קישור המשרה או הדביקו לפחות 100 מילים מתיאור המשרה, ונסו שוב."
+            "value" : "בדקו את קישור המשרה או הדביקו עוד מתיאור המשרה, ונסו שוב."
           }
         }
       }
@@ -2910,13 +2907,12 @@
         }
       }
     },
-    "Enter a complete job link beginning with http:// or https://, or paste at least 100 words." : {
-      "comment" : "Job URL is invalid",
+    "Enter a job link, or paste at least %lld words from the job description." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הזינו קישור מלא למשרה שמתחיל ב-http:// או https://, או הדביקו לפחות 100 מילים."
+            "value" : "הזינו קישור למשרה, או הדביקו לפחות %lld מילים מתיאור המשרה."
           }
         }
       }
@@ -5584,13 +5580,12 @@
         }
       }
     },
-    "Paste at least 100 words from the job description (%lld of 100 words)." : {
-      "comment" : "Pasted job description is too short",
+    "Paste at least %lld words from the job description (%lld so far)." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הדביקו לפחות 100 מילים מתיאור המשרה (%lld מתוך 100 מילים)."
+            "value" : "הדביקו לפחות %1$lld מילים מתיאור המשרה (%2$lld עד עכשיו)."
           }
         }
       }
@@ -5624,18 +5619,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הדבק את תיאור המשרה המלא לקבלת תוצאה מדויקת."
-          }
-        }
-      }
-    },
-    "Paste the full job description (at least 100 words) so we can check your fit accurately." : {
-      "comment" : "FitCheckViewModel validation error",
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדבק את תיאור המשרה המלא (לפחות 100 מילים) כדי שנוכל לבדוק את ההתאמה שלך במדויק."
           }
         }
       }
