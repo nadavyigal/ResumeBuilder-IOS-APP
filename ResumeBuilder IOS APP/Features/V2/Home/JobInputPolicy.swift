@@ -170,11 +170,13 @@ struct JobInputPolicy: Sendable {
     }
 
     /// A web link from whatever was typed or shared: the value itself when it is a full
-    /// http(s) link, else the first link inside it ("Check out this job: https://…"),
-    /// with https:// added to a bare domain ("linkedin.com/jobs/view/123").
+    /// http(s) link with no spaces, else the first link inside it ("Check out this job:
+    /// https://…", "https://… via LinkedIn"), with https:// added to a bare domain
+    /// ("linkedin.com/jobs/view/123"). A value with spaces is never taken whole, because
+    /// URLComponents would percent-encode the trailing words into the path.
     private static func normalizedWebURL(from value: String) -> String? {
         guard !value.isEmpty else { return nil }
-        if let url = webURL(value) { return url }
+        if !value.contains(where: { $0.isWhitespace }), let url = webURL(value) { return url }
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
             return nil
         }

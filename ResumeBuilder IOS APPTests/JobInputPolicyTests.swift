@@ -49,6 +49,15 @@ final class JobInputPolicyTests: XCTestCase {
         XCTAssertTrue(evaluation.isReady)
     }
 
+    /// Share text that starts with the link parses whole as a URL, so the trailing words
+    /// must not end up in the path (Codex review on PR #190).
+    func testShareTextThatStartsWithTheLinkKeepsOnlyTheLink() {
+        let shared = "https://www.linkedin.com/jobs/view/123 via LinkedIn"
+        let evaluation = JobInputPolicy.evaluate(description: "", urlString: shared)
+        XCTAssertEqual(evaluation.normalizedURL, "https://www.linkedin.com/jobs/view/123")
+        XCTAssertTrue(evaluation.isReady)
+    }
+
     func testTheFirstOfSeveralLinksIsUsed() {
         let shared = "Apply here https://jobs.example.com/a1 or see https://example.com/about"
         XCTAssertEqual(JobInputPolicy.evaluate(description: "", urlString: shared).normalizedURL, "https://jobs.example.com/a1")
