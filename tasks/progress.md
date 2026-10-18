@@ -6,6 +6,47 @@ text), #189 "Add only if true" (G2b). Known limits: issue #191 (link ending in p
 **Next:** merge #190 and #189, then this bump; build main, full test suite, device walk, archive,
 upload, founder submits in App Store Connect.
 
+# 2026-10-16: G2b, iOS "Add only if true"
+
+**Status:** PR open, not merged, no build submitted.
+
+**2026-10-18, founder-session review fix:** the timeout recovery read `review.optimizationId`, but the
+live review endpoint (`/api/v1/optimization-reviews/[id]`, web `service.ts:75-90`) returns only
+`applied_at`, so the recovery never fired. The test fixture had invented `optimization_id`. Now:
+`applied_at` set with no id closes the sheet with "Your changes were saved. Open History..."
+(`PhraseConfirmationError.appliedWithoutResult`) instead of a retry the server refuses. Server-shaped
+fixture is the test default. `AddOnlyIfTrueTests` 20/20.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md` G2b.
+**Active Story:** G2b, this PR.
+**Last Completed Story:** G2b. The optimize request now sends `confirmJobPhrases: true`, so the web
+holds back job-post lines the résumé never says. Before anything is applied, a new "Add only if true"
+sheet (`Features/V2/Home/AddOnlyIfTrueView.swift`) lists them unselected; Continue applies every change
+plus only the lines the user confirmed (`ConfirmPhraseSelection` in `OptimizationAutoApplyService.swift`).
+Wired into Home's apply paths (fit check and direct apply, `HomeTabView`); the unused legacy `TailorView` screen is unchanged. Auto-apply, the legacy review screen and
+Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew copy in the catalog.
+**Next Recommended Story:** founder: device check of the full flow, then a build; G1b screenshots.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-18 (round 4): merged main after the #188 squash (this branch's #188 commits are identical to it). A failed apply now reads the review back and lands as success when the server already applied it (timeout after commit), Cancel is disabled and ignored while an apply is in flight, and the Optimization Review screen disables and stops counting claims whose section is left out. 3 new tests fail without each fix; `AddOnlyIfTrueTests` 19/19; full suite 456 tests, 0 failures, 1 skipped. 2026-10-17 (round 3, PR #189 review): an out-of-range `estimated_gain` (1e308) is "unavailable" instead of a crash; the Optimization Review screen sends a claim only while its section change is included (or standalone); a failed apply keeps the sheet, the choices and a retryable error. 3 new tests reproduce each on fa57a5c (the old decode crashes with "Double value cannot be converted to Int"); `AddOnlyIfTrueTests` 16/16; full suite 453 tests, 0 failures, 1 skipped. 2026-10-16 (round 2, PR #189 review): the flow moved into `Features/V2/Home/PhraseConfirmationFlow.swift` and its sheet onto Home's NavigationStack, so the no-fit-preview path asks too; legacy `Features/Tailor/TailorView.swift` is back to main (the app never shows it). `AddOnlyIfTrueTests` 13/13 (4 new: no fit preview applies directly, held lines wait for the user, no held lines apply at once, cancel applies nothing); full suite 450 tests, 0 failures, 1 skipped; smoke `--smoke-confirm-flow` showed the sheet with no destination and over a pushed one, Continue applied 1 confirmed, Cancel applied nothing. Rebased onto #188 (6bd13b6). Earlier 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
+send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
+smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
+Hebrew RTL, both claims unselected, toggle works. Production simulator run (Hebrew UI, guest, Maya
+fixture): fit check 46 to 59, accept showed the sheet with one real held claim unselected, Continue
+without confirming applied and landed on the tailored résumé.
+**Last Updated:** 2026-10-16
+
+# 2026-10-16: The Home job step asks only what the server needs
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Market play Track 1; the iOS activation leak (4 of 5 people who picked a résumé stopped at "Add Job", build 1.5.1 (29)).
+**Active Story:** iOS job-input policy (fix/job-input-policy).
+**Last Completed Story:** Job input policy. Tailoring needs 50 pasted words (was 100); the public free check, used with no session and by the fit check, still needs 100. A job link is found inside pasted share text (also when the text starts with the link), and a bare domain gets https://. `job_input_validation_shown` carries `word_count_bucket` (0, 1-24, 25-49, 50-99, 100+), never the text. English and Hebrew messages state the minimum for where the text goes.
+**Next Recommended Story:** a "no job post yet" path for people who type no job at all (P3, P5 in the 2026-10-16 read); then read `word_count_bucket` after the next build.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-18 (review round 2): share text that starts with the link ("https://www.linkedin.com/jobs/view/123 via LinkedIn") kept the trailing words in the path as %20via%20LinkedIn; a value with spaces is no longer taken whole, so link extraction runs on it. New regression test failed first (14 tests, 1 failure), then `JobInputPolicyTests` 14/14; origin/main (#188) merged; full suite 451 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator). 2026-10-17 (review round): Home and Tailor pick the rule with `Destination.firstSession(canOptimize:isFitCheckEnabled:)`, so the fit check (100 words) cannot drift from Home; Tailor now sends `word_count_bucket`; the unused "at least 100 words" fit key is removed. `JobInputPolicyTests` 13/13; full suite 441 tests, 0 failures, 1 skipped. 2026-10-16: new `JobInputPolicyTests` 12/12 (5 fail with the old 100-word floor and strict link parser); `FitCheckViewModelTests` updated for the two reversed behaviours; full suite 440 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator).
+**Last Updated:** 2026-10-18
+
 # 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
 
 **Status:** PR open, not merged, no build submitted.

@@ -13,6 +13,8 @@ struct HomeTabView: View {
 
     @State private var isImporterPresented = false
     @State private var journeyRoute: FirstSessionJourneyRoute?
+    /// Load, ask about held lines ("Add only if true"), apply (G2b).
+    @State private var phraseConfirmation = PhraseConfirmationFlow()
     @State private var diagnosisViewModel: ResumeDiagnosisViewModel? = nil
     @State private var showOnboarding = false
     @State private var showLibraryPicker = false
@@ -370,6 +372,11 @@ struct HomeTabView: View {
                 journeyDestination(for: route)
             }
         }
+        // On the stack itself, so it shows over the pushed fit check and on the
+        // direct-apply path that has no fit check at all (PR #189 review).
+        .phraseConfirmationSheet(phraseConfirmation) { pending, confirmed in
+            Task { await applyConfirmedAndLand(pending, confirmed: confirmed) }
+        }
     }
 
     @State private var showSavePrompt = false
@@ -383,10 +390,13 @@ struct HomeTabView: View {
         return types
     }()
 
+    /// Tailoring needs 50 words; the public free check (no session, or the fit check
+    /// when it is on) still needs 100 (`runAnalysis`, `prepareFitCheck`).
     private var jobInputEvaluation: JobInputPolicy.Evaluation {
         JobInputPolicy.evaluate(
             description: viewModel.jobDescription,
-            urlString: viewModel.jobDescriptionURL
+            urlString: viewModel.jobDescriptionURL,
+            destination: .firstSession(canOptimize: appState.canOptimize, isFitCheckEnabled: BackendConfig.isFitCheckEnabled)
         )
     }
 
@@ -547,8 +557,13 @@ struct HomeTabView: View {
     }
 
     private func trackJobInputValidationIfNeeded() {
-        guard let reason = jobInputValidationTrackingPolicy.consume(jobInputEvaluation.blockingReason) else { return }
-        AnalyticsService.shared.track(.jobInputValidationShown(surface: "home", reason: reason))
+        let evaluation = jobInputEvaluation
+        guard let reason = jobInputValidationTrackingPolicy.consume(evaluation.blockingReason) else { return }
+        AnalyticsService.shared.track(.jobInputValidationShown(
+            surface: "home",
+            reason: reason,
+            wordCountBucket: evaluation.wordCountBucket
+        ))
     }
 
     private func prepareFitCheck() async {
@@ -605,28 +620,51 @@ struct HomeTabView: View {
         isApplyingReview = true
         defer { isApplyingReview = false }
         do {
-            let result = try await OptimizationAutoApplyService()
-                .applyAll(reviewId: reviewId, appState: appState)
-            appState.rememberReviewId(reviewId, for: result.optimizationId)
-            FirstSessionJourneyTransition.completeApply(
-                optimizationId: result.optimizationId,
-                persist: { optimizationId in
-                    FitBaselineStore.shared.carryForward(
-                        from: viewModel.uploadResponse?.resumeId,
-                        to: optimizationId
-                    )
-                    FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
-                    appState.latestOptimizationId = optimizationId
-                    appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
-                    viewModel.pendingSaveResumeId = optimizationId
-                    journeyRoute = nil
-                },
-                showPreview: onShowOptimizedPreview
-            )
+            // Lines the résumé never says wait for the user: nothing is applied
+            // until they choose on the "Add only if true" sheet (G2b).
+            if case .applied(let result) = try await phraseConfirmation.start(reviewId: reviewId, backend: .service(appState)) {
+                land(result, reviewId: reviewId)
+            }
         } catch {
             viewModel.errorMessage = error.localizedDescription
             journeyRoute = nil
         }
+    }
+
+    /// Continue on the "Add only if true" sheet: every change plus the lines the user confirmed.
+    private func applyConfirmedAndLand(_ pending: PendingPhraseConfirmation, confirmed: Set<String>) async {
+        guard !isApplyingReview else { return }
+        isApplyingReview = true
+        defer { isApplyingReview = false }
+        do {
+            let result = try await phraseConfirmation.finish(pending, confirmed: confirmed, backend: .service(appState))
+            land(result, reviewId: pending.reviewId)
+        } catch {
+            // The sheet stays up with the error and the user's choices: Continue retries
+            // this review. Leaving it, or clearing the route, would force a new optimization.
+            if phraseConfirmation.pending != nil { return }
+            viewModel.errorMessage = error.localizedDescription
+            journeyRoute = nil
+        }
+    }
+
+    private func land(_ result: OptimizationAutoApplyService.Result, reviewId: String) {
+        appState.rememberReviewId(reviewId, for: result.optimizationId)
+        FirstSessionJourneyTransition.completeApply(
+            optimizationId: result.optimizationId,
+            persist: { optimizationId in
+                FitBaselineStore.shared.carryForward(
+                    from: viewModel.uploadResponse?.resumeId,
+                    to: optimizationId
+                )
+                FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
+                appState.latestOptimizationId = optimizationId
+                appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
+                viewModel.pendingSaveResumeId = optimizationId
+                journeyRoute = nil
+            },
+            showPreview: onShowOptimizedPreview
+        )
     }
 
     private func continueOptimization() async {
@@ -641,13 +679,19 @@ struct HomeTabView: View {
             to: viewModel.optimizationId ?? viewModel.reviewId
         )
 
-        if let optId = viewModel.optimizationId, !optId.isEmpty {
+        let next = HomeJourneyNextStep.after(
+            optimizationId: viewModel.optimizationId,
+            reviewId: viewModel.reviewId,
+            fit: viewModel.fitPreview
+        )
+        switch next {
+        case .diagnosis(let optId):
             appState.latestOptimizationId = optId
             appState.rememberJobURL(viewModel.jobDescriptionURL, for: optId)
             viewModel.pendingSaveResumeId = optId
             diagnosisViewModel = ResumeDiagnosisViewModel(optimizationId: optId)
             journeyRoute = .diagnosis(optimizationId: optId)
-        } else if let reviewId = viewModel.reviewId {
+        case .fitCheck(let reviewId):
             // The fit check comes first when the run measured one.
             //
             // This branch used to go straight to the accept screen, which is
@@ -655,21 +699,22 @@ struct HomeTabView: View {
             // flow always returns a reviewId, so the diagnosis branch above was
             // effectively dead. The user sees where they stand and what
             // accepting would buy, then accepts.
-            if let fit = viewModel.fitPreview, fit.currentScore != nil {
-                journeyRoute = .fitCheck(reviewId: reviewId)
-            } else {
-                // No fit preview, so there is no fit check to accept at — but
-                // that must not put the Optimization Review screen back in the
-                // way. #158 took it out of the happy path and this branch was
-                // missed, so a run whose optimize call returned no fit (device,
-                // 1.4.9 (22), 2026-08-12) still landed on it.
-                //
-                // It also skipped `rememberReviewId`, which is why the
-                // before/after never appeared on Resume Diagnosis: the review
-                // that explains the résumé was never associated with it. Both
-                // symptoms, one branch.
-                Task { await applyReviewAndLand(reviewId) }
-            }
+            journeyRoute = .fitCheck(reviewId: reviewId)
+        case .applyReview(let reviewId):
+            // No fit preview, so there is no fit check to accept at — but
+            // that must not put the Optimization Review screen back in the
+            // way. #158 took it out of the happy path and this branch was
+            // missed, so a run whose optimize call returned no fit (device,
+            // 1.4.9 (22), 2026-08-12) still landed on it.
+            //
+            // It also skipped `rememberReviewId`, which is why the
+            // before/after never appeared on Resume Diagnosis: the review
+            // that explains the résumé was never associated with it. Both
+            // symptoms, one branch. Held lines are still asked about: the
+            // sheet is mounted on the stack, not on the fit check.
+            Task { await applyReviewAndLand(reviewId) }
+        case .stay:
+            break
         }
     }
 

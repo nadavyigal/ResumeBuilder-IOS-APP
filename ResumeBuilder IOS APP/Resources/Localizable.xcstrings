@@ -43,6 +43,17 @@
         }
       }
     },
+    "Your changes were saved. Open History to see your tailored résumé." : {
+      "comment" : "Add only if true: the apply landed on the server but its result could not be loaded",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינויים נשמרו. פתחו את ההיסטוריה כדי לראות את קורות החיים המותאמים."
+          }
+        }
+      }
+    },
     "—" : {
       "localizations" : {
         "he" : {
@@ -386,13 +397,12 @@
         }
       }
     },
-    "%lld of 100 words required when pasting" : {
-      "comment" : "Live pasted job description word count",
+    "%lld of %lld words required when pasting" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld מתוך 100 מילים נדרשות בהדבקה"
+            "value" : "%1$lld מתוך %2$lld מילים נדרשות בהדבקה"
           }
         }
       }
@@ -799,13 +809,12 @@
         }
       }
     },
-    "Add a job link or paste at least 100 words from the job description." : {
-      "comment" : "Job input is empty",
+    "Add a job link or paste at least %lld words from the job description." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הוסיפו קישור למשרה או הדביקו לפחות 100 מילים מתיאור המשרה."
+            "value" : "הוסיפו קישור למשרה או הדביקו לפחות %lld מילים מתיאור המשרה."
           }
         }
       }
@@ -927,6 +936,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הוסף מילות מפתח חסרות לתפקיד היכן שהן נכונות."
+          }
+        }
+      }
+    },
+    "Add only if true" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להוסיף רק אם נכון"
           }
         }
       }
@@ -1714,13 +1733,12 @@
         }
       }
     },
-    "Check the job link or paste at least 100 words from the job description, then try again." : {
-      "comment" : "Server rejected expected job input validation",
+    "Check the job link or paste more of the job description, then try again." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "בדקו את קישור המשרה או הדביקו לפחות 100 מילים מתיאור המשרה, ונסו שוב."
+            "value" : "בדקו את קישור המשרה או הדביקו עוד מתיאור המשרה, ונסו שוב."
           }
         }
       }
@@ -2192,6 +2210,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "המשיכו מהאבחון שכבר הרצתם"
+          }
+        }
+      }
+    },
+    "Continue to my résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך לקורות החיים שלי"
           }
         }
       }
@@ -2719,6 +2747,16 @@
         }
       }
     },
+    "Don't add" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא להוסיף"
+          }
+        }
+      }
+    },
     "Don't have an account?" : {
       "localizations" : {
         "he" : {
@@ -2869,13 +2907,12 @@
         }
       }
     },
-    "Enter a complete job link beginning with http:// or https://, or paste at least 100 words." : {
-      "comment" : "Job URL is invalid",
+    "Enter a job link, or paste at least %lld words from the job description." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הזינו קישור מלא למשרה שמתחיל ב-http:// או https://, או הדביקו לפחות 100 מילים."
+            "value" : "הזינו קישור למשרה, או הדביקו לפחות %lld מילים מתיאור המשרה."
           }
         }
       }
@@ -3624,6 +3661,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אם תאשרו את הניסוח המותאם"
+          }
+        }
+      }
+    },
+    "If you confirm" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אם תאשרו"
           }
         }
       }
@@ -5064,6 +5111,16 @@
         }
       }
     },
+    "Not on your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא מופיע בקורות החיים"
+          }
+        }
+      }
+    },
     "Not signed in" : {
       "comment" : "Guest account status",
       "localizations" : {
@@ -5097,6 +5154,16 @@
     },
     "Note: %@" : {
       "comment" : "export file line"
+    },
+    "Now it says" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כרגע כתוב"
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -5513,13 +5580,12 @@
         }
       }
     },
-    "Paste at least 100 words from the job description (%lld of 100 words)." : {
-      "comment" : "Pasted job description is too short",
+    "Paste at least %lld words from the job description (%lld so far)." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הדביקו לפחות 100 מילים מתיאור המשרה (%lld מתוך 100 מילים)."
+            "value" : "הדביקו לפחות %1$lld מילים מתיאור המשרה (%2$lld עד עכשיו)."
           }
         }
       }
@@ -5553,18 +5619,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הדבק את תיאור המשרה המלא לקבלת תוצאה מדויקת."
-          }
-        }
-      }
-    },
-    "Paste the full job description (at least 100 words) so we can check your fit accurately." : {
-      "comment" : "FitCheckViewModel validation error",
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדבק את תיאור המשרה המלא (לפחות 100 מילים) כדי שנוכל לבדוק את ההתאמה שלך במדויק."
           }
         }
       }
@@ -8526,6 +8580,16 @@
         }
       }
     },
+    "These lines match the job, but your résumé does not say them. Add only what is true for you." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורות האלה מתאימות למשרה, אבל קורות החיים שלכם לא אומרים אותן. הוסיפו רק מה שנכון לגביכם."
+          }
+        }
+      }
+    },
     "This change would lower your match score from %d%% to %d%%." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8564,6 +8628,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "זו חבילת מעקב פנימית. השמירה מוסיפה אותה לאזור האישי; היא לא שולחת שום דבר למגייס."
+          }
+        }
+      }
+    },
+    "This line uses the job's words. Is it true for you?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורה הזו משתמשת במילים של המשרה. זה נכון לגביכם?"
           }
         }
       }
@@ -9313,6 +9387,17 @@
         }
       }
     },
+    "We could not apply your changes. Check your connection and try again." : {
+      "comment" : "Add only if true: the apply request failed; Continue retries",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להחיל את השינויים. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
     "We could not finish tailoring your résumé. Please try again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9455,6 +9540,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "כן!"
+          }
+        }
+      }
+    },
+    "Yes, add it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כן, להוסיף"
           }
         }
       }
