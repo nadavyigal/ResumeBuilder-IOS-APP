@@ -1,3 +1,11 @@
+# 2026-10-18: Release 1.5.2 (30) version bump
+
+**Status:** PR open, not merged, no build archived or uploaded.
+**Ships in 1.5.2:** #188 placeholders (merged), #190 job input (50 words for tailoring, links from share
+text), #189 "Add only if true" (G2b). Known limits: issue #191 (link ending in punctuation).
+**Next:** merge #190 and #189, then this bump; build main, full test suite, device walk, archive,
+upload, founder submits in App Store Connect.
+
 # 2026-10-16: G2b, iOS "Add only if true"
 
 **Status:** PR open, not merged, no build submitted.
