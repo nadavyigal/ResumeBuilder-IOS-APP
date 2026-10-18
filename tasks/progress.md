@@ -2,6 +2,13 @@
 
 **Status:** PR open, not merged, no build submitted.
 
+**2026-10-18, founder-session review fix:** the timeout recovery read `review.optimizationId`, but the
+live review endpoint (`/api/v1/optimization-reviews/[id]`, web `service.ts:75-90`) returns only
+`applied_at`, so the recovery never fired. The test fixture had invented `optimization_id`. Now:
+`applied_at` set with no id closes the sheet with "Your changes were saved. Open History..."
+(`PhraseConfirmationError.appliedWithoutResult`) instead of a retry the server refuses. Server-shaped
+fixture is the test default. `AddOnlyIfTrueTests` 20/20.
+
 **Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md` G2b.
 **Active Story:** G2b, this PR.
 **Last Completed Story:** G2b. The optimize request now sends `confirmJobPhrases: true`, so the web

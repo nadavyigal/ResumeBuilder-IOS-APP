@@ -143,6 +143,10 @@ final class AddOnlyIfTrueTests: XCTestCase {
         /// load returns the review with its new optimization id.
         var commitThenFail = false
         var committed = false
+        /// What `load` returns after a commit. The live review endpoint
+        /// (`/api/v1/optimization-reviews/[id]`) sends `applied_at` but no optimization id,
+        /// so that is the default; a payload with the id covers a future server.
+        var committedJSON = #"{"review": {"id": "review-1", "grouped_changes_json": [], "applied_at": "2026-10-18T08:00:00Z"}}"#
         /// Runs inside apply, to act while the request is in flight.
         var duringApply: (() -> Void)?
         init(_ envelope: OptimizationReviewEnvelope) { self.envelope = envelope }
@@ -150,8 +154,7 @@ final class AddOnlyIfTrueTests: XCTestCase {
             PhraseConfirmationBackend(
                 load: { _ in
                     guard self.committed else { return self.envelope }
-                    let json = #"{"review": {"id": "review-1", "optimization_id": "opt-committed", "grouped_changes_json": [], "applied_at": "2026-10-18T08:00:00Z"}}"#
-                    return try JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
+                    return try JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(self.committedJSON.utf8))
                 },
                 apply: { _, envelope, confirmed in
                     self.applied.append(confirmed)
@@ -239,6 +242,7 @@ final class AddOnlyIfTrueTests: XCTestCase {
     func testATimedOutApplyTheServerCommittedLandsAsSuccess() async throws {
         let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
         fake.commitThenFail = true
+        fake.committedJSON = #"{"review": {"id": "review-1", "optimization_id": "opt-committed", "grouped_changes_json": [], "applied_at": "2026-10-18T08:00:00Z"}}"#
         let flow = PhraseConfirmationFlow()
         _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
         let pending = try XCTUnwrap(flow.pending)
@@ -246,6 +250,28 @@ final class AddOnlyIfTrueTests: XCTestCase {
         let result = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
         XCTAssertEqual(result.optimizationId, "opt-committed")
         XCTAssertNil(flow.pending)
+        XCTAssertNil(flow.applyError)
+        XCTAssertEqual(fake.applied.count, 1, "no second apply")
+    }
+
+    /// The live server's review read-back has `applied_at` and no optimization id. A timed-out
+    /// apply the server committed must close the sheet and say where the result is, not offer
+    /// a retry the server will refuse as "already applied".
+    func testATimedOutApplyTheServerCommittedClosesTheSheetWithoutARetry() async throws {
+        let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
+        fake.commitThenFail = true
+        let flow = PhraseConfirmationFlow()
+        _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
+        let pending = try XCTUnwrap(flow.pending)
+
+        do {
+            _ = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
+            XCTFail("expected the applied-without-result outcome")
+        } catch let error as PhraseConfirmationError {
+            XCTAssertEqual(error, .appliedWithoutResult)
+            XCTAssertFalse((error.errorDescription ?? "").isEmpty)
+        }
+        XCTAssertNil(flow.pending, "the sheet closes: there is nothing left to retry")
         XCTAssertNil(flow.applyError)
         XCTAssertEqual(fake.applied.count, 1, "no second apply")
     }

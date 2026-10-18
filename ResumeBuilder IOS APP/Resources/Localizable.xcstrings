@@ -43,6 +43,17 @@
         }
       }
     },
+    "Your changes were saved. Open History to see your tailored résumé." : {
+      "comment" : "Add only if true: the apply landed on the server but its result could not be loaded",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינויים נשמרו. פתחו את ההיסטוריה כדי לראות את קורות החיים המותאמים."
+          }
+        }
+      }
+    },
     "—" : {
       "localizations" : {
         "he" : {

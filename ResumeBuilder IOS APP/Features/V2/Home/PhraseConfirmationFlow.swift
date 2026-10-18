@@ -32,6 +32,22 @@ struct PhraseConfirmationBackend {
     }
 }
 
+/// Outcomes of the "Add only if true" apply that are not a plain success or a retryable failure.
+enum PhraseConfirmationError: LocalizedError, Equatable {
+    /// The server applied the changes but did not return the new optimization id.
+    case appliedWithoutResult
+
+    var errorDescription: String? {
+        switch self {
+        case .appliedWithoutResult:
+            return NSLocalizedString(
+                "Your changes were saved. Open History to see your tailored résumé.",
+                comment: "Add only if true: the apply landed on the server but its result could not be loaded"
+            )
+        }
+    }
+}
+
 @Observable
 @MainActor
 final class PhraseConfirmationFlow {
@@ -86,6 +102,15 @@ final class PhraseConfirmationFlow {
                     envelope: recovered,
                     flaggedGroupIds: OptimizationAutoApplyService.flaggedGroupIds(in: recovered)
                 )
+            }
+            // Applied, but the live review endpoint returns `applied_at` without the new
+            // optimization id. Close the sheet and say where the result is: a retry would
+            // only be refused as "already applied".
+            if let recovered = try? await backend.load(confirmation.reviewId),
+               recovered.review.appliedAt?.isEmpty == false {
+                applyError = nil
+                pending = nil
+                throw PhraseConfirmationError.appliedWithoutResult
             }
             // Not applied: the sheet stays up with the same choices; Continue retries.
             applyError = NSLocalizedString(
