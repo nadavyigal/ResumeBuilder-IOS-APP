@@ -73,7 +73,21 @@ final class PhraseConfirmationFlow {
             pending = nil
             return result
         } catch {
-            // The sheet stays up with the same choices; Continue retries the same review.
+            // The apply endpoint is not idempotent, and a timeout can hide a commit. Read the
+            // review back first: if the server already applied it, this is a success, and a
+            // retry would only be refused as "already applied".
+            if let recovered = try? await backend.load(confirmation.reviewId),
+               let optimizationId = recovered.review.optimizationId?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !optimizationId.isEmpty {
+                applyError = nil
+                pending = nil
+                return OptimizationAutoApplyService.Result(
+                    optimizationId: optimizationId,
+                    envelope: recovered,
+                    flaggedGroupIds: OptimizationAutoApplyService.flaggedGroupIds(in: recovered)
+                )
+            }
+            // Not applied: the sheet stays up with the same choices; Continue retries.
             applyError = NSLocalizedString(
                 "We could not apply your changes. Check your connection and try again.",
                 comment: "Add only if true: the apply request failed; Continue retries"
@@ -82,8 +96,10 @@ final class PhraseConfirmationFlow {
         }
     }
 
-    /// Cancel on the sheet: nothing is applied.
+    /// Cancel on the sheet: nothing is applied. Ignored while an apply is in flight,
+    /// because that request cannot be called back (the button is disabled then too).
     func cancel() {
+        guard !isApplying else { return }
         pending = nil
         applyError = nil
     }

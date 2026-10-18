@@ -41,7 +41,15 @@ final class OptimizationReviewViewModel {
     }
 
     var selectableGroupCount: Int {
-        envelope?.review.groupedChanges.filter { assessment(for: $0).canSelect }.count ?? 0
+        envelope?.review.groupedChanges.filter { canToggle($0) || includedGroupIds.contains($0.id) }.count ?? 0
+    }
+
+    /// Whether the card's control can do anything: safe to select, and for an "Add only
+    /// if true" claim, its section change is included (or it is standalone).
+    func canToggle(_ group: ReviewChangeGroupDTO) -> Bool {
+        guard assessment(for: group).canSelect, let envelope else { return false }
+        return includedGroupIds.contains(group.id)
+            || ConfirmPhraseSelection.canInclude(group.id, in: envelope, included: includedGroupIds)
     }
 
     func assessment(for group: ReviewChangeGroupDTO) -> RecommendationSafetyPolicy.Assessment {
@@ -456,6 +464,7 @@ struct OptimizationReviewView: View {
                             evidence: viewModel.evidence(for: group),
                             isIncluded: viewModel.includedGroupIds.contains(group.id),
                             isLocked: viewModel.isAlreadyApplied,
+                            isAvailable: viewModel.canToggle(group),
                             onToggle: { viewModel.toggleInclude(groupId: group.id) },
                             onViewed: { viewModel.markViewed(groupId: group.id) }
                         )
@@ -622,6 +631,8 @@ private struct ReviewChangeCard: View {
     let evidence: RecommendationEvidence
     let isIncluded: Bool
     let isLocked: Bool
+    /// False for an "Add only if true" claim whose section change is left out.
+    var isAvailable: Bool = true
     let onToggle: () -> Void
     let onViewed: () -> Void
 
@@ -638,7 +649,7 @@ private struct ReviewChangeCard: View {
                     }
                     .font(.appCaption)
                     .foregroundStyle(AppColors.gradientMid)
-                    .disabled(!safety.canSelect)
+                    .disabled(!safety.canSelect || !isAvailable)
                 }
             }
 

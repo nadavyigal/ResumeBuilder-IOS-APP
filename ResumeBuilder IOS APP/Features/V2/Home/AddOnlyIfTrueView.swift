@@ -82,6 +82,7 @@ struct AddOnlyIfTrueView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(AddOnlyIfTrueCopy.cancel, action: onCancel)
+                        .disabled(isApplying)
                 }
             }
         }

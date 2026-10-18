@@ -139,12 +139,27 @@ final class AddOnlyIfTrueTests: XCTestCase {
         var applied: [Set<String>] = []
         /// How many apply calls fail before one succeeds.
         var failuresLeft = 0
+        /// The server commits the apply but the response is lost (a timeout): the next
+        /// load returns the review with its new optimization id.
+        var commitThenFail = false
+        var committed = false
+        /// Runs inside apply, to act while the request is in flight.
+        var duringApply: (() -> Void)?
         init(_ envelope: OptimizationReviewEnvelope) { self.envelope = envelope }
         var backend: PhraseConfirmationBackend {
             PhraseConfirmationBackend(
-                load: { _ in self.envelope },
+                load: { _ in
+                    guard self.committed else { return self.envelope }
+                    let json = #"{"review": {"id": "review-1", "optimization_id": "opt-committed", "grouped_changes_json": [], "applied_at": "2026-10-18T08:00:00Z"}}"#
+                    return try JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
+                },
                 apply: { _, envelope, confirmed in
                     self.applied.append(confirmed)
+                    self.duringApply?()
+                    if self.commitThenFail {
+                        self.committed = true
+                        throw ApplyFailed()
+                    }
                     if self.failuresLeft > 0 {
                         self.failuresLeft -= 1
                         throw ApplyFailed()
@@ -217,6 +232,55 @@ final class AddOnlyIfTrueTests: XCTestCase {
         XCTAssertNil(flow.pending)
         XCTAssertNil(flow.applyError)
         XCTAssertEqual(fake.applied, [["confirm-1"], ["confirm-1"]])
+    }
+
+    /// Review of 5ab68aa (2026-10-18): an apply that times out after the server committed
+    /// it must land as success, not offer a retry the server will refuse as already applied.
+    func testATimedOutApplyTheServerCommittedLandsAsSuccess() async throws {
+        let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
+        fake.commitThenFail = true
+        let flow = PhraseConfirmationFlow()
+        _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
+        let pending = try XCTUnwrap(flow.pending)
+
+        let result = try await flow.finish(pending, confirmed: ["confirm-1"], backend: fake.backend)
+        XCTAssertEqual(result.optimizationId, "opt-committed")
+        XCTAssertNil(flow.pending)
+        XCTAssertNil(flow.applyError)
+        XCTAssertEqual(fake.applied.count, 1, "no second apply")
+    }
+
+    /// Cancel while the apply is in flight does nothing: the request cannot be called back.
+    func testCancelDuringAnApplyIsIgnored() async throws {
+        let fake = FakeBackend(try envelope([experienceGroup, experienceClaim].joined(separator: ",")))
+        let flow = PhraseConfirmationFlow()
+        _ = try await flow.start(reviewId: "review-1", backend: fake.backend)
+        let pending = try XCTUnwrap(flow.pending)
+        var stillPendingAfterCancel = false
+        fake.duringApply = {
+            flow.cancel()
+            stillPendingAfterCancel = flow.pending != nil
+        }
+
+        let result = try await flow.finish(pending, confirmed: [], backend: fake.backend)
+        XCTAssertTrue(stillPendingAfterCancel, "Cancel mid-apply must not dismiss the sheet")
+        XCTAssertEqual(result.optimizationId, "opt-1")
+        XCTAssertNil(flow.pending)
+    }
+
+    /// A claim whose section change is left out cannot be toggled and is not counted.
+    func testTheReviewScreenDisablesClaimsWhoseSectionIsLeftOut() throws {
+        let vm = OptimizationReviewViewModel(reviewId: "review-1")
+        let env = try envelope([summaryGroup, experienceGroup, experienceClaim].joined(separator: ","))
+        vm.envelope = env
+        vm.includedGroupIds = ["summary", "experience"]
+        let claim = try XCTUnwrap(env.review.groupedChanges.first { $0.id == "confirm-1" })
+        XCTAssertTrue(vm.canToggle(claim))
+        let countWithSection = vm.selectableGroupCount
+
+        vm.includedGroupIds = ["summary"]
+        XCTAssertFalse(vm.canToggle(claim))
+        XCTAssertEqual(vm.selectableGroupCount, countWithSection - 1)
     }
 
     /// An out-of-range gain is "unavailable", never a crash (`Int(_:)` traps).
