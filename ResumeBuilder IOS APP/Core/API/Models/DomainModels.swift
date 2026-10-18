@@ -434,6 +434,36 @@ struct BulkDeleteResponse: Codable, Sendable {
     }
 }
 
+/// Job title / company as the backend stores them, with its "unknown" defaults removed.
+///
+/// When the web API cannot read a title or company from the job it saves
+/// "Job Position" / "Company Name" (upload-resume, anonymous carryover) and the
+/// review flow falls back to "Position". The optimized preview rendered them as
+/// if real: `Company Name Job Position` (iOS capture, 2026-10-12). Whole-value
+/// matches only, so a real title that contains one of these words survives.
+///
+/// Each default belongs to the field the server writes it into, so a company
+/// really named "Position" is kept (PR #188 review, 2026-10-13).
+enum JobLabel: Sendable {
+    private static let titlePlaceholders: Set<String> = ["job position", "position"]
+    private static let companyPlaceholders: Set<String> = ["company name"]
+
+    static func title(_ value: String?) -> String? {
+        normalized(value, dropping: titlePlaceholders)
+    }
+
+    static func company(_ value: String?) -> String? {
+        normalized(value, dropping: companyPlaceholders)
+    }
+
+    private static func normalized(_ value: String?, dropping placeholders: Set<String>) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return placeholders.contains(trimmed.lowercased()) ? nil : trimmed
+    }
+}
+
 struct OptimizationHistoryItem: Codable, Identifiable, Sendable {
     let id: String
     let createdAt: String
@@ -485,8 +515,8 @@ struct OptimizationHistoryItem: Codable, Identifiable, Sendable {
 
         id = try container.decodeString(for: ["id", "optimizationId", "optimization_id"]) ?? UUID().uuidString
         createdAt = try container.decodeString(for: ["createdAt", "created_at"]) ?? ""
-        jobTitle = try container.decodeString(for: ["jobTitle", "job_title", "title"])
-        company = try container.decodeString(for: ["company", "companyName", "company_name"])
+        jobTitle = JobLabel.title(try container.decodeString(for: ["jobTitle", "job_title", "title"]))
+        company = JobLabel.company(try container.decodeString(for: ["company", "companyName", "company_name"]))
         matchScorePercent = try container.decodePercent(for: ["matchScore", "match_score", "atsScore", "ats_score"]) ?? 0
         contentScorePercent = try container.decodePercent(for: ["contentScore", "content_score"])
         designScorePercent = try container.decodePercent(for: ["designScore", "design_score"])
@@ -770,8 +800,8 @@ struct ApplicationItem: Codable, Identifiable, Sendable {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
-        jobTitle = try c.decodeIfPresent(String.self, forKey: .jobTitle)
-        companyName = try c.decodeIfPresent(String.self, forKey: .companyName)
+        jobTitle = JobLabel.title(try c.decodeIfPresent(String.self, forKey: .jobTitle))
+        companyName = JobLabel.company(try c.decodeIfPresent(String.self, forKey: .companyName))
         appliedDate = try c.decodeIfPresent(String.self, forKey: .appliedDate)
         status = try c.decodeIfPresent(String.self, forKey: .status)
         applyClickedAt = try c.decodeIfPresent(String.self, forKey: .applyClickedAt)
@@ -1845,6 +1875,14 @@ struct OptimizationReviewJobDescriptionDTO: Decodable, Sendable {
         case rawText = "raw_text"
         case cleanText = "clean_text"
     }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        title = JobLabel.title(try c.decodeIfPresent(String.self, forKey: .title))
+        company = JobLabel.company(try c.decodeIfPresent(String.self, forKey: .company))
+        rawText = try c.decodeIfPresent(String.self, forKey: .rawText)
+        cleanText = try c.decodeIfPresent(String.self, forKey: .cleanText)
+    }
 }
 
 struct OptimizationReviewRunDTO: Decodable, Sendable {
@@ -2002,10 +2040,11 @@ struct OptimizationDetailDTO: Decodable, Sendable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         sections = try c.decodeIfPresent([OptimizedResumeSection].self, forKey: .sections) ?? []
         contact = try c.decodeIfPresent(ResumeContact.self, forKey: .contact)
-        jobTitle =
+        jobTitle = JobLabel.title(
             try c.decodeIfPresent(String.self, forKey: .jobTitle)
-            ?? c.decodeIfPresent(String.self, forKey: .jobTitleCamel)
-        company = try c.decodeIfPresent(String.self, forKey: .company)
+                ?? c.decodeIfPresent(String.self, forKey: .jobTitleCamel)
+        )
+        company = JobLabel.company(try c.decodeIfPresent(String.self, forKey: .company))
         atsScoreBefore =
             try c.decodeIfPresent(Int.self, forKey: .atsScoreBefore)
             ?? c.decodeIfPresent(Int.self, forKey: .atsScoreBeforeCamel)

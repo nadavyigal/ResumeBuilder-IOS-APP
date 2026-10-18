@@ -10,6 +10,25 @@
 **Last Validation:** 2026-10-17 (review round): Home and Tailor pick the rule with `Destination.firstSession(canOptimize:isFitCheckEnabled:)`, so the fit check (100 words) cannot drift from Home; Tailor now sends `word_count_bucket`; the unused "at least 100 words" fit key is removed. `JobInputPolicyTests` 13/13; full suite 441 tests, 0 failures, 1 skipped. 2026-10-16: new `JobInputPolicyTests` 12/12 (5 fail with the old 100-word floor and strict link parser); `FitCheckViewModelTests` updated for the two reversed behaviours; full suite 440 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator).
 **Last Updated:** 2026-10-17
 
+# 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md`.
+**Active Story:** G2b, the iOS "Add only if true" review screen (next, on its own branch).
+**Last Completed Story:** PR #188 review fix: title and company sentinels split
+(`JobLabel.title` drops "Job Position" / "Position", `JobLabel.company` drops "Company Name"),
+so a company really named "Position" survives. Earlier (2026-10-12): the four Maya capture
+bugs were traced; web #167 and #168 are merged and live, so bugs 1 and 2 are fixed on the server.
+**Next Recommended Story:** G2b; then re-run the Maya capture on device to confirm the header.
+**Blockers:** none.
+**Last Validation:** 2026-10-16 (round 2): `JobLabel` is `Sendable` (AGENTS.md:41), pinned by a compile-time test; full suite 437 tests, 0 failures, 1 skipped. 2026-10-16: 3 new cross-field tests in `JobLabelPlaceholderTests` failed
+with the shared set (9 assertion failures), 8/8 after the split; full iOS suite 436 tests,
+1 skipped, 1 failure in `FirstSessionJourneyTests.testLateRecoveryFailureDoesNotOverwriteNewerOptimization`
+("before timeout"), which passed on rerun (13/13 with `JobLabelPlaceholderTests` 8/8); iPhone 17 Pro
+simulator. No new simulator flow run: the change is decode-only and covered by the tests.
+**Last Updated:** 2026-10-16
+
 # 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
 
 **Status:** Measured, read-only. No product, analytics or UI change.

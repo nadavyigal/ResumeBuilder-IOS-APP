@@ -6,6 +6,27 @@ non-empty text. 4 of 5 people who picked a résumé stopped there (build 1.5.1 (
 Rule: a client-side minimum names the server route it mirrors, and differs per route when
 the routes differ (`JobInputPolicy.Destination`: 50 words to tailor, 100 for the public check).
 
+## 2026-10-16 — A Hebrew smoke run leaves the simulator in Hebrew, and 17 unit tests fail
+
+`--smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which persists
+`app_selected_language` in the app's UserDefaults on that simulator. The unit tests run in the
+same app host, so the next full run had 17 failures expecting English filenames and copy
+("קורות חיים.pdf" instead of "Resume.pdf"). A rerun once the setting read "en" passed 437/437.
+Rule: after a `--smoke-he` run, relaunch with English (or reset `app_selected_language`)
+before running the suite, and read language-shaped failures as state first.
+
+## 2026-10-12 — The backend's "unknown" defaults are strings, not nulls
+
+When the web API cannot read a job's title or company it stores the literal strings
+"Job Position" / "Company Name" (and the review flow falls back to "Position"). They
+decode as ordinary non-nil values, so every `if let title = ...` header rendered them:
+the optimized preview read `Company Name Job Position` (Maya capture, 2026-10-12).
+Rule: label fields from the API go through `JobLabel.title` / `JobLabel.company` at
+decode, so "unknown" is `nil` everywhere at once instead of being checked per view.
+Fixing the web default (PR #168) does not fix rows that are already saved, so both sides
+are needed. Each sentinel belongs to its own field: one shared set erased a company really
+named "Position" (PR #188 review, 2026-10-16).
+
 ## 2026-09-09 — A localized String in a SwiftUI body freezes at the language it was built in
 
 `NSLocalizedString` / `String(localized:)` resolve eagerly during body evaluation and
