@@ -627,12 +627,22 @@ struct TailorView: View {
                 .padding(.horizontal, 16)
 
             Button {
+                // Same rule as Home: no session (runFreeATS) or the fit check means the
+                // public check and its 100 words.
                 let evaluation = JobInputPolicy.evaluate(
                     description: viewModel.jobDescription,
-                    urlString: viewModel.jobDescriptionURL
+                    urlString: viewModel.jobDescriptionURL,
+                    destination: .firstSession(
+                        canOptimize: appState.canOptimize,
+                        isFitCheckEnabled: BackendConfig.isFitCheckEnabled
+                    )
                 )
                 if let reason = evaluation.blockingReason?.analyticsValue {
-                    AnalyticsService.shared.track(.jobInputValidationShown(surface: "tailor", reason: reason))
+                    AnalyticsService.shared.track(.jobInputValidationShown(
+                        surface: "tailor",
+                        reason: reason,
+                        wordCountBucket: evaluation.wordCountBucket
+                    ))
                 }
                 if appState.canOptimize {
                     AnalyticsService.shared.track(.analysisCTATapped(

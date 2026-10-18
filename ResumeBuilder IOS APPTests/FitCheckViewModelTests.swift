@@ -62,21 +62,25 @@ final class FitCheckViewModelTests: XCTestCase {
         XCTAssertNil(evaluation.normalizedDescription)
     }
 
-    func testSharedPolicyRejectsIncompleteURLOnly() {
+    // A bare domain ("linkedin.com/jobs/123") is now accepted with https:// added
+    // (JobInputPolicyTests, 2026-10-16); text with no link in it is still invalid.
+    func testSharedPolicyRejectsTextThatIsNotALink() {
         let evaluation = JobInputPolicy.evaluate(
             description: "",
-            urlString: "linkedin.com/jobs/123"
+            urlString: "ios engineer at acme"
         )
 
         XCTAssertFalse(evaluation.isReady)
         XCTAssertEqual(evaluation.blockingReason, .invalidURL)
-        XCTAssertTrue(evaluation.inlineGuidance.contains("http://"))
+        XCTAssertTrue(evaluation.inlineGuidance.contains("job link"))
     }
 
+    // The fit check posts to the public free check, which still needs 100 words.
     func testSharedPolicyRejectsNinetyNineWords() {
         let evaluation = JobInputPolicy.evaluate(
             description: words(count: 99),
-            urlString: ""
+            urlString: "",
+            destination: .publicCheck
         )
 
         XCTAssertEqual(evaluation.wordCount, 99)
@@ -105,7 +109,7 @@ final class FitCheckViewModelTests: XCTestCase {
 
         let recordedRequest = await recorder.request
         XCTAssertNil(recordedRequest)
-        XCTAssertEqual(vm.errorMessage, "Paste at least 100 words from the job description (99 of 100 words).")
+        XCTAssertEqual(vm.errorMessage, "Paste at least 100 words from the job description (99 so far).")
         XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("HTTP") ?? true)
     }
 
@@ -216,7 +220,7 @@ final class FitCheckViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             vm.errorMessage,
-            "Check the job link or paste at least 100 words from the job description, then try again."
+            "Check the job link or paste more of the job description, then try again."
         )
         XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("HTTP") ?? true)
         XCTAssertFalse(vm.errorMessage?.localizedCaseInsensitiveContains("server error") ?? true)

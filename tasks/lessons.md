@@ -1,3 +1,11 @@
+## 2026-10-16 — A client gate stricter than the server it feeds loses users
+
+The Home job step required 100 pasted words and a link with http(s)://, copied from the web
+public free check. The tailoring path it actually feeds (`upload-resume`) needs only
+non-empty text. 4 of 5 people who picked a résumé stopped there (build 1.5.1 (29)).
+Rule: a client-side minimum names the server route it mirrors, and differs per route when
+the routes differ (`JobInputPolicy.Destination`: 50 words to tailor, 100 for the public check).
+
 ## 2026-10-16 — A Hebrew smoke run leaves the simulator in Hebrew, and 17 unit tests fail
 
 `--smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which persists
