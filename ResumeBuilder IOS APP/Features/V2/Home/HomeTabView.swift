@@ -30,6 +30,17 @@ struct HomeTabView: View {
     @State private var fitCheckViewModel = FitCheckViewModel()
     @State private var secondJobContext: String?
     @State private var jobInputMode: JobInputMode = .link
+    /// The running check, so Cancel on the check screen can stop it.
+    @State private var checkTask: Task<Void, Never>?
+    /// Set by Cancel: the check screen closes at once, even if a request is still
+    /// unwinding. Cleared when the next check starts.
+    @State private var isCheckCancelled = false
+    /// True from the check screen appearing until its dismissal has finished,
+    /// including the closing animation that `isCheckScreenShown` cannot see.
+    @State private var isCheckScreenOnScreen = false
+    #if DEBUG
+    @State private var isSmokeCheckScreenShown = false
+    #endif
     @FocusState private var focusedJobField: JobField?
 
     /// Extracted from `body` purely for the Swift type-checker, which stopped
@@ -233,13 +244,8 @@ struct HomeTabView: View {
                                     .id(ScrollAnchor.jobInput)
                             }
 
-                            if viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview {
-                                ResumeOptimizationLoadingView(mode: viewModel.isRunningFreeATS ? .atsCheck : .optimization)
-                                    .transition(.scale.combined(with: .opacity))
-                            }
-
                             if viewModel.errorMessage != nil, viewModel.uploadFailureReason == nil, viewModel.isConnectionError {
-                                ConnectionLostView(onRetry: { Task { await runAnalysis() } })
+                                ConnectionLostView(onRetry: startCheck)
                             } else if let error = viewModel.errorMessage, viewModel.uploadFailureReason == nil {
                                 errorBanner(error)
                             }
@@ -334,13 +340,8 @@ struct HomeTabView: View {
             } message: {
                 Text("Save to reuse on other jobs without re-uploading.")
             }
-            .onChange(of: viewModel.pendingSaveResumeId) { _, newId in
-                if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
-                    saveDisplayName = viewModel.selectedResumeName ?? ""
-                    showSavePrompt = true
-                } else if newId != nil {
-                    viewModel.pendingSaveResumeId = nil
-                }
+            .onChange(of: viewModel.pendingSaveResumeId) { _, _ in
+                presentSavePromptIfReady()
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
@@ -394,6 +395,17 @@ struct HomeTabView: View {
             }
             .navigationDestination(item: $journeyRoute) { route in
                 journeyDestination(for: route)
+            }
+            .fullScreenCover(
+                isPresented: Binding(get: { isCheckScreenShown }, set: { _ in }),
+                // The save prompt waits for the check screen to finish closing.
+                onDismiss: {
+                    isCheckScreenOnScreen = false
+                    presentSavePromptIfReady()
+                }
+            ) {
+                checkScreen
+                    .onAppear { isCheckScreenOnScreen = true }
             }
         }
         // On the stack itself, so it shows over the pushed fit check and on the
@@ -626,7 +638,8 @@ struct HomeTabView: View {
             fitCheckViewModel.resetToEntry()
             fitCheckViewModel.onOptimize = { _ in
                 showFitCheck = false
-                Task { await continueOptimization() }
+                isCheckCancelled = false
+                checkTask = Task { await continueOptimization() }
             }
             fitCheckViewModel.onSkip = { showFitCheck = false }
             fitCheckViewModel.onNeedResume = {
@@ -634,6 +647,8 @@ struct HomeTabView: View {
                 openUploadPicker()
             }
             showFitCheck = true
+        } catch where TailorViewModel.isCancellation(error) {
+            return
         } catch let apiError as APIClientError {
             if case .serverError(let status, _) = apiError, status == 400 {
                 viewModel.errorMessage = JobInputPolicy.friendlyInputError()
@@ -667,6 +682,9 @@ struct HomeTabView: View {
             if case .applied(let result) = try await phraseConfirmation.start(reviewId: reviewId, backend: .service(appState)) {
                 land(result, reviewId: reviewId)
             }
+        } catch where TailorViewModel.isCancellation(error) {
+            // Cancel on the check screen. Nothing was applied by this app; Home stays as it was.
+            return
         } catch {
             viewModel.errorMessage = error.localizedDescription
             journeyRoute = nil
@@ -713,6 +731,8 @@ struct HomeTabView: View {
         // optimizationStarted / optimizationCompleted are fired inside
         // TailorViewModel.optimize() — do not double-fire here.
         await viewModel.optimize(appState: appState)
+        // Cancelled on the check screen: stay on Home, open nothing.
+        guard !Task.isCancelled else { return }
         // The free check recorded its score against the resume id; every screen
         // from here on is keyed by the optimization. Join them, or the floor is
         // recorded and never found (WP-45 D7).
@@ -754,7 +774,10 @@ struct HomeTabView: View {
             // that explains the résumé was never associated with it. Both
             // symptoms, one branch. Held lines are still asked about: the
             // sheet is mounted on the stack, not on the fit check.
-            Task { await applyReviewAndLand(reviewId) }
+            //
+            // Awaited, not a new Task: it stays part of the check Cancel stops,
+            // and the check screen stays up from optimize to apply without a gap.
+            await applyReviewAndLand(reviewId)
         case .stay:
             break
         }
@@ -1472,8 +1495,83 @@ struct HomeTabView: View {
             viewModel.jobDescription = Array(repeating: "requirement", count: words).joined(separator: " ")
             jobInputMode = .description
         }
+        // `--smoke-check-screen` opens the check screen with no network call, so it
+        // can be screenshotted. Its stages run on time; Cancel closes it.
+        if arguments.contains("--smoke-check-screen") {
+            isSmokeCheckScreenShown = true
+        }
     }
     #endif
+
+    // MARK: - Check screen
+
+    /// The check takes the whole screen (Story B). The apply that follows a check
+    /// on Home keeps it up; an apply started from a pushed screen, or while the
+    /// "Add only if true" sheet is up, shows its own progress there instead, and
+    /// two modals cannot show at once.
+    private var isCheckScreenShown: Bool {
+        #if DEBUG
+        if isSmokeCheckScreenShown { return true }
+        #endif
+        guard !isCheckCancelled else { return false }
+        return viewModel.isOptimizing
+            || viewModel.isRunningFreeATS
+            || (isApplyingReview && journeyRoute == nil && phraseConfirmation.pending == nil)
+    }
+
+    /// "Save this resume?" for a run that just landed. A check that ends on Home
+    /// sets `pendingSaveResumeId` while the check screen is still up, and iOS
+    /// refuses a second presentation ("Attempt to present … which is already
+    /// presenting", device log 2026-10-19), so the prompt was lost. It now waits
+    /// for the check screen's `onDismiss`.
+    private func presentSavePromptIfReady() {
+        guard viewModel.pendingSaveResumeId != nil, !isCheckScreenShown, !isCheckScreenOnScreen else { return }
+        guard RuntimeFeatures.isResumeLibraryEnabled else {
+            viewModel.pendingSaveResumeId = nil
+            return
+        }
+        saveDisplayName = viewModel.selectedResumeName ?? ""
+        showSavePrompt = true
+    }
+
+    private var checkScreen: some View {
+        let jobURL = JobInputPolicy.evaluate(
+            description: viewModel.jobDescription,
+            urlString: viewModel.jobDescriptionURL
+        ).normalizedURL
+        let upload: HomeCheckScreen.Upload
+        if !viewModel.isOptimizing {
+            upload = .untracked
+        } else {
+            upload = viewModel.isUploadingResume ? .inProgress : .finished
+        }
+        return HomeCheckScreen(
+            resumeName: viewModel.selectedResumeName ?? "",
+            job: HomeCheckJobLabel.from(normalizedURL: jobURL),
+            upload: upload,
+            onCancel: cancelCheck
+        )
+        // A full-screen cover does not inherit the app root's direction (the
+        // Hebrew check rendered left-to-right on the simulator); same fix as Profile.
+        .environment(\.layoutDirection, localization.layoutDirection)
+    }
+
+    private func startCheck() {
+        isCheckCancelled = false
+        checkTask = Task { await runAnalysis() }
+    }
+
+    /// Stops the check and returns to Home with the résumé and job as they were.
+    /// A request the server already accepted may still finish there; the app no
+    /// longer waits for it or shows its result.
+    private func cancelCheck() {
+        #if DEBUG
+        isSmokeCheckScreenShown = false
+        #endif
+        isCheckCancelled = true
+        checkTask?.cancel()
+        checkTask = nil
+    }
 
     // MARK: - Check bar
 
@@ -1510,7 +1608,7 @@ struct HomeTabView: View {
         return VStack(spacing: 8) {
             Button {
                 trackAnalysisIntent()
-                Task { await runAnalysis() }
+                startCheck()
             } label: {
                 Group {
                     if isCheckRunning {

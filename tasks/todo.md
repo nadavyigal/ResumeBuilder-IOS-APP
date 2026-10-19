@@ -1,3 +1,21 @@
+# 2026-10-19: Home check takes the full screen (Story B of the Home redesign)
+
+As a user who just tapped "Check my fit", I want the check to take over the screen and tell me honestly where it is, so I know it started, can see it end, and can back out.
+Design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg (mockup 3). Builds on Story A (PR #195, branch `feat/home-job-step`).
+
+- [x] New `Features/V2/Home/HomeCheckScreen.swift`: title, the résumé file name and the job (link host, or "Pasted description") side by side, four stages, Cancel. Presented with `fullScreenCover`, so the tab bar is hidden.
+- [x] Stages advance once and the last one holds (`HomeCheckStage.at`, pure, plus a monotonic latch in the view). Stage 1 "Reading your résumé" ends when the upload finishes on the optimize path (new `TailorViewModel.isUploadingResume`); on paths with no separate upload it ends on time.
+- [x] `HomeTabView`: delete the inline `ResumeOptimizationLoadingView`. The cover shows while `isOptimizing || isRunningFreeATS`, and while `isApplyingReview` only when no screen is pushed and the "Add only if true" sheet is not up (those have their own progress, and two modals cannot show at once).
+- [x] Cancel: the check runs in one stored `Task` (button, retry, fit-check continue; the direct-apply step is awaited inside it). Cancel cancels it and closes the cover at once. Cancellation is not an error: no error banner, no failure analytics, no result recorded after cancel. Inputs are untouched.
+- [x] Remove "Checking formatting parsers can read" from the `.atsCheck` lines (WP-78) and its stale string entry.
+- [x] English and Hebrew strings (plural Hebrew, no em dashes). Reduce Motion: no sweep, no animated stage changes.
+- [x] Tests: stage timeline (upload-tied, time-based, never goes back, holds on last), job label, cancellation helper, no ATS line, Hebrew keys resolve.
+- [x] Build, full suite (`-testLanguage en -testRegion US`), simulator screenshots in English and Hebrew via DEBUG `--smoke-home-job --smoke-check-screen`.
+- [x] Commit, push, PR, progress.md.
+
+Expected source files: `Features/V2/Home/HomeCheckScreen.swift` (new), `Features/V2/Home/HomeTabView.swift`, `Features/V2/Home/ResumeOptimizationLoadingView.swift`, `Features/Tailor/TailorViewModel.swift` (upload flag + cancellation), `Resources/Localizable.xcstrings`; tests in new `ResumeBuilder IOS APPTests/HomeCheckScreenTests.swift`. No dependencies, no new analytics events, no server changes.
+Risks: cancel only stops the app waiting; a server run already started may still finish and count. The cover closing and the "Add only if true" sheet opening in the same update: checked on the simulator with a throwaway sheet in the same place (not committed), the sheet opened.
+
 # 2026-10-19: Home job step: one field, pinned button (Story A of the Home redesign)
 
 As a first-time user who just picked a résumé, I want one obvious place to give the job and one button I can always see, so I do not stall on the lower half of Home.

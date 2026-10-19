@@ -29,6 +29,9 @@ final class TailorViewModel {
     /// Set when an unauthenticated free ATS check completes.
     private(set) var atsResult: ATSScoreResult?
     var isRunningFreeATS = false
+    /// True while the résumé upload is on the wire. Home's check screen ends its
+    /// "Reading your résumé" stage when this turns false.
+    private(set) var isUploadingResume = false
 
     /// The inputs `atsResult` was computed from. Always written together with
     /// `atsResult` so that a diagnosis can never outlive the inputs it describes.
@@ -182,6 +185,8 @@ final class TailorViewModel {
         let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
         AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
 
+        isUploadingResume = true
+        defer { isUploadingResume = false }
         let upload = try await appState.callWithFreshToken { token in
             try await self.apiClient.uploadResume(
                 fileURL: selectedResumeURL,
@@ -289,6 +294,9 @@ final class TailorViewModel {
                 #endif
                 errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
             }
+        } catch where Self.isCancellation(error) {
+            // The user cancelled the check. Nothing failed, so nothing is reported.
+            return
         } catch let apiError as APIClientError {
             if case .serverError(let status, let message) = apiError {
                 errorMessage = status == 400 ? JobInputPolicy.friendlyInputError() : enhancedError(message)
@@ -308,6 +316,13 @@ final class TailorViewModel {
                 AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
             }
         }
+    }
+
+    /// A request stopped because its task was cancelled (Cancel on Home's check
+    /// screen), not because anything went wrong.
+    static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        return (error as? URLError)?.code == .cancelled
     }
 
     static func isConnectivityError(_ error: Error) -> Bool {
@@ -343,8 +358,12 @@ final class TailorViewModel {
                 jobDescriptionURL: jobInput.normalizedURL,
                 sessionId: appState.anonymousATSSessionId
             )
+            // A result that lands after Cancel is not shown: the user left the check.
+            guard !Task.isCancelled else { return }
             recordGuestDiagnosis(response)
             appState.storeAnonymousATSSessionId(response.sessionId)
+        } catch where Self.isCancellation(error) {
+            return
         } catch let apiError as APIClientError {
             if case .serverError(let status, _) = apiError, status == 400 {
                 errorMessage = JobInputPolicy.friendlyInputError()

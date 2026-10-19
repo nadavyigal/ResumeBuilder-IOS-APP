@@ -1,3 +1,13 @@
+## 2026-10-19: A full-screen cover drops the app's right-to-left direction
+
+The Home check screen (`fullScreenCover`) showed Hebrew text in a left-to-right layout:
+icons on the left, résumé on the left. The locale reached the cover, so the copy was
+Hebrew, but `layoutDirection`, set once at the app root, did not. Build and all tests
+passed; only the Hebrew screenshot showed it.
+Rule: any `fullScreenCover` or `sheet` content sets
+`.environment(\.layoutDirection, localization.layoutDirection)` itself (Profile already
+does), and every new modal gets a Hebrew screenshot before done.
+
 ## 2026-10-16 — An opt-in API flag is only safe if every consumer of the response knows the new item
 
 The web optimizer holds back job-post lines the résumé never says when the request
@@ -892,4 +902,9 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language first with `defaults write <bundle-id> app_selected_language -string he`, and delete the key afterwards. Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
 **Why:** the job step only appears after a file is picked, and the picker cannot be driven headless.
+
+### 2026-10-19: A prompt set while the check screen is up is lost
+
+**Rule:** Anything Home presents after a check (alert, dialog, sheet) must wait for the check screen's `onDismiss`, not for `isCheckScreenShown` to turn false. iOS refuses a second presentation while one is up or still animating out.
+**Why:** on device, "Save this resume?" logged "Attempt to present … which is already presenting" and never showed. Tests and the simulator passed; only a device log with `OS_ACTIVITY_DT_MODE=YES` (`devicectl device process launch --console`) showed it.
 
