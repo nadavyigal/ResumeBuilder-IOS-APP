@@ -1,3 +1,12 @@
+# 2026-10-19: G1b App Store screenshots, no ATS (WP-78)
+
+**Status:** PR open, not merged. Screenshots not uploaded (founder step).
+**What changed:** new 5-slot set in `dist/app-store-screenshots/app-store-v2/` (iPhone 6.5" 1242x2688 and iPad 13" 2064x2752), rendered from `main` at 1.5.2. No "ATS" on any image. Slot 2 subscores now use the app's real labels (Keyword Alignment, Content Quality, Format & Structure, Design). Slot 3's rewrite no longer invents the 18% result, it uses the fact in the "before" line. Slot 5 names a real expert tool (Achievement Quantifier) instead of a "Hiring-manager read" the app does not have. Three clipped lines fixed after visual review.
+**Why 5, not 10:** the renderer has had 5 slots since the 2026-07-20 caption pack, but the generator, normalizer and validator still expected 10, and the iPad simulator they named no longer exists. All three now take the slot count; the iPad default is iPad Pro 13-inch (M5). The June 10-slot set in `app-store-v1/` is the one live on the App Store and is kept as history.
+**Next:** founder deletes the 10 live screenshots in each App Store Connect device section and uploads the 5 new ones, then records the publish date as the new ASO baseline (Agentic OS `distribution-os/experiment-log.md`, rb-aso-002).
+**Last Validation:** 2026-10-19: `CopyClaimsTests.testMarketingSlotsNeverSayATS` failed 4 times on the old copy, passes on the new; generator run with `validate-app-store-screenshots.sh` PASS for both sets; every PNG viewed on a contact sheet; full `xcodebuild test` 472 tests, 0 failures, 1 skipped (iPhone 17 Pro, iOS 26.5).
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: 1.5.2 (30) is live on the App Store
 
 **Status:** 1.5.2 (30) live since 2026-10-19. App Store lookup for "Resume AI - CV Builder" (id

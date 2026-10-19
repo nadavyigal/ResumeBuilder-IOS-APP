@@ -1,0 +1,4 @@
+Resumely App Store Screenshot Validation
+Generated: 2026-10-19T05:39:01Z
+iPhone 6.5-inch: PASS - 5 unique opaque RGB PNGs at 1242x2688
+iPad 13-inch: PASS - 5 unique opaque RGB PNGs at 2064x2752

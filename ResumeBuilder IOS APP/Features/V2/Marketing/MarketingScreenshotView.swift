@@ -28,9 +28,9 @@ enum MarketingScreenshotSlot: Int, CaseIterable, Identifiable {
         switch self {
         case .tailor: return "Your resume, tailored for this job"
         case .blockers: return "See exactly what's blocking you"
-        case .aiEdits: return "Edits that fit the role — in your voice"
-        case .templates: return "ATS-friendly templates, clean export"
-        case .expert: return "Expert analysis for every section"
+        case .aiEdits: return "Edits that fit the role, in your voice"
+        case .templates: return "Clean templates, ready to send"
+        case .expert: return "Six expert tools, one tap each"
         }
     }
 
@@ -47,9 +47,9 @@ enum MarketingScreenshotSlot: Int, CaseIterable, Identifiable {
     var caption: String {
         switch self {
         case .tailor: return "AI resume tailor and Match check for job seekers"
-        case .blockers: return "Resumely Match Score by section — not an employer ATS"
+        case .blockers: return "Resumely Match Score, our own measure of job fit"
         case .aiEdits: return "Targeted resume edits from the job description"
-        case .templates: return "Resume templates built for clean parsing"
+        case .templates: return "Classic, Modern and Minimal resume templates"
         case .expert: return "Expert review with editable rewrite suggestions"
         }
     }
@@ -156,7 +156,7 @@ private struct TailorScreenshotPanel: View {
             MarketingCard {
                 VStack(alignment: .leading, spacing: 12) {
                     MarketingLabel("Job description")
-                    Text("Senior Product Designer needed to lead mobile flows, ATS-friendly resume systems, and measurable hiring outcomes.")
+                    Text("Senior Product Designer, mobile flows")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(AppColors.textPrimary)
                         .lineSpacing(3)
@@ -177,10 +177,10 @@ private struct TailorScreenshotPanel: View {
 
 private struct BlockersScreenshotPanel: View {
     private let rows: [(String, Int, MarketingTone)] = [
-        ("Summary", 62, .amber),
-        ("Experience", 78, .green),
-        ("Skills", 45, .red),
-        ("Keywords", 51, .amber)
+        ("Keyword Alignment", 45, .red),
+        ("Content Quality", 62, .amber),
+        ("Format & Structure", 78, .green),
+        ("Design", 51, .amber)
     ]
 
     var body: some View {
@@ -190,9 +190,9 @@ private struct BlockersScreenshotPanel: View {
                     VStack(alignment: .leading, spacing: 6) {
                         MarketingLabel("Match Score")
                         Text("58")
-                            .font(.system(size: 80, weight: .bold, design: .rounded))
+                            .font(.system(size: 64, weight: .bold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
-                        Text("Needs keyword and skills alignment")
+                        Text("Needs keyword alignment")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(AppColors.textSecondary)
                     }
@@ -228,7 +228,7 @@ private struct AIEditsScreenshotPanel: View {
             MarketingCard {
                 VStack(alignment: .leading, spacing: 12) {
                     MarketingLabel("Before")
-                    Text("Worked on dashboard redesigns and collaborated with engineers to improve user flows.")
+                    Text("Worked on the dashboard redesign with engineers. Onboarding drop-off fell 18% after launch.")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(AppColors.textSecondary)
                         .lineSpacing(3)
@@ -238,13 +238,13 @@ private struct AIEditsScreenshotPanel: View {
             MarketingCard(accent: AppColors.accentTeal) {
                 VStack(alignment: .leading, spacing: 12) {
                     MarketingLabel("AI rewrite")
-                    Text("Led mobile dashboard redesign that cut onboarding drop-off by 18%, partnering with engineering to ship ATS-tracked workflow improvements.")
+                    Text("Led the mobile dashboard redesign with engineering, cutting onboarding drop-off by 18%.")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(AppColors.textPrimary)
                         .lineSpacing(4)
 
                     HStack(spacing: 10) {
-                        Text("Impact metrics")
+                        Text("Impact first")
                         Text("Mobile UX")
                         Text("Match keywords")
                     }
@@ -280,7 +280,7 @@ private struct TemplatesScreenshotPanel: View {
 
             MarketingCard {
                 HStack(spacing: 12) {
-                    ExportChip(title: "ATS-friendly", tint: AppColors.accentTeal)
+                    ExportChip(title: "Clean layout", tint: AppColors.accentTeal)
                     ExportChip(title: "PDF export", tint: AppColors.accentSky)
                     ExportChip(title: "Mobile ready", tint: AppColors.accentViolet)
                 }
@@ -295,10 +295,10 @@ private struct ExpertScreenshotPanel: View {
             MarketingCard {
                 VStack(alignment: .leading, spacing: 12) {
                     MarketingLabel("Expert review")
-                    Text("Hiring-manager read")
+                    Text("Achievement Quantifier")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(AppColors.textPrimary)
-                    Text("Your experience section proves ownership, but the first bullet hides the business outcome.")
+                    Text("Your first bullet hides the outcome. Add a number you can stand behind.")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(AppColors.textSecondary)
                         .lineSpacing(3)
@@ -308,7 +308,7 @@ private struct ExpertScreenshotPanel: View {
             MarketingCard(accent: AppColors.accentSky) {
                 VStack(alignment: .leading, spacing: 12) {
                     MarketingLabel("Recommendation")
-                    FixRow(title: "Move revenue impact into the first 8 words", tone: .blue)
+                    FixRow(title: "Lead with the outcome in the first 8 words", tone: .blue)
                     FixRow(title: "Add scale: team size, users, or budget", tone: .green)
                     FixRow(title: "Replace passive verbs with shipped outcomes", tone: .amber)
                 }
@@ -317,7 +317,7 @@ private struct ExpertScreenshotPanel: View {
             MarketingCard {
                 VStack(alignment: .leading, spacing: 10) {
                     MarketingLabel("Suggested rewrite")
-                    Text("Increased qualified applications by 23% by rebuilding the resume workflow around role-specific keywords, recruiter language, and measurable outcomes.")
+                    Text("Grew qualified applications by 23% by rebuilding the hiring workflow around role-specific keywords and measurable outcomes.")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(AppColors.textPrimary)
                         .lineSpacing(4)
