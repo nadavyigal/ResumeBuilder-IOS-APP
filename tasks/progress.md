@@ -1,3 +1,15 @@
+# 2026-10-19: Home check takes the full screen (Story B)
+
+**Status:** PR open, not merged, no build submitted. Stacked on Story A (PR #195).
+**Current Phase:** Home redesign (design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg).
+**Active Story:** Story B, this PR.
+**Last Completed Story:** Story B. "Check my fit" now opens a full-screen check (`HomeCheckScreen`, tab bar hidden) instead of the loader at the bottom of the scroll. It names the résumé file and the job (link site, or "Pasted description") side by side, and shows four stages that tick once and hold on the last: reading the résumé (ends when the upload finishes on the optimize path), reading the job, comparing requirements and experience, preparing the diagnosis. "Cancel check" stops the running task and returns to Home with the inputs as they were; cancellation shows no error and records no failure. The ATS line "Checking formatting parsers can read" is gone. 13 new strings, plural Hebrew. Reduce Motion: no scan beam, no spinner. DEBUG-only `--smoke-check-screen` opens it with no network call.
+**Next Recommended Story:** founder device check of Stories A and B together (a real check end to end, Cancel mid-check, Hebrew). Then merge #195 first, this PR second.
+**Blockers:** none.
+**Known limits:** Cancel stops the app waiting, not the server: a run already started may still finish and use a credit. With the fit check flag on (off in production) the upload before the fit sheet still shows only the button spinner.
+**Last Validation:** 2026-10-19: build OK; full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en -testRegion US`), 9 new. Simulator iPhone SE: English and Hebrew check screen, stage sequence in Hebrew, Cancel back to Home with inputs intact, Reduce Motion on. Two bugs found there and fixed (Hebrew rendered left to right inside the cover; scan beam frozen). Cover closing while a sheet opens: checked with a throwaway sheet, not committed.
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: Home job step, one field and a pinned button (Story A)
 
 **Status:** PR open, not merged, no build submitted.

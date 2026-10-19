@@ -75,6 +75,16 @@
         }
       }
     },
+    "Cancel check" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ביטול הבדיקה"
+          }
+        }
+      }
+    },
     "Check my fit" : {
       "localizations" : {
         "he" : {
@@ -95,6 +105,36 @@
         }
       }
     },
+    "Checking your fit" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודקים את ההתאמה"
+          }
+        }
+      }
+    },
+    "Comparing requirements and experience" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משווים דרישות וניסיון"
+          }
+        }
+      }
+    },
+    "Comparing your résumé with the job requirements." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משווים את קורות החיים לדרישות המשרה."
+          }
+        }
+      }
+    },
     "Enough to check" : {
       "localizations" : {
         "he" : {
@@ -105,12 +145,42 @@
         }
       }
     },
+    "Finished" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסתיים"
+          }
+        }
+      }
+    },
     "I have a job link" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "יש לי קישור למשרה"
+          }
+        }
+      }
+    },
+    "In progress" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בתהליך"
+          }
+        }
+      }
+    },
+    "Job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משרה"
           }
         }
       }
@@ -131,6 +201,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "אין קישור? הדביקו את תיאור המשרה"
+          }
+        }
+      }
+    },
+    "Not started yet" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עוד לא התחיל"
           }
         }
       }
@@ -175,12 +255,62 @@
         }
       }
     },
+    "Pasted description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תיאור שהודבק"
+          }
+        }
+      }
+    },
+    "Preparing the diagnosis" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מכינים את האבחון"
+          }
+        }
+      }
+    },
+    "Reading the job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קוראים את המשרה"
+          }
+        }
+      }
+    },
+    "Reading your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קוראים את קורות החיים"
+          }
+        }
+      }
+    },
     "Remove job link" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הסרת הקישור"
+          }
+        }
+      }
+    },
+    "Résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות חיים"
           }
         }
       }
@@ -1974,17 +2104,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בודק התאמה לתפקיד זה"
-          }
-        }
-      }
-    },
-    "Checking formatting parsers can read" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בודקים עיצוב שמערכות סריקה יכולות לקרוא"
           }
         }
       }

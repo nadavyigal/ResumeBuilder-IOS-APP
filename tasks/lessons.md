@@ -1,3 +1,13 @@
+## 2026-10-19: A full-screen cover drops the app's right-to-left direction
+
+The Home check screen (`fullScreenCover`) showed Hebrew text in a left-to-right layout:
+icons on the left, résumé on the left. The locale reached the cover, so the copy was
+Hebrew, but `layoutDirection`, set once at the app root, did not. Build and all tests
+passed; only the Hebrew screenshot showed it.
+Rule: any `fullScreenCover` or `sheet` content sets
+`.environment(\.layoutDirection, localization.layoutDirection)` itself (Profile already
+does), and every new modal gets a Hebrew screenshot before done.
+
 ## 2026-10-16 — An opt-in API flag is only safe if every consumer of the response knows the new item
 
 The web optimizer holds back job-post lines the résumé never says when the request
