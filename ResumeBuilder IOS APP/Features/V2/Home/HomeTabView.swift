@@ -35,6 +35,9 @@ struct HomeTabView: View {
     /// Set by Cancel: the check screen closes at once, even if a request is still
     /// unwinding. Cleared when the next check starts.
     @State private var isCheckCancelled = false
+    /// True from the check screen appearing until its dismissal has finished,
+    /// including the closing animation that `isCheckScreenShown` cannot see.
+    @State private var isCheckScreenOnScreen = false
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
     #endif
@@ -337,13 +340,8 @@ struct HomeTabView: View {
             } message: {
                 Text("Save to reuse on other jobs without re-uploading.")
             }
-            .onChange(of: viewModel.pendingSaveResumeId) { _, newId in
-                if newId != nil, RuntimeFeatures.isResumeLibraryEnabled {
-                    saveDisplayName = viewModel.selectedResumeName ?? ""
-                    showSavePrompt = true
-                } else if newId != nil {
-                    viewModel.pendingSaveResumeId = nil
-                }
+            .onChange(of: viewModel.pendingSaveResumeId) { _, _ in
+                presentSavePromptIfReady()
             }
             .onChange(of: viewModel.selectedResumeName) { _, newName in
                 if newName?.isEmpty == false {
@@ -398,8 +396,16 @@ struct HomeTabView: View {
             .navigationDestination(item: $journeyRoute) { route in
                 journeyDestination(for: route)
             }
-            .fullScreenCover(isPresented: Binding(get: { isCheckScreenShown }, set: { _ in })) {
+            .fullScreenCover(
+                isPresented: Binding(get: { isCheckScreenShown }, set: { _ in }),
+                // The save prompt waits for the check screen to finish closing.
+                onDismiss: {
+                    isCheckScreenOnScreen = false
+                    presentSavePromptIfReady()
+                }
+            ) {
                 checkScreen
+                    .onAppear { isCheckScreenOnScreen = true }
             }
         }
         // On the stack itself, so it shows over the pushed fit check and on the
@@ -1511,6 +1517,21 @@ struct HomeTabView: View {
         return viewModel.isOptimizing
             || viewModel.isRunningFreeATS
             || (isApplyingReview && journeyRoute == nil && phraseConfirmation.pending == nil)
+    }
+
+    /// "Save this resume?" for a run that just landed. A check that ends on Home
+    /// sets `pendingSaveResumeId` while the check screen is still up, and iOS
+    /// refuses a second presentation ("Attempt to present … which is already
+    /// presenting", device log 2026-10-19), so the prompt was lost. It now waits
+    /// for the check screen's `onDismiss`.
+    private func presentSavePromptIfReady() {
+        guard viewModel.pendingSaveResumeId != nil, !isCheckScreenShown, !isCheckScreenOnScreen else { return }
+        guard RuntimeFeatures.isResumeLibraryEnabled else {
+            viewModel.pendingSaveResumeId = nil
+            return
+        }
+        saveDisplayName = viewModel.selectedResumeName ?? ""
+        showSavePrompt = true
     }
 
     private var checkScreen: some View {

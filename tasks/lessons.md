@@ -903,3 +903,8 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language first with `defaults write <bundle-id> app_selected_language -string he`, and delete the key afterwards. Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
 **Why:** the job step only appears after a file is picked, and the picker cannot be driven headless.
 
+### 2026-10-19: A prompt set while the check screen is up is lost
+
+**Rule:** Anything Home presents after a check (alert, dialog, sheet) must wait for the check screen's `onDismiss`, not for `isCheckScreenShown` to turn false. iOS refuses a second presentation while one is up or still animating out.
+**Why:** on device, "Save this resume?" logged "Attempt to present … which is already presenting" and never showed. Tests and the simulator passed; only a device log with `OS_ACTIVITY_DT_MODE=YES` (`devicectl device process launch --console`) showed it.
+
