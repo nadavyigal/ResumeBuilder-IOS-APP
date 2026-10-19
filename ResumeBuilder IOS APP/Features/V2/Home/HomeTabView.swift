@@ -29,6 +29,7 @@ struct HomeTabView: View {
     @State private var showFitCheck = false
     @State private var fitCheckViewModel = FitCheckViewModel()
     @State private var secondJobContext: String?
+    @State private var jobInputMode: JobInputMode = .link
     @FocusState private var focusedJobField: JobField?
 
     /// Extracted from `body` purely for the Swift type-checker, which stopped
@@ -165,6 +166,15 @@ struct HomeTabView: View {
     }
 
     private enum JobField: Hashable {
+        case link
+        case description
+    }
+
+    /// Which job input is open. The link is the default: most people have the
+    /// post open already, and a link alone is enough for every destination.
+    /// Text in the closed mode is kept, never cleared.
+    private enum JobInputMode: Hashable {
+        case link
         case description
     }
 
@@ -191,7 +201,10 @@ struct HomeTabView: View {
                             progressPath
                                 .opacity(appeared ? 1 : 0)
 
-                            if activationState == .optimizedReady || activationState == .exportComplete {
+                            // A returning user's last résumé, offered only until they
+                            // pick a new file; after that it competes with the next step.
+                            if !hasSelectedResume,
+                               activationState == .optimizedReady || activationState == .exportComplete {
                                 optimizedReadyCard
                             }
 
@@ -203,7 +216,9 @@ struct HomeTabView: View {
                                 libraryButton
                             }
 
-                            motivationStrip
+                            if !hasSelectedResume {
+                                motivationStrip
+                            }
 
                             if let uploadFailureReason = viewModel.uploadFailureReason {
                                 UploadFailureView(
@@ -213,11 +228,9 @@ struct HomeTabView: View {
                                 )
                             }
 
-                            if viewModel.selectedResumeName?.isEmpty == false {
+                            if hasSelectedResume {
                                 jobInputCard
                                     .id(ScrollAnchor.jobInput)
-
-                                optimizeCard
                             }
 
                             if viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview {
@@ -235,9 +248,14 @@ struct HomeTabView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 24)
                     }
                     .scrollDismissesKeyboard(.interactively)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        if showsCheckBar {
+                            checkBar
+                        }
+                    }
                     .scrollBounceBehavior(.basedOnSize)
                     .onChange(of: viewModel.selectedResumeName) { _, newName in
                         guard newName?.isEmpty == false else { return }
@@ -255,6 +273,12 @@ struct HomeTabView: View {
             .navigationBarHidden(true)
             .onAppear {
                 viewModel.useSharedJobURLIfNeeded(from: appState)
+                if viewModel.jobDescriptionURL.isEmpty, !viewModel.jobDescription.isEmpty {
+                    jobInputMode = .description
+                }
+                #if DEBUG
+                applySmokeJobInputIfRequested()
+                #endif
                 if reduceMotion {
                     appeared = true
                 } else {
@@ -404,6 +428,23 @@ struct HomeTabView: View {
         jobInputEvaluation.isReady
     }
 
+    private var hasSelectedResume: Bool {
+        viewModel.selectedResumeName?.isEmpty == false
+    }
+
+    /// The step the user is on now, for the "Step N of 3" line.
+    private var currentStep: Int {
+        if !hasSelectedResume { return 1 }
+        return hasJobInput ? 3 : 2
+    }
+
+    /// A check run in this session for what is on screen. Not
+    /// `latestOptimizationId`, which survives relaunch and marked "Match" done
+    /// for a résumé and job that were never checked together.
+    private var hasCheckedThisMatch: Bool {
+        viewModel.atsResult != nil || viewModel.optimizationId != nil
+    }
+
     private var jobInputValidationTrackingKey: String {
         let hasResume = viewModel.selectedResumeName?.isEmpty == false
         let reason = jobInputEvaluation.blockingReason?.analyticsValue ?? "ready"
@@ -449,8 +490,9 @@ struct HomeTabView: View {
                 resumeName
             )
             try? await Task.sleep(nanoseconds: 150_000_000)
+            jobInputMode = .link
             scrollToJobInput(using: proxy)
-            focusedJobField = .description
+            focusedJobField = .link
         }
 
         appState.completeSecondJobRequest(request.id)
@@ -735,7 +777,7 @@ struct HomeTabView: View {
                 }
             }
 
-            Text("Step 1 of 3")
+            stepLabel
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppColors.textTertiary)
 
@@ -749,6 +791,15 @@ struct HomeTabView: View {
                 .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private var stepLabel: some View {
+        switch currentStep {
+        case 1: Text("Step 1 of 3")
+        case 2: Text("Step 2 of 3")
+        default: Text("Step 3 of 3")
         }
     }
 
@@ -819,7 +870,7 @@ struct HomeTabView: View {
                 VStack(spacing: AppSpacing.sm) {
                     progressRow(index: 1, title: "Upload", isActive: viewModel.selectedResumeName?.isEmpty != false, isComplete: viewModel.selectedResumeName?.isEmpty == false)
                     progressRow(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
-                    progressRow(index: 3, title: "Match", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                    progressRow(index: 3, title: "Match", isActive: hasJobInput, isComplete: hasCheckedThisMatch)
                 }
             } else {
                 HStack(spacing: AppSpacing.sm) {
@@ -827,7 +878,7 @@ struct HomeTabView: View {
                     progressConnector(isComplete: viewModel.selectedResumeName?.isEmpty == false)
                     progressChip(index: 2, title: "Add job", isActive: viewModel.selectedResumeName?.isEmpty == false && !hasJobInput, isComplete: hasJobInput)
                     progressConnector(isComplete: hasJobInput)
-                    progressChip(index: 3, title: "Match", isActive: hasJobInput, isComplete: viewModel.atsResult != nil || appState.latestOptimizationId != nil)
+                    progressChip(index: 3, title: "Match", isActive: hasJobInput, isComplete: hasCheckedThisMatch)
                 }
             }
         }
@@ -999,7 +1050,7 @@ struct HomeTabView: View {
 
     private var motivationStrip: some View {
         Label {
-            Text("See what a recruiter notices in the first 7 seconds — then fix it.")
+            Text("See what a recruiter notices in the first 7 seconds, then fix it.")
                 .font(.footnote.weight(.medium))
                 .foregroundStyle(AppColors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1154,99 +1205,277 @@ struct HomeTabView: View {
         }
     }
 
+    // MARK: - Job step
+
     private var jobInputCard: some View {
-        let jobFilled = hasJobInput
-        return VStack(spacing: 0) {
+        let evaluation = jobInputEvaluation
+        return VStack(alignment: .leading, spacing: 14) {
             if let secondJobContext {
                 Label(secondJobContext, systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.accent)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 14)
             }
 
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(jobFilled ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
-                        .frame(width: 36, height: 36)
-                    if jobFilled {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Which job is this for?")
+                    .font(.title3.weight(.black))
+                    .foregroundStyle(Theme.textPrimary)
+                Group {
+                    if jobInputMode == .link {
+                        Text("A link from LinkedIn or the company site is enough.")
                     } else {
-                        Text("2")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(Theme.textTertiary)
+                        Text("Paste the full job post. The more of it, the better the match.")
                     }
                 }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Add Job")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.textPrimary)
-                    Text("URL or paste description")
-                        .font(.caption)
-                        .foregroundStyle(Theme.textTertiary)
-                }
-                Spacer()
+                .font(.subheadline)
+                .foregroundStyle(Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
 
-            Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
-
-            VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    Image(systemName: "link")
-                        .foregroundStyle(Theme.textTertiary)
-                    TextField("LinkedIn or job post URL", text: $viewModel.jobDescriptionURL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.URL)
-                        .foregroundStyle(Theme.textPrimary)
-                        .tint(Theme.accent)
-                        .accessibilityLabel(Text("Job Link"))
+            switch jobInputMode {
+            case .link:
+                // The card replaces the field only once the user has stopped
+                // typing: a half-typed "linkedin.com" is already a valid link.
+                if let url = evaluation.normalizedURL, focusedJobField != .link {
+                    jobLinkCard(url)
+                } else {
+                    jobLinkField(evaluation)
                 }
-                .padding(12)
-                .background(Theme.bgPrimary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            case .description:
+                jobDescriptionEditor(evaluation)
+            }
 
-                ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Theme.bgPrimary.opacity(0.5))
-                    if viewModel.jobDescription.isEmpty {
-                        Text("Or paste job description here")
-                            .foregroundStyle(Theme.textTertiary)
-                            .font(.subheadline)
-                            .padding(14)
-                            .allowsHitTesting(false)
+            Button {
+                switchJobInputMode(to: jobInputMode == .link ? .description : .link)
+            } label: {
+                Group {
+                    if jobInputMode == .link {
+                        Text("No link? Paste the job description")
+                    } else {
+                        Text("I have a job link")
                     }
-                    TextEditor(text: $viewModel.jobDescription)
-                        .focused($focusedJobField, equals: .description)
-                        .scrollContentBackground(.hidden)
-                        .background(.clear)
-                        .frame(minHeight: 110)
-                        .padding(8)
-                        .foregroundStyle(Theme.textPrimary)
-                        .tint(Theme.accent)
-                        .accessibilityLabel(Text("Or paste job description here"))
                 }
-                .frame(minHeight: 110)
-
-                HStack(spacing: 6) {
-                    Image(systemName: jobInputEvaluation.isReady ? "checkmark.circle.fill" : "info.circle.fill")
-                    Text(jobInputEvaluation.inlineGuidance)
-                }
-                .font(.caption)
-                .foregroundStyle(jobInputEvaluation.isReady ? Color.green : Theme.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppColors.accentSky)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .buttonStyle(.plain)
         }
+        .padding(16)
         .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
+
+    private func jobLinkField(_ evaluation: JobInputPolicy.Evaluation) -> some View {
+        let showsError = evaluation.blockingReason == .invalidURL && focusedJobField != .link
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "link")
+                    .foregroundStyle(Theme.textTertiary)
+                TextField("Paste the job link", text: $viewModel.jobDescriptionURL)
+                    .focused($focusedJobField, equals: .link)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+                    .submitLabel(.done)
+                    .foregroundStyle(Theme.textPrimary)
+                    .tint(Theme.accent)
+                    .accessibilityLabel(Text("Job Link"))
+                if viewModel.jobDescriptionURL.isEmpty {
+                    // The system button pastes without the "Allow Paste" prompt.
+                    PasteButton(payloadType: String.self) { strings in
+                        Task { @MainActor in useJobPaste(strings) }
+                    }
+                    .labelStyle(.titleOnly)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.small)
+                    .tint(AppColors.accentSky)
+                }
+            }
+            .padding(.horizontal, 12)
+            .frame(minHeight: 50)
+            .background(Theme.bgPrimary.opacity(0.55), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                        showsError ? Color.orange.opacity(0.7) : AppColors.accentSky.opacity(focusedJobField == .link ? 0.7 : 0.35),
+                        lineWidth: 1.5
+                    )
+            )
+
+            if showsError, let message = evaluation.validationMessage {
+                Label(message, systemImage: "exclamationmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(Color.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func jobLinkCard(_ url: String) -> some View {
+        let host = URL(string: url)?.host()?.replacingOccurrences(of: "www.", with: "") ?? url
+        return HStack(spacing: 12) {
+            Image(systemName: "link")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 38, height: 38)
+                .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: host)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .lineLimit(1)
+                Text(verbatim: url)
+                    .font(.caption)
+                    .foregroundStyle(Theme.textTertiary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Label("Job link added", systemImage: "checkmark.circle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.green)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                viewModel.jobDescriptionURL = ""
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Theme.textTertiary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Remove job link"))
+        }
+        .padding(12)
+        .background(Theme.bgPrimary.opacity(0.55), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.green.opacity(0.45), lineWidth: 1.5)
+        )
+    }
+
+    private func jobDescriptionEditor(_ evaluation: JobInputPolicy.Evaluation) -> some View {
+        let minimum = max(evaluation.minimumWordCount, 1)
+        let isEnough = evaluation.wordCount >= minimum
+        return VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Theme.bgPrimary.opacity(0.55))
+                if viewModel.jobDescription.isEmpty {
+                    Text("Paste the job description here")
+                        .foregroundStyle(Theme.textTertiary)
+                        .font(.subheadline)
+                        .padding(14)
+                        .allowsHitTesting(false)
+                }
+                TextEditor(text: $viewModel.jobDescription)
+                    .focused($focusedJobField, equals: .description)
+                    .scrollContentBackground(.hidden)
+                    .background(.clear)
+                    .padding(8)
+                    .foregroundStyle(Theme.textPrimary)
+                    .tint(Theme.accent)
+                    .accessibilityLabel(Text("Paste the job description here"))
+            }
+            // Fixed height: a pasted post scrolls inside the box, so the word
+            // meter and the way back to the link stay on screen.
+            .frame(height: 170)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(AppColors.accentSky.opacity(focusedJobField == .description ? 0.7 : 0.35), lineWidth: 1.5)
+            )
+
+            ProgressView(value: min(Double(evaluation.wordCount) / Double(minimum), 1))
+                .tint(isEnough ? Color.green : AppColors.accentSky)
+
+            HStack {
+                Group {
+                    if isEnough {
+                        Text("Enough to check")
+                    } else {
+                        Text("Paste a bit more of the description")
+                    }
+                }
+                .foregroundStyle(isEnough ? Color.green : Theme.textSecondary)
+                Spacer(minLength: 8)
+                Text(isEnough
+                    ? String(
+                        format: NSLocalizedString("%lld words", comment: "Pasted job description word count, minimum met"),
+                        evaluation.wordCount
+                    )
+                    : String(
+                        format: NSLocalizedString("%lld of %lld words", comment: "Pasted job description: words so far, then the minimum"),
+                        evaluation.wordCount,
+                        evaluation.minimumWordCount
+                    )
+                )
+                .monospacedDigit()
+                .foregroundStyle(Theme.textSecondary)
+            }
+            .font(.caption.weight(.medium))
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func switchJobInputMode(to mode: JobInputMode) {
+        // A link that never parsed cannot be sent, and once its field is
+        // closed nobody could see or fix it.
+        if mode == .description, !jobInputEvaluation.isURLValid {
+            viewModel.jobDescriptionURL = ""
+        }
+        jobInputMode = mode
+        focusedJobField = mode == .link ? .link : .description
+    }
+
+    /// One paste fills whichever input fits: a link (also pulled out of share
+    /// text such as "Check out this job: https://…") goes to the link, a long
+    /// post goes to the description.
+    private func useJobPaste(_ strings: [String]) {
+        guard let text = strings.first?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return }
+        let pasted = JobInputPolicy.evaluate(description: text, urlString: text)
+        if let url = pasted.normalizedURL {
+            viewModel.jobDescriptionURL = url
+        }
+        if pasted.normalizedURL == nil || pasted.wordCount >= Self.pastedPostWordThreshold {
+            viewModel.jobDescription = text
+        }
+        jobInputMode = pasted.normalizedURL == nil ? .description : .link
+        focusedJobField = nil
+    }
+
+    /// Share text around a link is a few words; a copied job post is far more.
+    private static let pastedPostWordThreshold = 25
+
+    #if DEBUG
+    /// `--smoke-home-job` picks the résumé at `SMOKE_RESUME_PATH`, so the job step
+    /// and the pinned check bar can be screenshotted without the file picker.
+    /// Add `--smoke-job-url <link>` or `--smoke-job-words <n>` to fill the job.
+    /// DEBUG only, like `--smoke-open-optimized-tab`; it ships in no Release build.
+    private func applySmokeJobInputIfRequested() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--smoke-home-job"),
+              let path = ProcessInfo.processInfo.environment["SMOKE_RESUME_PATH"] else { return }
+        viewModel.cachePickedFile(url: URL(fileURLWithPath: path), source: "smoke")
+        func value(after flag: String) -> String? {
+            guard let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1) else { return nil }
+            return arguments[index + 1]
+        }
+        if let url = value(after: "--smoke-job-url") {
+            viewModel.jobDescriptionURL = url
+        }
+        if let words = value(after: "--smoke-job-words").flatMap(Int.init) {
+            viewModel.jobDescription = Array(repeating: "requirement", count: words).joined(separator: " ")
+            jobInputMode = .description
+        }
+    }
+    #endif
+
+    // MARK: - Check bar
 
     /// True once a signed-in user still has the diagnosis they ran as a guest —
     /// the step in front of them is continuing from it, not producing it again.
@@ -1254,83 +1483,85 @@ struct HomeTabView: View {
         appState.isAuthenticated && viewModel.postAuthStep == .continueToOptimize
     }
 
-    private var optimizeCardTitle: LocalizedStringKey {
-        if isContinuingFromGuestDiagnosis { return "Optimize" }
-        return appState.canOptimize ? "Match Check" : "Free Match Check"
-    }
-
-    private var optimizeCardSubtitle: LocalizedStringKey {
-        if isContinuingFromGuestDiagnosis { return "Continue from the diagnosis you already ran" }
-        return appState.canOptimize ? "Diagnose gaps and improve this resume" : "See your Match Score before signing in"
-    }
-
-    private var optimizeCardActionTitle: LocalizedStringKey {
+    private var checkButtonTitle: LocalizedStringKey {
         if isContinuingFromGuestDiagnosis { return "Continue to optimize" }
-        return appState.canOptimize ? "Match Check" : "Run Free Match Check"
+        return appState.canOptimize ? "Check my fit" : "Check my fit for free"
     }
 
-    private var optimizeCardIcon: String {
+    private var checkButtonIcon: String {
         if isContinuingFromGuestDiagnosis { return "arrow.forward.circle.fill" }
         return appState.canOptimize ? "wand.and.stars" : "gauge.medium"
     }
 
-    private var optimizeCard: some View {
-        let canOptimize = viewModel.selectedResumeName?.isEmpty == false && hasJobInput
-        return VStack(spacing: 0) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(canOptimize ? AnyShapeStyle(Theme.brandGradient) : AnyShapeStyle(Theme.bgPrimary))
-                        .frame(width: 36, height: 36)
-                    Text("3")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(optimizeCardTitle)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.textPrimary)
-                    Text(optimizeCardSubtitle)
-                        .font(.caption)
-                        .foregroundStyle(Theme.textTertiary)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+    private var isCheckRunning: Bool {
+        viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview
+    }
 
-            Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 16)
+    /// Pinned above the tab bar once a résumé is picked, so the next action is
+    /// always on screen. Hidden while the no-session free result shows its own
+    /// "Sign in to Optimize" button, so there is one primary action at a time.
+    private var showsCheckBar: Bool {
+        hasSelectedResume && !(viewModel.atsResult != nil && !appState.canOptimize)
+    }
 
+    private var checkBar: some View {
+        let canRun = hasSelectedResume && hasJobInput
+        let blockingMessage = canRun ? nil : jobInputEvaluation.validationMessage
+        return VStack(spacing: 8) {
             Button {
                 trackAnalysisIntent()
                 Task { await runAnalysis() }
             } label: {
                 Group {
-                    if viewModel.isOptimizing || viewModel.isRunningFreeATS || isApplyingReview {
+                    if isCheckRunning {
                         ProgressView().tint(.white)
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: optimizeCardIcon)
-                            Text(optimizeCardActionTitle)
+                            Image(systemName: checkButtonIcon)
+                            Text(checkButtonTitle)
                                 .fontWeight(.bold)
                         }
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .foregroundStyle(canOptimize ? Color.white : Theme.textTertiary)
+                .frame(height: 52)
+                .foregroundStyle(canRun ? Color.white : Theme.textTertiary)
                 .background(
-                    canOptimize && !(viewModel.isOptimizing || viewModel.isRunningFreeATS)
+                    canRun && !isCheckRunning
                         ? AnyShapeStyle(Theme.brandGradient)
-                        : AnyShapeStyle(Theme.bgPrimary.opacity(0.5)),
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        : AnyShapeStyle(Color.white.opacity(0.07)),
+                    in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                 )
             }
-            .disabled(!canOptimize || viewModel.isOptimizing || viewModel.isRunningFreeATS)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .buttonStyle(.plain)
+            .disabled(!canRun || viewModel.isOptimizing || viewModel.isRunningFreeATS)
+            .accessibilityHint(blockingMessage.map { Text($0) } ?? Text(""))
+
+            if let blockingMessage {
+                Text(blockingMessage)
+                    .font(.caption)
+                    .foregroundStyle(Theme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
+            }
         }
-        .background(Theme.bgCard, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 20)
+        .padding(.top, 14)
+        // The floating tab bar's clearance does not reach this scroll view (the
+        // content used to pad 100 by hand), so the bar clears it itself.
+        .padding(.bottom, Theme.tabBarClearance - 12)
+        .background {
+            LinearGradient(
+                stops: [
+                    .init(color: Theme.bgPrimary.opacity(0), location: 0),
+                    .init(color: Theme.bgPrimary.opacity(0.92), location: 0.3),
+                    .init(color: Theme.bgPrimary, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
     }
 
     private func errorBanner(_ message: String) -> some View {

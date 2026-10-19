@@ -1,3 +1,15 @@
+# 2026-10-19: Home job step, one field and a pinned button (Story A)
+
+**Status:** PR open, not merged, no build submitted.
+**Current Phase:** Home redesign (design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg).
+**Active Story:** Story A, this PR.
+**Last Completed Story:** Story A. After a résumé is picked, Home asks "Which job is this for?" with one link field and the system Paste button. A valid link becomes a card (site, link, ✕). "No link? Paste the job description" opens a fixed-height box with a word meter against the real minimum. The step 3 card is gone: "Check my fit" is pinned above the tab bar, with the blocking reason under it. "Step N of 3" follows the real step, and "Match" is ticked only for a check run this session (it used to tick for any old `latestOptimizationId`). The old-result card and the 7-seconds strip show only before a résumé is picked. 18 new strings, plural Hebrew. DEBUG-only `--smoke-home-job` (with `SMOKE_RESUME_PATH`, `--smoke-job-url`, `--smoke-job-words`) for screenshots without the file picker.
+**Next Recommended Story:** Story B, full-screen check (`ResumeOptimizationLoadingView` as a cover, stages that never loop, Cancel, no ATS line). Founder: device check of this PR, including typing with the keyboard up (not checked in the simulator).
+**Blockers:** none.
+**Known limits:** the system Paste button follows the phone language, not the in-app switch. Hebrew progress chips ("העלה", "הוסף משרה") are older singular strings, unchanged.
+**Last Validation:** 2026-10-19: build OK; full suite 472 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); simulator iPhone SE, English and Hebrew, states: empty, link added, 62 pasted words. Two bugs found there and fixed (button hidden behind the tab bar, description box growing off screen).
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: G1b App Store screenshots, no ATS (WP-78)
 
 **Status:** PR open, not merged. Screenshots not uploaded (founder step).

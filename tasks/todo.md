@@ -1,3 +1,20 @@
+# 2026-10-19: Home job step: one field, pinned button (Story A of the Home redesign)
+
+As a first-time user who just picked a résumé, I want one obvious place to give the job and one button I can always see, so I do not stall on the lower half of Home.
+Design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg (critique + mockups). Story B (full-screen check) is separate.
+
+- [x] Job step: one link field with the system Paste button. A valid link (field not focused) becomes a card with the site and the link, plus ✕ to clear. Pasted text with no link goes to the description.
+- [x] "No link? Paste the job description" opens the text box, with a word meter against the real minimum (50 or 100). "I have a job link" goes back. Text is never thrown away.
+- [x] Delete the step 3 card. The check button is pinned above the tab bar (`safeAreaInset`), with the blocking reason under it when disabled. Hidden while the no-session free result shows its own sign-in button.
+- [x] Header "Step N of 3" follows the real step. The "Match" chip is complete only for a check run this session (`atsResult` or `optimizationId`), not for any old `latestOptimizationId`.
+- [x] "View optimized resume" card and the 7-seconds strip show only before a résumé is picked. Strip copy loses its em dash.
+- [x] New English and Hebrew strings (plural Hebrew). Update the Hebrew-coverage test key.
+- [x] Build, full suite (`-testLanguage en`), simulator check in English and Hebrew on iPhone SE (a large iPhone and the keyboard were not checked).
+- [x] Commit, push, PR, progress.md.
+
+Expected source files: `Features/V2/Home/HomeTabView.swift`, `Resources/Localizable.xcstrings`, `ResumeBuilder IOS APPTests/FirstSessionJourneyTests.swift`. No dependencies, no analytics or server changes. Legacy `Features/Tailor/TailorView.swift` is unchanged.
+Risks: the pinned bar and the keyboard; the second-job flow focused the description field, which is now hidden by default (focus the link field instead).
+
 # 2026-10-12 — Never show the server's "Job Position" / "Company Name" placeholders
 
 As a user, I want the optimized preview header to show the real job or nothing, never `Company Name Job Position`.

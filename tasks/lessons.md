@@ -883,3 +883,13 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Rule:** When `MarketingScreenshotSlot` changes its slot count, update `scripts/generate-app-store-screenshots.sh` (the `names` list), and run it once in the same PR. The normalizer and validator take the count from the generator.
 **Why:** the renderer went from 10 slots to 5 on 2026-07-20, but the generator still looped 1 to 10. Slots 6 to 10 fall back to `.tailor`, so the run would have produced duplicates and failed validation. Nobody re-ran it, so the June 10-slot set, with the "ATS score" claims and screens the app no longer has, stayed live on the App Store for four months after the copy was fixed in code.
 
+### 2026-10-19: Home's scroll view does not get the tab bar clearance
+
+**Rule:** A bar pinned with `.safeAreaInset(edge: .bottom)` inside `HomeTabView` must pad itself by `Theme.tabBarClearance`. The clearance that `MainTabViewV2` adds does not reach Home's scroll view, which is why Home's content padded 100 by hand.
+**Why:** the first pinned "Check my fit" bar sat fully behind the floating tab bar on iPhone SE. The build and all tests passed; only a screenshot showed it.
+
+### 2026-10-19: Screenshot Home's job step without the file picker
+
+**Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language first with `defaults write <bundle-id> app_selected_language -string he`, and delete the key afterwards. Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
+**Why:** the job step only appears after a file is picked, and the picker cannot be driven headless.
+

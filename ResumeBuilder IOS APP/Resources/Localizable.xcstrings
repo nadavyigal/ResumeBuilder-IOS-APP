@@ -32,6 +32,28 @@
         }
       }
     },
+    "%lld of %lld words" : {
+      "comment" : "Pasted job description: words so far, then the minimum",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מתוך %lld מילים"
+          }
+        }
+      }
+    },
+    "%lld words" : {
+      "comment" : "Pasted job description word count, minimum met",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מילים"
+          }
+        }
+      }
+    },
     "--" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -39,6 +61,166 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "--"
+          }
+        }
+      }
+    },
+    "A link from LinkedIn or the company site is enough." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור מ-LinkedIn או מאתר החברה מספיק."
+          }
+        }
+      }
+    },
+    "Check my fit" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה"
+          }
+        }
+      }
+    },
+    "Check my fit for free" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה בחינם"
+          }
+        }
+      }
+    },
+    "Enough to check" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מספיק לבדיקה"
+          }
+        }
+      }
+    },
+    "I have a job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש לי קישור למשרה"
+          }
+        }
+      }
+    },
+    "Job link added" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקישור נוסף"
+          }
+        }
+      }
+    },
+    "No link? Paste the job description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין קישור? הדביקו את תיאור המשרה"
+          }
+        }
+      }
+    },
+    "Paste a bit more of the description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו עוד קצת מהתיאור"
+          }
+        }
+      }
+    },
+    "Paste the full job post. The more of it, the better the match." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו את המשרה המלאה. ככל שיש יותר טקסט, ההתאמה מדויקת יותר."
+          }
+        }
+      }
+    },
+    "Paste the job description here" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו כאן את תיאור המשרה"
+          }
+        }
+      }
+    },
+    "Paste the job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו קישור למשרה"
+          }
+        }
+      }
+    },
+    "Remove job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסרת הקישור"
+          }
+        }
+      }
+    },
+    "See what a recruiter notices in the first 7 seconds, then fix it." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראו במה מגייסים מבחינים ב-7 השניות הראשונות, ואז תקנו."
+          }
+        }
+      }
+    },
+    "Step 2 of 3" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלב 2 מתוך 3"
+          }
+        }
+      }
+    },
+    "Step 3 of 3" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלב 3 מתוך 3"
+          }
+        }
+      }
+    },
+    "Which job is this for?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לאיזו משרה להתאים?"
           }
         }
       }
@@ -7348,16 +7530,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ראה מה מגייס עשוי לשים לב תוך 7 שניות, ואז קבל את התיקון הבא."
-          }
-        }
-      }
-    },
-    "See what a recruiter notices in the first 7 seconds — then fix it." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ראו במה מגייס מבחין ב-7 השניות הראשונות — ואז תקנו זאת."
           }
         }
       }
