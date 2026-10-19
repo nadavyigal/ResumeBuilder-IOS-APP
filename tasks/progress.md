@@ -1,3 +1,16 @@
+# 2026-10-19: 1.5.2 (30) is live on the App Store
+
+**Status:** 1.5.2 (30) live since 2026-10-19. App Store lookup for "Resume AI - CV Builder" (id
+6776752349), polled 3 times on 2026-10-19 with a different `nocache` value each time (3 of 3 agreed):
+version 1.5.2, released 2026-10-19T01:22:38Z. The founder also confirmed it in App Store Connect.
+**Ships in 1.5.2:** #188 (no server placeholders), #189 (G2b "Add only if true") and #190 (job step
+asks only what the server needs). All three merged before the build. Known limit: issue #191 (link
+ending in punctuation).
+**Next:** device check of the live build, then G1b screenshots.
+**Last Validation:** 2026-10-19: App Store lookup 1.5.2 (3 of 3 polls). Status-file change only; no
+build, test or code change.
+**Last Updated:** 2026-10-19
+
 # 2026-10-18: Release 1.5.2 (30) version bump
 
 **Status:** PR open, not merged, no build archived or uploaded.
