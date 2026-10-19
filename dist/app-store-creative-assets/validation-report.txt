@@ -1,0 +1,6 @@
+Resumely App Store Creative Asset Validation
+Generated: 2026-10-19T19:57:38Z
+Copy check: PASS - no ATS, price, free, score, guarantee or ranking words
+resumely-universal-5244x2950.png: PASS - opaque RGB PNG at 5244x2950
+resumely-header-3840x1646.png: PASS - opaque RGB PNG at 3840x1646
+resumely-search-3840x2560.png: PASS - opaque RGB PNG at 3840x2560

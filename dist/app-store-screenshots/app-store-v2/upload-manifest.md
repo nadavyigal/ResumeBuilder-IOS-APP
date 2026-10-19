@@ -4,13 +4,15 @@ Generated: 2026-10-19, from `main` at Resumely 1.5.2 (30)
 Locale: English (US)
 Source: the app's launch-argument-only marketing screenshot mode (`MarketingScreenshotView`), captured by `scripts/generate-app-store-screenshots.sh`
 Simulators: Resumely Screenshots 11 Pro Max (iPhone, 1242x2688 native); iPad Pro 13-inch (M5) (2064x2752 native)
+Added 2026-10-19: iPhone 17 (1206x2622 native), rendered from `main` at 1.5.3 (32); `MarketingScreenshotView.swift` is unchanged since 1.5.2, so the content matches the other two sets.
 
 ## Drag-And-Drop Folders
 
-- iPhone 6.5-inch: `iphone-6.5-1242x2688/`, 5 opaque RGB PNGs, 1242x2688
+- iPhone with Dynamic Island (medium display), 6.3-inch: `iphone-6.3-1206x2622/`, 5 opaque RGB PNGs, 1206x2622. Apple's required iPhone size (spec read 2026-10-19).
+- iPhone with Face ID (large display), 6.5-inch: `iphone-6.5-1242x2688/`, 5 opaque RGB PNGs, 1242x2688. Apple also scales this set for the 6.9-inch section.
 - iPad 13-inch: `ipad-13/`, 5 opaque RGB PNGs, 2064x2752
 
-In App Store Connect, delete all 10 current screenshots in each device section first, then upload the 5 files in order. The old set (`../app-store-v1/`, June 2026) claims an "ATS score" and shows screens the app no longer has.
+In App Store Connect, delete all 10 current screenshots in each device section first, then upload the 5 files in order. Click by click: `docs/aso/2026-10-app-store-asset-publish-checklist.md`. The old set (`../app-store-v1/`, June 2026) claims an "ATS score" and shows screens the app no longer has.
 
 ## Display Order
 

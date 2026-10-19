@@ -1,3 +1,15 @@
+# 2026-10-19: App Store asset publish pack (rb-aso-002 screenshots, rb-aso-003 creative asset)
+
+**Status:** PR open, not merged. Nothing uploaded to App Store Connect or submitted (founder step).
+**Current Phase:** Q4 OKR A1, Resumely ASO.
+**Active Story:** asset publish pack, this PR.
+**Last Completed Story:** Apple's screenshot spec (read 2026-10-19) requires at least one iPhone "Dynamic Island (medium display)" screenshot; 1242x2688 is only the scaled fallback for it. Added a native 1206x2622 set (`app-store-v2/iphone-6.3-1206x2622/`, iPhone 17, same 5 slots, `MarketingScreenshotView` unchanged since 1.5.2). Generator, normalizer and validator now take the iPhone folder (`IPHONE_DIR`, `CAPTURE_IPAD=0`). New creative asset for the iOS 27 product page header and search results in `dist/app-store-creative-assets/` (universal 5244x2950, plus 3840x1646 header and 3840x2560 search crops), rendered by `scripts/render-app-store-creative-assets.sh`, which refuses ATS, price, free and score words. Click-by-click checklist: `docs/aso/2026-10-app-store-asset-publish-checklist.md`.
+**Next Recommended Story:** founder follows the checklist: swap screenshots on 1.5.3 before submitting it, upload the creative asset to the Asset Library and submit it standalone, publish it 28 days after the screenshots, log rb-aso-002 and rb-aso-003 in Agentic OS `distribution-os/experiment-log.md`.
+**Blockers:** none.
+**Reminder:** by 2027-03-01, iPhone Duo screenshots (1398x2034 outer, 2007x2853 inner) are required from April 2027 for builds on the iOS 27.1 SDK.
+**Last Validation:** 2026-10-19: `validate-app-store-screenshots.sh` PASS for all three sets (1242x2688, 1206x2622, 2064x2752; 5 unique opaque PNGs each); `render-app-store-creative-assets.sh` PASS (copy check, sizes, no alpha); every new PNG viewed; `CopyClaimsTests` 5 tests, 0 failures (iPhone 17 Pro Max, `-testLanguage en -testRegion US`). Full suite not run: no app code changed.
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: Release 1.5.3 (32), Home redesign
 
 **Status:** version bumped to 1.5.3 (32) on `release/1.5.3-32`; Release archive and App Store Connect upload in progress. Not submitted for review (founder step).
