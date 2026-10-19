@@ -10,6 +10,9 @@ struct ResumeDiagnosisView: View {
     /// rewrite has been applied and the remaining gaps need evidence the
     /// rewrite could not invent.
     var onAskExpert: (() -> Void)?
+    /// The "What changed" data, already loaded. DEBUG smoke harness only;
+    /// the app always fetches it by review id.
+    var previewChanges: OptimizationReviewEnvelope?
 
     @State private var viewedRewriteIds: Set<UUID> = []
     @State private var blockedRewriteIds: Set<UUID> = []
@@ -95,7 +98,10 @@ struct ResumeDiagnosisView: View {
             // is where the user finds out what that meant. Renders nothing when
             // there is no review behind this optimization — a diagnosis opened
             // from History predates the mapping.
-            AppliedChangesSection(reviewId: appState.reviewId(for: viewModel.optimizationId))
+            AppliedChangesSection(
+                reviewId: appState.reviewId(for: viewModel.optimizationId),
+                preloaded: previewChanges
+            )
 
             topGapsCard(diagnosis.topGaps)
             missingKeywordsCard(diagnosis)
@@ -148,18 +154,21 @@ struct ResumeDiagnosisView: View {
                         .font(.appHeadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
+                    // The whole score story: where it is now, and where it
+                    // started, both stored by the same run. This replaced a
+                    // projected "45% -> 49%" further down the screen that
+                    // contradicted the 67 above it (device, 2026-10-19).
+                    if let start = diagnosis.displayedStartingScore {
+                        Text("Up from \(start)% before tailoring")
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.accentTeal)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer(minLength: AppSpacing.sm)
 
                 ScoreRingView(score: diagnosis.matchScore, size: 92)
-            }
-
-            // The journey, not a lone number. The user sees where they started,
-            // what the tailored rewrite reaches, and that the next step only
-            // ever adds — never subtracts (founder direction 2026-07-26).
-            if let potential = diagnosis.potentialScore, potential > diagnosis.matchScore {
-                fitJourneyStrip(from: diagnosis.matchScore, to: potential)
             }
 
             Text(diagnosis.scoreNote.isEmpty ? diagnosis.matchScoreLabel : diagnosis.scoreNote)
@@ -169,48 +178,6 @@ struct ResumeDiagnosisView: View {
         }
         .padding(AppSpacing.lg)
         .glassCard(cornerRadius: AppRadii.lg)
-    }
-
-    /// Where you are now, and where the next step takes you.
-    ///
-    /// Deliberately shows the destination as a gain rather than a promise of a
-    /// final number, and only when the destination is genuinely higher — the
-    /// product has already been burned once by showing a "potential" the user
-    /// could not reach.
-    private func fitJourneyStrip(from current: Int, to next: Int) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: AppSpacing.sm) {
-            // The progression is pinned left-to-right on purpose.
-            //
-            // In Hebrew the surrounding RTL layout mirrors this row, and the
-            // strip rendered as "48% -> 29%" — the journey reading backwards,
-            // so the score appeared to DROP. That is the exact impression this
-            // screen exists to remove. Start-then-end is a directional quantity
-            // like a formula: it stays LTR in both languages, while the caption
-            // beside it follows the language.
-            HStack(spacing: AppSpacing.sm) {
-                Text(verbatim: "\(current)%")
-                    .font(.appSubheadline.weight(.bold))
-                    .foregroundStyle(AppColors.textSecondary)
-
-                Image(systemName: "arrow.right")
-                    .font(.appCaption.weight(.bold))
-                    .foregroundStyle(AppColors.accentTeal)
-
-                Text(verbatim: "\(next)%")
-                    .font(.appSubheadline.weight(.bold))
-                    .foregroundStyle(AppColors.accentTeal)
-            }
-            .environment(\.layoutDirection, .leftToRight)
-            .accessibilityElement(children: .ignore)
-
-            Text("after you apply the tailored rewrite")
-                .font(.appCaption)
-                .foregroundStyle(AppColors.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.vertical, AppSpacing.xs)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text("Your match goes from \(current) percent to \(next) percent after applying the tailored rewrite"))
     }
 
     private func topGapsCard(_ gaps: [ResumeGap]) -> some View {

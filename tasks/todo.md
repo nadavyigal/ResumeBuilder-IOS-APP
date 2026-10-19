@@ -1,3 +1,17 @@
+# 2026-10-19 — Diagnosis tells one score story
+
+As a user, I want the Diagnosis screen to show one Match score and where it started, so the numbers never contradict each other.
+Root cause (verified): the ring reads the stored detail (`ats_score_optimized`, 67) in `ResumeDiagnosisMapper.make(from:)`; the "What changed" pills read `review.atsPreview.before/after`, a projection made before the apply (45 -> 49). Lesson 2026-08-09: review scores are projections, detail scores are authoritative.
+- [x] Failing tests: server-shaped review (after=49) + detail (45/67) -> screen model shows 67 now, up from 45; no score on the "What changed" model; section names map to human labels.
+- [x] `ResumeDiagnosis` gets `startingScore` (stored before), shown as "Up from X% before tailoring" only when the lift is >= 5 (same rule as `OptimizedResumeViewModel.minimumMeaningfulLift`). The detail path drops any backend `potential_score`, so no projection can show after the apply.
+- [x] `AppliedChangesSection`: remove the Original -> Match pills and the projection-backed `originalScore/currentScore`; localize section names (Summary, Contact, Skills, Experience, Education, Certifications, Projects) with an English fallback that is human.
+- [x] One word on the screen: "Match". Remove "ATS" from the Diagnosis checklist copy. Hebrew strings in plural voice.
+- [x] Check OptimizedResumeView "Match score" and the fit check for the same projection-vs-stored bug; fix only the same bug, list the rest in the PR.
+- [x] Build, full suite (`-testLanguage en -testRegion US`), simulator screenshots EN + HE via `--smoke-diagnosis`. 480 tests, 0 failures, 1 skipped.
+- [ ] Commit, push, PR, `tasks/progress.md`. No server change, no dependency, no release build.
+
+Expected source files: `Models/ResumeDiagnosis.swift`, `Features/V2/Diagnosis/ResumeDiagnosisView.swift`, `Features/V2/Diagnosis/AppliedChangesSection.swift`, `Features/V2/Diagnosis/DiagnosisSmokeHarness.swift`, `Resources/Localizable.xcstrings`; tests in new `ResumeBuilder IOS APPTests/DiagnosisScoreStoryTests.swift`.
+
 # 2026-10-19: Home check takes the full screen (Story B of the Home redesign)
 
 As a user who just tapped "Check my fit", I want the check to take over the screen and tell me honestly where it is, so I know it started, can see it end, and can back out.
