@@ -1,3 +1,18 @@
+# 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
+
+As a user about to run my first check, I want to be told plainly that my résumé and job text go to OpenAI, and to agree before anything is sent, so I know where my data goes.
+Source: Builder OS vault `03-Research/2026-10-19-wwdc26-portfolio-adoption-audit.md` O2 (both iOS apps a GAP on 5.1.2(i)). Founder approved the plan 2026-10-19.
+
+- [x] New `Core/Consent/AIConsentStore.swift`: dated, versioned yes in UserDefaults (`ai_data_consent_v1`), injectable defaults for tests.
+- [x] New `Features/V2/Consent/AIConsentSheet.swift`: title, body, Privacy Policy link (`LegalLinks`), "Agree and continue", "Not now". Dark, RTL set from `localization.layoutDirection`.
+- [x] `HomeTabView.startCheck()` (the only caller of `runAnalysis`) shows the sheet when there is no yes. Agree records consent and starts the check from the sheet's `onDismiss` (two modals cannot show at once). "Not now" sends nothing.
+- [x] Analytics: `ai_consent_shown`, `ai_consent_accepted`, `ai_consent_declined` (`source=home_check`).
+- [x] Catalog: new keys in English and Hebrew; delete "Your resume is encrypted and never shared." and "Your resume data is encrypted end-to-end." and their labels (`ScanResumeView.swift:66`, `ResumePreviewExportView.swift:94`, both dead code).
+- [x] Tests (`AIConsentTests.swift`, 4 pbxproj entries): store default/record/version, gate, Hebrew keys resolve, catalog has no "never shared" claim. Red first, then green. Full suite `-testLanguage en -testRegion US`.
+- [x] Simulator screenshots English and Hebrew: `--smoke-home-job`, tap Check, sheet shows, "Not now" sends nothing.
+- [x] Commit, push, PR, progress.md.
+- Known limit: chat or refine on an old optimization before the next Check is not gated (follow-up).
+
 # 2026-10-19: Home check takes the full screen (Story B of the Home redesign)
 
 As a user who just tapped "Check my fit", I want the check to take over the screen and tell me honestly where it is, so I know it started, can see it end, and can back out.

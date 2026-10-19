@@ -257,6 +257,9 @@ final class AnalyticsServiceTests: XCTestCase {
             "resume_upload_coming_soon_tapped",
             "resume_upload_cta_seen",
             "second_job_started",
+            "ai_consent_shown",
+            "ai_consent_accepted",
+            "ai_consent_declined",
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.name), expectedNames)
     }
@@ -327,6 +330,9 @@ final class AnalyticsServiceTests: XCTestCase {
             ["route": "scan"],
             ["source": "home"],
             [:],
+            ["source": "home_check"],
+            ["source": "home_check"],
+            ["source": "home_check"],
         ]
         XCTAssertEqual(Self.allAnalyticsEvents.map(\.properties), expectedProperties)
     }
@@ -873,6 +879,9 @@ final class AnalyticsServiceTests: XCTestCase {
         .resumeUploadComingSoonTapped(route: "scan"),
         .resumeUploadCTASeen(source: "home"),
         .secondJobStarted,
+        .aiConsentShown(source: "home_check"),
+        .aiConsentAccepted(source: "home_check"),
+        .aiConsentDeclined(source: "home_check"),
     ]
 
     private func resetAnalyticsDefaults() {

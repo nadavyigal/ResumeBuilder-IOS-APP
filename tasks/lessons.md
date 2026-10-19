@@ -900,7 +900,7 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 ### 2026-10-19: Screenshot Home's job step without the file picker
 
-**Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language first with `defaults write <bundle-id> app_selected_language -string he`, and delete the key afterwards. Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
+**Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language in the app container's own plist, with the app terminated: `P="$(xcrun simctl get_app_container <udid> <bundle-id> data)/Library/Preferences/<bundle-id>.plist"; xcrun simctl spawn <udid> defaults write "$P" app_selected_language -string he`, and set it back to `en` afterwards. (Corrected 2026-10-19: `defaults write <bundle-id> ...` writes a different domain; the container plist kept `en` and the app stayed in English.) Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
 **Why:** the job step only appears after a file is picked, and the picker cannot be driven headless.
 
 ### 2026-10-19: A prompt set while the check screen is up is lost
@@ -908,3 +908,8 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Rule:** Anything Home presents after a check (alert, dialog, sheet) must wait for the check screen's `onDismiss`, not for `isCheckScreenShown` to turn false. iOS refuses a second presentation while one is up or still animating out.
 **Why:** on device, "Save this resume?" logged "Attempt to present … which is already presenting" and never showed. Tests and the simulator passed; only a device log with `OS_ACTIVITY_DT_MODE=YES` (`devicectl device process launch --console`) showed it.
 
+
+### 2026-10-19: The test target is a synced folder now; the 2026-07-16 pbxproj rule is stale
+
+**Rule:** New files in `ResumeBuilder IOS APPTests/` compile with no `project.pbxproj` edit. The test target is a `PBXFileSystemSynchronizedRootGroup` (`EBBAC22F32DDC2060C87D2CC`), like the app target. Still confirm the red state first: a new test that fails on a missing type proves it is compiled.
+**Why:** the 2026-07-16 lesson says a new test file needs 4 manual pbxproj entries. Following it would have added duplicate references. `AIConsentTests.swift` was added with no project change and failed to compile on the missing `AIConsentStore`, which proved the folder is synced.

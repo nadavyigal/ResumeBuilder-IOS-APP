@@ -1,3 +1,13 @@
+# 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
+
+**Status:** PR open, not merged. No build archived or uploaded. Ships in the release after 1.5.3 (32).
+**What changed:** the first "Check my fit" now shows a one-time sheet: "Resumely sends your résumé text and the job description to OpenAI, our AI provider", the 7-day guest retention, a Privacy Policy link, "Agree and continue" and "Not now". Nothing is sent until the user agrees. "Not now" or swiping the sheet away sends nothing, and the next tap asks again. The gate sits in `HomeTabView.startCheck()`, the only caller of `runAnalysis`. The answer is stored per device with its date (`Core/Storage/AIConsentStore.swift`, key `ai_data_consent_v1`). New sheet: `Features/V2/Home/AIConsentSheet.swift`. New events: `ai_consent_shown`, `ai_consent_accepted`, `ai_consent_declined` (`source=home_check`). Two false labels removed with their catalog keys: "Your resume is encrypted and never shared." (`ScanResumeView`) and "Your resume data is encrypted end-to-end." (`ResumePreviewExportView`), both dead code.
+**Why:** the 2026-10-19 WWDC26 audit (vault `03-Research/2026-10-19-wwdc26-portfolio-adoption-audit.md`, O2) found the app sent résumé text to OpenAI with no in-app permission. The web privacy page named OpenAI, but guests could upload without ever seeing it.
+**Known limit:** chat or refine on an old optimization, before the user's next Check, is not gated.
+**Next:** founder review and merge; then the RunSmart consent fix and privacy page rewrite (same O2 finding).
+**Last Validation:** 2026-10-19: `AIConsentTests` 8 tests, red first (compile failure on the missing store, then 10 failures on missing Hebrew and the two catalog claims), now green. Full `xcodebuild test` (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`): 489 tests, 0 failures, 1 skipped, plus 3 Swift Testing tests passed. Simulator smoke with `--smoke-home-job` in English and Hebrew: tapping Check shows the sheet (Hebrew right-to-left, fully translated). "Not now" returns to Home with no check started and no consent stored. "Agree" was not run end to end, because it sends a real guest check to production.
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: Release 1.5.3 (32), Home redesign
 
 **Status:** version bumped to 1.5.3 (32) on `release/1.5.3-32`; Release archive and App Store Connect upload in progress. Not submitted for review (founder step).
