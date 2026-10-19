@@ -7,22 +7,19 @@ SCHEME="ResumeBuilder IOS APP"
 BUNDLE_ID="Resumebuilder-IOS.ResumeBuilder-IOS-APP"
 DERIVED_DATA="${DERIVED_DATA:-/var/tmp/resumely-screenshot-derived}"
 APP="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/ResumeBuilder IOS APP.app"
-OUTPUT="$ROOT/dist/app-store-screenshots/app-store-v1"
+OUTPUT="${OUTPUT:-$ROOT/dist/app-store-screenshots/app-store-v2}"
 
 IPHONE_ID="${IPHONE_ID:-8A728F41-76C5-420D-82E6-3AE1A383A13E}"
-IPAD_ID="${IPAD_ID:-B2017D4B-BC89-4A2D-AB81-EF057550135D}"
+# iPad Pro 13-inch (M5); the old B2017D4B simulator no longer exists.
+IPAD_ID="${IPAD_ID:-414996FA-6056-46FC-B08C-9CA1723C0857}"
 
+# Must match MarketingScreenshotSlot (5 slots since the 2026-07-20 caption pack).
 names=(
   tailor
   blockers
   ai-edits
-  score-lift
-  manual-edit
   templates
-  export
   expert
-  cover-letter
-  submit-package
 )
 
 mkdir -p "$OUTPUT/iphone-6.5-1242x2688" "$OUTPUT/ipad-13"
@@ -51,7 +48,7 @@ capture_set() {
     --cellularBars 4
   xcrun simctl install "$device_id" "$APP"
 
-  for slot in {1..10}; do
+  for slot in {1..${#names[@]}}; do
     local number
     number=$(printf "%02d" "$slot")
     local output="$destination/$number-${names[$slot]}.png"
@@ -60,7 +57,7 @@ capture_set() {
     xcrun simctl launch "$device_id" "$BUNDLE_ID" \
       --marketing-screenshot \
       --screenshot-slot "$slot" >/dev/null
-    sleep 5
+    sleep 10
     xcrun simctl io "$device_id" screenshot "$output" >/dev/null
     echo "Captured $output"
   done
@@ -69,5 +66,5 @@ capture_set() {
 capture_set "$IPHONE_ID" "$OUTPUT/iphone-6.5-1242x2688"
 capture_set "$IPAD_ID" "$OUTPUT/ipad-13"
 
-python3 "$ROOT/scripts/normalize-app-store-screenshots.py" "$OUTPUT"
-"$ROOT/scripts/validate-app-store-screenshots.sh" "$OUTPUT"
+python3 "$ROOT/scripts/normalize-app-store-screenshots.py" "$OUTPUT" "${#names[@]}"
+"$ROOT/scripts/validate-app-store-screenshots.sh" "$OUTPUT" "${#names[@]}"

@@ -12,10 +12,10 @@ TARGETS = {
 }
 
 
-def normalize(folder: Path, size: tuple[int, int]) -> None:
+def normalize(folder: Path, size: tuple[int, int], expected: int) -> None:
     files = sorted(folder.glob("*.png"))
-    if len(files) != 10:
-        raise RuntimeError(f"{folder}: expected 10 PNG files, found {len(files)}")
+    if len(files) != expected:
+        raise RuntimeError(f"{folder}: expected {expected} PNG files, found {len(files)}")
 
     for path in files:
         with Image.open(path) as source:
@@ -31,10 +31,11 @@ def normalize(folder: Path, size: tuple[int, int]) -> None:
 
 def main() -> None:
     root = Path(
-        sys.argv[1] if len(sys.argv) > 1 else "dist/app-store-screenshots/app-store-v1"
+        sys.argv[1] if len(sys.argv) > 1 else "dist/app-store-screenshots/app-store-v2"
     )
+    expected = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     for folder_name, size in TARGETS.items():
-        normalize(root / folder_name, size)
+        normalize(root / folder_name, size, expected)
 
 
 if __name__ == "__main__":

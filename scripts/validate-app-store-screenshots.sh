@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUTPUT="${1:-$ROOT/dist/app-store-screenshots/app-store-v1}"
+OUTPUT="${1:-$ROOT/dist/app-store-screenshots/app-store-v2}"
+EXPECTED="${2:-5}"
 REPORT="$OUTPUT/validation-report.txt"
 
 validate_set() {
@@ -12,8 +13,8 @@ validate_set() {
   local label="$4"
   local files=("$directory"/*.png(N))
 
-  if [[ "${#files[@]}" -ne 10 ]]; then
-    echo "$label: expected 10 PNGs, found ${#files[@]}" >&2
+  if [[ "${#files[@]}" -ne "$EXPECTED" ]]; then
+    echo "$label: expected $EXPECTED PNGs, found ${#files[@]}" >&2
     return 1
   fi
 
@@ -41,19 +42,19 @@ validate_set() {
 
   local unique_count
   unique_count=$(printf "%s\n" "${hashes[@]}" | sort -u | wc -l | tr -d ' ')
-  if [[ "$unique_count" -ne 10 ]]; then
+  if [[ "$unique_count" -ne "$EXPECTED" ]]; then
     echo "$label: duplicate screenshots detected" >&2
     return 1
   fi
 
-  echo "$label: PASS - 10 unique opaque RGB PNGs at ${expected_width}x${expected_height}"
+  echo "$label: PASS - $EXPECTED unique opaque RGB PNGs at ${expected_width}x${expected_height}"
 }
 
 {
   echo "Resumely App Store Screenshot Validation"
   echo "Generated: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   validate_set "$OUTPUT/iphone-6.5-1242x2688" 1242 2688 "iPhone 6.5-inch"
-  if [[ "${2:-}" != "--iphone-only" ]]; then
+  if [[ "${3:-}" != "--iphone-only" ]]; then
     validate_set "$OUTPUT/ipad-13" 2064 2752 "iPad 13-inch"
   fi
 } | tee "$REPORT"

@@ -877,3 +877,9 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 **Category:** Testing
 **Rule:** A temporary SwiftUI smoke harness must return the environment-dependent View itself, not evaluate its computed subview in a static factory before environment injection.
 **Why:** The first synthetic export-card harness exited on launch because the factory evaluated an AppState-dependent card outside the mounted view; the harness was corrected, with no production-code defect inferred.
+
+### 2026-10-19: Screenshot tooling drifted from the renderer
+
+**Rule:** When `MarketingScreenshotSlot` changes its slot count, update `scripts/generate-app-store-screenshots.sh` (the `names` list), and run it once in the same PR. The normalizer and validator take the count from the generator.
+**Why:** the renderer went from 10 slots to 5 on 2026-07-20, but the generator still looped 1 to 10. Slots 6 to 10 fall back to `.tailor`, so the run would have produced duplicates and failed validation. Nobody re-ran it, so the June 10-slot set, with the "ATS score" claims and screens the app no longer has, stayed live on the App Store for four months after the copy was fixed in code.
+

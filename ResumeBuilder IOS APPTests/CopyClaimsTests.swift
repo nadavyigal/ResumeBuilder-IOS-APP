@@ -106,6 +106,18 @@ final class CopyClaimsTests: XCTestCase {
         }
         XCTAssertEqual(MarketingScreenshotSlot.tailor.headline, "Your resume, tailored for this job")
     }
+
+    /// G1b (market play 2026-10-14): App Store screenshots carry no "ATS" at all,
+    /// not even the "ATS-friendly" form the in-app copy may keep.
+    func testMarketingSlotsNeverSayATS() async {
+        for slot in MarketingScreenshotSlot.allCases {
+            for text in [slot.headline, slot.subline, slot.caption] {
+                XCTAssertNil(text.range(of: #"\bATS\b"#, options: .regularExpression),
+                             "marketing slot \(slot) mentions ATS: \(text)")
+                XCTAssertFalse(text.contains("—"), "marketing slot \(slot) uses an em dash: \(text)")
+            }
+        }
+    }
 }
 
 /// Guards the auth entry points (Story 3): "Create free account" must open the
