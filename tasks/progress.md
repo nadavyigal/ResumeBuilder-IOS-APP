@@ -1,3 +1,14 @@
+# 2026-10-19: Diagnosis tells one score story
+
+**Status:** PR open, not merged. Not in 1.5.3 (32); ships in the next build.
+**Current Phase:** post-1.5.3 fixes.
+**Active Story:** Diagnosis one score story (`fix/diagnosis-one-score-story`).
+**Last Completed Story:** the ring showed the stored 67 while "What changed" showed the review projection "Original 45% -> Match 49%". Now: headline 67, "Up from 45% before tailoring" (stored original, shown for +5 or more), no score in "What changed", no projected strip, no "ATS" in the checklist, section names and the server's change titles localized (Hebrew plural voice).
+**Next Recommended Story:** decide whether the Optimized tab's free-check floor (`FitJourney.baseline`) should also apply on Diagnosis, so the two screens can never differ; fit check projection vs stored result needs a server fix (49 promised, 67 stored).
+**Blockers:** none.
+**Last Validation:** 2026-10-19: `DiagnosisScoreStoryTests` (8) did not compile before the fix, pass after; full suite 489 tests, 0 failures, 1 skipped (iPhone 17 Pro sim, iOS 26.5, `-testLanguage en -testRegion US`, rebased on 1.5.3); `--smoke-diagnosis` screenshots in English and Hebrew.
+**Last Updated:** 2026-10-19
+
 # 2026-10-19: Release 1.5.3 (32), Home redesign
 
 **Status:** 1.5.3 (32) uploaded to App Store Connect 2026-10-19T18:33Z ("Upload succeeded", reported by the uploading session; not independently checked in App Store Connect). Merged: #195, #196, #197. **Founder reported it submitted for review 2026-10-20** (relayed by the morning-brief session; review state not checked here).

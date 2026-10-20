@@ -810,6 +810,20 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 ---
 
+**Date:** 2026-10-19
+**Category:** Test
+**Rule:** After any `--smoke-he` launch, run `xcrun simctl spawn <udid> defaults delete Resumebuilder-IOS.ResumeBuilder-IOS-APP app_selected_language` before the next test run.
+**Why:** `--smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which persists `app_selected_language = he` in the app's defaults, and the XCTest host is the app. The next full suite failed 26 English-copy assertions across 6 unrelated files with no code change. A later test resets the key to "en", so reading it after the run shows nothing wrong.
+
+---
+
+**Date:** 2026-10-19
+**Category:** Optimized résumé state
+**Rule:** After an apply, every score on screen comes from the optimization detail (`ats_score_before/after`). `review.atsPreview` is for the screen BEFORE the apply only. Before shipping any score UI, `grep -rn atsPreview` and check that no post-apply view reads it.
+**Why:** The 2026-08-09 rule was applied to the Optimized tab only. When the review content moved onto Resume Diagnosis (2026-08-12), its "Original -> Match" pills came along still reading the projection. On device 2026-10-19 the ring said 67 (stored) and the pills said 45 -> 49 (projected) for the same run. Same bug, second screen, two months later.
+
+---
+
 **Date:** 2026-08-09
 **Category:** Optimized résumé state
 **Rule:** Treat review scores as projections and optimization-detail scores as authoritative for the saved résumé. A non-idempotent improvement must record completion immediately after server apply, refresh the saved detail directly, and replace its action with visible output.
