@@ -75,6 +75,13 @@ Upload order in every section, left to right:
 Upload it on its own so it has its own publish date and its own before/after read.
 Do **not** leave it on any version page (part C removes it after the preview).
 
+**Done 2026-10-20 (Claude, in Chrome):** uploaded `resumely-universal-5244x2950.png`, named
+`Header and search, Oct 2026`, asset ID `16c00019-3ed0-88dd-8028-aab55aafa4f4`. Works With lists both
+**Search Results** and **Product Page Header**. Status: Prepare for Submission (not submitted).
+Preview was not possible that day: 1.5.3 is Waiting for Review (its Header well is locked, no Browse Assets),
+and live 1.5.2 only offers **approved** assets. So the preview happens either on the next editable version
+(part C) or, if the asset is submitted standalone first, on the live version right before **Publish** (part E).
+
 1. In the app sidebar, click **Asset Library**.
 2. Click the **add (+)** button, then **Upload Creative Assets**.
 3. Choose `dist/app-store-creative-assets/resumely-universal-5244x2950.png`, then click **Upload** (bottom right).
