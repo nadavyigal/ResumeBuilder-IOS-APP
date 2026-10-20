@@ -1,3 +1,11 @@
+# 2026-10-20: Asset publish pack review fixes on PR #201
+
+**Status:** pushed to PR #201, not merged. Nothing uploaded to App Store Connect or submitted.
+**What changed:** the PR Steward (2026-10-20) and Codex found three gaps. (1) The checklist assigned only the product page header before preview and removed only the header after it, so a search-results asset could ship with the version and mix the rb-aso-002 and rb-aso-003 reads. Part C now assigns **Header** and **Search Results** (Use header asset in search results for the universal file, the dedicated file otherwise), previews, deletes both, and checks both wells are empty, per Apple's "Remove creative assets from a placement" steps. Part E publishes both. (2) The screenshots target the next editable version (1.5.4 or later): 1.5.2 is live and 1.5.3 (32) is already in review without them. (3) `CAPTURE_IPAD=0` ran the final validator without `--iphone-only`, so a fresh iPhone-only folder failed on five missing iPad images. `scripts/generate-app-store-screenshots.sh` now passes the flag, and `SKIP_CAPTURE=1` re-checks existing PNGs without the simulator.
+**Last Validation:** 2026-10-20: new `scripts/test_app_store_screenshot_scripts.py` 4 tests pass (validator with and without `--iphone-only`, and the generator with `CAPTURE_IPAD=0` and `1` on a fresh synthetic iPhone-only folder). With the `--iphone-only` line removed, `test_capture_ipad_off_validates_iphone_only` fails, then passes again once restored. All `scripts/test_*.py` OK. `zsh -n` on the generator OK. No Swift changed.
+**Next Recommended Story:** founder follows the corrected checklist on the next version; builder-os-exchange #31 is redone around it.
+**Last Updated:** 2026-10-20
+
 # 2026-10-19: App Store asset publish pack (rb-aso-002 screenshots, rb-aso-003 creative asset)
 
 **Status:** PR open, not merged. Nothing uploaded to App Store Connect or submitted (founder step).

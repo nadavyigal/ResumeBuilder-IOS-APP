@@ -14,15 +14,17 @@ Button names below are from those pages. The live App Store Connect screens were
 
 | Experiment | What | Files | Goes live |
 |---|---|---|---|
-| rb-aso-002 | 5 new screenshots, replacing the 10 June ones (they claim an "ATS score") | `dist/app-store-screenshots/app-store-v2/` | With version 1.5.3 |
+| rb-aso-002 | 5 new screenshots, replacing the 10 June ones (they claim an "ATS score") | `dist/app-store-screenshots/app-store-v2/` | With the next version you submit (1.5.4 or later) |
 | rb-aso-003 | New creative asset: product page header and search results | `dist/app-store-creative-assets/` | Standalone, after its own review |
 
-Why the screenshots ride on 1.5.3: Apple lets you change screenshots only while a version is editable
-(Prepare for Submission, Rejected, Developer Rejected, Metadata Rejected, Invalid Binary). 1.5.3 (32) is
-uploaded and not yet submitted, so it is the place to do it. **Do part A before you submit 1.5.3.**
+Which version to edit: screenshots can change only while a version is editable (Prepare for Submission,
+Rejected, Developer Rejected, Metadata Rejected, Invalid Binary). Updated 2026-10-20:
 
-If 1.5.3 is already Waiting for Review when you read this: open it, click **Remove from Review**, do part A,
-then submit again. If it is already approved, do part A on the next version instead.
+- **1.5.2** is live (Ready for Distribution). Do not edit it.
+- **1.5.3 (32)** is already submitted for review without these screenshots (reported 2026-10-20). Do not remove it from review for this.
+- Use the **next version**, the one marked **Prepare for Submission** (1.5.4 or later). If none exists yet, click
+  **+** next to **iOS App** in the sidebar and enter the next version number. Do part A on that version before you
+  submit it. If 1.5.3 is rejected and comes back editable, you may use 1.5.3 instead.
 
 ## Which files go where
 
@@ -48,7 +50,7 @@ Upload order in every section, left to right:
 ## A. Swap the screenshots (rb-aso-002)
 
 1. Open App Store Connect, click **Apps**, then **Resume AI - CV Builder**.
-2. In the sidebar under **iOS App**, click **1.5.3 Prepare for Submission**.
+2. In the sidebar under **iOS App**, click the version marked **Prepare for Submission** (1.5.4 or later, see above).
 3. Top right language menu: confirm **English (U.S.)**.
 4. Under **Product Page Information**, click the **App Previews and Screenshots** tab.
 5. On the right, click **View All Sizes in Media Manager**.
@@ -71,7 +73,7 @@ Upload order in every section, left to right:
 ## B. Upload the creative asset to the Asset Library (rb-aso-003)
 
 Upload it on its own so it has its own publish date and its own before/after read.
-Do **not** put it on the 1.5.3 version page.
+Do **not** leave it on any version page (part C removes it after the preview).
 
 1. In the app sidebar, click **Asset Library**.
 2. Click the **add (+)** button, then **Upload Creative Assets**.
@@ -83,11 +85,17 @@ Do **not** put it on the 1.5.3 version page.
 
 ## C. Preview check (before any submit)
 
-Preview lives on the version page, so use 1.5.3 to look, then remove the asset from it again.
+Preview lives on the version page, so put the asset on **both** placements of the next version, look, then
+remove it from **both** again. Apple: "After your version is approved and released, the creative assets on your
+product page header and in search results also go live on the App Store." Leaving either placement filled would
+ship the asset with the screenshots on the same day and mix the rb-aso-002 and rb-aso-003 reads.
 
-1. Open **1.5.3**, **Product Page Information**, **Header and Search Results** tab, click **Header**.
-2. Click **Browse Assets**, choose `Header and search, Oct 2026`, click **Save**.
-3. Click **Preview**. Check each view and tick it here:
+1. Open the next version (the one you used in part A), **Product Page Information**, **Header and Search Results** tab.
+2. Click **Header**. Click **Browse Assets**, choose `Header and search, Oct 2026`, click **Save**.
+3. Click **Search Results**.
+   - Universal file (the default): tick **Use header asset in search results**. Apple offers this only for universal assets.
+   - Dedicated files (fallback from part B step 5): click **Browse Assets**, choose `resumely-search-3840x2560.png`, click **Save**.
+4. Click **Preview**. Check each view and tick it here:
    - [ ] iPhone, product page header, light mode
    - [ ] iPhone, product page header, dark mode
    - [ ] iPhone, search results, light and dark
@@ -95,18 +103,21 @@ Preview lives on the version page, so use 1.5.3 to look, then remove the asset f
    - [ ] iPad landscape, header and search
    In every view: the two headline lines and the line under them are fully visible and not covered by the
    app icon, name or Get button, and the phones are not cut through the middle of the text.
-4. If a crop cuts the words, close Preview, delete the asset from the placement, and repeat with the
-   dedicated files: header `resumely-header-3840x1646.png`, search `resumely-search-3840x2560.png`.
-5. Remove it from 1.5.3 again: on **Header**, click **Delete**. The asset stays in the Asset Library.
-   (If you keep it on 1.5.3, it is reviewed and goes live with 1.5.3, on the same day as the screenshots.)
+5. If a crop cuts the words, close Preview, remove the asset from both placements (step 6), and repeat steps 2 to 4
+   with the dedicated files: header `resumely-header-3840x1646.png`, search `resumely-search-3840x2560.png`.
+6. Remove it from both placements. Apple's steps: click **Header**, click **Delete**; then click **Search Results**,
+   click **Delete** (if you ticked **Use header asset in search results**, untick it first). The asset stays in
+   the Asset Library.
+7. Check both wells are empty: **Header** and **Search Results** each show an empty well, and
+   **Use header asset in search results** is unticked. Only then go on to part D.
 
 ## D. Submit
 
-1. **1.5.3 with the new screenshots:** on the 1.5.3 page click **Add for Review**, then **Submit for Review**.
+1. **The next version with the new screenshots:** on that version's page click **Add for Review**, then **Submit for Review**.
 2. **Creative asset, standalone:** **Asset Library**, click **Edit** (top right), tick
    `Header and search, Oct 2026`, click **Add for Review** (top right), choose **create a new submission**,
    platform **iOS**, then **Submit for Review** in the Draft Submission pane.
-   If App Store Connect says a submission is already in progress, wait until 1.5.3 is approved, then repeat.
+   If App Store Connect says a submission is already in progress, wait until that version is approved, then repeat.
 
 ## E. Publish the creative asset after approval
 
@@ -117,9 +128,10 @@ read (the two changes then cannot be told apart).
 1. Click the version that is **Ready for Distribution** (live).
 2. **Product Page Information**, **Header and Search Results** tab, click **Header**.
 3. Click **Browse Assets**, choose the approved asset, click **Next**, then **Publish**.
-4. Click **Search Results**, tick **Use header asset in search results**. If you used dedicated files,
-   choose `resumely-search-3840x2560.png` with **Browse Assets** instead. Publish.
-5. Note today's date: it is the rb-aso-003 publish date.
+4. Click **Search Results**. Universal file: tick **Use header asset in search results**, then **Publish**.
+   Dedicated files: click **Browse Assets**, choose `resumely-search-3840x2560.png`, click **Next**, then **Publish**.
+5. Check both placements on the live page: open the App Store on an iOS 27 device, search "Resume AI", and open the product page.
+6. Note today's date: it is the rb-aso-003 publish date.
 
 The asset shows only to people on iOS 27 or iPadOS 27 and later. Older devices keep the screenshots in search.
 
@@ -129,7 +141,7 @@ File: `Agentic OS/distribution-os/experiment-log.md`, **Active** table. Replace 
 rb-aso-003. Fill `YYYY-MM-DD` with the day the change appeared on the live App Store page.
 
 ```markdown
-| rb-aso-002 | ResumeBuilder iOS | ASO | Replacing the 10 June screenshots (they claim an "ATS score") with the 5-slot G1b set (no ATS, real app labels, native 1206x2622 iPhone size) will raise listing conversion | Impressions → product page views, and impressions → first-time downloads, 28 days before vs 28 days after the publish date (App Store Connect App Analytics, all territories) | 20 | published with 1.5.3 on YYYY-MM-DD, measuring. Baseline window: YYYY-MM-DD minus 28 days to the day before publish | YYYY-MM-DD | YYYY-MM-DD + 28 days |
+| rb-aso-002 | ResumeBuilder iOS | ASO | Replacing the 10 June screenshots (they claim an "ATS score") with the 5-slot G1b set (no ATS, real app labels, native 1206x2622 iPhone size) will raise listing conversion | Impressions → product page views, and impressions → first-time downloads, 28 days before vs 28 days after the publish date (App Store Connect App Analytics, all territories) | 20 | published with VERSION on YYYY-MM-DD, measuring. Baseline window: YYYY-MM-DD minus 28 days to the day before publish | YYYY-MM-DD | YYYY-MM-DD + 28 days |
 | rb-aso-003 | ResumeBuilder iOS | ASO | A brand-led creative asset ("See what the job asks for. Fix what's missing.") in the product page header and search results will raise conversion for iOS 27 users, where it replaces the screenshots in search | Impressions → product page views, and impressions → first-time downloads, 28 days before vs 28 days after the publish date (App Store Connect App Analytics; filter to iOS 27 if the filter exists) | unscored | approved and published standalone on YYYY-MM-DD, measuring. Confound: iOS 27 adoption still growing in the window | YYYY-MM-DD | YYYY-MM-DD + 28 days |
 ```
 

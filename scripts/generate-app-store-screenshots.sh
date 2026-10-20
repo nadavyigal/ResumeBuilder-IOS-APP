@@ -13,8 +13,13 @@ IPHONE_ID="${IPHONE_ID:-8A728F41-76C5-420D-82E6-3AE1A383A13E}"
 # Folder for the iPhone set. Use iphone-6.3-1206x2622 with an iPhone 17 or 17 Pro
 # simulator for Apple's required "Dynamic Island (medium display)" size.
 IPHONE_DIR="${IPHONE_DIR:-iphone-6.5-1242x2688}"
-# CAPTURE_IPAD=0 renders only the iPhone set and leaves ipad-13/ as it is.
+# CAPTURE_IPAD=0 renders only the iPhone set, leaves ipad-13/ as it is, and
+# validates the iPhone set alone (`--iphone-only`).
 CAPTURE_IPAD="${CAPTURE_IPAD:-1}"
+# SKIP_CAPTURE=1 skips the build and the simulator, and only normalizes and
+# validates the PNGs already in $OUTPUT. Used by
+# scripts/test_app_store_screenshot_scripts.py.
+SKIP_CAPTURE="${SKIP_CAPTURE:-0}"
 # iPad Pro 13-inch (M5); the old B2017D4B simulator no longer exists.
 IPAD_ID="${IPAD_ID:-414996FA-6056-46FC-B08C-9CA1723C0857}"
 
@@ -26,6 +31,17 @@ names=(
   templates
   expert
 )
+
+validate_args=("$OUTPUT" "${#names[@]}")
+if [[ "$CAPTURE_IPAD" != "1" ]]; then
+  validate_args+=(--iphone-only)
+fi
+
+if [[ "$SKIP_CAPTURE" == "1" ]]; then
+  python3 "$ROOT/scripts/normalize-app-store-screenshots.py" "$OUTPUT" "${#names[@]}"
+  "$ROOT/scripts/validate-app-store-screenshots.sh" "${validate_args[@]}"
+  exit 0
+fi
 
 mkdir -p "$OUTPUT/$IPHONE_DIR"
 rm -f "$OUTPUT/$IPHONE_DIR/"*.png(N)
@@ -78,4 +94,4 @@ if [[ "$CAPTURE_IPAD" == "1" ]]; then
 fi
 
 python3 "$ROOT/scripts/normalize-app-store-screenshots.py" "$OUTPUT" "${#names[@]}"
-"$ROOT/scripts/validate-app-store-screenshots.sh" "$OUTPUT" "${#names[@]}"
+"$ROOT/scripts/validate-app-store-screenshots.sh" "${validate_args[@]}"
