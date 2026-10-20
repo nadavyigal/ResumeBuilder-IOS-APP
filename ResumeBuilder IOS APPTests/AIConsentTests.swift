@@ -139,14 +139,17 @@ final class AIConsentTests: XCTestCase {
         let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
         center.userIdProvider = { "user-a" }
 
-        async let first = center.ensureConsent(source: "a")
-        async let second = center.ensureConsent(source: "b")
-        while presenter.pending.isEmpty { await Task.yield() }
+        let first = ResultBox<Bool>()
+        let second = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        Task { second.value = await center.ensureConsent(source: "b") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
         for _ in 0..<5 { await Task.yield() }
         presenter.answerPending(true)
 
-        let results = await [first, second]
-        XCTAssertEqual(results, [true, true])
+        guard await waitUntil("both callers get an answer", { first.value != nil && second.value != nil }) else { return }
+        XCTAssertEqual(first.value, true)
+        XCTAssertEqual(second.value, true)
         XCTAssertEqual(presenter.presentCount, 1)
     }
 
@@ -158,13 +161,14 @@ final class AIConsentTests: XCTestCase {
         let center = AIConsentCenter(defaults: defaults, presenter: presenter)
         center.userIdProvider = { "user-a" }
 
-        async let result = center.ensureConsent(source: "test")
-        while presenter.pending.isEmpty { await Task.yield() }
+        let result = ResultBox<Bool>()
+        Task { result.value = await center.ensureConsent(source: "test") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
         center.clearAll()
         presenter.answerPending(true)
 
-        let agreed = await result
-        XCTAssertFalse(agreed)
+        guard await waitUntil("the caller gets an answer", { result.value != nil }) else { return }
+        XCTAssertEqual(result.value, false)
         XCTAssertFalse(center.hasConsented)
         XCTAssertFalse(AIConsentStore(identity: "user-a", defaults: defaults).hasConsented)
     }
@@ -192,6 +196,25 @@ final class AIConsentTests: XCTestCase {
         latch.end()
         XCTAssertFalse(latch.isStarting)
         XCTAssertTrue(latch.begin(), "after the first start resolves, the next tap starts again")
+    }
+
+    /// Polls `condition` until it holds or `timeout` passes, then fails the test
+    /// instead of hanging the run (Codex on cc649d4). The callers above run the
+    /// consent request in a `Task`, so a missing callback cannot block teardown.
+    private func waitUntil(
+        _ what: String,
+        timeout: Duration = .seconds(2),
+        _ condition: () -> Bool
+    ) async -> Bool {
+        let deadline = ContinuousClock.now + timeout
+        while !condition() {
+            if ContinuousClock.now >= deadline {
+                XCTFail("Timed out waiting until \(what)")
+                return false
+            }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        return true
     }
 
     // MARK: Every OpenAI-backed send is gated (review finding 1)
@@ -386,6 +409,11 @@ final class AIConsentTests: XCTestCase {
 }
 
 // MARK: - Test doubles
+
+@MainActor
+private final class ResultBox<Value> {
+    var value: Value?
+}
 
 @MainActor
 private final class StubPresenter: AIConsentPresenting {
