@@ -1,10 +1,10 @@
 # 2026-10-19: Release 1.5.3 (32), Home redesign
 
-**Status:** 1.5.3 (32) uploaded to App Store Connect 2026-10-19T18:33Z ("Upload succeeded"), processing. Merged: #195, #196, #197. Not submitted for review (founder step).
+**Status:** 1.5.3 (32) uploaded to App Store Connect 2026-10-19T18:33Z ("Upload succeeded", reported by the uploading session; not independently checked in App Store Connect). Merged: #195, #196, #197. **Founder reported it submitted for review 2026-10-20** (relayed by the morning-brief session; review state not checked here).
 **Current Phase:** Home redesign shipped to App Store Connect.
 **Active Story:** release 1.5.3 (32).
 **Last Completed Story:** Stories A (#195) and B (#196) merged into main, plus a device-found fix in #196: "Save this resume?" was lost after a check because the full-screen check was still up (device log "Attempt to present … which is already presenting"); it now waits for the check screen's `onDismiss`.
-**Next Recommended Story:** founder submits 1.5.3 (32) for review in App Store Connect; then merge the Diagnosis score fix (separate session, one score story 45 → 67 instead of the stale 49 projection).
+**Next Recommended Story:** wait for 1.5.3 (32)'s review outcome; do not touch App Store Connect for it. Next build is 1.5.4: Diagnosis score fix (#198) and the AI consent sheet (#200).
 **Blockers:** none.
 **Known limits:** Cancel on the check screen stops the app, not the server: the cancelled run kept generating on the server for ~30s (PostHog `$ai_generation` after cancel, 2026-10-19). The system Paste button follows the phone language.
 **Last Validation:** 2026-10-19: IPA checked before upload: Apple Distribution signed, get-task-allow false, Sign in with Apple entitlement, API `https://www.resumelybuilderai.com`, PostHog key `phc_UmPZ` (project 270848), no DEBUG smoke flags in the binary. Full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); founder device QA on iPhone 13 (picker, link, cancel, full check, apply, Diagnosis), confirmed in PostHog; picker failure seen earlier on the same device not reproduced in a later device run or the simulator.
