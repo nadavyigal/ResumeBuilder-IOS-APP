@@ -271,7 +271,7 @@ final class AppState {
         FitBaselineStore.shared.clear()
         // Consent to send data to OpenAI belongs to the person who gave it. The
         // next account, or a guest, on this phone is asked again (5.1.2(i)).
-        AIConsentStore.clearAll()
+        AIConsentCenter.shared.clearAll()
         AnalyticsService.shared.resetDistinctId()
     }
 

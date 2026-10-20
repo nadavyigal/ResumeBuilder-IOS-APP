@@ -38,6 +38,8 @@ struct HomeTabView: View {
     /// True from the check screen appearing until its dismissal has finished,
     /// including the closing animation that `isCheckScreenShown` cannot see.
     @State private var isCheckScreenOnScreen = false
+    /// One check start at a time, through the consent wait (PR #200 review).
+    @State private var checkStartLatch = CheckStartLatch()
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
     #endif
@@ -1562,7 +1564,9 @@ struct HomeTabView: View {
     /// the sheet from landing on top of the check screen. The center resumes
     /// only after the sheet has finished closing.
     private func startCheck() {
+        guard checkStartLatch.begin() else { return }
         Task { @MainActor in
+            defer { checkStartLatch.end() }
             guard await AIConsentCenter.shared.ensureConsent(source: "home_check") else { return }
             isCheckCancelled = false
             checkTask = Task { await runAnalysis() }
@@ -1640,7 +1644,7 @@ struct HomeTabView: View {
                 )
             }
             .buttonStyle(.plain)
-            .disabled(!canRun || viewModel.isOptimizing || viewModel.isRunningFreeATS)
+            .disabled(!canRun || viewModel.isOptimizing || viewModel.isRunningFreeATS || checkStartLatch.isStarting)
             .accessibilityHint(blockingMessage.map { Text($0) } ?? Text(""))
 
             if let blockingMessage {

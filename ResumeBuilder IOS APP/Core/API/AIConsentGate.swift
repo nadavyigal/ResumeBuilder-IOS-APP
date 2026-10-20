@@ -97,6 +97,9 @@ final class AIConsentCenter {
     var presenter: any AIConsentPresenting
     private let defaults: UserDefaults
     private var waiting: [CheckedContinuation<Bool, Never>] = []
+    /// Bumped by `clearAll`. A sheet that was open across a sign-out may still
+    /// be answered; its yes must not be recorded for the identity that left.
+    private var generation = 0
 
     init(defaults: UserDefaults = .standard, presenter: (any AIConsentPresenting)? = nil) {
         self.defaults = defaults
@@ -112,12 +115,15 @@ final class AIConsentCenter {
     func ensureConsent(source: String) async -> Bool {
         let store = currentStore
         if store.hasConsented { return true }
+        let askedGeneration = generation
         return await withCheckedContinuation { continuation in
             waiting.append(continuation)
             guard waiting.count == 1 else { return }
             AnalyticsService.shared.track(.aiConsentShown(source: source))
-            presenter.present { [weak self] agreed in
+            presenter.present { [weak self] answer in
                 guard let self else { return }
+                // A sign-out while the sheet was open voids the answer.
+                let agreed = answer && self.generation == askedGeneration
                 if agreed {
                     store.recordConsent()
                     AnalyticsService.shared.track(.aiConsentAccepted(source: source))
@@ -131,7 +137,10 @@ final class AIConsentCenter {
         }
     }
 
+    /// Sign-out and account deletion: forget every answer, and void any sheet
+    /// still open so its yes is not recorded afterwards.
     func clearAll() {
+        generation &+= 1
         AIConsentStore.clearAll(defaults: defaults)
     }
 }

@@ -150,6 +150,50 @@ final class AIConsentTests: XCTestCase {
         XCTAssertEqual(presenter.presentCount, 1)
     }
 
+    /// CodeRabbit on b4169f5: a sign-out while the sheet is open must void a
+    /// later "Agree", so the signed-out identity is not left with consent.
+    func testSignOutWhileSheetIsOpenVoidsALaterYes() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { "user-a" }
+
+        async let result = center.ensureConsent(source: "test")
+        while presenter.pending.isEmpty { await Task.yield() }
+        center.clearAll()
+        presenter.answerPending(true)
+
+        let agreed = await result
+        XCTAssertFalse(agreed)
+        XCTAssertFalse(center.hasConsented)
+        XCTAssertFalse(AIConsentStore(identity: "user-a", defaults: defaults).hasConsented)
+    }
+
+    /// A yes given after an earlier sign-out (a new sheet) still counts.
+    func testConsentAfterSignOutIsRecordedForTheNewAsk() async {
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { "user-a" }
+
+        center.clearAll()
+        let agreed = await center.ensureConsent(source: "test")
+
+        XCTAssertTrue(agreed)
+        XCTAssertTrue(center.hasConsented)
+    }
+
+    /// CodeRabbit on b4169f5: two quick taps on "Check my fit" must start one
+    /// check, not two.
+    func testCheckStartLatchLetsOneStartThrough() {
+        var latch = CheckStartLatch()
+        XCTAssertTrue(latch.begin())
+        XCTAssertFalse(latch.begin(), "a second tap while the first is starting must be ignored")
+        XCTAssertTrue(latch.isStarting)
+        latch.end()
+        XCTAssertFalse(latch.isStarting)
+        XCTAssertTrue(latch.begin(), "after the first start resolves, the next tap starts again")
+    }
+
     // MARK: Every OpenAI-backed send is gated (review finding 1)
 
     func testEveryOpenAIBackedPostIsGated() {
