@@ -1,13 +1,13 @@
 # 2026-10-20: Checklist crop fallback made followable (PR #201, Codex on 4c49350)
 
-**Status:** pushed to PR #201, not merged. Nothing uploaded or submitted.
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
 **What changed:** Codex (P2) found that part C's crop fallback could not be followed. Only the universal file is in the Asset Library, Browse Assets lists only uploaded assets, live Publish needs approved ones, and the status note said never to upload another asset. Step 5 now uploads both dedicated files as new assets (part B steps 1 to 4), submits them standalone (part D.2), and waits for approval before re-running the preview. The status note now forbids re-uploading only the universal asset.
 **Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes.
 **Last Updated:** 2026-10-20
 
 # 2026-10-20: Checklist reconciled with the submitted creative asset (PR #201, Codex on b30f479)
 
-**Status:** pushed to PR #201, not merged. Nothing new uploaded or submitted.
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
 **What changed:** Codex found the checklist still said "nothing has been uploaded or submitted" and "Prepare for Submission (not submitted)" after the 11:34 standalone submission, and that it called parts C and D done although no preview ran. `docs/aso/2026-10-app-store-asset-publish-checklist.md` now opens with a status table (A not done, B done, C not done, D.2 done, D.1 and E not done), says not to upload or submit the asset again, and part E starts with a step 0: run part C's preview on an editable version before any live Publish.
 **Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes in the checklist.
 **Last Updated:** 2026-10-20
