@@ -8,7 +8,7 @@
 **Evidence and sources:**
 - Upload: 2026-10-19T18:33Z, "Upload succeeded", as recorded by the session that archived and uploaded the build. Not independently checked in App Store Connect here.
 - IPA checks before upload (same session): Apple Distribution signed, get-task-allow false, Sign in with Apple entitlement, API `https://www.resumelybuilderai.com`, PostHog project 270848, no DEBUG smoke flags.
-- Tests: full suite 481 passed, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`). Founder device QA on iPhone 13, confirmed in PostHog.
+- Tests: full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`). Founder device QA on iPhone 13, confirmed in PostHog.
 - Submission: **founder reported submitted for review 2026-10-20** (relayed by the morning-brief session). The review state was not checked here.
 
 **Decisions:** 1.5.3 went to review with the June App Store screenshots; the new screenshot set (PR #201) moves to the next version. The AI consent sheet (#200) is not in 1.5.3.

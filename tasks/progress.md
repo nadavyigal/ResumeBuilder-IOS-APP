@@ -8,7 +8,7 @@
 **Blockers:** none.
 **Known limits:** Cancel on the check screen stops the app, not the server: the cancelled run kept generating on the server for ~30s (PostHog `$ai_generation` after cancel, 2026-10-19). The system Paste button follows the phone language.
 **Last Validation:** 2026-10-19: IPA checked before upload: Apple Distribution signed, get-task-allow false, Sign in with Apple entitlement, API `https://www.resumelybuilderai.com`, PostHog key `phc_UmPZ` (project 270848), no DEBUG smoke flags in the binary. Full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); founder device QA on iPhone 13 (picker, link, cancel, full check, apply, Diagnosis), confirmed in PostHog; picker failure seen earlier on the same device not reproduced in a later device run or the simulator.
-**Last Updated:** 2026-10-19
+**Last Updated:** 2026-10-20
 
 # 2026-10-19: Home check takes the full screen (Story B)
 
