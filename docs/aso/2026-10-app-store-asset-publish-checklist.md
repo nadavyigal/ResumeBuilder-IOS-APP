@@ -13,7 +13,7 @@ Founder steps in App Store Connect. Claude prepared the files.
 | D.2 Submit the creative asset standalone | **Done** 2026-10-20 11:34, "1 Item Submitted", Apple says up to 48 hours. | Claude session, founder's yes |
 | E. Publish the creative asset | **Not done.** Needs Apple's approval, part C, and the founder's yes. | n/a |
 
-Do not upload or submit the creative asset again. Pick up at part A when the next version exists, and run part C on it.
+Do not upload or submit the universal asset (`Header and search, Oct 2026`) again. The only exception is the crop fallback in part C step 5, which uploads the two dedicated files as new assets. Pick up at part A when the next version exists, and run part C on it.
 App: **Resume AI - CV Builder** (Apple ID 6776752349). Locale for every step: **English (U.S.)**.
 
 Specs read from Apple on 2026-10-19:
@@ -130,8 +130,16 @@ ship the asset with the screenshots on the same day and mix the rb-aso-002 and r
    - [ ] iPad landscape, header and search
    In every view: the two headline lines and the line under them are fully visible and not covered by the
    app icon, name or Get button, and the phones are not cut through the middle of the text.
-5. If a crop cuts the words, close Preview, remove the asset from both placements (step 6), and repeat steps 2 to 4
-   with the dedicated files: header `resumely-header-3840x1646.png`, search `resumely-search-3840x2560.png`.
+5. If a crop cuts the words, close Preview and remove the asset from both placements (step 6). Then use the two
+   dedicated files. They are **not in the Asset Library yet** (only the universal file was uploaded), and
+   **Browse Assets** lists only assets that are already there:
+   1. Upload both with part B steps 1 to 4: `resumely-header-3840x1646.png` named `Header, Oct 2026`, and
+      `resumely-search-3840x2560.png` named `Search, Oct 2026`. Check each one's **Works With** lists its placement.
+   2. Submit both standalone with part D.2 (tick both in the Asset Library), and wait for Apple's approval
+      (up to 48 hours). The live **Publish** path in part E can only use approved assets.
+   3. Repeat steps 2 to 4 here with them: **Header** gets `Header, Oct 2026`; for **Search Results** leave
+      **Use header asset in search results** unticked and choose `Search, Oct 2026`.
+   Log in the rb-aso-003 row that the dedicated pair was used, with its approval date.
 6. Remove it from both placements. Apple's steps: click **Header**, click **Delete**; then click **Search Results**,
    click **Delete** (if you ticked **Use header asset in search results**, untick it first). The asset stays in
    the Asset Library.
