@@ -79,7 +79,7 @@ struct SaveAccountSheetView: View {
             }
             .buttonStyle(.plain)
 
-            Text("Your résumé stays private. We never sell or share your data.")
+            Text("We send your résumé to OpenAI to write your results. We don't sell your data.")
                 .font(.caption)
                 .foregroundStyle(AppColors.textTertiary)
                 .frame(maxWidth: .infinity, alignment: .center)

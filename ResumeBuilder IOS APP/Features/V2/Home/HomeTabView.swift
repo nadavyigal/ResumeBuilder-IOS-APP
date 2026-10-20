@@ -38,10 +38,6 @@ struct HomeTabView: View {
     /// True from the check screen appearing until its dismissal has finished,
     /// including the closing animation that `isCheckScreenShown` cannot see.
     @State private var isCheckScreenOnScreen = false
-    /// The one-time "your résumé goes to OpenAI" question (App Review 5.1.2(i)).
-    @State private var showAIConsent = false
-    /// Set by "Agree and continue"; read when the sheet has finished closing.
-    @State private var didAgreeToAIConsent = false
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
     #endif
@@ -304,17 +300,6 @@ struct HomeTabView: View {
                 NavigationStack {
                     FitCheckView(viewModel: fitCheckViewModel)
                 }
-            }
-            .sheet(isPresented: $showAIConsent, onDismiss: resolveAIConsent) {
-                AIConsentSheet(
-                    onAgree: {
-                        AIConsentStore().recordConsent()
-                        AnalyticsService.shared.track(.aiConsentAccepted(source: "home_check"))
-                        didAgreeToAIConsent = true
-                        showAIConsent = false
-                    },
-                    onNotNow: { showAIConsent = false }
-                )
             }
             .onChange(of: appState.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
@@ -1572,26 +1557,15 @@ struct HomeTabView: View {
     }
 
     /// Every check sends the résumé and job text to OpenAI, so the first one asks
-    /// first. Nothing is sent until the user agrees.
+    /// before the check screen opens. `APIClient` asks again at the send itself
+    /// (`AIConsentGate`), which covers every other path; this earlier ask keeps
+    /// the sheet from landing on top of the check screen. The center resumes
+    /// only after the sheet has finished closing.
     private func startCheck() {
-        guard !AIConsentStore().needsConsentBeforeSending else {
-            didAgreeToAIConsent = false
-            showAIConsent = true
-            AnalyticsService.shared.track(.aiConsentShown(source: "home_check"))
-            return
-        }
-        isCheckCancelled = false
-        checkTask = Task { await runAnalysis() }
-    }
-
-    /// Runs after the consent sheet has finished closing, because the check
-    /// screen is a second modal and two cannot show at once.
-    private func resolveAIConsent() {
-        if didAgreeToAIConsent {
-            didAgreeToAIConsent = false
-            startCheck()
-        } else {
-            AnalyticsService.shared.track(.aiConsentDeclined(source: "home_check"))
+        Task { @MainActor in
+            guard await AIConsentCenter.shared.ensureConsent(source: "home_check") else { return }
+            isCheckCancelled = false
+            checkTask = Task { await runAnalysis() }
         }
     }
 

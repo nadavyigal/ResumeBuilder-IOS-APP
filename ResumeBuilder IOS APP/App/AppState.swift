@@ -269,6 +269,9 @@ final class AppState {
         // in place it would float the next account's first score to whatever
         // this one reached (WP-45 D7).
         FitBaselineStore.shared.clear()
+        // Consent to send data to OpenAI belongs to the person who gave it. The
+        // next account, or a guest, on this phone is asked again (5.1.2(i)).
+        AIConsentStore.clearAll()
         AnalyticsService.shared.resetDistinctId()
     }
 

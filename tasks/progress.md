@@ -1,3 +1,10 @@
+# 2026-10-20: Consent review fixes on PR #200 (every AI send, per account, no "never share")
+
+**Status:** pushed to PR #200, not merged. 1.5.3 (32) is in review without this; it targets the next build.
+**What changed:** the PR Steward (2026-10-20), Codex and CodeRabbit found three gaps. (1) Only Home's "Check my fit" asked; chat and refine on a restored optimization sent without consent. Now `APIClient` and `StreamingClient` ask `AIConsentGate` before every POST to a route that reaches OpenAI (`Core/API/AIConsentGate.swift`, list traced from the web routes). One `AIConsentCenter` shows the sheet over whatever is on top, through UIKit, and shares one sheet across concurrent sends. Home still asks before its check screen opens. (2) Consent was device-wide. Now it is keyed by the Supabase user id (`ai_data_consent_v1.<userId>`, `guest` with no session), so a second account is asked again, and `AppState.signOut` (and account deletion) clears every stored answer. (3) Profile and the save-account sheet still said "We never sell or share your data" / "We never share your resume". They now say "We send your résumé to OpenAI to write your results. We don't sell your data." (the privacy page says "we do not sell your data"). English and Hebrew.
+**Last Validation:** 2026-10-20: `AIConsentTests` 21 tests, all pass. Mutation check: with the gate removed from `postJSON`/`postJSONObject`, sign-out clearing removed, the key made device-wide and the old catalog restored, 8 of them fail (chat and refine blocked, second account, account switch, sign-out, scoped key, catalog claims, Hebrew), then pass again once restored. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 502 tests, 0 failures, 1 skipped. Simulator smoke in English and Hebrew: Check shows the sheet through the new presenter, "Not now" and a swipe both return to Home with nothing stored. "Agree" not run end to end (it would send a real guest check to production).
+**Last Updated:** 2026-10-20
+
 # 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
 
 **Status:** PR open, not merged. No build archived or uploaded. Ships in the release after 1.5.3 (32).
