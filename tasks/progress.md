@@ -1,12 +1,12 @@
-# 2026-10-20: Creative asset uploaded to the Asset Library (rb-aso-003)
+# 2026-10-20: Creative asset submitted for review (rb-aso-003)
 
-**Status:** creative asset uploaded to App Store Connect, not submitted for review. Screenshots unchanged: 1.5.3 (32) went to review with the June set, so the swap moves to the next version.
+**Status:** creative asset submitted for review standalone on 2026-10-20 11:34 (founder's yes); not published. Screenshots unchanged: 1.5.3 (32) went to review with the June set, so the swap moves to the next version.
 **Current Phase:** Q4 OKR A1, Resumely ASO.
 **Active Story:** rb-aso-003 creative asset.
 **Last Completed Story:** in Chrome, uploaded `resumely-universal-5244x2950.png` to Asset Library as `Header and search, Oct 2026` (ID 16c00019-3ed0-88dd-8028-aab55aafa4f4). Works With: Search Results and Product Page Header. Status Prepare for Submission.
-**Next Recommended Story:** founder says yes or no to the standalone submit; after approval, preview on the live version, then publish (checklist part E). Screenshot swap (part A) on the next version.
+**Next Recommended Story:** after Apple approves (up to 48 hours), preview on the live version and publish only with the founder's yes (checklist part E); log rb-aso-003 with the publish date. Screenshot swap (part A) on the next version.
 **Blockers:** preview needs an approved asset or an editable version; neither exists today (1.5.3 locked in review, 1.5.2 live).
-**Last Validation:** 2026-10-20: Asset Library list and detail page read back in Chrome after upload (5244x2950, both placements). In-store look not checked.
+**Last Validation:** 2026-10-20: Asset Library list and detail page read back in Chrome after upload (5244x2950, both placements); App Store Connect showed "1 Item Submitted". In-store look not checked.
 **Last Updated:** 2026-10-20
 
 # 2026-10-20: Asset publish pack review fixes on PR #201

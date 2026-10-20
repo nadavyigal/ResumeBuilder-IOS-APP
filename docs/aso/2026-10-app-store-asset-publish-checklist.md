@@ -82,6 +82,10 @@ Preview was not possible that day: 1.5.3 is Waiting for Review (its Header well 
 and live 1.5.2 only offers **approved** assets. So the preview happens either on the next editable version
 (part C) or, if the asset is submitted standalone first, on the live version right before **Publish** (part E).
 
+**Submitted 2026-10-20 11:34 (Claude, founder's yes):** standalone submission from the Asset Library with only this
+asset in it, reviewed against the latest iOS version. Apple: up to 48 hours. So parts C and D are done for the
+creative asset. Next is part E, and **only with the founder's yes**: preview on the live version, then Publish.
+
 1. In the app sidebar, click **Asset Library**.
 2. Click the **add (+)** button, then **Upload Creative Assets**.
 3. Choose `dist/app-store-creative-assets/resumely-universal-5244x2950.png`, then click **Upload** (bottom right).
