@@ -1,6 +1,19 @@
 # Resumely App Store asset publish checklist (October 2026)
 
-Founder steps in App Store Connect. Claude prepared the files; nothing has been uploaded or submitted.
+Founder steps in App Store Connect. Claude prepared the files.
+
+## Status (updated 2026-10-20)
+
+| Part | State | Source |
+|---|---|---|
+| A. Screenshots (rb-aso-002) | **Not done.** Waits for the next editable version (1.5.4 or later). | n/a |
+| B. Creative asset upload | **Done** 2026-10-20: `Header and search, Oct 2026`, ID `16c00019-3ed0-88dd-8028-aab55aafa4f4`. | Claude session, App Store Connect in Chrome |
+| C. Preview | **Not done.** No editable version had the placements free that day. Must happen before part E. | n/a |
+| D.1 Submit the next version | **Not done.** | n/a |
+| D.2 Submit the creative asset standalone | **Done** 2026-10-20 11:34, "1 Item Submitted", Apple says up to 48 hours. | Claude session, founder's yes |
+| E. Publish the creative asset | **Not done.** Needs Apple's approval, part C, and the founder's yes. | n/a |
+
+Do not upload or submit the creative asset again. Pick up at part A when the next version exists, and run part C on it.
 App: **Resume AI - CV Builder** (Apple ID 6776752349). Locale for every step: **English (U.S.)**.
 
 Specs read from Apple on 2026-10-19:
@@ -77,14 +90,17 @@ Do **not** leave it on any version page (part C removes it after the preview).
 
 **Done 2026-10-20 (Claude, in Chrome):** uploaded `resumely-universal-5244x2950.png`, named
 `Header and search, Oct 2026`, asset ID `16c00019-3ed0-88dd-8028-aab55aafa4f4`. Works With lists both
-**Search Results** and **Product Page Header**. Status: Prepare for Submission (not submitted).
+**Search Results** and **Product Page Header**. Status at upload: Prepare for Submission. It was then submitted standalone (next note).
 Preview was not possible that day: 1.5.3 is Waiting for Review (its Header well is locked, no Browse Assets),
 and live 1.5.2 only offers **approved** assets. So the preview happens either on the next editable version
-(part C) or, if the asset is submitted standalone first, on the live version right before **Publish** (part E).
+(part C). Part E does not replace it: run part C on an editable version before publishing.
 
 **Submitted 2026-10-20 11:34 (Claude, founder's yes):** standalone submission from the Asset Library with only this
-asset in it, reviewed against the latest iOS version. Apple: up to 48 hours. So parts C and D are done for the
-creative asset. Next is part E, and **only with the founder's yes**: preview on the live version, then Publish.
+asset in it, reviewed against the latest iOS version. Apple: up to 48 hours. So part D.2 is done for the
+creative asset. **Part C (the preview) is still open.** Next: after approval, run part C on the next editable version,
+then part E, and **only with the founder's yes**.
+
+Steps 1 to 5 below are kept for reference. They are done; do not repeat them.
 
 1. In the app sidebar, click **Asset Library**.
 2. Click the **add (+)** button, then **Upload Creative Assets**.
@@ -136,6 +152,9 @@ Recommended timing: **28 days after the screenshots go live**, so the rb-aso-002
 If you would rather not wait, publish it as soon as it is approved and log both rows with one shared
 read (the two changes then cannot be told apart).
 
+0. **First run part C** on an editable version (the one in Prepare for Submission): assign the approved asset to
+   both placements, Preview every view, then delete both and check both wells are empty. Do not publish from the
+   live version until part C's boxes are ticked. If no version is editable yet, wait for one; do not skip the preview.
 1. Click the version that is **Ready for Distribution** (live).
 2. **Product Page Information**, **Header and Search Results** tab, click **Header**.
 3. Click **Browse Assets**, choose the approved asset, click **Next**, then **Publish**.

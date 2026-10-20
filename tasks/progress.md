@@ -1,3 +1,10 @@
+# 2026-10-20: Checklist reconciled with the submitted creative asset (PR #201, Codex on b30f479)
+
+**Status:** pushed to PR #201, not merged. Nothing new uploaded or submitted.
+**What changed:** Codex found the checklist still said "nothing has been uploaded or submitted" and "Prepare for Submission (not submitted)" after the 11:34 standalone submission, and that it called parts C and D done although no preview ran. `docs/aso/2026-10-app-store-asset-publish-checklist.md` now opens with a status table (A not done, B done, C not done, D.2 done, D.1 and E not done), says not to upload or submit the asset again, and part E starts with a step 0: run part C's preview on an editable version before any live Publish.
+**Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes in the checklist.
+**Last Updated:** 2026-10-20
+
 # 2026-10-20: Creative asset submitted for review (rb-aso-003)
 
 **Status:** creative asset submitted for review standalone on 2026-10-20 11:34 (founder's yes); not published. Screenshots unchanged: 1.5.3 (32) went to review with the June set, so the swap moves to the next version.
