@@ -10148,7 +10148,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קורות החיים שלך לפני ואחרי, שורה אחר שורה"
+            "value" : "קורות החיים שלכם לפני ואחרי, שורה אחר שורה"
           }
         }
       }
@@ -10209,7 +10209,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "קורות החיים שלך תואמים כ-%1$lld%% מהמשרה הזו"
+            "value" : "קורות החיים שלכם תואמים כ-%1$lld%% מהמשרה הזו"
           }
         }
       }
@@ -10234,6 +10234,230 @@
           }
         }
       }
+    },
+    "Up from %lld%% before tailoring" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עלה מ-%lld%% לפני ההתאמה למשרה"
+          }
+        }
+      }
+    },
+    "Clean, readable formatting" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עיצוב נקי וקריא"
+          }
+        }
+      }
+    },
+    "More aligned with this job. Not a guarantee of interviews." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מותאם יותר למשרה הזו. לא הבטחה לראיונות."
+          }
+        }
+      }
+    },
+    "Contact details" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרטי קשר"
+          }
+        }
+      }
+    },
+    "Education" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השכלה"
+          }
+        }
+      }
+    },
+    "Certifications" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסמכות"
+          }
+        }
+      }
+    },
+    "Projects" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרויקטים"
+          }
+        }
+      }
+    },
+    "Sharper professional summary" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תקציר מקצועי חד יותר"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Updated headline details" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרטי כותרת מעודכנים"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Prioritized role-relevant skills" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הכישורים הרלוונטיים לתפקיד בראש"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Stronger experience bullets" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נקודות ניסיון חזקות יותר"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Clearer education section" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרק השכלה ברור יותר"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Refined certification proof" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסמכות מוצגות בצורה מדויקת יותר"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "More relevant project evidence" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרויקטים רלוונטיים יותר"
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Clarifies your value proposition for the target role." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבהיר את הערך שלכם לתפקיד היעד."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Aligns headline-level details with the job target." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתאים את פרטי הכותרת למשרת היעד."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Highlights the strongest keywords and core capabilities first." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מציג קודם את מילות המפתח והיכולות החזקות ביותר שלכם."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Makes achievements more relevant, specific, and recruiter-friendly." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הופך את ההישגים שלכם לרלוונטיים, ספציפיים וברורים יותר למגייסים."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Tightens education details for faster recruiter scanning." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מהדק את פרטי ההשכלה כדי שמגייסים יסרקו אותם מהר יותר."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Surfaces certifications that strengthen role fit." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבליט הסמכות שמחזקות את ההתאמה לתפקיד."
+          }
+        }
+      },
+      "extractionState" : "manual"
+    },
+    "Shows projects with clearer technology and business relevance." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מציג פרויקטים עם רלוונטיות טכנולוגית ועסקית ברורה יותר."
+          }
+        }
+      },
+      "extractionState" : "manual"
     }
   },
   "version" : "1.0"

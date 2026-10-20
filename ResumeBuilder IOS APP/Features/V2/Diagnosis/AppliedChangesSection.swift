@@ -20,8 +20,14 @@ final class AppliedChangesViewModel {
 
     private let api: APIClient
 
-    init(api: APIClient = RuntimeServices.sharedAPIClient) {
+    /// `envelope` is for tests and the DEBUG smoke harness: a section that
+    /// starts with its data never fetches.
+    init(api: APIClient = RuntimeServices.sharedAPIClient, envelope: OptimizationReviewEnvelope? = nil) {
         self.api = api
+        if let envelope {
+            self.envelope = envelope
+            self.flaggedGroupIds = OptimizationAutoApplyService.flaggedGroupIds(in: envelope)
+        }
     }
 
     var groups: [ReviewChangeGroupDTO] { envelope.map(Self.appliedGroups(in:)) ?? [] }
@@ -33,11 +39,10 @@ final class AppliedChangesViewModel {
         envelope.review.groupedChanges.filter { !$0.isConfirmClaim }
     }
 
-    /// The score before the rewrite, as a percentage.
-    var originalScore: Int? { Self.percent(envelope?.review.atsPreview?.before) }
-
-    /// The score after the rewrite that is now applied, as a percentage.
-    var currentScore: Int? { Self.percent(envelope?.review.atsPreview?.after) }
+    // No score lives here. The review's `ats_preview_json` is a projection
+    // made before the apply; the stored result can differ (45 -> 49 projected,
+    // 67 stored on 2026-10-19). The headline above owns the number, from the
+    // stored detail only.
 
     func load(reviewId: String?, appState: AppState) async {
         #if DEBUG
@@ -62,18 +67,51 @@ final class AppliedChangesViewModel {
             #endif
         }
     }
+}
 
-    /// The backend has sent both 0-1 fractions and 0-100 percentages on this
-    /// field, so normalise rather than trusting either.
-    private static func percent(_ value: Double?) -> Int? {
-        value?.displayPercent
+/// A human name for a review section.
+///
+/// The server sends the section as a key ("summary", "experience"), and the
+/// screen printed it as is: "summary" in lower case, in English, inside the
+/// Hebrew UI. Known keys are localized; an unknown one still reads as words.
+enum ReviewSectionName {
+    static func label(for section: String) -> String {
+        let key = section.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch key {
+        case "summary": return NSLocalizedString("Summary", comment: "Résumé section name")
+        case "contact": return NSLocalizedString("Contact details", comment: "Résumé section name")
+        case "skills": return NSLocalizedString("Skills", comment: "Résumé section name")
+        case "experience": return NSLocalizedString("Experience", comment: "Résumé section name")
+        case "education": return NSLocalizedString("Education", comment: "Résumé section name")
+        case "certifications": return NSLocalizedString("Certifications", comment: "Résumé section name")
+        case "projects": return NSLocalizedString("Projects", comment: "Résumé section name")
+        default:
+            let words = key
+                .replacingOccurrences(of: "_", with: " ")
+                .replacingOccurrences(of: "-", with: " ")
+            return words.prefix(1).uppercased() + words.dropFirst()
+        }
+    }
+
+    /// A change title or summary in the user's language.
+    ///
+    /// The server writes them from a fixed English set (web
+    /// `SECTION_DESCRIPTORS`), and those exact strings are keys in
+    /// Localizable.xcstrings. Anything else comes back unchanged.
+    static func localizedCopy(_ serverText: String) -> String {
+        Bundle.main.localizedString(forKey: serverText, value: serverText, table: nil)
     }
 }
 
 struct AppliedChangesSection: View {
     @Environment(AppState.self) private var appState
     let reviewId: String?
-    @State private var viewModel = AppliedChangesViewModel()
+    @State private var viewModel: AppliedChangesViewModel
+
+    init(reviewId: String?, preloaded: OptimizationReviewEnvelope? = nil) {
+        self.reviewId = reviewId
+        _viewModel = State(initialValue: AppliedChangesViewModel(envelope: preloaded))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -103,7 +141,6 @@ struct AppliedChangesSection: View {
                     .padding(.vertical, AppSpacing.lg)
             } else if !viewModel.groups.isEmpty {
                 header
-                scoreRow
                 ForEach(viewModel.groups) { group in
                     changeCard(group)
                 }
@@ -149,46 +186,14 @@ struct AppliedChangesSection: View {
         }
     }
 
-    /// Both numbers, always together.
-    ///
-    /// A single "match score" is ambiguous once a rewrite has been applied — the
-    /// user cannot tell whether it is what they started with or what they now
-    /// have. Showing the pair removes the question.
-    @ViewBuilder
-    private var scoreRow: some View {
-        if let original = viewModel.originalScore, let current = viewModel.currentScore {
-            HStack(spacing: AppSpacing.lg) {
-                scorePill(title: "Original score", value: original, isCurrent: false)
-                Image(systemName: "arrow.forward")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(AppColors.textTertiary)
-                scorePill(title: "Match score", value: current, isCurrent: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(AppSpacing.md)
-            .glassCard(cornerRadius: AppRadii.md)
-        }
-    }
-
-    private func scorePill(title: String, value: Int, isCurrent: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(LocalizedStringKey(title))
-                .font(.appCaption)
-                .foregroundStyle(AppColors.textTertiary)
-            Text("\(value)%")
-                .font(.appHeadline.weight(.bold))
-                .foregroundStyle(isCurrent ? AppColors.accentTeal : AppColors.textSecondary)
-        }
-    }
-
     private func changeCard(_ group: ReviewChangeGroupDTO) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack(alignment: .firstTextBaseline, spacing: AppSpacing.sm) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(group.section)
+                    Text(ReviewSectionName.label(for: group.section))
                         .font(.appCaption.weight(.bold))
                         .foregroundStyle(AppColors.textTertiary)
-                    Text(group.title)
+                    Text(ReviewSectionName.localizedCopy(group.title))
                         .font(.appSubheadline.weight(.semibold))
                         .foregroundStyle(AppColors.textPrimary)
                 }
@@ -199,7 +204,7 @@ struct AppliedChangesSection: View {
             }
 
             if !group.summary.isEmpty {
-                Text(group.summary)
+                Text(ReviewSectionName.localizedCopy(group.summary))
                     .font(.appCaption)
                     .foregroundStyle(AppColors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
