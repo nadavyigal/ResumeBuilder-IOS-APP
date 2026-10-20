@@ -20,13 +20,15 @@ struct DiagnosisSmokeHarness: View {
         ProcessInfo.processInfo.arguments.contains("--smoke-he")
     }
 
-    /// The journey the founder described: 29 at the fit check, 48 after the
-    /// tailored rewrite. Gap text deliberately repeats the title in the
-    /// explanation for the first item, so the de-duplication is visible here.
+    /// The founder's device run of 2026-10-19: stored 45 before tailoring and
+    /// 67 after. Its review projected 49, which the screen used to show as the
+    /// match; `changesFixture` carries that projection so a regression is
+    /// visible here. Gap text deliberately repeats the title in the
+    /// explanation for the first item, so the de-duplication is visible too.
     private var fixture: ResumeDiagnosis {
         ResumeDiagnosis(
-            matchScore: 29,
-            potentialScore: 48,
+            matchScore: 67,
+            potentialScore: nil,
             scoreNote: "Estimated fit vs this job, not a hiring guarantee.",
             topGaps: [
                 // First gap repeats its title in the explanation on purpose, so
@@ -68,8 +70,27 @@ struct DiagnosisSmokeHarness: View {
             confidenceChecklist: [
                 ConfidenceItem(title: "Contact details present", isComplete: true),
                 ConfidenceItem(title: "Quantified impact", isComplete: false, explanation: "No numbers in the most recent role."),
-            ]
+            ],
+            startingScore: 45
         )
+    }
+
+    /// The review behind that run, as the server stores it: section keys in
+    /// lower case and an `ats_preview_json` projection of 45 -> 49.
+    private var changesFixture: OptimizationReviewEnvelope? {
+        let json = """
+        {"review": {"id": "smoke", "ats_preview_json": {"before": 45, "after": 49, "delta": 4},
+          "grouped_changes_json": [
+            {"id": "summary", "section": "summary", "title": "Sharper professional summary",
+             "summary": "Clarifies your value proposition for the target role.",
+             "before_excerpt": "Sales manager with B2B experience.",
+             "after_excerpt": "Business development manager who built a B2B partner pipeline."},
+            {"id": "skills", "section": "skills", "title": "Prioritized role-relevant skills",
+             "summary": "Highlights the strongest keywords and core capabilities first.",
+             "before_excerpt": "Excel, CRM", "after_excerpt": "Partnerships, pipeline management, CRM"}
+          ]}}
+        """
+        return try? JSONDecoder().decode(OptimizationReviewEnvelope.self, from: Data(json.utf8))
     }
 
     /// `--smoke-fit` renders the fit check that now sits between optimizing
@@ -158,7 +179,8 @@ struct DiagnosisSmokeHarness: View {
                     diagnosis: fixture
                 ),
                 onImprove: {},
-                onEditTargetJob: {}
+                onEditTargetJob: {},
+                previewChanges: changesFixture
             )
             .environment(appState)
             }

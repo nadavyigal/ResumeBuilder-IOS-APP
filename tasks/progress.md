@@ -41,19 +41,29 @@
 **Blockers:** none.
 **Reminder:** by 2027-03-01, iPhone Duo screenshots (1398x2034 outer, 2007x2853 inner) are required from April 2027 for builds on the iOS 27.1 SDK.
 **Last Validation:** 2026-10-19: `validate-app-store-screenshots.sh` PASS for all three sets (1242x2688, 1206x2622, 2064x2752; 5 unique opaque PNGs each); `render-app-store-creative-assets.sh` PASS (copy check, sizes, no alpha); every new PNG viewed; `CopyClaimsTests` 5 tests, 0 failures (iPhone 17 Pro Max, `-testLanguage en -testRegion US`). Full suite not run: no app code changed.
+
+# 2026-10-19: Diagnosis tells one score story
+
+**Status:** PR open, not merged. Not in 1.5.3 (32); ships in the next build.
+**Current Phase:** post-1.5.3 fixes.
+**Active Story:** Diagnosis one score story (`fix/diagnosis-one-score-story`).
+**Last Completed Story:** the ring showed the stored 67 while "What changed" showed the review projection "Original 45% -> Match 49%". Now: headline 67, "Up from 45% before tailoring" (stored original, shown for +5 or more), no score in "What changed", no projected strip, no "ATS" in the checklist, section names and the server's change titles localized (Hebrew plural voice).
+**Next Recommended Story:** decide whether the Optimized tab's free-check floor (`FitJourney.baseline`) should also apply on Diagnosis, so the two screens can never differ; fit check projection vs stored result needs a server fix (49 promised, 67 stored).
+**Blockers:** none.
+**Last Validation:** 2026-10-19: `DiagnosisScoreStoryTests` (8) did not compile before the fix, pass after; full suite 489 tests, 0 failures, 1 skipped (iPhone 17 Pro sim, iOS 26.5, `-testLanguage en -testRegion US`, rebased on 1.5.3); `--smoke-diagnosis` screenshots in English and Hebrew.
 **Last Updated:** 2026-10-19
 
 # 2026-10-19: Release 1.5.3 (32), Home redesign
 
-**Status:** version bumped to 1.5.3 (32) on `release/1.5.3-32`; Release archive and App Store Connect upload in progress. Not submitted for review (founder step).
+**Status:** 1.5.3 (32) uploaded to App Store Connect 2026-10-19T18:33Z ("Upload succeeded", reported by the uploading session; not independently checked in App Store Connect). Merged: #195, #196, #197. **Founder reported it submitted for review 2026-10-20** (relayed by the morning-brief session; review state not checked here).
 **Current Phase:** Home redesign shipped to App Store Connect.
 **Active Story:** release 1.5.3 (32).
 **Last Completed Story:** Stories A (#195) and B (#196) merged into main, plus a device-found fix in #196: "Save this resume?" was lost after a check because the full-screen check was still up (device log "Attempt to present … which is already presenting"); it now waits for the check screen's `onDismiss`.
-**Next Recommended Story:** founder submits 1.5.3 (32) for review in App Store Connect; then merge the Diagnosis score fix (separate session, one score story 45 → 67 instead of the stale 49 projection).
+**Next Recommended Story:** wait for 1.5.3 (32)'s review outcome; do not touch App Store Connect for it. Next build is 1.5.4: Diagnosis score fix (#198) and the AI consent sheet (#200).
 **Blockers:** none.
 **Known limits:** Cancel on the check screen stops the app, not the server: the cancelled run kept generating on the server for ~30s (PostHog `$ai_generation` after cancel, 2026-10-19). The system Paste button follows the phone language.
-**Last Validation:** 2026-10-19: full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); founder device QA on iPhone 13 (picker, link, cancel, full check, apply, Diagnosis), confirmed in PostHog; picker failure seen earlier on the same device not reproduced in a later device run or the simulator.
-**Last Updated:** 2026-10-19
+**Last Validation:** 2026-10-19: IPA checked before upload: Apple Distribution signed, get-task-allow false, Sign in with Apple entitlement, API `https://www.resumelybuilderai.com`, PostHog key `phc_UmPZ` (project 270848), no DEBUG smoke flags in the binary. Full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); founder device QA on iPhone 13 (picker, link, cancel, full check, apply, Diagnosis), confirmed in PostHog; picker failure seen earlier on the same device not reproduced in a later device run or the simulator.
+**Last Updated:** 2026-10-20
 
 # 2026-10-19: Home check takes the full screen (Story B)
 

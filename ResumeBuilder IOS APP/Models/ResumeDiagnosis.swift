@@ -10,6 +10,12 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
     let recruiterReview: RecruiterReview
     let beforeAfter: [BulletRewrite]
     let confidenceChecklist: [ConfidenceItem]
+    /// The stored score of the résumé the user uploaded, before tailoring.
+    ///
+    /// Set only next to a stored result, so the pair always comes from the
+    /// same scoring run. Never a projection: on device 2026-10-19 the screen
+    /// showed the stored 67 and, below it, the review's pre-apply 45 -> 49.
+    let startingScore: Int?
 
     init(
         id: UUID = UUID(),
@@ -20,11 +26,13 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
         missingKeywords: [ResumeKeyword],
         recruiterReview: RecruiterReview,
         beforeAfter: [BulletRewrite],
-        confidenceChecklist: [ConfidenceItem]
+        confidenceChecklist: [ConfidenceItem],
+        startingScore: Int? = nil
     ) {
         self.id = id
         self.matchScore = Self.clampPercent(matchScore)
         self.potentialScore = potentialScore.map(Self.clampPercent)
+        self.startingScore = startingScore.map(Self.clampPercent)
         self.scoreNote = scoreNote
         self.topGaps = topGaps
         self.missingKeywords = missingKeywords
@@ -71,6 +79,7 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
             try c.decodeIfPresent([ConfidenceItem].self, forKey: .confidenceChecklist)
             ?? c.decodeIfPresent([ConfidenceItem].self, forKey: .confidenceChecklistSnake)
             ?? []
+        let startingScore = try c.decodeIfPresent(Int.self, forKey: .startingScore)
 
         self.init(
             id: try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID(),
@@ -81,7 +90,8 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
             missingKeywords: missingKeywords,
             recruiterReview: recruiterReview,
             beforeAfter: beforeAfter,
-            confidenceChecklist: confidenceChecklist
+            confidenceChecklist: confidenceChecklist,
+            startingScore: startingScore
         )
     }
 
@@ -103,6 +113,36 @@ struct ResumeDiagnosis: Identifiable, Codable, Equatable, Sendable {
         case beforeAfterSnake = "before_after"
         case confidenceChecklist
         case confidenceChecklistSnake = "confidence_checklist"
+        case startingScore
+    }
+
+    /// The "up from" number, when it is worth showing.
+    ///
+    /// Same rule as the Optimized tab (`OptimizedResumeViewModel.minimumMeaningfulLift`,
+    /// mirroring the web's `MIN_MEANINGFUL_LIFT`): a pair that moved by less
+    /// than that, or moved down, reads as a promise the run did not keep. The
+    /// headline still shows the stored result; only the pair is withheld.
+    var displayedStartingScore: Int? {
+        guard let startingScore,
+              matchScore - startingScore >= OptimizedResumeViewModel.minimumMeaningfulLift
+        else { return nil }
+        return startingScore
+    }
+
+    /// The same diagnosis with its secondary scores replaced.
+    func replacingScores(potential: Int?, starting: Int?) -> ResumeDiagnosis {
+        ResumeDiagnosis(
+            id: id,
+            matchScore: matchScore,
+            potentialScore: potential,
+            scoreNote: scoreNote,
+            topGaps: topGaps,
+            missingKeywords: missingKeywords,
+            recruiterReview: recruiterReview,
+            beforeAfter: beforeAfter,
+            confidenceChecklist: confidenceChecklist,
+            startingScore: starting
+        )
     }
 
     var matchScoreLabel: String {
@@ -422,14 +462,14 @@ struct ConfidenceItem: Identifiable, Codable, Equatable, Sendable {
                 explanation: NSLocalizedString("Stronger bullets connect actions to context and impact.", comment: "")
             ),
             ConfidenceItem(
-                title: NSLocalizedString("ATS-friendly formatting", comment: ""),
+                title: NSLocalizedString("Clean, readable formatting", comment: ""),
                 isComplete: true,
                 explanation: NSLocalizedString("Uses parseable sections and direct role language.", comment: "")
             ),
             ConfidenceItem(
                 title: NSLocalizedString("Tailored to target role", comment: ""),
                 isComplete: matchScore >= 55,
-                explanation: NSLocalizedString("More aligned with this job — not a guarantee of interviews or ATS outcomes.", comment: "")
+                explanation: NSLocalizedString("More aligned with this job. Not a guarantee of interviews.", comment: "")
             ),
         ]
     }
@@ -542,14 +582,25 @@ enum ResumeDiagnosisMapper {
         // that ever filled that role was `ats_impact_estimate`, which the model
         // invents. The screen shows what is still missing and points at the
         // experts instead of promising a figure (WP-45 D8).
+        //
+        // That includes a `potential_score` inside the backend diagnosis: the
+        // merge below would otherwise bring it back, and after the apply any
+        // projection is a second number for the same résumé.
+        //
+        // The start is the stored original, and only next to a stored result,
+        // so "up from" always compares two numbers from the same run.
         make(
-            backendDiagnosis: detail.diagnosis,
+            backendDiagnosis: detail.diagnosis?.replacingScores(potential: nil, starting: nil),
             matchScore: detail.atsScoreAfter ?? detail.atsScoreBefore,
             potentialScore: nil,
             blockers: detail.atsBlockers,
             sections: detail.sections,
             jobTitle: detail.jobTitle,
             company: detail.company
+        )
+        .replacingScores(
+            potential: nil,
+            starting: detail.atsScoreAfter == nil ? nil : detail.atsScoreBefore
         )
     }
 
