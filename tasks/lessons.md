@@ -1,3 +1,7 @@
+## 2026-10-21: New release worktrees need their ignored local configuration
+
+Before building a new iOS worktree, provision the gitignored `Secrets.xcconfig` from the existing verified local worktree without printing its contents or committing it. The 1.5.4 bump's first Release attempt stopped before compilation because the base configuration file was absent; no source change was needed.
+
 ## 2026-10-19: A full-screen cover drops the app's right-to-left direction
 
 The Home check screen (`fullScreenCover`) showed Hebrew text in a left-to-right layout:

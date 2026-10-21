@@ -1,3 +1,14 @@
+# 2026-10-21: Continue Resumely 1.5.4 release
+
+- Verified #200 head e1b6771 and #202 head c792002, their current reviews and passing checks.
+- Recorded founder approval for #202's architectural placement exception; retained the documented P2 follow-ups.
+- Merged #200 (e3e8b8a), integrated main into #202 (c2643e7), resolved only the progress conflict with both entries retained, passed 527 XCTest tests (1 skipped, 0 failures) plus 5 Swift Testing tests, and passed unsigned generic iOS Release build.
+- Independent read-only review found no new blockers; hosted Codex completed at c2643e7 with no major issues. Updated the existing section 7b summary and merged #202 (3e36474).
+- Removed disposable remote branch qa/pr200-consent-screenshots after #200 merged, with an expected-head lease.
+- Bump worktree: /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-release-1-5-4, branch release/1.5.4-33. Only version/build settings and task records changed. Ignored local configuration restored after the first build stopped before compilation; configuration is not committed.
+- Bump verification: unsigned generic iOS Release build passed; built app is 1.5.4 (33), expected bundle ID and production API URL. All 11 Python script tests passed. Independent bump review approved; project plist, build-setting comparison and diff checks passed. Store validator mismatch is expected for the unshipped candidate.
+- Next: open bump PR, finish section 7b and report its exact checks. Signed archive, upload and submission remain separate release steps.
+
 # 2026-10-19 to 2026-10-20: Release 1.5.3 (32), Home redesign
 
 **Branch:** `claude/2026-10-19-progress-1-5-3-uploaded` (PR #199).
