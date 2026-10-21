@@ -51,14 +51,68 @@ final class TailorViewModel {
     /// several call sites still set it; nothing consumes it as a prompt.
     var pendingSaveResumeId: String?
 
+    /// Uploads a résumé file with its job and returns the server's ids. Injected in tests.
+    typealias ResumeUploader = @MainActor (
+        _ fileURL: URL,
+        _ jobDescription: String?,
+        _ jobDescriptionURL: String?,
+        _ token: String
+    ) async throws -> ResumeUploadResponse
+
     private let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationService: any ResumeOptimizationServiceProtocol
+    private let uploader: ResumeUploader
     private var uploadContextSignature: String?
+    /// Whose upload `uploadResponse` is. The server reads résumés through the
+    /// user's own RLS client, so an upload made by one identity (a guest's
+    /// anonymous user) is invisible to another (the account they then sign in
+    /// to), and `/api/optimize` answers "Resume not found" (founder, device
+    /// test 2026-10-21). An upload is reused only by the identity that made it.
+    private var uploadIdentity: String?
 
     init(
-        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService()
+        optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
+        uploader: ResumeUploader? = nil
     ) {
         self.optimizationService = optimizationService
+        self.uploader = uploader ?? { fileURL, jobDescription, jobDescriptionURL, token in
+            try await RuntimeServices.sharedAPIClient.uploadResume(
+                fileURL: fileURL,
+                jobDescription: jobDescription,
+                jobDescriptionURL: jobDescriptionURL,
+                token: token,
+                deferOptimization: true
+            )
+        }
+    }
+
+    /// The identity an upload belongs to: the Supabase user id (an anonymous
+    /// guest has one too), or `guest` with no session.
+    static func uploadIdentity(for session: AuthSession?) -> String {
+        guard let userId = session?.userId.trimmingCharacters(in: .whitespacesAndNewlines),
+              !userId.isEmpty else { return "guest" }
+        return "user:\(userId)"
+    }
+
+    /// Forgets the uploaded résumé and job ids. Called when the signed-in
+    /// identity changes (sign-in, sign-out, account deletion), so no id made by
+    /// one identity is sent by another. The picked file and job text stay.
+    func resetUploadCache() {
+        uploadResponse = nil
+        uploadContextSignature = nil
+        uploadIdentity = nil
+        pendingSaveResumeId = nil
+    }
+
+    /// True for the server's answer when the ids sent no longer resolve for this
+    /// user: a résumé or job uploaded by another identity, or deleted. It arrives
+    /// as a 500 (or 404) whose `error` is "Resume not found" or
+    /// "Job description not found" (web `src/app/api/optimize/route.ts`).
+    static func isUploadedIdNotFound(_ error: Error) -> Bool {
+        guard case .serverError(let status, let message)? = error as? APIClientError,
+              status == 404 || status == 500 else { return false }
+        let lower = message.lowercased()
+        return lower.contains("resume not found") || lower.contains("job description not found")
     }
 
     /// Copies the picked PDF into the sandbox temp dir and sets the URL + name.
@@ -151,9 +205,15 @@ final class TailorViewModel {
         guestDiagnosisFingerprint = nil
         pendingSaveResumeId = nil
         uploadContextSignature = nil
+        uploadIdentity = nil
     }
 
-    func ensureUploadedResumeForCurrentJob(appState: AppState) async throws -> ResumeUploadResponse? {
+    /// Uploads the résumé and job, or reuses the last upload when the file, the
+    /// job and the identity are all unchanged. `forceFresh` skips the reuse.
+    func ensureUploadedResumeForCurrentJob(
+        appState: AppState,
+        forceFresh: Bool = false
+    ) async throws -> ResumeUploadResponse? {
         guard let selectedResumeURL else {
             errorMessage = NSLocalizedString("Choose a PDF resume first.", comment: "")
             return nil
@@ -175,8 +235,11 @@ final class TailorViewModel {
             return nil
         }
 
-        if let upload = uploadResponse,
+        let currentIdentity = Self.uploadIdentity(for: appState.session)
+        if !forceFresh,
+           let upload = uploadResponse,
            uploadContextSignature == currentUploadSignature,
+           uploadIdentity == currentIdentity,
            upload.resumeId?.isEmpty == false,
            upload.jobDescriptionId?.isEmpty == false {
             return upload
@@ -188,16 +251,16 @@ final class TailorViewModel {
         isUploadingResume = true
         defer { isUploadingResume = false }
         let upload = try await appState.callWithFreshToken { token in
-            try await self.apiClient.uploadResume(
-                fileURL: selectedResumeURL,
-                jobDescription: jobInput.normalizedDescription,
-                jobDescriptionURL: jobInput.normalizedURL,
-                token: token,
-                deferOptimization: true
+            try await self.uploader(
+                selectedResumeURL,
+                jobInput.normalizedDescription,
+                jobInput.normalizedURL,
+                token
             )
         }
         uploadResponse = upload
         uploadContextSignature = currentUploadSignature
+        uploadIdentity = currentIdentity
         AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
         #if DEBUG
         print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
@@ -250,19 +313,24 @@ final class TailorViewModel {
                 return
             }
 
-            // Step 2 — actually run the optimizer.
-            AnalyticsService.shared.track(.optimizationStarted(
-                resumeId: resumeId,
-                jobDescriptionId: jobDescriptionId,
-                hasURL: !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                hasPaste: !jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ))
-            let optimize = try await appState.callWithFreshToken { token in
-                try await self.optimizationService.optimize(
-                    resumeId: resumeId,
-                    jobDescriptionId: jobDescriptionId,
-                    token: token
-                )
+            // Step 2: actually run the optimizer.
+            let optimize: OptimizeResponse
+            do {
+                optimize = try await runOptimizer(resumeId: resumeId, jobDescriptionId: jobDescriptionId, appState: appState)
+            } catch where Self.isUploadedIdNotFound(error) {
+                // The server cannot see these ids for this user (an upload made by
+                // another identity, or deleted). Upload once more and retry once.
+                // A second "not found" goes to the normal error path below.
+                resetUploadCache()
+                guard let fresh = try await ensureUploadedResumeForCurrentJob(appState: appState, forceFresh: true),
+                      let freshResumeId = fresh.resumeId, !freshResumeId.isEmpty,
+                      let freshJobId = fresh.jobDescriptionId, !freshJobId.isEmpty else {
+                    if errorMessage == nil {
+                        errorMessage = NSLocalizedString("Upload did not return resume or job description ids.", comment: "")
+                    }
+                    return
+                }
+                optimize = try await runOptimizer(resumeId: freshResumeId, jobDescriptionId: freshJobId, appState: appState)
             }
 
             #if DEBUG
@@ -315,6 +383,26 @@ final class TailorViewModel {
             if !didUpload {
                 AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
             }
+        }
+    }
+
+    private func runOptimizer(
+        resumeId: String,
+        jobDescriptionId: String,
+        appState: AppState
+    ) async throws -> OptimizeResponse {
+        AnalyticsService.shared.track(.optimizationStarted(
+            resumeId: resumeId,
+            jobDescriptionId: jobDescriptionId,
+            hasURL: !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            hasPaste: !jobDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ))
+        return try await appState.callWithFreshToken { token in
+            try await self.optimizationService.optimize(
+                resumeId: resumeId,
+                jobDescriptionId: jobDescriptionId,
+                token: token
+            )
         }
     }
 

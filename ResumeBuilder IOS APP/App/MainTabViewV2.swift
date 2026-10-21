@@ -67,6 +67,13 @@ struct MainTabViewV2: View {
         .onChange(of: appState.latestOptimizationId) { _, newId in
             syncDesignViewModel(to: newId)
         }
+        // Sign-in, sign-out and account deletion change whose résumé the server
+        // can see. Drop the cached upload so the next check uploads as the new
+        // identity (an anonymous guest keeps its id when it becomes an account,
+        // so that case keeps the upload).
+        .onChange(of: appState.session?.userId) { oldId, newId in
+            if oldId != newId { tailorViewModel.resetUploadCache() }
+        }
         .onAppear {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("--smoke-open-optimized-tab") {

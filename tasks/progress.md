@@ -1,3 +1,16 @@
+# 2026-10-21: Upload cache keyed to the signed-in identity (ships in 1.5.4 with #200)
+
+**Status:** PR open, not merged. No build archived, uploaded or submitted.
+**Bug (in live 1.5.3, not caused by #200):** the founder's #200 device test, 2026-10-21. As a guest (anonymous Supabase user) he ran a check, which uploaded résumé `cf1cc929` owned by the anonymous user. He then signed in to his account and ran the same file and job. `TailorViewModel.ensureUploadedResumeForCurrentJob` reused the cached upload, because its signature (file path, job text, URL) had no identity. That gave three `optimization_started` events and no `resume_upload_started`. `/api/optimize` reads the résumé through the user's RLS client, could not see the guest's row, and answered "Resume not found" (web `src/app/api/optimize/route.ts:128`). `convertAnonymousSessionIfNeeded` converts only the free-check session, not uploads.
+**What changed:**
+- `Features/Tailor/TailorViewModel.swift`: the upload cache records its identity (`uploadIdentity`, the Supabase user id or `guest`) and is reused only by that identity. `resetUploadCache()` drops `uploadResponse`, the signature, the identity and `pendingSaveResumeId`; the picked file and job stay.
+- If optimize answers "Resume not found" or "Job description not found" (500 or 404, `isUploadedIdNotFound`), the cache is dropped, the résumé is uploaded once more (`forceFresh`), and optimize is retried once. A second not-found surfaces the error. The uploader is injectable for tests.
+- `App/MainTabViewV2.swift`: resets the cache whenever `appState.session?.userId` changes (sign-in, sign-out, account deletion). A guest whose anonymous session becomes an account keeps the same id, so that case keeps its upload.
+- The Fit check (off) reads the same cached upload, so it is covered too.
+**Last Validation:** 2026-10-21: new `UploadCacheIdentityTests`, 9 pass. Each part was then removed on purpose: without the identity check, the not-found classifier and the reset, 6 of them fail (sign-in re-upload, reset, both not-found re-uploads, the second not-found, the classifier). The 3 guards still pass (same identity reuses, other errors do not re-upload, identity helper). Full suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 498 tests, 0 failures, 1 skipped.
+**Merge note:** plan to merge after #200 so both ship in 1.5.4. There's no code overlap with #200 (this PR touches `TailorViewModel` and `MainTabViewV2`; #200 does not). Only `tasks/progress.md` will conflict; keep both entries.
+**Last Updated:** 2026-10-21
+
 # 2026-10-20: Checklist crop fallback made followable (PR #201, Codex on 4c49350)
 
 **Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
