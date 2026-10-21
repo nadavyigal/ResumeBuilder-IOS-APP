@@ -16,8 +16,8 @@ final class UploadCacheIdentityTests: XCTestCase {
         AuthSession(accessToken: "token-\(userId)", refreshToken: nil, userId: userId, email: nil, isAnonymous: anonymous)
     }
 
-    private func makeModel(uploads: UploadSpy, optimizer: OptimizerSpy) -> TailorViewModel {
-        let model = TailorViewModel(optimizationService: optimizer, uploader: uploads.upload)
+    private func makeModel(uploads: UploadSpy, optimizer: OptimizerSpy, events: EventLog = EventLog()) -> TailorViewModel {
+        let model = TailorViewModel(optimizationService: optimizer, uploader: uploads.upload, track: events.record)
         model.selectedResumeURL = URL(fileURLWithPath: "/tmp/maya-resume.pdf")
         model.selectedResumeName = "maya-resume.pdf"
         model.jobDescriptionURL = jobURL
@@ -130,6 +130,37 @@ final class UploadCacheIdentityTests: XCTestCase {
         XCTAssertNotNil(model.errorMessage)
     }
 
+    /// Codex on PR #202: when the recovery upload itself fails, the funnel must
+    /// record an upload failure, not leave `resume_upload_started` with no end.
+    func testFailedRecoveryUploadIsRecordedAsAnUploadFailure() async {
+        let uploads = UploadSpy(failOnCall: 2)
+        let optimizer = OptimizerSpy(results: [.resumeNotFound])
+        let events = EventLog()
+        let model = makeModel(uploads: uploads, optimizer: optimizer, events: events)
+
+        await model.optimize(appState: makeAppState(session("user-2")))
+
+        XCTAssertEqual(uploads.count, 2)
+        XCTAssertEqual(optimizer.callCount, 1, "no retry when the re-upload failed")
+        XCTAssertEqual(events.names.filter { $0 == "resume_upload_started" }.count, 2)
+        XCTAssertEqual(events.names.filter { $0 == "resume_upload_failed" }.count, 1,
+                       "the failed recovery upload reaches the funnel")
+        XCTAssertNotNil(model.errorMessage)
+    }
+
+    /// A second not-found after a good re-upload is an optimize failure, not an upload failure.
+    func testSecondNotFoundIsNotRecordedAsAnUploadFailure() async {
+        let uploads = UploadSpy()
+        let optimizer = OptimizerSpy(results: [.resumeNotFound, .resumeNotFound])
+        let events = EventLog()
+        let model = makeModel(uploads: uploads, optimizer: optimizer, events: events)
+
+        await model.optimize(appState: makeAppState(session("user-2")))
+
+        XCTAssertEqual(events.names.filter { $0 == "resume_upload_succeeded" }.count, 2)
+        XCTAssertFalse(events.names.contains("resume_upload_failed"))
+    }
+
     /// Other server errors do not trigger a re-upload.
     func testOtherServerErrorsDoNotReupload() async {
         let uploads = UploadSpy()
@@ -157,12 +188,25 @@ final class UploadCacheIdentityTests: XCTestCase {
 // MARK: - Test doubles
 
 @MainActor
+private final class EventLog {
+    private(set) var names: [String] = []
+    var record: @MainActor (AnalyticsEvent) -> Void {
+        { event in self.names.append(event.name) }
+    }
+}
+
+@MainActor
 private final class UploadSpy {
     private(set) var count = 0
+    private let failOnCall: Int?
+
+    init(failOnCall: Int? = nil) { self.failOnCall = failOnCall }
 
     var upload: TailorViewModel.ResumeUploader {
-        { [unowned self] _, _, _, _ in
-            count += 1
+        { _, _, _, _ in
+            self.count += 1
+            let count = self.count
+            if count == self.failOnCall { throw APIClientError.serverError(status: 502, message: "Bad gateway") }
             let json = #"{"success":true,"resumeId":"resume-\#(count)","jobDescriptionId":"job-\#(count)"}"#
             return try JSONDecoder().decode(ResumeUploadResponse.self, from: Data(json.utf8))
         }

@@ -62,6 +62,8 @@ final class TailorViewModel {
     private let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationService: any ResumeOptimizationServiceProtocol
     private let uploader: ResumeUploader
+    /// Analytics sink, injected in tests. Production sends to PostHog.
+    private let track: @MainActor (AnalyticsEvent) -> Void
     private var uploadContextSignature: String?
     /// Whose upload `uploadResponse` is. The server reads résumés through the
     /// user's own RLS client, so an upload made by one identity (a guest's
@@ -72,9 +74,11 @@ final class TailorViewModel {
 
     init(
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
-        uploader: ResumeUploader? = nil
+        uploader: ResumeUploader? = nil,
+        track: (@MainActor (AnalyticsEvent) -> Void)? = nil
     ) {
         self.optimizationService = optimizationService
+        self.track = track ?? { AnalyticsService.shared.track($0) }
         self.uploader = uploader ?? { fileURL, jobDescription, jobDescriptionURL, token in
             try await RuntimeServices.sharedAPIClient.uploadResume(
                 fileURL: fileURL,
@@ -138,7 +142,7 @@ final class TailorViewModel {
             let reason = UploadFailureReason(error: error)
             uploadFailureReason = reason
             errorMessage = error.localizedDescription
-            AnalyticsService.shared.track(.resumeUploadPreflightRejected(reason: reason.analyticsValue))
+            track(.resumeUploadPreflightRejected(reason: reason.analyticsValue))
             return
         }
         selectedResumeURL = candidateURL
@@ -147,7 +151,7 @@ final class TailorViewModel {
         uploadFailureReason = nil
         errorMessage = nil
         let pickedType = url.pathExtension.isEmpty ? "unknown" : url.pathExtension.lowercased()
-        AnalyticsService.shared.track(.resumeFileSelected(
+        track(.resumeFileSelected(
             source: source,
             fileType: pickedType,
             sizeBucket: Self.fileSizeBucket(for: candidateURL)
@@ -246,7 +250,7 @@ final class TailorViewModel {
         }
 
         let uploadFileType = selectedResumeURL.pathExtension.isEmpty ? "unknown" : selectedResumeURL.pathExtension.lowercased()
-        AnalyticsService.shared.track(.resumeUploadStarted(fileType: uploadFileType))
+        track(.resumeUploadStarted(fileType: uploadFileType))
 
         isUploadingResume = true
         defer { isUploadingResume = false }
@@ -261,7 +265,7 @@ final class TailorViewModel {
         uploadResponse = upload
         uploadContextSignature = currentUploadSignature
         uploadIdentity = currentIdentity
-        AnalyticsService.shared.track(.resumeUploadSucceeded(fileType: uploadFileType))
+        track(.resumeUploadSucceeded(fileType: uploadFileType))
         #if DEBUG
         print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
         #endif
@@ -322,6 +326,9 @@ final class TailorViewModel {
                 // another identity, or deleted). Upload once more and retry once.
                 // A second "not found" goes to the normal error path below.
                 resetUploadCache()
+                // This upload can fail on its own; its failure is an upload
+                // failure and must reach the funnel (Codex on PR #202).
+                didUpload = false
                 guard let fresh = try await ensureUploadedResumeForCurrentJob(appState: appState, forceFresh: true),
                       let freshResumeId = fresh.resumeId, !freshResumeId.isEmpty,
                       let freshJobId = fresh.jobDescriptionId, !freshJobId.isEmpty else {
@@ -330,6 +337,7 @@ final class TailorViewModel {
                     }
                     return
                 }
+                didUpload = true
                 optimize = try await runOptimizer(resumeId: freshResumeId, jobDescriptionId: freshJobId, appState: appState)
             }
 
@@ -353,7 +361,7 @@ final class TailorViewModel {
                 #if DEBUG
                 print("✅ [TAILOR] → optimizationId set: \(optId)")
                 #endif
-                AnalyticsService.shared.track(
+                track(
                     .optimizationCompleted(optimizationId: optId, reviewId: nil, path: .direct)
                 )
             } else {
@@ -369,19 +377,19 @@ final class TailorViewModel {
             if case .serverError(let status, let message) = apiError {
                 errorMessage = status == 400 ? JobInputPolicy.friendlyInputError() : enhancedError(message)
                 if !didUpload {
-                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "\(status)"))
+                    track(.resumeUploadFailed(failureStage: "upload", errorCode: "\(status)"))
                 }
             } else {
                 errorMessage = apiError.localizedDescription
                 if !didUpload {
-                    AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "client_error"))
+                    track(.resumeUploadFailed(failureStage: "upload", errorCode: "client_error"))
                 }
             }
         } catch {
             errorMessage = error.localizedDescription
             isConnectionError = Self.isConnectivityError(error)
             if !didUpload {
-                AnalyticsService.shared.track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
+                track(.resumeUploadFailed(failureStage: "upload", errorCode: "unknown"))
             }
         }
     }
@@ -391,7 +399,7 @@ final class TailorViewModel {
         jobDescriptionId: String,
         appState: AppState
     ) async throws -> OptimizeResponse {
-        AnalyticsService.shared.track(.optimizationStarted(
+        track(.optimizationStarted(
             resumeId: resumeId,
             jobDescriptionId: jobDescriptionId,
             hasURL: !jobDescriptionURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
