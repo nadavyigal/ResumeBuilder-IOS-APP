@@ -1,3 +1,47 @@
+# 2026-10-20: Checklist crop fallback made followable (PR #201, Codex on 4c49350)
+
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
+**What changed:** Codex (P2) found that part C's crop fallback could not be followed. Only the universal file is in the Asset Library, Browse Assets lists only uploaded assets, live Publish needs approved ones, and the status note said never to upload another asset. Step 5 now uploads both dedicated files as new assets (part B steps 1 to 4), submits them standalone (part D.2), and waits for approval before re-running the preview. The status note now forbids re-uploading only the universal asset.
+**Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Checklist reconciled with the submitted creative asset (PR #201, Codex on b30f479)
+
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
+**What changed:** Codex found the checklist still said "nothing has been uploaded or submitted" and "Prepare for Submission (not submitted)" after the 11:34 standalone submission, and that it called parts C and D done although no preview ran. `docs/aso/2026-10-app-store-asset-publish-checklist.md` now opens with a status table (A not done, B done, C not done, D.2 done, D.1 and E not done), says not to upload or submit the asset again, and part E starts with a step 0: run part C's preview on an editable version before any live Publish.
+**Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes in the checklist.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Creative asset submitted for review (rb-aso-003)
+
+**Status:** creative asset submitted for review standalone on 2026-10-20 11:34 (founder's yes); not published. Screenshots unchanged: 1.5.3 (32) went to review with the June set, so the swap moves to the next version.
+**Current Phase:** Q4 OKR A1, Resumely ASO.
+**Active Story:** rb-aso-003 creative asset.
+**Last Completed Story:** in Chrome, uploaded `resumely-universal-5244x2950.png` to Asset Library as `Header and search, Oct 2026` (ID 16c00019-3ed0-88dd-8028-aab55aafa4f4). Works With: Search Results and Product Page Header. Status Prepare for Submission.
+**Next Recommended Story:** after Apple approves (up to 48 hours), preview on the live version and publish only with the founder's yes (checklist part E); log rb-aso-003 with the publish date. Screenshot swap (part A) on the next version.
+**Blockers:** preview needs an approved asset or an editable version; neither exists today (1.5.3 locked in review, 1.5.2 live).
+**Last Validation:** 2026-10-20: Asset Library list and detail page read back in Chrome after upload (5244x2950, both placements); App Store Connect showed "1 Item Submitted". In-store look not checked.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Asset publish pack review fixes on PR #201
+
+**Status:** pushed to PR #201, not merged. Nothing uploaded to App Store Connect or submitted.
+**What changed:** the PR Steward (2026-10-20) and Codex found three gaps. (1) The checklist assigned only the product page header before preview and removed only the header after it, so a search-results asset could ship with the version and mix the rb-aso-002 and rb-aso-003 reads. Part C now assigns **Header** and **Search Results** (Use header asset in search results for the universal file, the dedicated file otherwise), previews, deletes both, and checks both wells are empty, per Apple's "Remove creative assets from a placement" steps. Part E publishes both. (2) The screenshots target the next editable version (1.5.4 or later): 1.5.2 is live and 1.5.3 (32) is already in review without them. (3) `CAPTURE_IPAD=0` ran the final validator without `--iphone-only`, so a fresh iPhone-only folder failed on five missing iPad images. `scripts/generate-app-store-screenshots.sh` now passes the flag, and `SKIP_CAPTURE=1` re-checks existing PNGs without the simulator.
+**Last Validation:** 2026-10-20: new `scripts/test_app_store_screenshot_scripts.py` 4 tests pass (validator with and without `--iphone-only`, and the generator with `CAPTURE_IPAD=0` and `1` on a fresh synthetic iPhone-only folder). With the `--iphone-only` line removed, `test_capture_ipad_off_validates_iphone_only` fails, then passes again once restored. All `scripts/test_*.py` OK. `zsh -n` on the generator OK. No Swift changed.
+**Next Recommended Story:** founder follows the corrected checklist on the next version; builder-os-exchange #31 is redone around it.
+**Last Updated:** 2026-10-20
+
+# 2026-10-19: App Store asset publish pack (rb-aso-002 screenshots, rb-aso-003 creative asset)
+
+**Status:** PR open, not merged. Nothing uploaded to App Store Connect or submitted (founder step).
+**Current Phase:** Q4 OKR A1, Resumely ASO.
+**Active Story:** asset publish pack, this PR.
+**Last Completed Story:** Apple's screenshot spec (read 2026-10-19) requires at least one iPhone "Dynamic Island (medium display)" screenshot; 1242x2688 is only the scaled fallback for it. Added a native 1206x2622 set (`app-store-v2/iphone-6.3-1206x2622/`, iPhone 17, same 5 slots, `MarketingScreenshotView` unchanged since 1.5.2). Generator, normalizer and validator now take the iPhone folder (`IPHONE_DIR`, `CAPTURE_IPAD=0`). New creative asset for the iOS 27 product page header and search results in `dist/app-store-creative-assets/` (universal 5244x2950, plus 3840x1646 header and 3840x2560 search crops), rendered by `scripts/render-app-store-creative-assets.sh`, which refuses ATS, price, free and score words. Click-by-click checklist: `docs/aso/2026-10-app-store-asset-publish-checklist.md`.
+**Next Recommended Story:** founder follows the checklist: swap screenshots on 1.5.3 before submitting it, upload the creative asset to the Asset Library and submit it standalone, publish it 28 days after the screenshots, log rb-aso-002 and rb-aso-003 in Agentic OS `distribution-os/experiment-log.md`.
+**Blockers:** none.
+**Reminder:** by 2027-03-01, iPhone Duo screenshots (1398x2034 outer, 2007x2853 inner) are required from April 2027 for builds on the iOS 27.1 SDK.
+**Last Validation:** 2026-10-19: `validate-app-store-screenshots.sh` PASS for all three sets (1242x2688, 1206x2622, 2064x2752; 5 unique opaque PNGs each); `render-app-store-creative-assets.sh` PASS (copy check, sizes, no alpha); every new PNG viewed; `CopyClaimsTests` 5 tests, 0 failures (iPhone 17 Pro Max, `-testLanguage en -testRegion US`). Full suite not run: no app code changed.
+
 # 2026-10-19: Diagnosis tells one score story
 
 **Status:** PR open, not merged. Not in 1.5.3 (32); ships in the next build.

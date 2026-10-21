@@ -8,6 +8,7 @@ from PIL import Image, ImageOps
 
 TARGETS = {
     "iphone-6.5-1242x2688": (1242, 2688),
+    "iphone-6.3-1206x2622": (1206, 2622),
     "ipad-13": (2064, 2752),
 }
 
@@ -35,7 +36,8 @@ def main() -> None:
     )
     expected = int(sys.argv[2]) if len(sys.argv) > 2 else 5
     for folder_name, size in TARGETS.items():
-        normalize(root / folder_name, size, expected)
+        if (root / folder_name).is_dir():
+            normalize(root / folder_name, size, expected)
 
 
 if __name__ == "__main__":
