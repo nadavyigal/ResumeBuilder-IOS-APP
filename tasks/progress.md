@@ -3,7 +3,7 @@
 **Status:** pushed to PR #200, not merged. Waits for the founder's device test and named yes. Ships in 1.5.4.
 **What changed:** merged main (`0e32d7d`, which has #198, #199 and #201) into the consent branch. #198's merge into this branch (`e3311c8`, catalog and task files) already existed; this merge only had a `tasks/progress.md` conflict, and both sides are kept.
 **Live version:** 1.5.3 is live, released 2026-10-20T22:13:51Z (Apple lookup, 2 cache-busted polls, 2026-10-21).
-**Last Validation:** see the entry below for the full suite on this merge.
+**Last Validation:** 2026-10-21, on merge `9e743fb`: full iOS suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 513 tests, 0 failures, 1 skipped. All 24 `AIConsentTests` pass, including the catalog checks: disclosure keys are present with Hebrew, and no "never share" claims are left.
 **Last Updated:** 2026-10-21
 
 # 2026-10-20: Consent review fixes on PR #200 (every AI send, per account, no "never share")
