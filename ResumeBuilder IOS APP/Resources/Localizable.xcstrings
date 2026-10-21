@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "\n\nTip: Upload a freshly exported, text-based PDF from Files. Scanned/image-only PDFs often cannot be read by the optimizer." : {
       "localizations" : {
         "he" : {
@@ -32,28 +35,6 @@
         }
       }
     },
-    "%lld of %lld words" : {
-      "comment" : "Pasted job description: words so far, then the minimum",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld מתוך %lld מילים"
-          }
-        }
-      }
-    },
-    "%lld words" : {
-      "comment" : "Pasted job description word count, minimum met",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld מילים"
-          }
-        }
-      }
-    },
     "--" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -61,377 +42,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "--"
-          }
-        }
-      }
-    },
-    "A link from LinkedIn or the company site is enough." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קישור מ-LinkedIn או מאתר החברה מספיק."
-          }
-        }
-      }
-    },
-    "Before we read your résumé" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לפני שנקרא את קורות החיים שלכם"
-          }
-        }
-      }
-    },
-    "Agree and continue" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מסכימים וממשיכים"
-          }
-        }
-      }
-    },
-    "Cancel check" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ביטול הבדיקה"
-          }
-        }
-      }
-    },
-    "Check my fit" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בדקו התאמה"
-          }
-        }
-      }
-    },
-    "Check my fit for free" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בדקו התאמה בחינם"
-          }
-        }
-      }
-    },
-    "Checking your fit" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בודקים את ההתאמה"
-          }
-        }
-      }
-    },
-    "Comparing requirements and experience" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "משווים דרישות וניסיון"
-          }
-        }
-      }
-    },
-    "Comparing your résumé with the job requirements." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "משווים את קורות החיים לדרישות המשרה."
-          }
-        }
-      }
-    },
-    "Enough to check" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מספיק לבדיקה"
-          }
-        }
-      }
-    },
-    "Finished" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסתיים"
-          }
-        }
-      }
-    },
-    "How we use your résumé" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "איך אנחנו משתמשים בקורות החיים שלכם"
-          }
-        }
-      }
-    },
-    "I have a job link" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "יש לי קישור למשרה"
-          }
-        }
-      }
-    },
-    "In progress" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בתהליך"
-          }
-        }
-      }
-    },
-    "Job" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "משרה"
-          }
-        }
-      }
-    },
-    "Job link added" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הקישור נוסף"
-          }
-        }
-      }
-    },
-    "No link? Paste the job description" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אין קישור? הדביקו את תיאור המשרה"
-          }
-        }
-      }
-    },
-    "Not started yet" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עוד לא התחיל"
-          }
-        }
-      }
-    },
-    "Nothing was sent. To check your résumé, Resumely needs your OK to send it to OpenAI." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לא נשלח דבר. כדי לבדוק את קורות החיים, Resumely צריכה את האישור שלכם לשלוח אותם ל-OpenAI."
-          }
-        }
-      }
-    },
-    "Paste a bit more of the description" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדביקו עוד קצת מהתיאור"
-          }
-        }
-      }
-    },
-    "Paste the full job post. The more of it, the better the match." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדביקו את המשרה המלאה. ככל שיש יותר טקסט, ההתאמה מדויקת יותר."
-          }
-        }
-      }
-    },
-    "Paste the job description here" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדביקו כאן את תיאור המשרה"
-          }
-        }
-      }
-    },
-    "Paste the job link" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הדביקו קישור למשרה"
-          }
-        }
-      }
-    },
-    "Pasted description" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תיאור שהודבק"
-          }
-        }
-      }
-    },
-    "Preparing the diagnosis" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מכינים את האבחון"
-          }
-        }
-      }
-    },
-    "Reading the job" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קוראים את המשרה"
-          }
-        }
-      }
-    },
-    "Reading your résumé" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קוראים את קורות החיים"
-          }
-        }
-      }
-    },
-    "Remove job link" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסרת הקישור"
-          }
-        }
-      }
-    },
-    "Résumé" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות חיים"
-          }
-        }
-      }
-    },
-    "See what a recruiter notices in the first 7 seconds, then fix it." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ראו במה מגייסים מבחינים ב-7 השניות הראשונות, ואז תקנו."
-          }
-        }
-      }
-    },
-    "Step 2 of 3" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שלב 2 מתוך 3"
-          }
-        }
-      }
-    },
-    "Step 3 of 3" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "שלב 3 מתוך 3"
-          }
-        }
-      }
-    },
-    "To check and improve your résumé, Resumely sends your résumé text and the job description to OpenAI, our AI provider. OpenAI processes them to write your results. If you check without an account, we keep the résumé and job text for up to 7 days." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "כדי לבדוק ולשפר את קורות החיים, Resumely שולחת את טקסט קורות החיים ואת תיאור המשרה ל-OpenAI, ספק ה-AI שלנו. OpenAI מעבדת אותם כדי להפיק את התוצאות שלכם. אם בודקים בלי חשבון, אנחנו שומרים את טקסט קורות החיים והמשרה עד 7 ימים."
-          }
-        }
-      }
-    },
-    "We send your résumé and job text to OpenAI to write your results. We don't sell your data. Delete it anytime." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אנחנו שולחים את קורות החיים ואת טקסט המשרה ל-OpenAI כדי להפיק את התוצאות שלכם. אנחנו לא מוכרים את המידע שלכם. אפשר למחוק אותו בכל עת."
-          }
-        }
-      }
-    },
-    "We send your résumé to OpenAI to write your results. We don't sell your data." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אנחנו שולחים את קורות החיים ל-OpenAI כדי להפיק את התוצאות שלכם. אנחנו לא מוכרים את המידע שלכם."
-          }
-        }
-      }
-    },
-    "Which job is this for?" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "לאיזו משרה להתאים?"
-          }
-        }
-      }
-    },
-    "Your changes were saved. Open History to see your tailored résumé." : {
-      "comment" : "Add only if true: the apply landed on the server but its result could not be loaded",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השינויים נשמרו. פתחו את ההיסטוריה כדי לראות את קורות החיים המותאמים."
           }
         }
       }
@@ -779,7 +389,19 @@
         }
       }
     },
+    "%lld of %lld words" : {
+      "comment" : "Pasted job description: words so far, then the minimum",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מתוך %lld מילים"
+          }
+        }
+      }
+    },
     "%lld of %lld words required when pasting" : {
+      "comment" : "Live pasted job description word count: words pasted, then the minimum",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -812,6 +434,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld דוחות שמורים"
+          }
+        }
+      }
+    },
+    "%lld words" : {
+      "comment" : "Pasted job description word count, minimum met",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld מילים"
           }
         }
       }
@@ -884,7 +517,6 @@
       }
     },
     "+%lld pts" : {
-      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1002,6 +634,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תיאור משרה מאפשר לנו להשוות מילות מפתח, פערים והתאמה לתפקיד."
+          }
+        }
+      }
+    },
+    "A link from LinkedIn or the company site is enough." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור מ-LinkedIn או מאתר החברה מספיק."
           }
         }
       }
@@ -1192,6 +834,7 @@
       }
     },
     "Add a job link or paste at least %lld words from the job description." : {
+      "comment" : "Job input is empty",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1486,6 +1129,16 @@
         }
       }
     },
+    "Agree and continue" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מסכימים וממשיכים"
+          }
+        }
+      }
+    },
     "AI Chat" : {
       "localizations" : {
         "he" : {
@@ -1513,6 +1166,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AirDrop, דוא״ל, הודעות…"
+          }
+        }
+      }
+    },
+    "Aligns headline-level details with the job target." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתאים את פרטי הכותרת למשרת היעד."
           }
         }
       }
@@ -1862,6 +1526,7 @@
       }
     },
     "ATS-friendly formatting" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -1972,6 +1637,16 @@
         }
       }
     },
+    "Before we read your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לפני שנקרא את קורות החיים שלכם"
+          }
+        }
+      }
+    },
     "Before:" : {
       "localizations" : {
         "he" : {
@@ -2040,6 +1715,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בטל"
+          }
+        }
+      }
+    },
+    "Cancel check" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ביטול הבדיקה"
+          }
+        }
+      }
+    },
+    "Certifications" : {
+      "comment" : "Résumé section name",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסמכות"
           }
         }
       }
@@ -2115,7 +1811,28 @@
         }
       }
     },
+    "Check my fit" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה"
+          }
+        }
+      }
+    },
+    "Check my fit for free" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה בחינם"
+          }
+        }
+      }
+    },
     "Check the job link or paste more of the job description, then try again." : {
+      "comment" : "Server rejected expected job input validation",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -2174,6 +1891,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בודק התאמה לתפקיד זה"
+          }
+        }
+      }
+    },
+    "Checking your fit" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בודקים את ההתאמה"
           }
         }
       }
@@ -2319,6 +2046,17 @@
         }
       }
     },
+    "Clarifies your value proposition for the target role." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבהיר את הערך שלכם לתפקיד היעד."
+          }
+        }
+      }
+    },
     "Clarity & impact" : {
       "localizations" : {
         "he" : {
@@ -2336,6 +2074,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קלאסי"
+          }
+        }
+      }
+    },
+    "Clean, readable formatting" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עיצוב נקי וקריא"
+          }
+        }
+      }
+    },
+    "Clearer education section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרק השכלה ברור יותר"
           }
         }
       }
@@ -2451,6 +2210,16 @@
         }
       }
     },
+    "Comparing requirements and experience" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משווים דרישות וניסיון"
+          }
+        }
+      }
+    },
     "Comparing your experience against the job requirements." : {
       "comment" : "FitCheckView loading subtitle",
       "localizations" : {
@@ -2458,6 +2227,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "משווה את הניסיון שלך לדרישות המשרה."
+          }
+        }
+      }
+    },
+    "Comparing your résumé with the job requirements." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משווים את קורות החיים לדרישות המשרה."
           }
         }
       }
@@ -2535,6 +2314,17 @@
         }
       }
     },
+    "Contact details" : {
+      "comment" : "Résumé section name",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרטי קשר"
+          }
+        }
+      }
+    },
     "Content" : {
       "localizations" : {
         "he" : {
@@ -2576,6 +2366,7 @@
       }
     },
     "Continue from the diagnosis you already ran" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3248,6 +3039,17 @@
         }
       }
     },
+    "Education" : {
+      "comment" : "Résumé section name",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השכלה"
+          }
+        }
+      }
+    },
     "Effort" : {
       "localizations" : {
         "he" : {
@@ -3278,7 +3080,18 @@
         }
       }
     },
+    "Enough to check" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מספיק לבדיקה"
+          }
+        }
+      }
+    },
     "Enter a job link, or paste at least %lld words from the job description." : {
+      "comment" : "Job URL is invalid",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3381,6 +3194,7 @@
       }
     },
     "Experience" : {
+      "comment" : "Résumé section name",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3590,6 +3404,16 @@
         }
       }
     },
+    "Finished" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסתיים"
+          }
+        }
+      }
+    },
     "FIRST READ" : {
       "localizations" : {
         "he" : {
@@ -3670,6 +3494,7 @@
       }
     },
     "Free Match Check" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3802,6 +3627,9 @@
         }
       }
     },
+    "Grew qualified applications by 23% by rebuilding the hiring workflow around role-specific keywords and measurable outcomes." : {
+
+    },
     "Guest" : {
       "comment" : "Guest account display name",
       "localizations" : {
@@ -3914,7 +3742,19 @@
         }
       }
     },
+    "Highlights the strongest keywords and core capabilities first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מציג קודם את מילות המפתח והיכולות החזקות ביותר שלכם."
+          }
+        }
+      }
+    },
     "Hiring-manager read" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -3995,6 +3835,17 @@
         }
       }
     },
+    "How we use your résumé" : {
+      "comment" : "Me trust card title",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איך אנחנו משתמשים בקורות החיים שלכם"
+          }
+        }
+      }
+    },
     "https://www.linkedin.com/jobs/view/..." : {
       "localizations" : {
         "he" : {
@@ -4011,6 +3862,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ייצאתי קורות חיים מותאמים עם Resumely: %@"
+          }
+        }
+      }
+    },
+    "I have a job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש לי קישור למשרה"
           }
         }
       }
@@ -4056,7 +3917,11 @@
         }
       }
     },
+    "Impact first" : {
+
+    },
     "Impact metrics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4196,6 +4061,16 @@
         }
       }
     },
+    "In progress" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בתהליך"
+          }
+        }
+      }
+    },
     "Include" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4227,6 +4102,7 @@
 
     },
     "Increased qualified applications by 23% by rebuilding the resume workflow around role-specific keywords, recruiter language, and measurable outcomes." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4357,6 +4233,16 @@
         }
       }
     },
+    "Job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "משרה"
+          }
+        }
+      }
+    },
     "Job Description" : {
       "comment" : "FitCheckView textarea label",
       "localizations" : {
@@ -4384,6 +4270,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קישור משרה"
+          }
+        }
+      }
+    },
+    "Job link added" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקישור נוסף"
           }
         }
       }
@@ -4615,6 +4511,7 @@
       }
     },
     "Led mobile dashboard redesign that cut onboarding drop-off by 18%, partnering with engineering to ship ATS-tracked workflow improvements." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -4623,6 +4520,9 @@
           }
         }
       }
+    },
+    "Led the mobile dashboard redesign with engineering, cutting onboarding drop-off by 18%." : {
+
     },
     "Let's fix the basics" : {
       "localizations" : {
@@ -4771,6 +4671,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תנו לזה את המראה הנכון"
+          }
+        }
+      }
+    },
+    "Makes achievements more relevant, specific, and recruiter-friendly." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הופך את ההישגים שלכם לרלוונטיים, ספציפיים וברורים יותר למגייסים."
           }
         }
       }
@@ -5124,11 +5035,22 @@
       }
     },
     "More aligned with this job — not a guarantee of interviews or ATS outcomes." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "מותאם יותר למשרה זו — לא הבטחה לראיונות או לתוצאות ATS."
+          }
+        }
+      }
+    },
+    "More aligned with this job. Not a guarantee of interviews." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מותאם יותר למשרה הזו. לא הבטחה לראיונות."
           }
         }
       }
@@ -5139,6 +5061,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "יותר הישגים מדידים"
+          }
+        }
+      }
+    },
+    "More relevant project evidence" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרויקטים רלוונטיים יותר"
           }
         }
       }
@@ -5214,7 +5147,11 @@
         }
       }
     },
+    "Needs keyword alignment" : {
+
+    },
     "Needs keyword and skills alignment" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -5336,6 +5273,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "לא צורף קישור משרה. הוסף את קישור המשרה לפני השמירה כדי שהחבילה תוכל לעקוב אחרי ההגשה הזו."
+          }
+        }
+      }
+    },
+    "No link? Paste the job description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין קישור? הדביקו את תיאור המשרה"
           }
         }
       }
@@ -5503,6 +5450,16 @@
         }
       }
     },
+    "Not started yet" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עוד לא התחיל"
+          }
+        }
+      }
+    },
     "Not yet" : {
       "localizations" : {
         "he" : {
@@ -5525,6 +5482,17 @@
     },
     "Note: %@" : {
       "comment" : "export file line"
+    },
+    "Nothing was sent. To check your résumé, Resumely needs your OK to send it to OpenAI." : {
+      "comment" : "Shown when the user declines the AI consent sheet",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא נשלח דבר. כדי לבדוק את קורות החיים, Resumely צריכה את האישור שלכם לשלוח אותם ל-OpenAI."
+          }
+        }
+      }
     },
     "Now it says" : {
       "localizations" : {
@@ -5930,6 +5898,16 @@
         }
       }
     },
+    "Paste a bit more of the description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו עוד קצת מהתיאור"
+          }
+        }
+      }
+    },
     "Paste a job description or add a job link." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5952,6 +5930,7 @@
       }
     },
     "Paste at least %lld words from the job description (%lld so far)." : {
+      "comment" : "Pasted job description is too short: the minimum, then the words pasted",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -6005,6 +5984,16 @@
         }
       }
     },
+    "Paste the full job post. The more of it, the better the match." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו את המשרה המלאה. ככל שיש יותר טקסט, ההתאמה מדויקת יותר."
+          }
+        }
+      }
+    },
     "Paste the job description below. We'll estimate your fit before you spend time optimizing." : {
       "comment" : "FitCheckView hero subtitle",
       "extractionState" : "stale",
@@ -6013,6 +6002,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הדבק את תיאור המשרה למטה. נעריך את ההתאמה שלך לפני שתשקיע זמן באופטימיזציה."
+          }
+        }
+      }
+    },
+    "Paste the job description here" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו כאן את תיאור המשרה"
           }
         }
       }
@@ -6039,12 +6038,32 @@
         }
       }
     },
+    "Paste the job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדביקו קישור למשרה"
+          }
+        }
+      }
+    },
     "Paste the text instead" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הדבקת הטקסט במקום"
+          }
+        }
+      }
+    },
+    "Pasted description" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תיאור שהודבק"
           }
         }
       }
@@ -6223,6 +6242,16 @@
         }
       }
     },
+    "Preparing the diagnosis" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מכינים את האבחון"
+          }
+        }
+      }
+    },
     "Preparing your diagnosis" : {
       "localizations" : {
         "he" : {
@@ -6315,6 +6344,17 @@
         }
       }
     },
+    "Prioritized role-relevant skills" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הכישורים הרלוונטיים לתפקיד בראש"
+          }
+        }
+      }
+    },
     "Priority actions" : {
       "localizations" : {
         "he" : {
@@ -6385,6 +6425,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "מסלול התקדמות. העלאה, הוספת משרה, התאמה."
+          }
+        }
+      }
+    },
+    "Projects" : {
+      "comment" : "Résumé section name",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרויקטים"
           }
         }
       }
@@ -6496,6 +6547,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "סורק מחדש…"
+          }
+        }
+      }
+    },
+    "Reading the job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קוראים את המשרה"
+          }
+        }
+      }
+    },
+    "Reading your résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קוראים את קורות החיים"
           }
         }
       }
@@ -6671,6 +6742,17 @@
         }
       }
     },
+    "Refined certification proof" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסמכות מוצגות בצורה מדויקת יותר"
+          }
+        }
+      }
+    },
     "Refinement Instruction" : {
       "localizations" : {
         "he" : {
@@ -6697,6 +6779,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "רקע רלוונטי"
+          }
+        }
+      }
+    },
+    "Remove job link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסרת הקישור"
           }
         }
       }
@@ -6734,6 +6826,16 @@
     },
     "Resume" : {
       "comment" : "export filename component",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות חיים"
+          }
+        }
+      }
+    },
+    "Résumé" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7723,6 +7825,16 @@
         }
       }
     },
+    "See what a recruiter notices in the first 7 seconds, then fix it." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ראו במה מגייסים מבחינים ב-7 השניות הראשונות, ואז תקנו."
+          }
+        }
+      }
+    },
     "See what changed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7760,6 +7872,7 @@
 
     },
     "See your Match Score before signing in" : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7831,6 +7944,7 @@
       }
     },
     "Senior Product Designer needed to lead mobile flows, ATS-friendly resume systems, and measurable hiring outcomes." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -7839,6 +7953,9 @@
           }
         }
       }
+    },
+    "Senior Product Designer, mobile flows" : {
+
     },
     "Server error (%lld): %@" : {
       "localizations" : {
@@ -7988,6 +8105,17 @@
         }
       }
     },
+    "Sharper professional summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תקציר מקצועי חד יותר"
+          }
+        }
+      }
+    },
     "Show less" : {
       "localizations" : {
         "he" : {
@@ -8004,6 +8132,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "הצג עוד"
+          }
+        }
+      }
+    },
+    "Shows projects with clearer technology and business relevance." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מציג פרויקטים עם רלוונטיות טכנולוגית ועסקית ברורה יותר."
           }
         }
       }
@@ -8223,6 +8362,7 @@
       }
     },
     "Skills" : {
+      "comment" : "Résumé section name",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -8341,6 +8481,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שלב 1 מתוך 3"
+          }
+        }
+      }
+    },
+    "Step 2 of 3" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלב 2 מתוך 3"
+          }
+        }
+      }
+    },
+    "Step 3 of 3" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלב 3 מתוך 3"
           }
         }
       }
@@ -8469,6 +8629,17 @@
         }
       }
     },
+    "Stronger experience bullets" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נקודות ניסיון חזקות יותר"
+          }
+        }
+      }
+    },
     "Submission Package" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8551,6 +8722,7 @@
       }
     },
     "Summary" : {
+      "comment" : "Résumé section name",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -8576,6 +8748,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "תצורת Supabase חסרה."
+          }
+        }
+      }
+    },
+    "Surfaces certifications that strengthen role fit." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מבליט הסמכות שמחזקות את ההתאמה לתפקיד."
           }
         }
       }
@@ -9142,6 +9325,17 @@
         }
       }
     },
+    "Tightens education details for faster recruiter scanning." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מהדק את פרטי ההשכלה כדי שמגייסים יסרקו אותם מהר יותר."
+          }
+        }
+      }
+    },
     "Tip %lld" : {
       "localizations" : {
         "he" : {
@@ -9168,6 +9362,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "התאמת תפקיד, הישגים והשפעה מדידה"
+          }
+        }
+      }
+    },
+    "To check and improve your résumé, Resumely sends your résumé text and the job description to OpenAI, our AI provider. OpenAI processes them to write your results. If you check without an account, we keep the résumé and job text for up to 7 days." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לבדוק ולשפר את קורות החיים, Resumely שולחת את טקסט קורות החיים ואת תיאור המשרה ל-OpenAI, ספק ה-AI שלנו. OpenAI מעבדת אותם כדי להפיק את התוצאות שלכם. אם בודקים בלי חשבון, אנחנו שומרים את טקסט קורות החיים והמשרה עד 7 ימים."
           }
         }
       }
@@ -9438,6 +9642,16 @@
         }
       }
     },
+    "Up from %lld%% before tailoring" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עלה מ-%lld%% לפני ההתאמה למשרה"
+          }
+        }
+      }
+    },
     "Up to %lld pts • %@" : {
       "localizations" : {
         "en" : {
@@ -9461,6 +9675,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "עדכן את מקטע הכישורים"
+          }
+        }
+      }
+    },
+    "Updated headline details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרטי כותרת מעודכנים"
           }
         }
       }
@@ -9821,6 +10046,27 @@
         }
       }
     },
+    "We send your résumé and job text to OpenAI to write your results. We don't sell your data. Delete it anytime." : {
+      "comment" : "Me trust card body",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אנחנו שולחים את קורות החיים ואת טקסט המשרה ל-OpenAI כדי להפיק את התוצאות שלכם. אנחנו לא מוכרים את המידע שלכם. אפשר למחוק אותו בכל עת."
+          }
+        }
+      }
+    },
+    "We send your résumé to OpenAI to write your results. We don't sell your data." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אנחנו שולחים את קורות החיים ל-OpenAI כדי להפיק את התוצאות שלכם. אנחנו לא מוכרים את המידע שלכם."
+          }
+        }
+      }
+    },
     "Weak Fit" : {
       "comment" : "FitVerdictView band label — skip",
       "localizations" : {
@@ -9854,6 +10100,16 @@
         }
       }
     },
+    "Which job is this for?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לאיזו משרה להתאים?"
+          }
+        }
+      }
+    },
     "Why this change" : {
       "localizations" : {
         "he" : {
@@ -9875,11 +10131,25 @@
       }
     },
     "Worked on dashboard redesigns and collaborated with engineers to improve user flows." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "עבד על עיצובי לוח בקרה ושיתף פעולה עם מהנדסים כדי לשפר תהליכי משתמש."
+          }
+        }
+      }
+    },
+    "Worked on the dashboard redesign with engineers. Onboarding drop-off fell 18% after launch." : {
+
+    },
+    "Yes, add it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כן, להוסיף"
           }
         }
       }
@@ -9890,16 +10160,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "כן!"
-          }
-        }
-      }
-    },
-    "Yes, add it" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "כן, להוסיף"
           }
         }
       }
@@ -9966,6 +10226,17 @@
         }
       }
     },
+    "Your changes were saved. Open History to see your tailored résumé." : {
+      "comment" : "Add only if true: the apply landed on the server but its result could not be loaded",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השינויים נשמרו. פתחו את ההיסטוריה כדי לראות את קורות החיים המותאמים."
+          }
+        }
+      }
+    },
     "Your cover letter could not be attached this time. The résumé file is ready." : {
       "localizations" : {
         "he" : {
@@ -9988,6 +10259,7 @@
       }
     },
     "Your experience section proves ownership, but the first bullet hides the business outcome." : {
+      "extractionState" : "stale",
       "localizations" : {
         "he" : {
           "stringUnit" : {
@@ -9996,6 +10268,9 @@
           }
         }
       }
+    },
+    "Your first bullet hides the outcome. Add a number you can stand behind." : {
+
     },
     "YOUR FIRST MATCH CHECK" : {
       "localizations" : {
@@ -10234,230 +10509,6 @@
           }
         }
       }
-    },
-    "Up from %lld%% before tailoring" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עלה מ-%lld%% לפני ההתאמה למשרה"
-          }
-        }
-      }
-    },
-    "Clean, readable formatting" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "עיצוב נקי וקריא"
-          }
-        }
-      }
-    },
-    "More aligned with this job. Not a guarantee of interviews." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מותאם יותר למשרה הזו. לא הבטחה לראיונות."
-          }
-        }
-      }
-    },
-    "Contact details" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פרטי קשר"
-          }
-        }
-      }
-    },
-    "Education" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "השכלה"
-          }
-        }
-      }
-    },
-    "Certifications" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסמכות"
-          }
-        }
-      }
-    },
-    "Projects" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פרויקטים"
-          }
-        }
-      }
-    },
-    "Sharper professional summary" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "תקציר מקצועי חד יותר"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Updated headline details" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פרטי כותרת מעודכנים"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Prioritized role-relevant skills" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הכישורים הרלוונטיים לתפקיד בראש"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Stronger experience bullets" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "נקודות ניסיון חזקות יותר"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Clearer education section" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פרק השכלה ברור יותר"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Refined certification proof" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הסמכות מוצגות בצורה מדויקת יותר"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "More relevant project evidence" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "פרויקטים רלוונטיים יותר"
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Clarifies your value proposition for the target role." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מבהיר את הערך שלכם לתפקיד היעד."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Aligns headline-level details with the job target." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מתאים את פרטי הכותרת למשרת היעד."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Highlights the strongest keywords and core capabilities first." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מציג קודם את מילות המפתח והיכולות החזקות ביותר שלכם."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Makes achievements more relevant, specific, and recruiter-friendly." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הופך את ההישגים שלכם לרלוונטיים, ספציפיים וברורים יותר למגייסים."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Tightens education details for faster recruiter scanning." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מהדק את פרטי ההשכלה כדי שמגייסים יסרקו אותם מהר יותר."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Surfaces certifications that strengthen role fit." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מבליט הסמכות שמחזקות את ההתאמה לתפקיד."
-          }
-        }
-      },
-      "extractionState" : "manual"
-    },
-    "Shows projects with clearer technology and business relevance." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "מציג פרויקטים עם רלוונטיות טכנולוגית ועסקית ברורה יותר."
-          }
-        }
-      },
-      "extractionState" : "manual"
     }
   },
   "version" : "1.0"

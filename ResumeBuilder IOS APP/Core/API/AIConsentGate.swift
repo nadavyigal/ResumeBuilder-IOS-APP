@@ -147,17 +147,36 @@ final class AIConsentCenter {
 
 /// Presents `AIConsentSheet` over whatever is on top (a sheet, a full-screen
 /// cover, a pushed screen), which a SwiftUI `.sheet` on one view cannot do.
+///
+/// `completion` is called exactly once, however the sheet ends: a button, a
+/// swipe, a dismissal from above (an ancestor modal closed by code, a root swap
+/// after sign-out), or a presentation that never happened. Missing one of those
+/// would leave `AIConsentCenter`'s waiters queued and hang every later gated
+/// send until relaunch (CodeRabbit on PR #200).
 @MainActor
 final class UIKitAIConsentPresenter: NSObject, AIConsentPresenting, UIAdaptivePresentationControllerDelegate {
     private var completion: (@MainActor (Bool) -> Void)?
     private weak var host: UIViewController?
+    /// Set by a button before the sheet closes, so the "gone" signal that fires
+    /// during that dismissal reports the user's choice, not a decline.
+    private var chosenAnswer: Bool?
+    private let topViewController: @MainActor () -> UIViewController?
+
+    init(topViewController: (@MainActor () -> UIViewController?)? = nil) {
+        self.topViewController = topViewController ?? { UIKitAIConsentPresenter.keyWindowTopViewController() }
+        super.init()
+    }
+
+    /// True while a sheet is on screen. For tests.
+    var isPresentingSheet: Bool { host?.presentingViewController != nil }
 
     func present(completion: @escaping @MainActor (Bool) -> Void) {
-        guard let top = Self.topViewController() else {
+        guard let top = topViewController() else {
             completion(false)
             return
         }
         self.completion = completion
+        chosenAnswer = nil
         let localization = LocalizationManager.shared
         let sheet = AIConsentSheet(
             onAgree: { [weak self] in self?.close(agreed: true) },
@@ -165,8 +184,9 @@ final class UIKitAIConsentPresenter: NSObject, AIConsentPresenting, UIAdaptivePr
         )
         .environment(localization)
         .environment(\.locale, localization.locale)
-        let host = UIHostingController(rootView: sheet)
+        let host = AIConsentHostingController(rootView: AnyView(sheet))
         host.overrideUserInterfaceStyle = .dark
+        host.onGone = { [weak self] in self?.sheetIsGone() }
         if let sheetController = host.sheetPresentationController {
             sheetController.detents = [.medium(), .large()]
             sheetController.prefersGrabberVisible = true
@@ -174,10 +194,24 @@ final class UIKitAIConsentPresenter: NSObject, AIConsentPresenting, UIAdaptivePr
         host.presentationController?.delegate = self
         self.host = host
         top.present(host, animated: true)
+        // UIKit refuses some presentations (the target is already presenting,
+        // mid-transition, or not in a window) with only a console warning.
+        // Check on the next turn of the run loop that the sheet is really up.
+        DispatchQueue.main.async { [weak self, weak host] in
+            guard let self, self.completion != nil else { return }
+            guard let host, host.presentingViewController != nil || host.isBeingPresented else {
+                self.finish(false)
+                return
+            }
+        }
     }
 
     private func close(agreed: Bool) {
-        guard let host else { return }
+        chosenAnswer = agreed
+        guard let host else {
+            finish(agreed)
+            return
+        }
         host.dismiss(animated: true) { [weak self] in
             self?.finish(agreed)
         }
@@ -187,14 +221,20 @@ final class UIKitAIConsentPresenter: NSObject, AIConsentPresenting, UIAdaptivePr
         MainActor.assumeIsolated { finish(false) }
     }
 
-    private func finish(_ agreed: Bool) {
-        let completion = completion
-        self.completion = nil
-        host = nil
-        completion?(agreed)
+    private func sheetIsGone() {
+        finish(chosenAnswer ?? false)
     }
 
-    private static func topViewController() -> UIViewController? {
+    /// Idempotent: only the first call reaches `completion`.
+    private func finish(_ agreed: Bool) {
+        guard let completion else { return }
+        self.completion = nil
+        host = nil
+        chosenAnswer = nil
+        completion(agreed)
+    }
+
+    static func keyWindowTopViewController() -> UIViewController? {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         let windows = scenes.flatMap(\.windows)
         var top = (windows.first { $0.isKeyWindow } ?? windows.first)?.rootViewController
@@ -203,4 +243,32 @@ final class UIKitAIConsentPresenter: NSObject, AIConsentPresenting, UIAdaptivePr
         }
         return top
     }
+}
+
+/// Reports, once, that the consent sheet has left the screen for good: it
+/// disappeared and is no longer presented. That covers a dismissal from above,
+/// which neither the buttons nor the swipe delegate see.
+private final class AIConsentHostingController: UIHostingController<AnyView> {
+    var onGone: (@MainActor () -> Void)?
+    private var didReportGone = false
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        // A sheet presented over this one also triggers viewDidDisappear on some
+        // presentation styles; only report when this sheet is no longer presented.
+        // Strong capture on purpose: after a dismissal from above nothing else
+        // holds this controller, and a weak capture would let it deallocate
+        // before it reports, leaving the consent waiters queued.
+        DispatchQueue.main.async { [self] in
+            guard presentingViewController == nil else { return }
+            reportGone()
+        }
+    }
+
+    private func reportGone() {
+        guard !didReportGone else { return }
+        didReportGone = true
+        onGone?()
+    }
+
 }

@@ -198,6 +198,58 @@ final class AIConsentTests: XCTestCase {
         XCTAssertTrue(latch.begin(), "after the first start resolves, the next tap starts again")
     }
 
+    // MARK: Real UIKit presenter (CodeRabbit on 33c6a20)
+
+    /// A sheet closed by code from above (an ancestor modal dismissed, a root
+    /// swap) must still resolve, or every later gated send would queue forever.
+    func testRealPresenterResolvesWhenTheSheetIsDismissedFromAbove() async throws {
+        let presenter = UIKitAIConsentPresenter()
+        guard UIKitAIConsentPresenter.keyWindowTopViewController() != nil else {
+            throw XCTSkip("No window in this test host")
+        }
+        let answer = ResultBox<Bool>()
+        presenter.present { answer.value = $0 }
+        guard await waitUntil("the sheet is on screen", { presenter.isPresentingSheet }) else { return }
+
+        // Dismiss from the presenter's parent, as an ancestor dismissal would.
+        UIKitAIConsentPresenter.keyWindowTopViewController()?.presentingViewController?.dismiss(animated: false)
+
+        guard await waitUntil("the presenter resolves", { answer.value != nil }) else { return }
+        XCTAssertEqual(answer.value, false)
+    }
+
+    /// UIKit can refuse a presentation with only a console warning. The
+    /// presenter must notice and resolve instead of waiting forever.
+    func testRealPresenterResolvesWhenThePresentationNeverHappens() async {
+        let detached = UIViewController() // not in any window, so UIKit refuses
+        let presenter = UIKitAIConsentPresenter(topViewController: { detached })
+        let answer = ResultBox<Bool>()
+
+        presenter.present { answer.value = $0 }
+
+        guard await waitUntil("the presenter resolves", { answer.value != nil }) else { return }
+        XCTAssertEqual(answer.value, false)
+        XCTAssertFalse(presenter.isPresentingSheet)
+    }
+
+    /// After a refused presentation the center can ask again: nothing is left queued.
+    func testCenterAsksAgainAfterARefusedPresentation() async {
+        let detached = UIViewController()
+        let presenter = UIKitAIConsentPresenter(topViewController: { detached })
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { "user-a" }
+
+        let first = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the first ask resolves", { first.value != nil }) else { return }
+        let second = ResultBox<Bool>()
+        Task { second.value = await center.ensureConsent(source: "b") }
+        guard await waitUntil("the second ask resolves, not queued behind a dead sheet", { second.value != nil }) else { return }
+
+        XCTAssertEqual(first.value, false)
+        XCTAssertEqual(second.value, false)
+    }
+
     /// Polls `condition` until it holds or `timeout` passes, then fails the test
     /// instead of hanging the run (Codex on cc649d4). The callers above run the
     /// consent request in a `Task`, so a missing callback cannot block teardown.

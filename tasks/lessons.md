@@ -914,7 +914,7 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 ### 2026-10-19: Screenshot Home's job step without the file picker
 
-**Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language in the app container's own plist, with the app terminated: `P="$(xcrun simctl get_app_container <udid> <bundle-id> data)/Library/Preferences/<bundle-id>.plist"; xcrun simctl spawn <udid> defaults write "$P" app_selected_language -string he`, and set it back to `en` afterwards. (Corrected 2026-10-19: `defaults write <bundle-id> ...` writes a different domain; the container plist kept `en` and the app stayed in English.) Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
+**Rule:** Launch a DEBUG build with `--smoke-home-job` and the env var `SIMCTL_CHILD_SMOKE_RESUME_PATH=<pdf on the Mac>`; add `--smoke-job-url <link>` or `--smoke-job-words <n>`. Set the language in the app container's own plist, with the app terminated: `P="$(xcrun simctl get_app_container <udid> <bundle-id> data)/Library/Preferences/<bundle-id>.plist"; xcrun simctl spawn <udid> defaults write "$P" app_selected_language -string he`, and set it back to `en` afterward. (Corrected 2026-10-19: `defaults write <bundle-id> ...` writes a different domain; the container plist kept `en` and the app stayed in English.) Wait about 30 seconds after launch on a slow Mac: at 8 seconds the shot is the loading spinner.
 **Why:** the job step only appears after a file is picked, and the picker cannot be driven headless.
 
 ### 2026-10-19: A prompt set while the check screen is up is lost

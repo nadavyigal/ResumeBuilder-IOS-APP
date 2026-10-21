@@ -1,3 +1,16 @@
+# 2026-10-21: Consent sheet always resolves; device test passed (PR #200)
+
+**Status:** pushed to PR #200, not merged. Waits for the founder's named yes. Ships in 1.5.4 with #202.
+**Device test (founder, iPhone 13, 2026-10-21, local build `test/1.5.4-combined` = main + #200 at 33c6a20 + #202):** as a guest, Check, then "Not now": back on Home, nothing ran. A swipe down did the same. "Agree" ran the check. After sign-in, the same file and job asked again (a new account) and completed. After sign-out, a guest check worked and asked again. Passed.
+**What changed (CodeRabbit on 33c6a20, Major, fixed):** `UIKitAIConsentPresenter` resolved only on a button or a swipe. A sheet dismissed from above (an ancestor modal closed by code, a root swap), or a presentation UIKit refused, left `AIConsentCenter`'s waiters queued, so every later gated send would hang until relaunch.
+- A hosting subclass reports when the sheet has left the screen and is no longer presented. It captures itself strongly, because nothing else holds it after a dismissal from above.
+- A check on the next run-loop turn resolves a presentation that never happened.
+- `finish` is idempotent, and a button's answer set before the dismissal wins.
+- The top view controller is injectable for tests.
+- Also: "afterwards" to "afterward" in `tasks/lessons.md` (CodeRabbit nit).
+**Last Validation:** 2026-10-21: `AIConsentTests` 27 pass (3 new, driving the real UIKit presenter). The dismissed-from-above test failed on the first, weak-capture version, and passes now. The refused-presentation and center-asks-again tests fail with the post-present check removed. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 516 tests, 0 failures, 1 skipped.
+**Last Updated:** 2026-10-21
+
 # 2026-10-21: PR #200 brought up to main after #198, #199 and #201 merged
 
 **Status:** pushed to PR #200, not merged. Waits for the founder's device test and named yes. Ships in 1.5.4.
