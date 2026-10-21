@@ -510,11 +510,11 @@ struct ProfileView: View {
                 .background(AppColors.accentCyan.opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(alignment: .leading, spacing: 5) {
-                Text(NSLocalizedString("Your résumé stays private", comment: "Me trust card title"))
+                Text(NSLocalizedString("How we use your résumé", comment: "Me trust card title"))
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(AppColors.textPrimary)
                 Text(NSLocalizedString(
-                    "We never sell or share your data. Delete it anytime.",
+                    "We send your résumé and job text to OpenAI to write your results. We don't sell your data. Delete it anytime.",
                     comment: "Me trust card body"
                 ))
                 .font(.caption)
@@ -537,7 +537,7 @@ struct ProfileView: View {
         ProfileSection(title: "Account", icon: "person.crop.circle.fill", iconColor: Theme.textTertiary) {
             if accountInfo.showsSignIn {
                 VStack(spacing: 0) {
-                    Label("Your data stays private. We never share your resume.", systemImage: "lock.shield.fill")
+                    Label("We send your résumé to OpenAI to write your results. We don't sell your data.", systemImage: "lock.shield.fill")
                         .font(.caption)
                         .foregroundStyle(Theme.textTertiary)
                         .padding(14)

@@ -35,6 +35,8 @@ struct ResumeBuilder_IOS_APPApp: App {
                 .environment(\.layoutDirection, localization.layoutDirection)
                 .preferredColorScheme(.dark)
                 .task {
+                    // Consent is asked per signed-in user (AIConsentStore).
+                    AIConsentCenter.shared.userIdProvider = { [appState] in appState.session?.userId }
                     // Warns when both internal-tester allowlists are empty, which
                     // silently counts every team install as a real user.
                     AnalyticsService.assertInternalTesterConfigIsUsable()

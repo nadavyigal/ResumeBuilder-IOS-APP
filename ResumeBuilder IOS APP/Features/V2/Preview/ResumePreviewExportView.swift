@@ -90,12 +90,6 @@ struct ResumePreviewExportView: View {
                 }
                 .padding(.horizontal, AppSpacing.lg)
 
-                // Privacy footer
-                Label("Your resume data is encrypted end-to-end.", systemImage: "lock.shield.fill")
-                    .font(.appCaption)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .padding(.horizontal, AppSpacing.lg)
-
                 Spacer(minLength: 100)
             }
         }

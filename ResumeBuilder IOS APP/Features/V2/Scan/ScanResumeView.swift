@@ -62,12 +62,6 @@ struct ScanResumeView: View {
                         .padding(.horizontal, AppSpacing.lg)
                 }
 
-                // Privacy note
-                Label("Your resume is encrypted and never shared.", systemImage: "lock.shield.fill")
-                    .font(.appCaption)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .padding(.horizontal, AppSpacing.lg)
-
                 Spacer(minLength: 100)
             }
         }
