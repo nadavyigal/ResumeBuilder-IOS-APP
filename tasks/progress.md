@@ -1,3 +1,31 @@
+# 2026-10-21: PR #202 integrated with consent PR #200 for 1.5.4
+
+**Status:** #200 merged as `e3e8b8a`; main merged into #202, ready to push for review at the integrated head. No archive, upload or submission.
+**Current Phase:** Resumely 1.5.4 release preparation.
+**Active Story:** #202 integration and verification.
+**Last Completed Story:** resolved only the expected `tasks/progress.md` conflict, retaining both entries. Full simulator suite passed on the combined source.
+**Founder exception:** explicitly approved 2026-10-21: keep the live fix in `Features/Tailor/TailorViewModel.swift` for 1.5.4. Follow up by moving the active view model or its upload-cache behavior under `Features/V2`. This architectural P1 does not block this release.
+**Known P2 follow-ups:** #200 can ask twice when the anonymous identity arrives during the consent sheet; #202 omits failure analytics if an identity-triggered replacement upload fails. Both remain documented and accepted for this release.
+**Next Recommended Story:** hosted Codex review on the integrated #202 head, merge if no new blockers, then open the 1.5.4 (33) version bump PR and complete section 7b.
+**Blockers:** current-head hosted review pending after push; no new code blocker found in the independent read-only review.
+**Last Validation:** 2026-10-21: iPhone 17 Pro, iOS 26.5, English/US, per-test timeouts: 527 XCTest tests, 1 skipped, 0 failures; Swift Testing 5 passed. `UploadCacheIdentityTests` 11 passed. All 11 Python script tests passed. Project plist and diff whitespace checks passed. Apple lookup: live 1.5.3, released 2026-10-20T22:13:51Z. Independent fresh Codex read-only review: no new blockers.
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: Upload cache keyed to the signed-in identity (ships in 1.5.4 with #200)
+
+**Status:** PR open, not merged. No build archived, uploaded or submitted.
+**Bug (in live 1.5.3, not caused by #200):** the founder's #200 device test, 2026-10-21. As a guest (anonymous Supabase user) he ran a check, which uploaded résumé `cf1cc929` owned by the anonymous user. He then signed in to his account and ran the same file and job. `TailorViewModel.ensureUploadedResumeForCurrentJob` reused the cached upload, because its signature (file path, job text, URL) had no identity. That gave three `optimization_started` events and no `resume_upload_started`. `/api/optimize` reads the résumé through the user's RLS client, could not see the guest's row, and answered "Resume not found" (web `src/app/api/optimize/route.ts:128`). `convertAnonymousSessionIfNeeded` converts only the free-check session, not uploads.
+**What changed:**
+- `Features/Tailor/TailorViewModel.swift`: the upload cache records its identity (`uploadIdentity`, the Supabase user id or `guest`) and is reused only by that identity. `resetUploadCache()` drops `uploadResponse`, the signature, the identity and `pendingSaveResumeId`; the picked file and job stay.
+- If optimize answers "Resume not found" or "Job description not found" (500 or 404, `isUploadedIdNotFound`), the cache is dropped, the résumé is uploaded once more (`forceFresh`), and optimize is retried once. A second not-found surfaces the error. The uploader is injectable for tests.
+- `App/MainTabViewV2.swift`: resets the cache whenever `appState.session?.userId` changes (sign-in, sign-out, account deletion). A guest whose anonymous session becomes an account keeps the same id, so that case keeps its upload.
+- The Fit check (off) reads the same cached upload, so it is covered too.
+**Last Validation:** 2026-10-21: new `UploadCacheIdentityTests`, 9 pass. Each part was then removed on purpose: without the identity check, the not-found classifier and the reset, 6 of them fail (sign-in re-upload, reset, both not-found re-uploads, the second not-found, the classifier). The 3 guards still pass (same identity reuses, other errors do not re-upload, identity helper). Full suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 498 tests, 0 failures, 1 skipped.
+**Follow-up (Codex on 245ef77, P2, fixed):** when the recovery upload itself failed, `didUpload` was still true from the first upload, so `resume_upload_failed` never fired and the funnel showed a start with no end. The re-upload now counts as an upload until it succeeds. Analytics is injectable (`track:`). 2 new tests: a failed recovery upload records one `resume_upload_failed` and no retry; a second not-found after a good re-upload records no upload failure. `UploadCacheIdentityTests` 11 pass; the first new test fails with the fix removed.
+**Device test (founder, iPhone 13, 2026-10-21, local build `test/1.5.4-combined` = main + #200 + #202 at 245ef77):** a guest check, then sign-in with the same file and job: the check completed with no "Resume not found". Sign-out, then a guest check: it worked. Passed.
+**Merge note:** plan to merge after #200 so both ship in 1.5.4. There's no code overlap with #200 (this PR touches `TailorViewModel` and `MainTabViewV2`; #200 does not). Only `tasks/progress.md` will conflict; keep both entries.
+**Last Updated:** 2026-10-21
+
 # 2026-10-21: Consent sheet always resolves; device test passed (PR #200)
 
 **Status:** pushed to PR #200, not merged. Waits for the founder's named yes. Ships in 1.5.4 with #202.
