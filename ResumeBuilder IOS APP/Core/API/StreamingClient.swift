@@ -31,6 +31,7 @@ struct StreamingClient {
         AsyncThrowingStream { continuation in
             Task {
                 do {
+                    try await AIConsentGate.live.require(endpoint)
                     var request = URLRequest(url: BackendConfig.apiBaseURL.appendingPathComponent(endpoint.path))
                     request.httpMethod = "POST"
                     if let token {

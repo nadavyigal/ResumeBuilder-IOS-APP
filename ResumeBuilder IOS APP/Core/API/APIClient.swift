@@ -60,18 +60,22 @@ struct APIClient: Sendable {
     var session: URLSession = .shared
     var longRunningSession: URLSession?
     var requestTimeout: TimeInterval = 30
+    /// Asked before every POST to an OpenAI-backed route (App Review 5.1.2(i)).
+    var consentGate: AIConsentGate = .live
     private let logger = Logger(subsystem: "ResumeBuilder", category: "APIClient")
 
     init(
         baseURL: URL = BackendConfig.apiBaseURL,
         session: URLSession = .shared,
         longRunningSession: URLSession? = nil,
-        requestTimeout: TimeInterval = 30
+        requestTimeout: TimeInterval = 30,
+        consentGate: AIConsentGate = .live
     ) {
         self.baseURL = baseURL
         self.session = session
         self.longRunningSession = longRunningSession
         self.requestTimeout = requestTimeout
+        self.consentGate = consentGate
     }
 
     // Long-lived session for upload-resume: AI optimization can take 60-90s.
@@ -95,6 +99,7 @@ struct APIClient: Sendable {
         token: String?,
         timeout: TimeInterval? = nil
     ) async throws -> T {
+        try await consentGate.require(endpoint)
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -117,6 +122,7 @@ struct APIClient: Sendable {
         token: String?,
         timeout: TimeInterval? = nil
     ) async throws -> T {
+        try await consentGate.require(endpoint)
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -253,6 +259,7 @@ struct APIClient: Sendable {
         sessionId: String?,
         fields: [String: String?]
     ) async throws -> T {
+        try await consentGate.require(endpoint)
         let boundary = "Boundary-\(UUID().uuidString)"
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
         request.httpMethod = "POST"
@@ -274,6 +281,7 @@ struct APIClient: Sendable {
         sessionId: String?,
         fields: [String: String?]
     ) async throws -> T {
+        try await consentGate.require(endpoint)
         let boundary = "Boundary-\(UUID().uuidString)"
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
         request.httpMethod = "POST"

@@ -38,6 +38,8 @@ struct HomeTabView: View {
     /// True from the check screen appearing until its dismissal has finished,
     /// including the closing animation that `isCheckScreenShown` cannot see.
     @State private var isCheckScreenOnScreen = false
+    /// One check start at a time, through the consent wait (PR #200 review).
+    @State private var checkStartLatch = CheckStartLatch()
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
     #endif
@@ -1556,9 +1558,19 @@ struct HomeTabView: View {
         .environment(\.layoutDirection, localization.layoutDirection)
     }
 
+    /// Every check sends the résumé and job text to OpenAI, so the first one asks
+    /// before the check screen opens. `APIClient` asks again at the send itself
+    /// (`AIConsentGate`), which covers every other path; this earlier ask keeps
+    /// the sheet from landing on top of the check screen. The center resumes
+    /// only after the sheet has finished closing.
     private func startCheck() {
-        isCheckCancelled = false
-        checkTask = Task { await runAnalysis() }
+        guard checkStartLatch.begin() else { return }
+        Task { @MainActor in
+            defer { checkStartLatch.end() }
+            guard await AIConsentCenter.shared.ensureConsent(source: "home_check") else { return }
+            isCheckCancelled = false
+            checkTask = Task { await runAnalysis() }
+        }
     }
 
     /// Stops the check and returns to Home with the résumé and job as they were.
@@ -1632,7 +1644,7 @@ struct HomeTabView: View {
                 )
             }
             .buttonStyle(.plain)
-            .disabled(!canRun || viewModel.isOptimizing || viewModel.isRunningFreeATS)
+            .disabled(!canRun || viewModel.isOptimizing || viewModel.isRunningFreeATS || checkStartLatch.isStarting)
             .accessibilityHint(blockingMessage.map { Text($0) } ?? Text(""))
 
             if let blockingMessage {

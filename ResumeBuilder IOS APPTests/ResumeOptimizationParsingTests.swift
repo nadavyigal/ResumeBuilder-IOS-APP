@@ -121,7 +121,8 @@ final class ResumeOptimizationParsingTests: XCTestCase {
             baseURL: URL(string: "https://example.test")!,
             session: URLSession(configuration: config),
             longRunningSession: URLSession(configuration: config),
-            requestTimeout: 1
+            requestTimeout: 1,
+            consentGate: .allowAll
         )
         let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
         viewModel.includedGroupIds = ["group-1"]
@@ -174,7 +175,8 @@ final class ResumeOptimizationParsingTests: XCTestCase {
             baseURL: URL(string: "https://example.test")!,
             session: URLSession(configuration: config),
             longRunningSession: URLSession(configuration: config),
-            requestTimeout: 1
+            requestTimeout: 1,
+            consentGate: .allowAll
         )
         let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
         viewModel.includedGroupIds = ["group-1"]
@@ -206,7 +208,8 @@ final class ResumeOptimizationParsingTests: XCTestCase {
             baseURL: URL(string: "https://example.test")!,
             session: URLSession(configuration: config),
             longRunningSession: URLSession(configuration: config),
-            requestTimeout: 1
+            requestTimeout: 1,
+            consentGate: .allowAll
         )
         let viewModel = OptimizationReviewViewModel(reviewId: "review-1", api: api)
         viewModel.includedGroupIds = ["group-1"]

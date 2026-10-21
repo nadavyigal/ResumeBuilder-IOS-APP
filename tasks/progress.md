@@ -1,3 +1,42 @@
+# 2026-10-21: Consent sheet always resolves; device test passed (PR #200)
+
+**Status:** pushed to PR #200, not merged. Waits for the founder's named yes. Ships in 1.5.4 with #202.
+**Device test (founder, iPhone 13, 2026-10-21, local build `test/1.5.4-combined` = main + #200 at 33c6a20 + #202):** as a guest, Check, then "Not now": back on Home, nothing ran. A swipe down did the same. "Agree" ran the check. After sign-in, the same file and job asked again (a new account) and completed. After sign-out, a guest check worked and asked again. Passed.
+**What changed (CodeRabbit on 33c6a20, Major, fixed):** `UIKitAIConsentPresenter` resolved only on a button or a swipe. A sheet dismissed from above (an ancestor modal closed by code, a root swap), or a presentation UIKit refused, left `AIConsentCenter`'s waiters queued, so every later gated send would hang until relaunch.
+- A hosting subclass reports when the sheet has left the screen and is no longer presented. It captures itself strongly, because nothing else holds it after a dismissal from above.
+- A check on the next run-loop turn resolves a presentation that never happened.
+- `finish` is idempotent, and a button's answer set before the dismissal wins.
+- The top view controller is injectable for tests.
+- Also: "afterwards" to "afterward" in `tasks/lessons.md` (CodeRabbit nit).
+**Last Validation:** 2026-10-21: `AIConsentTests` 27 pass (3 new, driving the real UIKit presenter). The dismissed-from-above test failed on the first, weak-capture version, and passes now. The refused-presentation and center-asks-again tests fail with the post-present check removed. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 516 tests, 0 failures, 1 skipped.
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: PR #200 brought up to main after #198, #199 and #201 merged
+
+**Status:** pushed to PR #200, not merged. Waits for the founder's device test and named yes. Ships in 1.5.4.
+**What changed:** merged main (`0e32d7d`, which has #198, #199 and #201) into the consent branch. #198's merge into this branch (`e3311c8`, catalog and task files) already existed; this merge only had a `tasks/progress.md` conflict, and both sides are kept.
+**Live version:** 1.5.3 is live, released 2026-10-20T22:13:51Z (Apple lookup, 2 cache-busted polls, 2026-10-21).
+**Last Validation:** 2026-10-21, on merge `9e743fb`: full iOS suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 513 tests, 0 failures, 1 skipped. All 24 `AIConsentTests` pass, including the catalog checks: disclosure keys are present with Hebrew, and no "never share" claims are left.
+**Last Updated:** 2026-10-21
+
+# 2026-10-20: Consent review fixes on PR #200 (every AI send, per account, no "never share")
+
+**Status:** pushed to PR #200, not merged. 1.5.3 (32) is in review without this; it targets the next build.
+**What changed:** the PR Steward (2026-10-20), Codex and CodeRabbit found three gaps. (1) Only Home's "Check my fit" asked; chat and refine on a restored optimization sent without consent. Now `APIClient` and `StreamingClient` ask `AIConsentGate` before every POST to a route that reaches OpenAI (`Core/API/AIConsentGate.swift`, list traced from the web routes). One `AIConsentCenter` shows the sheet over whatever is on top, through UIKit, and shares one sheet across concurrent sends. Home still asks before its check screen opens. (2) Consent was device-wide. Now it is keyed by the Supabase user id (`ai_data_consent_v1.<userId>`, `guest` with no session), so a second account is asked again, and `AppState.signOut` (and account deletion) clears every stored answer. (3) Profile and the save-account sheet still said "We never sell or share your data" / "We never share your resume". They now say "We send your résumé to OpenAI to write your results. We don't sell your data." (the privacy page says "we do not sell your data"). English and Hebrew.
+**Last Validation:** 2026-10-20: `AIConsentTests` 21 tests, all pass. Mutation check: with the gate removed from `postJSON`/`postJSONObject`, sign-out clearing removed, the key made device-wide and the old catalog restored, 8 of them fail (chat and refine blocked, second account, account switch, sign-out, scoped key, catalog claims, Hebrew), then pass again once restored. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 502 tests, 0 failures, 1 skipped. Simulator smoke in English and Hebrew: Check shows the sheet through the new presenter, "Not now" and a swipe both return to Home with nothing stored. "Agree" not run end to end (it would send a real guest check to production).
+**Follow-up (CodeRabbit on b4169f5, both fixed):** a sign-out while the consent sheet was open let a later "Agree" re-record consent for the signed-out user; `AIConsentCenter.clearAll` now bumps a generation and the pending answer is voided. Two quick taps on "Check my fit" could start two checks after one "Agree"; Home now lets one start through at a time (`Features/V2/Home/CheckStartLatch.swift`) and disables the button while it waits. `AIConsentTests` 24 pass; the sign-out test fails with the guard removed.
+**Follow-up (Codex on cc649d4, P2, fixed):** two tests waited on the stub presenter with an unbounded loop, so a presenter regression would hang the run. They now run the consent request in a `Task` and wait with a 2-second deadline (`waitUntil`). With the callback dropped, both fail in about 2 seconds instead of hanging.
+**Last Updated:** 2026-10-20
+
+# 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
+
+**Status:** PR open, not merged. No build archived or uploaded. Ships in the release after 1.5.3 (32).
+**What changed:** the first "Check my fit" now shows a one-time sheet: "Resumely sends your résumé text and the job description to OpenAI, our AI provider", the 7-day guest retention, a Privacy Policy link, "Agree and continue" and "Not now". Nothing is sent until the user agrees. "Not now" or swiping the sheet away sends nothing, and the next tap asks again. The gate sits in `HomeTabView.startCheck()`, the only caller of `runAnalysis`. The answer is stored per device with its date (`Core/Storage/AIConsentStore.swift`, key `ai_data_consent_v1`). New sheet: `Features/V2/Home/AIConsentSheet.swift`. New events: `ai_consent_shown`, `ai_consent_accepted`, `ai_consent_declined` (`source=home_check`). Two false labels removed with their catalog keys: "Your resume is encrypted and never shared." (`ScanResumeView`) and "Your resume data is encrypted end-to-end." (`ResumePreviewExportView`), both dead code.
+**Why:** the 2026-10-19 WWDC26 audit (vault `03-Research/2026-10-19-wwdc26-portfolio-adoption-audit.md`, O2) found the app sent résumé text to OpenAI with no in-app permission. The web privacy page named OpenAI, but guests could upload without ever seeing it.
+**Known limit:** chat or refine on an old optimization, before the user's next Check, is not gated.
+**Next:** founder review and merge; then the RunSmart consent fix and privacy page rewrite (same O2 finding).
+**Last Validation:** 2026-10-19: `AIConsentTests` 8 tests, red first (compile failure on the missing store, then 10 failures on missing Hebrew and the two catalog claims), now green. Full `xcodebuild test` (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`): 489 tests, 0 failures, 1 skipped, plus 3 Swift Testing tests passed. Simulator smoke with `--smoke-home-job` in English and Hebrew: tapping Check shows the sheet (Hebrew right-to-left, fully translated). "Not now" returns to Home with no check started and no consent stored. "Agree" was not run end to end, because it sends a real guest check to production.
+
 # 2026-10-20: Checklist crop fallback made followable (PR #201, Codex on 4c49350)
 
 **Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).

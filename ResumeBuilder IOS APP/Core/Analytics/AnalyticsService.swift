@@ -225,6 +225,11 @@ enum AnalyticsEvent: Sendable {
     case resumeUploadComingSoonTapped(route: String)
     case resumeUploadCTASeen(source: String)
     case secondJobStarted
+    /// The one-time "your résumé goes to OpenAI" question before the first check
+    /// (App Review 5.1.2(i)). `declined` covers "Not now" and swiping it away.
+    case aiConsentShown(source: String)
+    case aiConsentAccepted(source: String)
+    case aiConsentDeclined(source: String)
 
     nonisolated var name: String {
         switch self {
@@ -287,6 +292,9 @@ enum AnalyticsEvent: Sendable {
         case .resumeUploadComingSoonTapped: return "resume_upload_coming_soon_tapped"
         case .resumeUploadCTASeen: return "resume_upload_cta_seen"
         case .secondJobStarted: return "second_job_started"
+        case .aiConsentShown: return "ai_consent_shown"
+        case .aiConsentAccepted: return "ai_consent_accepted"
+        case .aiConsentDeclined: return "ai_consent_declined"
         }
     }
 
@@ -453,6 +461,8 @@ enum AnalyticsEvent: Sendable {
             return ["source": source]
         case .resumeUploadComingSoonTapped(let route):
             return ["route": route]
+        case .aiConsentShown(let source), .aiConsentAccepted(let source), .aiConsentDeclined(let source):
+            return ["source": source]
         }
     }
 
