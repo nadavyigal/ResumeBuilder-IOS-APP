@@ -53,7 +53,16 @@ validate_set() {
 {
   echo "Resumely App Store Screenshot Validation"
   echo "Generated: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-  validate_set "$OUTPUT/iphone-6.5-1242x2688" 1242 2688 "iPhone 6.5-inch"
+  if [[ ! -d "$OUTPUT/iphone-6.5-1242x2688" && ! -d "$OUTPUT/iphone-6.3-1206x2622" ]]; then
+    echo "No iPhone screenshot folder in $OUTPUT" >&2
+    exit 1
+  fi
+  if [[ -d "$OUTPUT/iphone-6.5-1242x2688" ]]; then
+    validate_set "$OUTPUT/iphone-6.5-1242x2688" 1242 2688 "iPhone 6.5-inch (Face ID, large display)"
+  fi
+  if [[ -d "$OUTPUT/iphone-6.3-1206x2622" ]]; then
+    validate_set "$OUTPUT/iphone-6.3-1206x2622" 1206 2622 "iPhone 6.3-inch (Dynamic Island, medium display)"
+  fi
   if [[ "${3:-}" != "--iphone-only" ]]; then
     validate_set "$OUTPUT/ipad-13" 2064 2752 "iPad 13-inch"
   fi
