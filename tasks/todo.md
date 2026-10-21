@@ -5,8 +5,10 @@
 - [x] Delete disposable remote QA screenshot branch only after #200 merged.
 - [x] Set Debug and Release to version 1.5.4, build 33; verify only those build settings change.
 - [x] Build Release, inspect generated app version/configuration, and run repository checks.
-- [ ] Push and open bump PR; independent review, one hosted Codex request per head, one section 7b summary comment.
-- [ ] Report results, accepted follow-ups, and remaining release steps. No archive upload or App Store submission in this task.
+- [x] Push and open bump PR #203; independent review approved and hosted Codex completed clean at bed4245; refresh the existing section 7b summary.
+- [x] Report results, accepted follow-ups, signing inventory and precise remaining release steps in docs/qa/reports/release-1.5.4-2026-10-21.md.
+- [ ] Founder: build-33 physical-device pass, including consent persistence and HE layout.
+- [ ] Release continuation: reviewed current head and founder merge decision, signed archive/validation, then separately authorized distribution. No upload/submission in this task.
 
 # 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
 

@@ -1,3 +1,11 @@
+# 2026-10-21: 1.5.4 release readiness continuation
+
+- Reused release/1.5.4-33 in /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-release-1-5-4; original head bed4245 and main 3e36474 unchanged when checked.
+- Verified hosted Codex completed clean at bed4245 and both reported checks passed. No duplicate review of that head.
+- All 11 Python tests passed again; Apple lookup still 1.5.3 (intentional future-candidate mismatch). Signing inventory has valid Development/Distribution identities and matching unexpired profiles. Both paired phones unavailable.
+- Added exact founder device/build/archive instructions and evidence boundaries; corrected stale task/precheck wording. No runtime/build-setting changes, merge, signed archive, upload or submission.
+- Next: founder phone pass, current-head review completion and release merge decision; distribution remains separate.
+
 # 2026-10-21: Continue Resumely 1.5.4 release
 
 - Verified #200 head e1b6771 and #202 head c792002, their current reviews and passing checks.

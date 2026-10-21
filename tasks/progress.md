@@ -1,15 +1,16 @@
 # 2026-10-21: Prepare release 1.5.4 (33)
 
-**Status:** planned future release on `release/1.5.4-33`; bump prepared for PR. App Store remains 1.5.3. No signed archive, upload or submission performed.
+**Status:** planned future release on `release/1.5.4-33`; PR #203 open; original bump head bed4245 reviewed clean. App Store remains 1.5.3. No signed archive, upload or submission performed.
 **Current Phase:** Resumely 1.5.4 release preparation.
-**Active Story:** version/build bump and section 7b pre-check.
+**Active Story:** build-33 physical-device QA handoff; automated preparation complete.
 **Last Completed Story:** #200 merged at `e3e8b8a497f96b162d40bd5104dd93fcd98d40b4`; main integrated into #202 at `c2643e7283891e8a4b7ac0b937f37a3bb60bdb43`; #202 merged at `3e36474d1ffdf5e65b32c98eaebb918d37c34f53`. Hosted Codex at c2643e7 found no major issues; fresh independent review found no new blockers. Both reported GitHub checks passed. Remote `qa/pr200-consent-screenshots` deleted after #200 merged; it held only disposable screenshot evidence.
 **What changed:** Debug and Release `MARKETING_VERSION` 1.5.3 to 1.5.4, `CURRENT_PROJECT_VERSION` 32 to 33. No runtime code changed in the bump.
 **Release contents:** explicit OpenAI consent across AI entry points (#200) and identity-scoped upload cache with one recovery upload on not-found (#202), on top of current main.
 **Approved follow-ups:** founder explicitly waived only #202's Features/V2 placement P1, with migration of the active TailorViewModel/upload-cache behavior to V2 deferred. P2s retained: a slow anonymous-session arrival can prompt twice; identity-triggered replacement upload failure can omit its failure analytics event. Prior P3: disabled Fit check and legacy TailorView do not have optimize()'s recovery retry.
-**Next Recommended Story:** complete current-head section 7b on the bump PR, then merge the bump and perform signed archive/validation and distribution as a separate release step.
-**Blockers:** current-head hosted bump review pending after push; no new serious code/test blocker found. The unsigned build does not verify provisioning, signing, device installation or App Store Connect acceptance.
+**Next Recommended Story:** founder runs the build-33 phone checklist in `docs/qa/reports/release-1.5.4-2026-10-21.md`; then release merge and signed archive/validation. Distribution requires its separate authorization.
+**Blockers:** both paired iPhones unavailable; no current build-33 device pass. Hosted review completed clean at bed4245; readiness docs require their new-head review. Valid signing identities and matching unexpired development/store profiles found; actual signing, installation and ASC acceptance unverified.
 **Last Validation:** combined source before this metadata-only bump: 527 XCTest tests, 1 skipped, 0 failures, plus 5 Swift Testing tests; all 11 upload-cache tests; unsigned generic iOS Release build passed. On bump: all 11 Python script tests passed, project plist and diff checks passed; Unsigned generic iOS Release build passed; built app metadata verified: 1.5.4 (33), expected bundle ID, production API URL. Independent bump review approved with no blockers. Store validator intentionally exits 1: candidate 1.5.4 versus live 1.5.3 (release 2026-10-20T22:13:51Z), expected for an unshipped release branch.
+**Latest QA Report:** `docs/qa/reports/release-1.5.4-2026-10-21.md`
 **Last Updated:** 2026-10-21
 
 # 2026-10-21: PR #202 integrated with consent PR #200 for 1.5.4
