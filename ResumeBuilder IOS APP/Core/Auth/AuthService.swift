@@ -71,8 +71,37 @@ final class AuthService: @unchecked Sendable {
     // MARK: - Session persistence
 
     func restoreSession() -> AuthSession? {
-        guard let data = keychain.read(service: service, account: account) else { return nil }
-        return try? JSONDecoder().decode(AuthSession.self, from: data)
+        guard let data = keychain.read(service: service, account: account),
+              let saved = try? JSONDecoder().decode(AuthSession.self, from: data)
+        else { return nil }
+        let session = Self.repairingAnonymousFlag(saved)
+        if session != saved {
+            persist(session)
+        }
+        return session
+    }
+
+    /// Builds before 1.5.5 dropped `is_anonymous` on token refresh, so a guest's
+    /// saved session could read as a real account. The access token saved with
+    /// it still carries Supabase's `is_anonymous` claim. Trust that claim only
+    /// to mark a session anonymous: a `false` or missing claim, or a token that
+    /// cannot be read, leaves the session as saved, so a real account is never
+    /// turned into a guest.
+    ///
+    /// Only a session with no saved flag is checked. Every session the old bug
+    /// wrote has none, and an explicit `false` came from the server with this
+    /// fix, so it wins over a token claim that may be stale.
+    static func repairingAnonymousFlag(_ session: AuthSession) -> AuthSession {
+        guard session.isAnonymous == nil,
+              JWTDecoder.isAnonymous(from: session.accessToken) == true
+        else { return session }
+        return AuthSession(
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+            userId: session.userId,
+            email: session.email,
+            isAnonymous: true
+        )
     }
 
     func clearSession() {
@@ -137,7 +166,8 @@ final class AuthService: @unchecked Sendable {
             accessToken: token,
             refreshToken: refresh,
             userId: user.id,
-            email: user.email
+            email: user.email,
+            isAnonymous: user.is_anonymous
         )
         persist(session)
         return session
@@ -338,6 +368,9 @@ final class AuthService: @unchecked Sendable {
 nonisolated struct GoTrueUser: Decodable, Sendable {
     let id: String
     let email: String?
+    /// GoTrue sends this on every user object. Optional because older GoTrue
+    /// versions omit it; absent means a real account, matching `AuthSession`.
+    let is_anonymous: Bool?
 }
 
 /// GoTrue token payload. A response with no `refresh_token` cannot be persisted as a
@@ -356,7 +389,11 @@ nonisolated struct GoTrueResponse: Decodable, Sendable {
             accessToken: access_token,
             refreshToken: refresh,
             userId: user.id,
-            email: user.email
+            email: user.email,
+            // Refresh, email and Apple sign-in all land here. Dropping the flag
+            // made the first token refresh save an anonymous guest as a real
+            // account, which showed them the signed-in UI.
+            isAnonymous: user.is_anonymous
         )
     }
 }

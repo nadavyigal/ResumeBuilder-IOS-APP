@@ -3,14 +3,22 @@ import Foundation
 /// Decodes JWT payload fields for client-side expiry gating only — no signature verification.
 enum JWTDecoder: Sendable {
     static func expirationDate(from jwt: String) -> Date? {
-        let parts = jwt.split(separator: ".")
-        guard parts.count >= 2 else { return nil }
-        guard let payloadData = base64URLDecode(String(parts[1])) else { return nil }
-        guard
-            let json = try? JSONSerialization.jsonObject(with: payloadData) as? [String: Any],
-            let exp = json["exp"] as? TimeInterval
-        else { return nil }
+        guard let exp = payload(from: jwt)?["exp"] as? TimeInterval else { return nil }
         return Date(timeIntervalSince1970: exp)
+    }
+
+    /// Supabase's `is_anonymous` claim, or nil when the token has no such claim
+    /// or cannot be read. Used only to repair a saved session's flag on restore.
+    static func isAnonymous(from jwt: String) -> Bool? {
+        payload(from: jwt)?["is_anonymous"] as? Bool
+    }
+
+    private static func payload(from jwt: String) -> [String: Any]? {
+        let parts = jwt.split(separator: ".")
+        guard parts.count >= 2,
+              let payloadData = base64URLDecode(String(parts[1]))
+        else { return nil }
+        return try? JSONSerialization.jsonObject(with: payloadData) as? [String: Any]
     }
 
     /// Returns true when the access token is missing, unparsable, or expires within `leeway` seconds.

@@ -1,3 +1,15 @@
+# 2026-10-22: Anonymous flag survives token refresh (1.5.5)
+
+**Status:** PR open against main for 1.5.5, not merged. 1.5.4 (33) in App Review untouched. No version bump, archive or App Store Connect action.
+**Current Phase:** Resumely 1.5.5 fixes.
+**Active Story:** keep `is_anonymous` on sessions built from GoTrue token responses.
+**Bug (pre-existing, found by the #205 second-model review):** `GoTrueResponse.makeSession()` built `AuthSession` without `isAnonymous`, and `refreshSession` persisted it. After the first token refresh an anonymous guest was saved and restored as a real account (`isAccountSession` is `isAnonymous != true`), so `AppState.isAuthenticated` turned true: signed-in UI (Profile, History) without sign-up, analytics could identify an anonymous user, and the #204 consent carry-over on restore was skipped.
+**What changed:** `Core/Auth/AuthService.swift`: `GoTrueUser` decodes `is_anonymous` (optional; absent means account); `makeSession()` (refresh, email and Apple sign-in) and `signUpWithEmail` pass it into `AuthSession`. Tests in `AuthServiceResponseTests`: refreshed anonymous stays anonymous through persist/restore; refreshed account stays account; no `is_anonymous` decodes as account.
+**Decided 2026-10-22 (founder): repair added.** `restoreSession()` reads the saved access token's `is_anonymous` claim (`JWTDecoder.isAnonymous(from:)`). Claim true on a saved session with no flag (every session the old bug wrote): mark it anonymous and save it back once. False, missing or unreadable claim, or a saved explicit `false`: unchanged, so a real account is never turned into a guest. Runs before `bootstrap()` uses the session.
+**Next Recommended Story:** Codex on the repair head; merge into the 1.5.5 batch with #205.
+**Blockers:** none for the code. Device check not run (needs an anonymous session saved by an older build after one refresh).
+**Last Validation:** 2026-10-22, iPhone 17 Pro, iOS 26.5, English/US, per-test timeouts: 534 XCTest tests, 1 skipped, 0 failures; Swift Testing 5 passed. Refresh fix: without it, the anonymous and account refresh tests fail (5 assertions). Repair: with a no-op repair, the anonymous restore test fails (2 assertions); with a repair that ignores the claim, both guard tests fail (4 assertions); with the earlier `isAccountSession` guard, the explicit-false test fails.
+
 # 2026-10-22: #204 guest consent carried to the anonymous session (1.5.5)
 
 **Status:** PR open for 1.5.5, not merged. No version bump, archive, upload or App Store Connect change; 1.5.4 (33) is in App Review.
