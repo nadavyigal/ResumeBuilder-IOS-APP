@@ -226,8 +226,13 @@ final class AppState {
     func establishAnonymousSessionIfNeeded() async {
         guard session == nil else { return }
         do {
-            let anonymous = try await AuthService.shared.signInAnonymously()
+            let anonymous = try await authClient.signInAnonymously()
             session = anonymous
+            // A guest who agreed before this session existed is not asked again
+            // (#204). Anonymous only: a real account is asked (5.1.2(i)).
+            if !anonymous.isAccountSession {
+                AIConsentCenter.shared.carryGuestConsent(toAnonymousUserId: anonymous.userId)
+            }
             AnalyticsService.shared.track(.anonymousSessionStarted)
         } catch AuthServiceError.anonymousSignInDisabled {
             // Expected while the Supabase provider is off. Not worth surfacing.
