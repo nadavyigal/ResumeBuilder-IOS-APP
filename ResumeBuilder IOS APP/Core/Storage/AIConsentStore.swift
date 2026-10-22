@@ -7,7 +7,8 @@ import Foundation
 /// asked again instead of inheriting the first account's yes. A guest's
 /// anonymous session keeps its user id when it becomes an account, so the
 /// person who agreed as a guest is not asked twice. With no session at all the
-/// identity is `guest`. `AppState.signOut` clears every stored answer.
+/// identity is `guest`; when the anonymous session starts later, it takes over
+/// that answer (`carryGuestConsent`). `AppState.signOut` clears every stored answer.
 ///
 /// The key is versioned: if what is sent, or who receives it, changes, bump
 /// `keyPrefix` and everyone is asked again.
@@ -50,6 +51,19 @@ struct AIConsentStore {
 
     func recordConsent(at date: Date = Date()) {
         defaults.set(date.timeIntervalSince1970, forKey: Self.key(for: identity))
+    }
+
+    /// Moves a `guest` yes to the anonymous session that started after it on
+    /// this device: same phone, same person, no sign-in (#204). Keeps the date it
+    /// was given. Never call this for a real account; that one must be asked.
+    static func carryGuestConsent(to identity: String, defaults: UserDefaults = .standard) {
+        let guestKey = key(for: guestIdentity)
+        guard identity != guestIdentity, let givenAt = defaults.object(forKey: guestKey) else { return }
+        let targetKey = key(for: identity)
+        if defaults.object(forKey: targetKey) == nil {
+            defaults.set(givenAt, forKey: targetKey)
+        }
+        defaults.removeObject(forKey: guestKey)
     }
 
     /// Removes every identity's answer, plus the unscoped key an unreleased
