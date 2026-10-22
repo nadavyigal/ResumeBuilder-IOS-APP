@@ -78,8 +78,12 @@ final class AuthService: @unchecked Sendable {
     /// to mark a session anonymous: a `false` or missing claim, or a token that
     /// cannot be read, leaves the session as saved, so a real account is never
     /// turned into a guest.
+    ///
+    /// Only a session with no saved flag is checked. Every session the old bug
+    /// wrote has none, and an explicit `false` came from the server with this
+    /// fix, so it wins over a token claim that may be stale.
     static func repairingAnonymousFlag(_ session: AuthSession) -> AuthSession {
-        guard session.isAccountSession,
+        guard session.isAnonymous == nil,
               JWTDecoder.isAnonymous(from: session.accessToken) == true
         else { return session }
         return AuthSession(

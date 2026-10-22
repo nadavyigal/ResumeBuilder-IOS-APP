@@ -169,6 +169,20 @@ final class AuthServiceResponseTests: XCTestCase {
         XCTAssertEqual(AuthService.repairingAnonymousFlag(badToken), badToken)
     }
 
+    /// An explicit `false` came from the server after the refresh fix and wins
+    /// over a token claim, which can be stale right after a guest upgrades.
+    func testRestoredSessionWithExplicitFalseFlagIgnoresAnonymousClaim() {
+        let saved = AuthSession(
+            accessToken: Self.makeJWT(payload: #"{"sub":"user-1","is_anonymous":true}"#),
+            refreshToken: "refresh",
+            userId: "user-1",
+            email: "a@b.com",
+            isAnonymous: false
+        )
+
+        XCTAssertEqual(AuthService.repairingAnonymousFlag(saved), saved)
+    }
+
     private static func makeJWT(payload: String) -> String {
         func base64URL(_ data: Data) -> String {
             data.base64EncodedString()
