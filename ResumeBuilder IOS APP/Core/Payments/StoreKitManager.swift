@@ -137,6 +137,9 @@ final class StoreKitManager {
     static let shared = StoreKitManager()
 
     private(set) var products: [Product] = []
+    /// Counts grants delivered outside `purchase()` (Ask to Buy approvals,
+    /// retries). A paywall waiting on an approval watches it to resume the export.
+    private(set) var backgroundGrantCount = 0
     var verifier: PurchaseVerifying = ReceiptVerifier()
 
     /// Set by `AppState` at launch: the account a delivery is made for, or nil
@@ -260,6 +263,7 @@ final class StoreKitManager {
         )
         guard case .finish(let verification) = decision else { return nil }
         onCreditsGranted?(verification.balance)
+        backgroundGrantCount += 1
         if verification.status == "granted" {
             // Ask to Buy approvals and retries land here, not in the sheet.
             AnalyticsService.shared.track(.purchaseCompleted(

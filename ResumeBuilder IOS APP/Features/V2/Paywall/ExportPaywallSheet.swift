@@ -41,7 +41,14 @@ final class ExportPaywallModel {
         case ready
         case unavailable
         case purchasing(productID: String)
+        /// Ask to Buy: Apple holds the purchase for approval. Nothing more can be
+        /// bought from this sheet; the approval arrives through
+        /// `Transaction.updates` and resumes the export (Codex P1 on #207).
+        case awaitingApproval(productID: String)
     }
+
+    /// The store's background grant count when the wait began.
+    private var grantCountAtWait = 0
 
     let optimizationId: String
     private(set) var phase: Phase = .loading
@@ -86,6 +93,12 @@ final class ExportPaywallModel {
     }
 
     /// Returns true when the server granted the credits.
+    /// True once a background grant (the approval) has arrived while waiting.
+    var approvalGranted: Bool {
+        if case .awaitingApproval = phase { return store.backgroundGrantCount > grantCountAtWait }
+        return false
+    }
+
     func buy(_ offer: PackOffer, account: PurchaseAccount?) async -> Bool {
         guard phase == .ready, !isFixture,
               let product = store.products.first(where: { $0.id == offer.id }) else { return false }
@@ -117,6 +130,8 @@ final class ExportPaywallModel {
                 analytics.track(.purchaseCancelled(productId: product.id))
             case .pending:
                 analytics.track(.purchasePending(productId: product.id))
+                grantCountAtWait = store.backgroundGrantCount
+                phase = .awaitingApproval(productID: product.id)
                 message = NSLocalizedString(
                     "Your purchase is waiting for approval. Your credits are added once it is approved.",
                     comment: "Ask to Buy pending"
@@ -209,6 +224,9 @@ struct ExportPaywallSheet: View {
         .environment(\.layoutDirection, localization.layoutDirection)
         .preferredColorScheme(.dark)
         .interactiveDismissDisabled(isPurchasing)
+        .onChange(of: model.approvalGranted) { _, granted in
+            if granted { onUnlocked() }
+        }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
             await model.load()
@@ -241,7 +259,7 @@ struct ExportPaywallSheet: View {
             }
             .buttonStyle(.bordered)
             .accessibilityIdentifier("paywall.retry")
-        case .ready, .purchasing:
+        case .ready, .purchasing, .awaitingApproval:
             VStack(spacing: AppSpacing.sm) {
                 ForEach(model.offers) { offer in
                     packRow(offer)
