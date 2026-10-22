@@ -17,6 +17,12 @@ struct ResumeBuilder_IOS_APPApp: App {
                     .environment(\.locale, localization.locale)
                     .environment(\.layoutDirection, localization.layoutDirection)
                     .preferredColorScheme(.dark)
+            } else if ProcessInfo.processInfo.arguments.contains("--smoke-paywall") {
+                PaywallSmokeHarness()
+                    .environment(localization)
+                    .environment(\.locale, localization.locale)
+                    .environment(\.layoutDirection, localization.layoutDirection)
+                    .preferredColorScheme(.dark)
             } else {
                 appBody
             }

@@ -1,0 +1,321 @@
+import StoreKit
+import SwiftUI
+
+enum ExportPaywallCopy {
+    static let title: LocalizedStringKey = "Export your tailored résumé"
+    static let whatACreditBuys: LocalizedStringKey =
+        "One credit exports one tailored résumé, in any format, as often as you need."
+    static let neverExpire: LocalizedStringKey = "Credits never expire."
+    static let restore: LocalizedStringKey =
+        "Credits stay on your account. Sign in to the same account on another device to use them."
+    static let close: LocalizedStringKey = "Close"
+    static let loading: LocalizedStringKey = "Loading prices…"
+    static let retry: LocalizedStringKey = "Try again"
+
+    static func packTitle(credits: Int) -> LocalizedStringKey {
+        switch credits {
+        case 1: return "1 tailored export"
+        case 5: return "5 tailored exports"
+        default: return "10 tailored exports"
+        }
+    }
+}
+
+/// One row of the sheet. `displayPrice` comes from StoreKit (`product.displayPrice`),
+/// so the app never shows a typed price.
+struct PackOffer: Identifiable, Equatable {
+    let id: String
+    let credits: Int
+    let displayPrice: String
+}
+
+/// Opens only after the server answered 402 `export_credits_required` for an
+/// export the user tapped (StoreKit spec 10.1): never at launch, never as a
+/// banner, no "Premium" wording (EXD-018). After a grant it calls `onUnlocked`,
+/// and the caller runs the export the user tapped without a second tap.
+@Observable
+@MainActor
+final class ExportPaywallModel {
+    enum Phase: Equatable {
+        case loading
+        case ready
+        case unavailable
+        case purchasing(productID: String)
+    }
+
+    let optimizationId: String
+    private(set) var phase: Phase = .loading
+    private(set) var message: String?
+    private(set) var offers: [PackOffer] = []
+    private let store: StoreKitManager
+    private let isFixture: Bool
+
+    init(optimizationId: String, store: StoreKitManager = .shared) {
+        self.optimizationId = optimizationId
+        self.store = store
+        self.isFixture = false
+    }
+
+    #if DEBUG
+    /// DEBUG smoke harness only: shows the sheet with sample prices and no StoreKit.
+    init(optimizationId: String, fixtureOffers: [PackOffer]) {
+        self.optimizationId = optimizationId
+        self.store = .shared
+        self.isFixture = true
+        self.offers = fixtureOffers
+        self.phase = .ready
+    }
+    #endif
+
+    func load() async {
+        guard !isFixture else { return }
+        phase = .loading
+        message = nil
+        do {
+            try await store.loadProducts()
+            offers = store.products.compactMap { product in
+                ExportCreditProducts.credits(for: product.id).map {
+                    PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)
+                }
+            }
+            phase = .ready
+        } catch {
+            phase = .unavailable
+            message = StoreKitManagerError.productUnavailable.localizedDescription
+        }
+    }
+
+    /// Returns true when the server granted the credits.
+    func buy(_ offer: PackOffer, account: PurchaseAccount?) async -> Bool {
+        guard phase == .ready, !isFixture,
+              let product = store.products.first(where: { $0.id == offer.id }) else { return false }
+        let analytics = AnalyticsService.shared
+        guard let account else {
+            message = StoreKitManagerError.accountRequired.localizedDescription
+            return false
+        }
+        phase = .purchasing(productID: product.id)
+        message = nil
+        analytics.track(.purchaseStarted(productId: product.id))
+        defer { if case .purchasing = phase { phase = .ready } }
+        do {
+            switch try await store.purchase(product, account: account) {
+            case .granted(let verification):
+                analytics.track(.purchaseCompleted(
+                    productId: product.id,
+                    price: "\(product.price)",
+                    currency: product.priceFormatStyle.currencyCode,
+                    creditsGranted: verification.creditsGranted
+                ))
+                return true
+            case .cancelled:
+                analytics.track(.purchaseCancelled(productId: product.id))
+            case .pending:
+                analytics.track(.purchasePending(productId: product.id))
+                message = NSLocalizedString(
+                    "Your purchase is waiting for approval. Your export unlocks once it is approved.",
+                    comment: "Ask to Buy pending"
+                )
+            }
+        } catch {
+            let reason = (error as? StoreKitManagerError).map { "\($0)" } ?? "storekit_error"
+            analytics.track(.purchaseFailed(productId: product.id, reason: reason))
+            message = (error as? LocalizedError)?.errorDescription
+                ?? StoreKitManagerError.purchaseFailed.localizedDescription
+        }
+        return false
+    }
+}
+
+struct ExportPaywallSheet: View {
+    @Environment(LocalizationManager.self) private var localization
+    @Environment(AppState.self) private var appState
+    @State private var model: ExportPaywallModel
+    /// Called after a successful grant, with the sheet still up; the caller closes it.
+    let onUnlocked: () -> Void
+    let onClose: () -> Void
+
+    init(
+        optimizationId: String,
+        model: ExportPaywallModel? = nil,
+        onUnlocked: @escaping () -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        _model = State(initialValue: model ?? ExportPaywallModel(optimizationId: optimizationId))
+        self.onUnlocked = onUnlocked
+        self.onClose = onClose
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                HStack(alignment: .top) {
+                    Image(systemName: "doc.badge.arrow.up")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundStyle(AppColors.accentTeal)
+                        .accessibilityHidden(true)
+                    Spacer()
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel(Text(ExportPaywallCopy.close))
+                    .accessibilityIdentifier("paywall.close")
+                }
+
+                Text(ExportPaywallCopy.title)
+                    .font(.appHeadline)
+                    .foregroundStyle(AppColors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(ExportPaywallCopy.whatACreditBuys)
+                    Text(ExportPaywallCopy.neverExpire)
+                }
+                .font(.appSubheadline)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+                packs
+
+                if let message = model.message {
+                    Text(message)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("paywall.message")
+                }
+
+                Text(ExportPaywallCopy.restore)
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(AppSpacing.lg)
+        }
+        .screenBackground()
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        // A sheet does not inherit the app root's direction (lessons 2026-10-19).
+        .environment(\.layoutDirection, localization.layoutDirection)
+        .preferredColorScheme(.dark)
+        .interactiveDismissDisabled(isPurchasing)
+        .task {
+            AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
+            await model.load()
+        }
+    }
+
+    private var isPurchasing: Bool {
+        if case .purchasing = model.phase { return true }
+        return false
+    }
+
+    @ViewBuilder
+    private var packs: some View {
+        switch model.phase {
+        case .loading:
+            HStack(spacing: AppSpacing.sm) {
+                ProgressView()
+                Text(ExportPaywallCopy.loading)
+                    .font(.appSubheadline)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 120)
+        case .unavailable:
+            Button {
+                Task { await model.load() }
+            } label: {
+                Text(ExportPaywallCopy.retry)
+                    .font(.appSubheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("paywall.retry")
+        case .ready, .purchasing:
+            VStack(spacing: AppSpacing.sm) {
+                ForEach(model.offers) { offer in
+                    packRow(offer)
+                }
+            }
+        }
+    }
+
+    private func packRow(_ offer: PackOffer) -> some View {
+        let isBuyingThis = model.phase == .purchasing(productID: offer.id)
+        return Button {
+            Task {
+                if await model.buy(offer, account: appState.purchaseAccount) {
+                    onUnlocked()
+                }
+            }
+        } label: {
+            HStack {
+                Text(ExportPaywallCopy.packTitle(credits: offer.credits))
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+                if isBuyingThis {
+                    ProgressView()
+                } else {
+                    Text(offer.displayPrice)
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(AppColors.accentTeal)
+                        .monospacedDigit()
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .frame(minHeight: 56)
+            .glassCard(cornerRadius: AppRadii.md)
+        }
+        .buttonStyle(.plain)
+        .disabled(model.phase != .ready)
+        .accessibilityIdentifier("paywall.pack.\(offer.credits)")
+    }
+}
+
+/// Presents the export paywall for the optimization a 402 named, and dismisses
+/// it with `paywall_dismissed` when the user closes it without buying.
+struct ExportPaywallPresenter: ViewModifier {
+    @Environment(AppState.self) private var appState
+    @Binding var optimizationId: String?
+    let onUnlocked: () -> Void
+
+    func body(content: Content) -> some View {
+        content.sheet(item: Binding(
+            get: { optimizationId.map(PaywallItem.init) },
+            set: { newValue in
+                // Swiped away without buying.
+                if newValue == nil, let dismissed = optimizationId {
+                    AnalyticsService.shared.track(.paywallDismissed(optimizationId: dismissed, balance: appState.creditsBalance))
+                }
+                optimizationId = newValue?.id
+            }
+        )) { item in
+            ExportPaywallSheet(
+                optimizationId: item.id,
+                onUnlocked: {
+                    optimizationId = nil
+                    onUnlocked()
+                },
+                onClose: {
+                    AnalyticsService.shared.track(.paywallDismissed(optimizationId: item.id, balance: appState.creditsBalance))
+                    optimizationId = nil
+                }
+            )
+        }
+    }
+
+    private struct PaywallItem: Identifiable {
+        let id: String
+    }
+}
+
+extension View {
+    func exportPaywall(optimizationId: Binding<String?>, onUnlocked: @escaping () -> Void) -> some View {
+        modifier(ExportPaywallPresenter(optimizationId: optimizationId, onUnlocked: onUnlocked))
+    }
+}

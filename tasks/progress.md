@@ -1,3 +1,14 @@
+# 2026-10-22: P3b S6, StoreKit 2 export paywall (server-decided)
+
+**Status:** branch `feat/p3b-s6-storekit-paywall`, PR open, not merged. Nothing changes for users while the web switch `EXPORT_CREDITS_ENABLED` is off: the server answers every unlock `ungated`, so the sheet never opens.
+**Current Phase:** Payments Phase 2 (EXD-037): iOS In-App Purchase. Web side: #195 (export credits), #196 (function grants), #197 (Apple verification, S3).
+**Active Story:** S6. Every export asks `POST /api/v1/exports/unlock` first (with `X-Resumely-Client: ios`); a 402 opens the paywall sheet; a 401 `account_required` opens the save-account sheet. The sheet shows `resumely.exports.1/.5/.10` at `product.displayPrice`, buys with `appAccountToken` = the user id, sends the `jwsRepresentation` to `/api/v1/iap/verify`, and calls `finish()` only after the server granted. Unfinished transactions are re-sent at launch, on `Transaction.updates`, and after sign-in. After a grant the export the user tapped runs without a second tap. PostHog: `paywall_shown`, `paywall_dismissed`, `purchase_started`, `purchase_cancelled`, `purchase_pending`, `purchase_completed` (after the grant), `purchase_failed`. The parked four-tier drafts in `Payments/` and their two tests are deleted.
+**Last Completed Story:** S3 web PR #197 (review P1 fixed).
+**Next Recommended Story:** S7 Sandbox test plan for the founder. Founder decisions: which version carries the paywall (1.5.5 or 1.5.6); how App Review reaches the paywall while the production switch is off.
+**Blockers:** S5 (the three consumables in App Store Connect) is a founder step; Sandbox purchase is unverified until then.
+**Last Validation:** full `xcodebuild test` on iPhone 17 Pro simulator: 563 tests, 1 skipped, 0 failures (19 new). Unsigned Release build for generic iOS Simulator passes. English and Hebrew screenshots of the sheet via `--smoke-paywall` (`--smoke-he`), RTL correct. A first full run failed 27 language-shaped tests because the Hebrew smoke run left `app_selected_language = he` (lessons 2026-10-16); after resetting it to `en`, all pass.
+**Last Updated:** 2026-10-22
+
 # 2026-10-22: Anonymous flag survives token refresh (1.5.5)
 
 **Status:** PR open against main for 1.5.5, not merged. 1.5.4 (33) in App Review untouched. No version bump, archive or App Store Connect action.

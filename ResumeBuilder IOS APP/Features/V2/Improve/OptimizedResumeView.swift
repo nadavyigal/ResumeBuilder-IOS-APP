@@ -25,6 +25,8 @@ struct OptimizedResumeView: View {
 
     // Download & copy
     @State private var isDownloadingPDF = false
+    /// Set when the server answers 402 for this export; opens the paywall sheet.
+    @State private var paywallOptimizationId: String?
     @State private var pdfTempURL: URL? = nil
     /// Everything the last export produced, résumé first. Drives the share sheet.
     @State private var packageFileURLs: [URL] = []
@@ -225,6 +227,10 @@ struct OptimizedResumeView: View {
             NavigationStack {
                 OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
+        }
+        .exportPaywall(optimizationId: $paywallOptimizationId) {
+            // Credits granted: run the export the user tapped, no second tap.
+            Task { await performExport() }
         }
         .screenBackground(showRadialGlow: false)
         .navigationTitle("Optimized Resume")
@@ -1158,6 +1164,13 @@ struct OptimizedResumeView: View {
             pendingReviewOptimizationId = result.optimizationId
             showPDFShare = true
             showExportSuccess = true
+        } catch ExportCreditsError.creditsRequired {
+            paywallOptimizationId = optimizationId
+        } catch APIClientError.paymentRequired {
+            paywallOptimizationId = optimizationId
+        } catch ExportCreditsError.accountRequired {
+            // Exports need a real account once the gate is on (spec 6.3).
+            showSaveAccount = true
         } catch {
             if case .serverError(_, let message)? = error as? APIClientError {
                 viewModel.errorMessage = message

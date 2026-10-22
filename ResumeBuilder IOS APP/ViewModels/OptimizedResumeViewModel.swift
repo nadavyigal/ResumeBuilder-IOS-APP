@@ -440,6 +440,7 @@ final class OptimizedResumeViewModel {
         var request = URLRequest(url: url, timeoutInterval: 60)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         Self.downloadLogger.info("HTTP start GET \(url.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {

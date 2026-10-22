@@ -13,7 +13,7 @@ enum APIClientError: Error, LocalizedError {
         case .unauthorized:
             return NSLocalizedString("Unauthorized", comment: "")
         case .paymentRequired:
-            return NSLocalizedString("You've used all your optimization credits. Upgrade your plan to continue.", comment: "")
+            return NSLocalizedString("You need an export credit to download this résumé.", comment: "Export refused for lack of a credit")
         case .serverError(let status, let message):
             return String(format: NSLocalizedString("Server error (%lld): %@", comment: ""), status, message)
         case .invalidResponse:
@@ -101,6 +101,7 @@ struct APIClient: Sendable {
     ) async throws -> T {
         try await consentGate.require(endpoint)
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -124,6 +125,7 @@ struct APIClient: Sendable {
     ) async throws -> T {
         try await consentGate.require(endpoint)
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -135,6 +137,7 @@ struct APIClient: Sendable {
 
     func get<T: Decodable>(endpoint: Endpoint, token: String?) async throws -> T {
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -152,6 +155,7 @@ struct APIClient: Sendable {
         if !items.isEmpty { components?.queryItems = items }
         let url = components?.url ?? endpointURL
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -165,6 +169,7 @@ struct APIClient: Sendable {
 
     func getDataResponse(endpoint: Endpoint, token: String?) async throws -> HTTPDataResponse {
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "GET"
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -186,6 +191,7 @@ struct APIClient: Sendable {
         token: String?
     ) async throws -> T {
         var request = URLRequest(url: try url(for: endpoint))
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -262,6 +268,7 @@ struct APIClient: Sendable {
         try await consentGate.require(endpoint)
         let boundary = "Boundary-\(UUID().uuidString)"
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
@@ -284,6 +291,7 @@ struct APIClient: Sendable {
         try await consentGate.require(endpoint)
         let boundary = "Boundary-\(UUID().uuidString)"
         var request = URLRequest(url: try url(for: endpoint), timeoutInterval: 120)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         if let token {
