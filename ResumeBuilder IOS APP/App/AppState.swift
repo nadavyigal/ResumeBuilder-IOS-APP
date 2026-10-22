@@ -126,15 +126,18 @@ final class AppState {
     let apiClient = RuntimeServices.sharedAPIClient
     private let optimizationHistoryService: any OptimizationHistoryServiceProtocol
     private let authClient: any AuthClient
+    private let consentCenter: AIConsentCenter
     private let anonymousSessionKey = "anonymous_ats_session_id"
     private var refreshTask: Task<String, Error>?
 
     init(
         optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService(),
-        authClient: any AuthClient = AuthService.shared
+        authClient: any AuthClient = AuthService.shared,
+        consentCenter: AIConsentCenter = .shared
     ) {
         self.optimizationHistoryService = optimizationHistoryService
         self.authClient = authClient
+        self.consentCenter = consentCenter
     }
 
     /// Whether the user has a **real account**.
@@ -178,6 +181,12 @@ final class AppState {
         // splits one guest into two unlinked PostHog people.
         if let session {
             AnalyticsService.shared.prepareRestoredSessionIfAccount(session)
+            // 1.5.4 installs can already hold a guest yes next to a saved
+            // anonymous session; the sign-in path below never runs for them
+            // (#204, Codex on PR #205). Anonymous only, never an account.
+            if !session.isAccountSession {
+                consentCenter.carryGuestConsent(toAnonymousUserId: session.userId)
+            }
         }
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
         latestOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
@@ -226,8 +235,13 @@ final class AppState {
     func establishAnonymousSessionIfNeeded() async {
         guard session == nil else { return }
         do {
-            let anonymous = try await AuthService.shared.signInAnonymously()
+            let anonymous = try await authClient.signInAnonymously()
             session = anonymous
+            // A guest who agreed before this session existed is not asked again
+            // (#204). Anonymous only: a real account is asked (5.1.2(i)).
+            if !anonymous.isAccountSession {
+                consentCenter.carryGuestConsent(toAnonymousUserId: anonymous.userId)
+            }
             AnalyticsService.shared.track(.anonymousSessionStarted)
         } catch AuthServiceError.anonymousSignInDisabled {
             // Expected while the Supabase provider is off. Not worth surfacing.
@@ -271,7 +285,7 @@ final class AppState {
         FitBaselineStore.shared.clear()
         // Consent to send data to OpenAI belongs to the person who gave it. The
         // next account, or a guest, on this phone is asked again (5.1.2(i)).
-        AIConsentCenter.shared.clearAll()
+        consentCenter.clearAll()
         AnalyticsService.shared.resetDistinctId()
     }
 

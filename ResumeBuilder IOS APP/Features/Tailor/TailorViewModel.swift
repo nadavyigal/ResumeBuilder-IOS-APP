@@ -297,7 +297,10 @@ final class TailorViewModel {
         optimizationId = nil
         defer { isOptimizing = false }
 
-        var didUpload = uploadResponse?.resumeId?.isEmpty == false
+        // False until this run has an upload in hand. A cached upload from
+        // another identity or job is replaced, and that upload can fail; its
+        // failure must reach the funnel (Codex P2 on PR #202).
+        var didUpload = false
 
         do {
             guard let upload = try await ensureUploadedResumeForCurrentJob(appState: appState) else { return }

@@ -148,6 +148,28 @@ final class UploadCacheIdentityTests: XCTestCase {
         XCTAssertNotNil(model.errorMessage)
     }
 
+    /// Codex P2 on #202: a cached upload from another identity forces a new
+    /// upload. If that upload fails, the funnel gets `resume_upload_failed`, not
+    /// a `resume_upload_started` with no end.
+    func testFailedUploadAfterAnIdentityChangeIsRecordedAsAnUploadFailure() async {
+        let uploads = UploadSpy(failOnCall: 2)
+        let optimizer = OptimizerSpy(results: [.success])
+        let events = EventLog()
+        let model = makeModel(uploads: uploads, optimizer: optimizer, events: events)
+        let appState = makeAppState(session("anon-1", anonymous: true))
+
+        await model.optimize(appState: appState)
+        appState.session = session("user-2")
+        await model.optimize(appState: appState)
+
+        XCTAssertEqual(uploads.count, 2)
+        XCTAssertEqual(optimizer.callCount, 1, "no optimize when the new upload failed")
+        XCTAssertEqual(events.names.filter { $0 == "resume_upload_started" }.count, 2)
+        XCTAssertEqual(events.names.filter { $0 == "resume_upload_failed" }.count, 1,
+                       "the failed replacement upload reaches the funnel")
+        XCTAssertNotNil(model.errorMessage)
+    }
+
     /// A second not-found after a good re-upload is an optimize failure, not an upload failure.
     func testSecondNotFoundIsNotRecordedAsAnUploadFailure() async {
         let uploads = UploadSpy()

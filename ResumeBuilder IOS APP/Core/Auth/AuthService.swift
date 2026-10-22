@@ -46,6 +46,15 @@ protocol AuthClient: Sendable {
     func clearSession()
     func refreshSession(refreshToken: String) async throws -> AuthSession
     func deleteAccount(accessToken: String) async throws
+    func signInAnonymously() async throws -> AuthSession
+}
+
+extension AuthClient {
+    /// Test doubles that never start an anonymous session behave as a project
+    /// with the provider off: the app stays an unauthenticated guest.
+    func signInAnonymously() async throws -> AuthSession {
+        throw AuthServiceError.anonymousSignInDisabled
+    }
 }
 
 extension AuthService: AuthClient {}

@@ -100,6 +100,9 @@ final class AIConsentCenter {
     /// Bumped by `clearAll`. A sheet that was open across a sign-out may still
     /// be answered; its yes must not be recorded for the identity that left.
     private var generation = 0
+    /// The anonymous user id that took over from `guest` in this launch. A sheet
+    /// opened as a guest and answered after that session landed belongs to it.
+    private var anonymousSuccessor: String?
 
     init(defaults: UserDefaults = .standard, presenter: (any AIConsentPresenting)? = nil) {
         self.defaults = defaults
@@ -126,6 +129,10 @@ final class AIConsentCenter {
                 let agreed = answer && self.generation == askedGeneration
                 if agreed {
                     store.recordConsent()
+                    if store.identity == AIConsentStore.guestIdentity,
+                       let successor = self.anonymousSuccessor {
+                        AIConsentStore.carryGuestConsent(to: successor, defaults: self.defaults)
+                    }
                     AnalyticsService.shared.track(.aiConsentAccepted(source: source))
                 } else {
                     AnalyticsService.shared.track(.aiConsentDeclined(source: source))
@@ -137,10 +144,22 @@ final class AIConsentCenter {
         }
     }
 
+    /// A new anonymous session on this device, with no sign-in, takes over the
+    /// guest's answer (#204): the guest agreed before the session existed, and
+    /// is the same person. Called only from the anonymous sign-in path; a real
+    /// account never takes a guest's yes (5.1.2(i), #200).
+    func carryGuestConsent(toAnonymousUserId userId: String) {
+        let identity = AIConsentStore.identity(forUserId: userId)
+        guard identity != AIConsentStore.guestIdentity else { return }
+        anonymousSuccessor = identity
+        AIConsentStore.carryGuestConsent(to: identity, defaults: defaults)
+    }
+
     /// Sign-out and account deletion: forget every answer, and void any sheet
     /// still open so its yes is not recorded afterwards.
     func clearAll() {
         generation &+= 1
+        anonymousSuccessor = nil
         AIConsentStore.clearAll(defaults: defaults)
     }
 }

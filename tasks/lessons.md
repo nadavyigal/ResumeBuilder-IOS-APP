@@ -1,3 +1,14 @@
+## 2026-10-22: Per-identity state must say what happens at each identity change
+
+Two bugs in two days had one shape. #202: the upload cache had no identity, so a
+signed-in user reused a guest's résumé id. #204: consent was keyed to the identity,
+but a guest who agreed before the anonymous session existed was asked again once it
+started. The app has three identities on one phone: `guest` (no session), the
+anonymous Supabase user, and a real account. Rule: anything stored per identity
+(cache, consent, baseline) names its rule for guest → anonymous (same person: carry),
+anonymous → account with the same id (same person: keep), and any change to a
+different account or a sign-out (different person: drop or ask), with a test for each.
+
 ## 2026-10-21: New release worktrees need their ignored local configuration
 
 Before building a new iOS worktree, provision the gitignored `Secrets.xcconfig` from the existing verified local worktree without printing its contents or committing it. The 1.5.4 bump's first Release attempt stopped before compilation because the base configuration file was absent; no source change was needed.

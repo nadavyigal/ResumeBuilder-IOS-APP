@@ -9,6 +9,23 @@
 **Next Recommended Story:** Codex on the repair head; merge into the 1.5.5 batch with #205.
 **Blockers:** none for the code. Device check not run (needs an anonymous session saved by an older build after one refresh).
 **Last Validation:** 2026-10-22, iPhone 17 Pro, iOS 26.5, English/US, per-test timeouts: 534 XCTest tests, 1 skipped, 0 failures; Swift Testing 5 passed. Refresh fix: without it, the anonymous and account refresh tests fail (5 assertions). Repair: with a no-op repair, the anonymous restore test fails (2 assertions); with a repair that ignores the claim, both guard tests fail (4 assertions); with the earlier `isAccountSession` guard, the explicit-false test fails.
+
+# 2026-10-22: #204 guest consent carried to the anonymous session (1.5.5)
+
+**Status:** PR open for 1.5.5, not merged. No version bump, archive, upload or App Store Connect change; 1.5.4 (33) is in App Review.
+**Current Phase:** Resumely 1.5.5 fixes.
+**Active Story:** #204, a new guest is asked for AI consent twice.
+**Bug:** founder device test on 1.5.4 (33), PostHog 270848, 2026-10-21: `ai_consent_accepted` 17:13:30 as `guest`, relaunch, `anonymous_session_started` 17:13:56, `ai_consent_shown` again 17:14:15. The yes was stored under `guest`; the anonymous session's user id had none.
+**Fix chosen:** carry the guest's yes to the anonymous session when it starts, instead of creating the session before the first prompt. Smaller and safer: no network wait in the consent gate, no change to launch order, and it also covers a session that lands while the sheet is open.
+- `Core/Storage/AIConsentStore.swift`: `carryGuestConsent(to:)` moves the `guest` answer (with its date) to the anonymous identity and removes the `guest` key.
+- `Core/API/AIConsentGate.swift`: `AIConsentCenter.carryGuestConsent(toAnonymousUserId:)` records the anonymous successor; a guest sheet answered after the session landed is moved too. `clearAll` forgets the successor.
+- `App/AppState.swift`: `establishAnonymousSessionIfNeeded` carries consent only for an anonymous session (via the injected `consentCenter`, default `.shared`), and now uses the injected `AuthClient` (`signInAnonymously` added to the protocol; test doubles default to "provider off"). Real sign-in (`setSession`) is untouched, so a real account is still asked.
+- `App/AppState.swift` `bootstrap()`: a restored anonymous session also takes the guest yes, for 1.5.4 installs that already have both.
+- `Features/Tailor/TailorViewModel.swift`: #202's accepted P2 fixed: `didUpload` starts false, so a failed identity-triggered replacement upload records `resume_upload_failed`.
+**Last Completed Story:** #202 merged at `3e36474`; 1.5.4 (33) submitted 2026-10-22.
+**Next Recommended Story:** founder device check on a 1.5.5 build: fresh install, guest Check, Agree, relaunch, Check again: no second sheet. Then the rest of 1.5.5.
+**Blockers:** none for the PR. Founder approval needed to merge.
+**Last Validation:** 2026-10-22, iPhone 17 Pro, iOS 26.5, en/US, per-test timeouts: full suite 538 XCTest tests, 1 skipped, 0 failures. New `GuestConsentCarryOverTests` 10 pass; `UploadCacheIdentityTests` 12 pass; `AIConsentTests` 27 pass. Red run (carry and `didUpload` fix absent): 7 fail (5 carry-over, 1 store, 1 upload analytics). Guard tests (real sign-in still asks, sign-out clears) pass with and without the fix, as intended; the two guards for the new code fail under mutation (carry for an account session; successor kept after sign-out). Review follow-up: `AppState` takes an injected `consentCenter` (default `.shared`) so the tests use a private center and defaults; the test host runs the real launch bootstrap, whose anonymous sign-in could otherwise touch the shared center mid-test. Full suite re-run after it: 538, 1 skipped, 0 failures; carry-over tests still fail with the carry removed. Hosted Codex P2 on a19e105 (fixed): a 1.5.4 install can hold a guest yes next to a saved anonymous session, and the restore path skipped the carry; `bootstrap()` now carries for a restored anonymous session (never an account). 2 new tests (restored anonymous takes the yes, fails without the fix; restored account does not). Final full suite: 540 XCTest, 1 skipped, 0 failures; Swift Testing 5 passed.
 **Last Updated:** 2026-10-22
 
 # 2026-10-21: Prepare release 1.5.4 (33)
