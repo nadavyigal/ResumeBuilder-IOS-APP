@@ -41,9 +41,10 @@ final class ExportPaywallModel {
         case ready
         case unavailable
         case purchasing(productID: String)
-        /// Ask to Buy: Apple holds the purchase for approval. Nothing more can be
-        /// bought from this sheet; the approval arrives through
-        /// `Transaction.updates` and resumes the export (Codex P1 on #207).
+        /// Paid or held, not granted yet: Ask to Buy waiting for approval, or a
+        /// charged purchase whose server grant failed and is being retried.
+        /// Nothing more can be bought from this sheet; the grant arrives in the
+        /// background and resumes the export (Codex P1s on #207).
         case awaitingApproval(productID: String)
     }
 
@@ -116,6 +117,9 @@ final class ExportPaywallModel {
             return true
         }
         analytics.track(.purchaseStarted(productId: product.id))
+        // Taken before the purchase, so a background grant that lands while
+        // StoreKit is still returning is not missed.
+        grantCountAtWait = store.backgroundGrantCount
         do {
             switch try await store.purchase(product, account: account) {
             case .granted(let verification):
@@ -130,13 +134,18 @@ final class ExportPaywallModel {
                 analytics.track(.purchaseCancelled(productId: product.id))
             case .pending:
                 analytics.track(.purchasePending(productId: product.id))
-                grantCountAtWait = store.backgroundGrantCount
                 phase = .awaitingApproval(productID: product.id)
                 message = NSLocalizedString(
                     "Your purchase is waiting for approval. Your credits are added once it is approved.",
                     comment: "Ask to Buy pending"
                 )
             }
+        } catch StoreKitManagerError.grantPending {
+            // Charged, not granted yet. StoreKitManager retries; stay locked so a
+            // second tap cannot charge again, and resume when the grant lands.
+            analytics.track(.purchaseFailed(productId: product.id, reason: "grant_pending"))
+            message = StoreKitManagerError.grantPending.localizedDescription
+            phase = .awaitingApproval(productID: product.id)
         } catch {
             let reason = (error as? StoreKitManagerError).map { "\($0)" } ?? "storekit_error"
             analytics.track(.purchaseFailed(productId: product.id, reason: reason))
