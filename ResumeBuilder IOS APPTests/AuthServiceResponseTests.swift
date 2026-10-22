@@ -109,6 +109,77 @@ final class AuthServiceResponseTests: XCTestCase {
         try JSONDecoder().decode(AuthSession.self, from: JSONEncoder().encode(session))
     }
 
+    // MARK: - Restore repair from the access token's is_anonymous claim
+    //
+    // Sessions saved by builds before the refresh fix lost the flag and read as
+    // accounts. The access token saved with them still carries Supabase's
+    // `is_anonymous` claim, so restore corrects them before `bootstrap()` uses
+    // the session. The JWT is the source of truth only in one direction: it can
+    // mark a session anonymous, never turn a real account into a guest.
+
+    func testRestoredSessionMissingFlagWithAnonymousClaimRestoresAsAnonymous() {
+        let saved = AuthSession(
+            accessToken: Self.makeJWT(payload: #"{"sub":"anon-1","is_anonymous":true}"#),
+            refreshToken: "refresh",
+            userId: "anon-1",
+            email: nil
+        )
+
+        let repaired = AuthService.repairingAnonymousFlag(saved)
+
+        XCTAssertEqual(repaired.isAnonymous, true)
+        XCTAssertFalse(repaired.isAccountSession, "A guest saved without the flag must restore as a guest")
+        XCTAssertEqual(repaired.accessToken, saved.accessToken)
+        XCTAssertEqual(repaired.refreshToken, saved.refreshToken)
+        XCTAssertEqual(repaired.userId, saved.userId)
+    }
+
+    func testRestoredSessionWithFalseClaimStaysAccount() {
+        let saved = AuthSession(
+            accessToken: Self.makeJWT(payload: #"{"sub":"user-1","is_anonymous":false}"#),
+            refreshToken: "refresh",
+            userId: "user-1",
+            email: "a@b.com"
+        )
+
+        XCTAssertEqual(JWTDecoder.isAnonymous(from: saved.accessToken), false)
+        let repaired = AuthService.repairingAnonymousFlag(saved)
+
+        XCTAssertEqual(repaired, saved)
+        XCTAssertTrue(repaired.isAccountSession)
+    }
+
+    func testRestoredSessionWithoutClaimOrWithBadTokenIsUnchanged() {
+        let noClaim = AuthSession(
+            accessToken: Self.makeJWT(payload: #"{"sub":"user-1"}"#),
+            refreshToken: "refresh",
+            userId: "user-1",
+            email: "a@b.com"
+        )
+        let badToken = AuthSession(
+            accessToken: "not-a-jwt",
+            refreshToken: "refresh",
+            userId: "user-1",
+            email: "a@b.com"
+        )
+
+        XCTAssertNil(JWTDecoder.isAnonymous(from: noClaim.accessToken))
+        XCTAssertNil(JWTDecoder.isAnonymous(from: badToken.accessToken))
+        XCTAssertEqual(AuthService.repairingAnonymousFlag(noClaim), noClaim)
+        XCTAssertEqual(AuthService.repairingAnonymousFlag(badToken), badToken)
+    }
+
+    private static func makeJWT(payload: String) -> String {
+        func base64URL(_ data: Data) -> String {
+            data.base64EncodedString()
+                .replacingOccurrences(of: "+", with: "-")
+                .replacingOccurrences(of: "/", with: "_")
+                .replacingOccurrences(of: "=", with: "")
+        }
+        let header = base64URL(Data(#"{"alg":"none","typ":"JWT"}"#.utf8))
+        return "\(header).\(base64URL(Data(payload.utf8))).signature"
+    }
+
     func testAuthServiceErrorDetectsInvalidGrant() {
         let error = AuthServiceError.serverError("invalid_grant: Refresh Token Not Found")
         XCTAssertTrue(error.isAuthFailure)

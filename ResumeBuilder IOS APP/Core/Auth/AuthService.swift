@@ -62,8 +62,33 @@ final class AuthService: @unchecked Sendable {
     // MARK: - Session persistence
 
     func restoreSession() -> AuthSession? {
-        guard let data = keychain.read(service: service, account: account) else { return nil }
-        return try? JSONDecoder().decode(AuthSession.self, from: data)
+        guard let data = keychain.read(service: service, account: account),
+              let saved = try? JSONDecoder().decode(AuthSession.self, from: data)
+        else { return nil }
+        let session = Self.repairingAnonymousFlag(saved)
+        if session != saved {
+            persist(session)
+        }
+        return session
+    }
+
+    /// Builds before 1.5.5 dropped `is_anonymous` on token refresh, so a guest's
+    /// saved session could read as a real account. The access token saved with
+    /// it still carries Supabase's `is_anonymous` claim. Trust that claim only
+    /// to mark a session anonymous: a `false` or missing claim, or a token that
+    /// cannot be read, leaves the session as saved, so a real account is never
+    /// turned into a guest.
+    static func repairingAnonymousFlag(_ session: AuthSession) -> AuthSession {
+        guard session.isAccountSession,
+              JWTDecoder.isAnonymous(from: session.accessToken) == true
+        else { return session }
+        return AuthSession(
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+            userId: session.userId,
+            email: session.email,
+            isAnonymous: true
+        )
     }
 
     func clearSession() {
