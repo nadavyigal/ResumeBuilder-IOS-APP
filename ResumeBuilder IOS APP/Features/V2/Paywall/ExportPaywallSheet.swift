@@ -62,6 +62,12 @@ final class ExportPaywallModel {
         self.optimizationId = optimizationId
         self.store = store
         self.isFixture = false
+        // A purchase still waiting from an earlier sheet keeps this one locked.
+        if let waiting = store.undeliveredProductID {
+            phase = .awaitingApproval(productID: waiting)
+            grantCountAtWait = store.backgroundGrantCount
+            message = StoreKitManagerError.grantPending.localizedDescription
+        }
     }
 
     #if DEBUG
@@ -77,6 +83,7 @@ final class ExportPaywallModel {
 
     func load() async {
         guard !isFixture else { return }
+        let waiting = phase
         phase = .loading
         message = nil
         do {
@@ -86,7 +93,8 @@ final class ExportPaywallModel {
                     PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)
                 }
             }
-            phase = .ready
+            // Stay locked if a purchase from an earlier sheet is still waiting.
+            if case .awaitingApproval = waiting { phase = waiting } else { phase = .ready }
         } catch {
             phase = .unavailable
             message = StoreKitManagerError.productUnavailable.localizedDescription

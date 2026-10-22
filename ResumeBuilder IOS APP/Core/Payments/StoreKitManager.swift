@@ -140,6 +140,10 @@ final class StoreKitManager {
     /// Counts grants delivered outside `purchase()` (Ask to Buy approvals,
     /// retries). A paywall waiting on an approval watches it to resume the export.
     private(set) var backgroundGrantCount = 0
+    /// A purchase Apple holds (Ask to Buy) or charged without a server grant yet.
+    /// Kept here, not in the sheet, so closing and reopening the paywall stays
+    /// locked until it is delivered (Codex P1 on #207). Cleared by the grant.
+    private(set) var undeliveredProductID: String?
     var verifier: PurchaseVerifying = ReceiptVerifier()
 
     /// Set by `AppState` at launch: the account a delivery is made for, or nil
@@ -185,6 +189,7 @@ final class StoreKitManager {
                 // Paid, not granted. Retry in this session too, not only at the
                 // next launch, and the sheet delivers it before selling again.
                 Self.logger.error("purchase paid but not granted yet: \(reason, privacy: .public)")
+                undeliveredProductID = transaction.productID
                 scheduleRetries()
                 throw StoreKitManagerError.grantPending
             }
@@ -193,6 +198,7 @@ final class StoreKitManager {
         case .userCancelled:
             return .cancelled
         case .pending:
+            undeliveredProductID = product.id
             return .pending
         @unknown default:
             throw StoreKitManagerError.purchaseFailed
@@ -263,6 +269,7 @@ final class StoreKitManager {
         )
         guard case .finish(let verification) = decision else { return nil }
         onCreditsGranted?(verification.balance)
+        undeliveredProductID = nil
         backgroundGrantCount += 1
         if verification.status == "granted" {
             // Ask to Buy approvals and retries land here, not in the sheet.
