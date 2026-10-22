@@ -116,6 +116,32 @@ struct APIClient: Sendable {
         return try await send(request, using: activeSession)
     }
 
+    /// POST that returns the status and body of every answer instead of folding
+    /// errors into `APIClientError`. For the payment endpoints, whose callers must
+    /// tell apart codes the shared mapping merges (401 `account_required` is not
+    /// a stale token; 409 `transaction_revoked` is final).
+    func postJSONResponse(
+        endpoint: Endpoint,
+        body: [String: Any],
+        token: String?,
+        timeout: TimeInterval? = nil
+    ) async throws -> HTTPDataResponse {
+        try await consentGate.require(endpoint)
+        var request = URLRequest(url: try url(for: endpoint), timeoutInterval: timeout ?? requestTimeout)
+        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        logger.info("HTTP start POST \(request.url?.absoluteString ?? "unknown-url")")
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
+        logger.info("HTTP response status=\(httpResponse.statusCode) bytes=\(data.count)")
+        return HTTPDataResponse(data: data, statusCode: httpResponse.statusCode)
+    }
+
     /// Chat & other endpoints that encode arrays of heterogeneous field objects reliably via `Any`.
     func postJSONObject<T: Decodable>(
         endpoint: Endpoint,

@@ -7,29 +7,68 @@ import XCTest
 
 private final class RequestBox: @unchecked Sendable {
     var requests: [URLRequest] = []
+    var bodies: [Data] = []
 }
 
-private func transport(status: Int, json: String, box: RequestBox) -> @Sendable (URLRequest) async throws -> (Data, URLResponse) {
-    { request in
-        box.requests.append(request)
-        let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
-        return (Data(json.utf8), response)
+/// Serves one canned answer per test through a real `APIClient` and `URLSession`.
+private final class PaymentsMockURLProtocol: URLProtocol {
+    nonisolated(unsafe) static var status = 200
+    nonisolated(unsafe) static var json = "{}"
+    nonisolated(unsafe) static var box = RequestBox()
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        Self.box.requests.append(request)
+        Self.box.bodies.append(Self.readBody(request))
+        let response = HTTPURLResponse(url: request.url!, statusCode: Self.status, httpVersion: nil, headerFields: nil)!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(Self.json.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+
+    /// URLSession moves `httpBody` into a stream before a protocol sees it.
+    private static func readBody(_ request: URLRequest) -> Data {
+        if let body = request.httpBody { return body }
+        guard let stream = request.httpBodyStream else { return Data() }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable {
+            let read = stream.read(&buffer, maxLength: buffer.count)
+            if read <= 0 { break }
+            data.append(buffer, count: read)
+        }
+        return data
     }
 }
 
-private func bodyJSON(_ request: URLRequest?) -> [String: String] {
-    guard let data = request?.httpBody,
+@MainActor
+private func mockClient(status: Int, json: String, box: RequestBox) -> APIClient {
+    PaymentsMockURLProtocol.status = status
+    PaymentsMockURLProtocol.json = json
+    PaymentsMockURLProtocol.box = box
+    let config = URLSessionConfiguration.ephemeral
+    config.protocolClasses = [PaymentsMockURLProtocol.self]
+    return APIClient(baseURL: URL(string: "https://example.test")!, session: URLSession(configuration: config))
+}
+
+private func bodyJSON(_ box: RequestBox) -> [String: String] {
+    guard let data = box.bodies.first,
           let object = try? JSONSerialization.jsonObject(with: data) as? [String: String] else { return [:] }
     return object
 }
 
-private let base = URL(string: "https://example.test")!
 
 @MainActor
 final class ExportUnlockServiceTests: XCTestCase {
     func testUnlockSendsTheIOSHeaderAndOptimizationId() async throws {
         let box = RequestBox()
-        let service = ExportUnlockService(baseURL: base, transport: transport(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box))
+        let service = ExportUnlockService(apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box))
 
         let response = try await service.unlock(optimizationId: "opt-1", token: "tok")
 
@@ -39,17 +78,17 @@ final class ExportUnlockServiceTests: XCTestCase {
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.value(forHTTPHeaderField: "X-Resumely-Client"), "ios")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer tok")
-        XCTAssertEqual(bodyJSON(request), ["optimizationId": "opt-1"])
+        XCTAssertEqual(bodyJSON(box), ["optimizationId": "opt-1"])
     }
 
     func testUngatedAnswerHasNoBalance() async throws {
-        let service = ExportUnlockService(baseURL: base, transport: transport(status: 200, json: #"{"status":"ungated","balance":null}"#, box: RequestBox()))
+        let service = ExportUnlockService(apiClient: mockClient(status: 200, json: #"{"status":"ungated","balance":null}"#, box: RequestBox()))
         let response = try await service.unlock(optimizationId: "opt-1", token: "tok")
         XCTAssertEqual(response, .init(status: "ungated", balance: nil))
     }
 
     func test402OpensThePaywall() async {
-        let service = ExportUnlockService(baseURL: base, transport: transport(status: 402, json: #"{"error":"export_credits_required","balance":0}"#, box: RequestBox()))
+        let service = ExportUnlockService(apiClient: mockClient(status: 402, json: #"{"error":"export_credits_required","balance":0}"#, box: RequestBox()))
         do {
             _ = try await service.unlock(optimizationId: "opt-1", token: "tok")
             XCTFail("expected creditsRequired")
@@ -59,7 +98,7 @@ final class ExportUnlockServiceTests: XCTestCase {
     }
 
     func test401AccountRequiredIsNotAStaleToken() async {
-        let service = ExportUnlockService(baseURL: base, transport: transport(status: 401, json: #"{"error":"account_required"}"#, box: RequestBox()))
+        let service = ExportUnlockService(apiClient: mockClient(status: 401, json: #"{"error":"account_required"}"#, box: RequestBox()))
         do {
             _ = try await service.unlock(optimizationId: "opt-1", token: "tok")
             XCTFail("expected accountRequired")
@@ -69,7 +108,7 @@ final class ExportUnlockServiceTests: XCTestCase {
     }
 
     func testPlain401IsUnauthorizedSoTheTokenRefreshes() async {
-        let service = ExportUnlockService(baseURL: base, transport: transport(status: 401, json: #"{"error":"Unauthorized"}"#, box: RequestBox()))
+        let service = ExportUnlockService(apiClient: mockClient(status: 401, json: #"{"error":"Unauthorized"}"#, box: RequestBox()))
         do {
             _ = try await service.unlock(optimizationId: "opt-1", token: "tok")
             XCTFail("expected unauthorized")
@@ -99,7 +138,7 @@ final class ExportUnlockServiceTests: XCTestCase {
 final class ReceiptVerifierTests: XCTestCase {
     func testSendsTheSignedTransactionNotAnAmount() async throws {
         let box = RequestBox()
-        let verifier = ReceiptVerifier(baseURL: base, transport: transport(
+        let verifier = ReceiptVerifier(apiClient: mockClient(
             status: 200,
             json: #"{"success":true,"status":"granted","creditsGranted":5,"balance":6}"#,
             box: box
@@ -111,11 +150,11 @@ final class ReceiptVerifierTests: XCTestCase {
         let request = try XCTUnwrap(box.requests.first)
         XCTAssertEqual(request.url?.path, "/api/v1/iap/verify")
         XCTAssertEqual(request.value(forHTTPHeaderField: "X-Resumely-Client"), "ios")
-        XCTAssertEqual(bodyJSON(request), ["signedTransaction": "jws.payload.sig", "productId": "resumely.exports.5"])
+        XCTAssertEqual(bodyJSON(box), ["signedTransaction": "jws.payload.sig", "productId": "resumely.exports.5"])
     }
 
     func testRevokedIsTerminal() async {
-        let verifier = ReceiptVerifier(baseURL: base, transport: transport(status: 409, json: #"{"error":"transaction_revoked"}"#, box: RequestBox()))
+        let verifier = ReceiptVerifier(apiClient: mockClient(status: 409, json: #"{"error":"transaction_revoked"}"#, box: RequestBox()))
         do {
             _ = try await verifier.verify(signedTransaction: "j", productId: "resumely.exports.1", token: "t")
             XCTFail("expected revoked")
@@ -125,7 +164,7 @@ final class ReceiptVerifierTests: XCTestCase {
     }
 
     func testOtherRefusalsAreRetriable() async {
-        let verifier = ReceiptVerifier(baseURL: base, transport: transport(status: 403, json: #"{"error":"account_mismatch"}"#, box: RequestBox()))
+        let verifier = ReceiptVerifier(apiClient: mockClient(status: 403, json: #"{"error":"account_mismatch"}"#, box: RequestBox()))
         do {
             _ = try await verifier.verify(signedTransaction: "j", productId: "resumely.exports.1", token: "t")
             XCTFail("expected notGranted")
@@ -345,8 +384,7 @@ final class ExportActionGateTests: XCTestCase {
                 renderedHTML: "<html><body><p>Résumé</p></body></html>",
                 analytics: AnalyticsService(transport: NoopTransport()),
                 unlockService: ExportUnlockService(
-                    baseURL: URL(string: "https://example.test")!,
-                    transport: transport(status: 402, json: #"{"error":"export_credits_required","balance":0}"#, box: box)
+                    apiClient: mockClient(status: 402, json: #"{"error":"export_credits_required","balance":0}"#, box: box)
                 )
             )
             XCTFail("expected the paywall error")

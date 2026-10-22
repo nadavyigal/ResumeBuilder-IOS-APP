@@ -36,23 +36,17 @@ struct ExportUnlockService: Sendable {
         let balance: Int?
     }
 
-    typealias Transport = @Sendable (URLRequest) async throws -> (Data, URLResponse)
-
-    var baseURL: URL = BackendConfig.apiBaseURL
-    var transport: Transport = { try await URLSession.shared.data(for: $0) }
+    var apiClient: APIClient = RuntimeServices.sharedAPIClient
 
     private static let logger = Logger(subsystem: "ResumeBuilder", category: "ExportCredits")
 
     func unlock(optimizationId: String, token: String) async throws -> Response {
-        var request = URLRequest(url: baseURL.appendingPathComponent(Endpoint.exportsUnlock.path), timeoutInterval: 30)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["optimizationId": optimizationId])
-
-        let (data, response) = try await transport(request)
-        guard let http = response as? HTTPURLResponse else { throw APIClientError.invalidResponse }
+        let http = try await apiClient.postJSONResponse(
+            endpoint: .exportsUnlock,
+            body: ["optimizationId": optimizationId],
+            token: token
+        )
+        let data = http.data
         let errorCode = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
 
         switch http.statusCode {

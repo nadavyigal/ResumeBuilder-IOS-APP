@@ -24,26 +24,16 @@ protocol PurchaseVerifying: Sendable {
 /// Sends the StoreKit 2 `jwsRepresentation` to the server. The server checks
 /// Apple's signature and grants the credits; the app never sends an amount.
 struct ReceiptVerifier: PurchaseVerifying {
-    typealias Transport = @Sendable (URLRequest) async throws -> (Data, URLResponse)
-
-    var baseURL: URL = BackendConfig.apiBaseURL
-    var transport: Transport = { try await URLSession.shared.data(for: $0) }
+    var apiClient: APIClient = RuntimeServices.sharedAPIClient
 
     func verify(signedTransaction: String, productId: String, token: String) async throws -> PurchaseVerification {
-        var request = URLRequest(url: baseURL.appendingPathComponent(Endpoint.iapVerify.path), timeoutInterval: 60)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(ResumelyClientHeader.value, forHTTPHeaderField: ResumelyClientHeader.name)
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "signedTransaction": signedTransaction,
-            "productId": productId,
-        ])
-
-        let (data, response) = try await transport(request)
-        guard let http = response as? HTTPURLResponse else {
-            throw ReceiptVerifierError.notGranted(status: 0, code: "invalid_response")
-        }
+        let http = try await apiClient.postJSONResponse(
+            endpoint: .iapVerify,
+            body: ["signedTransaction": signedTransaction, "productId": productId],
+            token: token,
+            timeout: 60
+        )
+        let data = http.data
         if (200...299).contains(http.statusCode) {
             return try JSONDecoder().decode(PurchaseVerification.self, from: data)
         }
