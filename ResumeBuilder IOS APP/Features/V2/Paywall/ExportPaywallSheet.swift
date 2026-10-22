@@ -96,8 +96,13 @@ final class ExportPaywallModel {
         }
         phase = .purchasing(productID: product.id)
         message = nil
-        analytics.track(.purchaseStarted(productId: product.id))
         defer { if case .purchasing = phase { phase = .ready } }
+        // A purchase paid earlier but not granted yet (offline, server error) is
+        // delivered first, so nobody pays twice for the export they tapped.
+        if await store.deliverPendingPurchases() != nil {
+            return true
+        }
+        analytics.track(.purchaseStarted(productId: product.id))
         do {
             switch try await store.purchase(product, account: account) {
             case .granted(let verification):
@@ -113,7 +118,7 @@ final class ExportPaywallModel {
             case .pending:
                 analytics.track(.purchasePending(productId: product.id))
                 message = NSLocalizedString(
-                    "Your purchase is waiting for approval. Your export unlocks once it is approved.",
+                    "Your purchase is waiting for approval. Your credits are added once it is approved.",
                     comment: "Ask to Buy pending"
                 )
             }
@@ -161,6 +166,7 @@ struct ExportPaywallSheet: View {
                             .foregroundStyle(AppColors.textSecondary)
                             .frame(width: 44, height: 44)
                     }
+                    .disabled(isPurchasing)
                     .accessibilityLabel(Text(ExportPaywallCopy.close))
                     .accessibilityIdentifier("paywall.close")
                 }
@@ -284,6 +290,10 @@ struct ExportPaywallPresenter: ViewModifier {
     @Binding var optimizationId: String?
     let onUnlocked: () -> Void
 
+    /// Set on a grant; the export runs from `onDismiss`, once the sheet is gone,
+    /// so the share sheet it opens is not dropped mid-dismissal.
+    @State private var unlockedPending = false
+
     func body(content: Content) -> some View {
         content.sheet(item: Binding(
             get: { optimizationId.map(PaywallItem.init) },
@@ -294,12 +304,17 @@ struct ExportPaywallPresenter: ViewModifier {
                 }
                 optimizationId = newValue?.id
             }
-        )) { item in
+        ), onDismiss: {
+            if unlockedPending {
+                unlockedPending = false
+                onUnlocked()
+            }
+        }) { item in
             ExportPaywallSheet(
                 optimizationId: item.id,
                 onUnlocked: {
+                    unlockedPending = true
                     optimizationId = nil
-                    onUnlocked()
                 },
                 onClose: {
                     AnalyticsService.shared.track(.paywallDismissed(optimizationId: item.id, balance: appState.creditsBalance))

@@ -149,6 +149,25 @@ private struct StubVerifier: PurchaseVerifying {
     }
 }
 
+private actor SequenceVerifierState {
+    var outcomes: [Result<PurchaseVerification, Error>]
+    init(_ outcomes: [Result<PurchaseVerification, Error>]) { self.outcomes = outcomes }
+    func next() -> Result<PurchaseVerification, Error> { outcomes.removeFirst() }
+}
+
+private struct SequenceVerifier: PurchaseVerifying {
+    let log: EventLog
+    let state: SequenceVerifierState
+    init(log: EventLog, outcomes: [Result<PurchaseVerification, Error>]) {
+        self.log = log
+        self.state = SequenceVerifierState(outcomes)
+    }
+    func verify(signedTransaction: String, productId: String, token: String) async throws -> PurchaseVerification {
+        await log.add("verify:\(productId):\(token)")
+        return try await state.next().get()
+    }
+}
+
 @MainActor
 final class PurchaseDeliveryTests: XCTestCase {
     private let account = PurchaseAccount(userId: UUID(uuidString: "11111111-1111-4111-8111-111111111111")!, token: "tok")
@@ -210,6 +229,45 @@ final class PurchaseDeliveryTests: XCTestCase {
         XCTAssertEqual(events.last, "finish")
     }
 
+    func testAnExpiredTokenIsRefreshedOnceForTheSameAccount() async {
+        let log = EventLog()
+        let verifier = SequenceVerifier(log: log, outcomes: [
+            .failure(ReceiptVerifierError.notGranted(status: 401, code: "Unauthorized")),
+            .success(granted),
+        ])
+        let decision = await PurchaseDelivery.deliver(
+            signedTransaction: "jws",
+            productID: "resumely.exports.5",
+            account: account,
+            verifier: verifier,
+            refreshAccount: { PurchaseAccount(userId: self.account.userId, token: "fresh") },
+            finish: { await log.add("finish") }
+        )
+        XCTAssertEqual(decision, .finish(granted))
+        let events = await log.events
+        XCTAssertEqual(events, ["verify:resumely.exports.5:tok", "verify:resumely.exports.5:fresh", "finish"])
+    }
+
+    func testARefreshThatLandsOnAnotherAccountIsNotUsed() async {
+        let log = EventLog()
+        let verifier = SequenceVerifier(log: log, outcomes: [
+            .failure(ReceiptVerifierError.notGranted(status: 401, code: "Unauthorized")),
+            .success(granted),
+        ])
+        let other = PurchaseAccount(userId: UUID(uuidString: "22222222-2222-4222-8222-222222222222")!, token: "other")
+        let decision = await PurchaseDelivery.deliver(
+            signedTransaction: "jws",
+            productID: "resumely.exports.5",
+            account: account,
+            verifier: verifier,
+            refreshAccount: { other },
+            finish: { await log.add("finish") }
+        )
+        XCTAssertEqual(decision, .keep(reason: "401_token_expired"))
+        let events = await log.events
+        XCTAssertEqual(events, ["verify:resumely.exports.5:tok"])
+    }
+
     func testWithNoAccountNothingIsSentOrFinished() async {
         let log = EventLog()
         let decision = await PurchaseDelivery.deliver(
@@ -263,4 +321,47 @@ final class ExportCreditProductsTests: XCTestCase {
         XCTAssertEqual(AnalyticsEvent.purchasePending(productId: "resumely.exports.1").name, "purchase_pending")
         XCTAssertEqual(AnalyticsEvent.paywallDismissed(optimizationId: "o", balance: 0).name, "paywall_dismissed")
     }
+}
+
+@MainActor
+final class ExportActionGateTests: XCTestCase {
+    /// Spec 12: a 402 on export opens the paywall and never produces a file,
+    /// styled or local (E5, E6).
+    func testA402StopsTheExportBeforeAnyFileIsMade() async throws {
+        let optimizationId = "gate-402-\(UUID().uuidString)"
+        let box = RequestBox()
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: "r", userId: "11111111-1111-4111-8111-111111111111", email: "a@example.com")
+        let viewModel = OptimizedResumeViewModel(optimizationId: optimizationId)
+        let exportsDirectory = FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ResumeBuilderExports", isDirectory: true)
+        let before = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+
+        do {
+            _ = try await ResumeExportAction.exportPDF(
+                viewModel: viewModel,
+                appState: appState,
+                renderedHTML: "<html><body><p>Résumé</p></body></html>",
+                analytics: AnalyticsService(transport: NoopTransport()),
+                unlockService: ExportUnlockService(
+                    baseURL: URL(string: "https://example.test")!,
+                    transport: transport(status: 402, json: #"{"error":"export_credits_required","balance":0}"#, box: box)
+                )
+            )
+            XCTFail("expected the paywall error")
+        } catch {
+            XCTAssertEqual(error as? ExportCreditsError, .creditsRequired)
+        }
+
+        XCTAssertEqual(box.requests.count, 1, "the unlock call is the only request")
+        let after = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+        XCTAssertEqual(after.subtracting(before), [], "no export file may be written after a 402")
+    }
+}
+
+private struct NoopTransport: AnalyticsTransport {
+    func capture(event: String, properties: [String: String], distinctId: String) async throws {}
+    func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws {}
+    func identify(distinctId: String, userProperties: [String: String]) async throws {}
 }

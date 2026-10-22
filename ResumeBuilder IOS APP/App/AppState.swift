@@ -710,7 +710,8 @@ final class AppState {
     }
 
     func refreshCredits() async {
-        guard BackendConfig.isMonetizationEnabled else { return }
+        // Export credits are read whatever `isMonetizationEnabled` says: the server
+        // decides the gate (StoreKit spec 11), and the paywall reports the balance.
         guard let token = session?.accessToken else { return }
 
         do {

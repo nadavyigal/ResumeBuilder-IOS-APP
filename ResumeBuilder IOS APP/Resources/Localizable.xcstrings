@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Apple refunded this purchase, so no credits were added." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple החזירה את הכסף על הרכישה הזו, ולכן לא נוספו קרדיטים."
+          }
+        }
+      }
+    },
     "Export your tailored résumé" : {
       "localizations" : {
         "he" : {
@@ -161,12 +171,12 @@
         }
       }
     },
-    "Your purchase is waiting for approval. Your export unlocks once it is approved." : {
+    "Your purchase is waiting for approval. Your credits are added once it is approved." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "הרכישה ממתינה לאישור. הייצוא ייפתח אחרי שהיא תאושר."
+            "value" : "הרכישה ממתינה לאישור. הקרדיטים יתווספו אחרי שהיא תאושר."
           }
         }
       }

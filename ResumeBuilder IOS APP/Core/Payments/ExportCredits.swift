@@ -101,7 +101,11 @@ extension AppState {
     /// (spec 7.1 step 4). Called once the session is restored at launch.
     @MainActor
     func startStoreKitObservation(_ store: StoreKitManager = .shared) {
-        store.accountProvider = { [weak self] in self?.purchaseAccount }
+        store.accountProvider = { [weak self] refresh in
+            guard let self else { return nil }
+            if refresh { _ = await self.refreshAccessToken() }
+            return self.purchaseAccount
+        }
         store.onCreditsGranted = { [weak self] balance in
             if let balance { self?.creditsBalance = balance }
         }

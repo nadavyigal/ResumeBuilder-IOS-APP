@@ -48,16 +48,31 @@ enum PurchaseDelivery {
         productID: String,
         account: PurchaseAccount?,
         verifier: PurchaseVerifying,
+        refreshAccount: (() async -> PurchaseAccount?)? = nil,
         finish: () async -> Void
     ) async -> Decision {
         guard let account else { return .keep(reason: "no_account") }
         let decision: Decision
         do {
-            let verification = try await verifier.verify(
-                signedTransaction: signedTransaction,
-                productId: productID,
-                token: account.token
-            )
+            let verification: PurchaseVerification
+            do {
+                verification = try await verifier.verify(
+                    signedTransaction: signedTransaction,
+                    productId: productID,
+                    token: account.token
+                )
+            } catch ReceiptVerifierError.notGranted(status: 401, _) {
+                // An expired access token (an Ask to Buy approval can land hours
+                // later): refresh once and try again, for the same account only.
+                guard let refreshed = await refreshAccount?(), refreshed.userId == account.userId else {
+                    throw ReceiptVerifierError.notGranted(status: 401, code: "token_expired")
+                }
+                verification = try await verifier.verify(
+                    signedTransaction: signedTransaction,
+                    productId: productID,
+                    token: refreshed.token
+                )
+            }
             decision = .finish(verification)
         } catch ReceiptVerifierError.revoked {
             decision = .finishRevoked
@@ -91,6 +106,8 @@ enum StoreKitManagerError: LocalizedError, Equatable {
     /// Paid, but the server has not granted yet. The transaction stays
     /// unfinished and is retried, so the credits are not lost.
     case grantPending
+    /// Apple refunded the purchase before the server granted it (spec 8).
+    case purchaseRefunded
     case purchaseFailed
 
     var errorDescription: String? {
@@ -103,6 +120,8 @@ enum StoreKitManagerError: LocalizedError, Equatable {
             return NSLocalizedString("Apple could not confirm this purchase.", comment: "StoreKit unverified transaction")
         case .grantPending:
             return NSLocalizedString("Your purchase went through. Your credits will appear shortly.", comment: "Paid but server grant not confirmed yet")
+        case .purchaseRefunded:
+            return NSLocalizedString("Apple refunded this purchase, so no credits were added.", comment: "Purchase refunded before the grant")
         case .purchaseFailed:
             return NSLocalizedString("The purchase did not complete. You were not charged.", comment: "StoreKit purchase failed")
         }
@@ -122,11 +141,13 @@ final class StoreKitManager {
 
     /// Set by `AppState` at launch: the account a delivery is made for, or nil
     /// when no real account is signed in (guests and anonymous sessions).
-    @ObservationIgnored var accountProvider: (@MainActor () async -> PurchaseAccount?)?
+    /// `refresh: true` refreshes the access token first.
+    @ObservationIgnored var accountProvider: (@MainActor (_ refresh: Bool) async -> PurchaseAccount?)?
     /// Called after a background delivery grants credits (new balance).
     @ObservationIgnored var onCreditsGranted: (@MainActor (Int?) -> Void)?
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
+    @ObservationIgnored private var retryTask: Task<Void, Never>?
     private static let logger = Logger(subsystem: "ResumeBuilder", category: "StoreKit")
 
     func loadProducts() async throws {
@@ -149,15 +170,19 @@ final class StoreKitManager {
                 productID: transaction.productID,
                 account: account,
                 verifier: verifier,
+                refreshAccount: { [weak self] in await self?.accountProvider?(true) },
                 finish: { await transaction.finish() }
             )
             switch decision {
             case .finish(let verification):
                 return .granted(verification)
             case .finishRevoked:
-                throw StoreKitManagerError.purchaseFailed
+                throw StoreKitManagerError.purchaseRefunded
             case .keep(let reason):
+                // Paid, not granted. Retry in this session too, not only at the
+                // next launch, and the sheet delivers it before selling again.
                 Self.logger.error("purchase paid but not granted yet: \(reason, privacy: .public)")
+                scheduleRetries()
                 throw StoreKitManagerError.grantPending
             }
         case .success(.unverified):
@@ -188,28 +213,63 @@ final class StoreKitManager {
 
     /// Re-sends unfinished transactions, for example right after sign-in.
     func retryUnfinishedTransactions() async {
+        _ = await deliverPendingPurchases()
+    }
+
+    /// Delivers every unfinished export-credit transaction and returns the first
+    /// grant, if any. The paywall calls this before it sells a pack, so a user
+    /// whose earlier grant failed gets those credits instead of paying twice.
+    @discardableResult
+    func deliverPendingPurchases() async -> PurchaseVerification? {
+        var firstGrant: PurchaseVerification?
         for await result in Transaction.unfinished {
-            await deliverInBackground(result)
+            if let granted = await deliverInBackground(result), firstGrant == nil {
+                firstGrant = granted
+            }
+        }
+        return firstGrant
+    }
+
+    /// After a paid-but-not-granted purchase: try again in 5, 20 and 60 seconds.
+    private func scheduleRetries() {
+        retryTask?.cancel()
+        retryTask = Task { [weak self] in
+            for delay in [5, 20, 60] {
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled, let self else { return }
+                if await self.deliverPendingPurchases() != nil { return }
+            }
         }
     }
 
-    private func deliverInBackground(_ result: VerificationResult<Transaction>) async {
+    @discardableResult
+    private func deliverInBackground(_ result: VerificationResult<Transaction>) async -> PurchaseVerification? {
         guard case .verified(let transaction) = result,
               ExportCreditProducts.credits(for: transaction.productID) != nil else {
             // Unverified, or a product this app no longer sells: never grant.
-            return
+            return nil
         }
-        let account = await accountProvider?()
+        let account = await accountProvider?(false)
         let decision = await PurchaseDelivery.deliver(
             signedTransaction: result.jwsRepresentation,
             productID: transaction.productID,
             account: account,
             verifier: verifier,
+            refreshAccount: { [weak self] in await self?.accountProvider?(true) },
             finish: { await transaction.finish() }
         )
-        if case .finish(let verification) = decision {
-            onCreditsGranted?(verification.balance)
+        guard case .finish(let verification) = decision else { return nil }
+        onCreditsGranted?(verification.balance)
+        if verification.status == "granted" {
+            // Ask to Buy approvals and retries land here, not in the sheet.
+            AnalyticsService.shared.track(.purchaseCompleted(
+                productId: transaction.productID,
+                price: transaction.price.map { "\($0)" } ?? "",
+                currency: transaction.currency?.identifier ?? "",
+                creditsGranted: verification.creditsGranted
+            ))
         }
+        return verification
     }
 }
 
