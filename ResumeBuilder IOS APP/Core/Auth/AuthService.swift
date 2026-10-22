@@ -128,7 +128,8 @@ final class AuthService: @unchecked Sendable {
             accessToken: token,
             refreshToken: refresh,
             userId: user.id,
-            email: user.email
+            email: user.email,
+            isAnonymous: user.is_anonymous
         )
         persist(session)
         return session
@@ -329,6 +330,9 @@ final class AuthService: @unchecked Sendable {
 nonisolated struct GoTrueUser: Decodable, Sendable {
     let id: String
     let email: String?
+    /// GoTrue sends this on every user object. Optional because older GoTrue
+    /// versions omit it; absent means a real account, matching `AuthSession`.
+    let is_anonymous: Bool?
 }
 
 /// GoTrue token payload. A response with no `refresh_token` cannot be persisted as a
@@ -347,7 +351,11 @@ nonisolated struct GoTrueResponse: Decodable, Sendable {
             accessToken: access_token,
             refreshToken: refresh,
             userId: user.id,
-            email: user.email
+            email: user.email,
+            // Refresh, email and Apple sign-in all land here. Dropping the flag
+            // made the first token refresh save an anonymous guest as a real
+            // account, which showed them the signed-in UI.
+            isAnonymous: user.is_anonymous
         )
     }
 }
