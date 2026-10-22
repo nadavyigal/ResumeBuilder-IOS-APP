@@ -27,13 +27,14 @@ final class GuestConsentCarryOverTests: XCTestCase {
     /// reading this `AppState`'s user id (as the app root wires the shared one).
     private func makeGuest(
         answer: Bool?,
-        anonymousSession: AuthSession? = nil
+        anonymousSession: AuthSession? = nil,
+        restoredSession: AuthSession? = nil
     ) -> (AppState, CarryOverPresenter) {
         let anonymous = anonymousSession
             ?? AuthSession(accessToken: "token-anon-1", refreshToken: nil, userId: "anon-1", email: nil, isAnonymous: true)
         let presenter = CarryOverPresenter(answer: answer)
         let center = AIConsentCenter(defaults: defaults, presenter: presenter)
-        let appState = AppState(authClient: CarryOverAuthClient(anonymousSession: anonymous), consentCenter: center)
+        let appState = AppState(authClient: CarryOverAuthClient(anonymousSession: anonymous, restoredSession: restoredSession), consentCenter: center)
         center.userIdProvider = { [weak appState] in appState?.session?.userId }
         self.center = center
         return (appState, presenter)
@@ -95,6 +96,22 @@ final class GuestConsentCarryOverTests: XCTestCase {
         XCTAssertEqual(presenter.presentCount, 1)
     }
 
+    /// Codex on PR #205: a 1.5.4 install can already hold a guest yes next to a
+    /// saved anonymous session. That launch restores the session, so the
+    /// anonymous sign-in never runs; the restore must carry the yes.
+    func testRestoredAnonymousSessionTakesTheGuestYes() async {
+        store(AIConsentStore.guestIdentity).recordConsent()
+        let anonymous = AuthSession(accessToken: "token-anon-1", refreshToken: nil, userId: "anon-1", email: nil, isAnonymous: true)
+        let (appState, presenter) = makeGuest(answer: false, restoredSession: anonymous)
+
+        appState.bootstrap()
+        let allowed = await center.ensureConsent(source: "test")
+
+        XCTAssertTrue(allowed)
+        XCTAssertEqual(presenter.presentCount, 0)
+        XCTAssertFalse(store(AIConsentStore.guestIdentity).hasConsented)
+    }
+
     // MARK: Never into a real account
 
     /// Agree as a guest, then sign in to a real account: that account is asked.
@@ -133,6 +150,19 @@ final class GuestConsentCarryOverTests: XCTestCase {
 
         XCTAssertEqual(appState.session?.userId, "user-3")
         XCTAssertFalse(center.hasConsented)
+    }
+
+    /// A restored real account never takes a guest yes left on the phone.
+    func testRestoredAccountSessionDoesNotTakeTheGuestYes() async {
+        store(AIConsentStore.guestIdentity).recordConsent()
+        let (appState, presenter) = makeGuest(answer: false, restoredSession: account("user-2"))
+
+        appState.bootstrap()
+        let allowed = await center.ensureConsent(source: "test")
+
+        XCTAssertFalse(allowed)
+        XCTAssertEqual(presenter.presentCount, 1)
+        XCTAssertFalse(store("user-2").hasConsented)
     }
 
     // MARK: Sign-out still forgets
@@ -241,10 +271,14 @@ private final class CarryOverPresenter: AIConsentPresenting {
 
 private final class CarryOverAuthClient: AuthClient, @unchecked Sendable {
     let anonymousSession: AuthSession
+    let restoredSession: AuthSession?
 
-    init(anonymousSession: AuthSession) { self.anonymousSession = anonymousSession }
+    init(anonymousSession: AuthSession, restoredSession: AuthSession?) {
+        self.anonymousSession = anonymousSession
+        self.restoredSession = restoredSession
+    }
 
-    func restoreSession() -> AuthSession? { nil }
+    func restoreSession() -> AuthSession? { restoredSession }
     func clearSession() {}
     func refreshSession(refreshToken: String) async throws -> AuthSession { throw URLError(.notConnectedToInternet) }
     func deleteAccount(accessToken: String) async throws {}

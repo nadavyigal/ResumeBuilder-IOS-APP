@@ -181,6 +181,12 @@ final class AppState {
         // splits one guest into two unlinked PostHog people.
         if let session {
             AnalyticsService.shared.prepareRestoredSessionIfAccount(session)
+            // 1.5.4 installs can already hold a guest yes next to a saved
+            // anonymous session; the sign-in path below never runs for them
+            // (#204, Codex on PR #205). Anonymous only, never an account.
+            if !session.isAccountSession {
+                consentCenter.carryGuestConsent(toAnonymousUserId: session.userId)
+            }
         }
         anonymousATSSessionId = UserDefaults.standard.string(forKey: anonymousSessionKey)
         latestOptimizationId = UserDefaults.standard.string(forKey: Self.latestOptimizationKey)
