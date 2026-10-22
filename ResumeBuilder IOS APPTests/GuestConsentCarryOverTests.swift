@@ -8,39 +8,39 @@ import XCTest
 ///
 /// These pin the fix: the anonymous session on this device takes over the guest's
 /// yes; a real account still asks (5.1.2(i), #200); sign-out still forgets every
-/// answer. They run through `AppState` and the shared center, as on device.
+/// answer. They run through `AppState`, with a private center and defaults so the
+/// host app's own launch (which may start a real anonymous session) cannot reach them.
 @MainActor
 final class GuestConsentCarryOverTests: XCTestCase {
-    private var originalPresenter: (any AIConsentPresenting)?
-    private var originalProvider: (@MainActor () -> String?)?
+    private var defaults: UserDefaults!
+    private var center: AIConsentCenter!
 
     override func setUp() async throws {
         try await super.setUp()
-        originalPresenter = AIConsentCenter.shared.presenter
-        originalProvider = AIConsentCenter.shared.userIdProvider
-        AIConsentCenter.shared.clearAll()
+        let suite = "GuestConsentCarryOverTests.\(name)"
+        UserDefaults().removePersistentDomain(forName: suite)
+        defaults = UserDefaults(suiteName: suite)
+        addTeardownBlock { UserDefaults().removePersistentDomain(forName: suite) }
     }
 
-    override func tearDown() async throws {
-        AIConsentCenter.shared.clearAll()
-        if let originalPresenter { AIConsentCenter.shared.presenter = originalPresenter }
-        if let originalProvider { AIConsentCenter.shared.userIdProvider = originalProvider }
-        try await super.tearDown()
-    }
-
-    /// A guest with no session yet, a stubbed anonymous sign-in, and the shared
-    /// center reading this `AppState`'s user id (as the app root wires it).
+    /// A guest with no session yet, a stubbed anonymous sign-in, and a center
+    /// reading this `AppState`'s user id (as the app root wires the shared one).
     private func makeGuest(
         answer: Bool?,
         anonymousSession: AuthSession? = nil
     ) -> (AppState, CarryOverPresenter) {
         let anonymous = anonymousSession
             ?? AuthSession(accessToken: "token-anon-1", refreshToken: nil, userId: "anon-1", email: nil, isAnonymous: true)
-        let appState = AppState(authClient: CarryOverAuthClient(anonymousSession: anonymous))
         let presenter = CarryOverPresenter(answer: answer)
-        AIConsentCenter.shared.presenter = presenter
-        AIConsentCenter.shared.userIdProvider = { [weak appState] in appState?.session?.userId }
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        let appState = AppState(authClient: CarryOverAuthClient(anonymousSession: anonymous), consentCenter: center)
+        center.userIdProvider = { [weak appState] in appState?.session?.userId }
+        self.center = center
         return (appState, presenter)
+    }
+
+    private func store(_ identity: String) -> AIConsentStore {
+        AIConsentStore(identity: identity, defaults: defaults)
     }
 
     private func account(_ userId: String) -> AuthSession {
@@ -53,10 +53,10 @@ final class GuestConsentCarryOverTests: XCTestCase {
     func testGuestWhoAgreedIsNotAskedAgainAfterTheAnonymousSessionStarts() async {
         let (appState, presenter) = makeGuest(answer: true)
 
-        let first = await AIConsentCenter.shared.ensureConsent(source: "test")
+        let first = await center.ensureConsent(source: "test")
         await appState.establishAnonymousSessionIfNeeded()
         XCTAssertEqual(appState.session?.userId, "anon-1")
-        let second = await AIConsentCenter.shared.ensureConsent(source: "test")
+        let second = await center.ensureConsent(source: "test")
 
         XCTAssertTrue(first)
         XCTAssertTrue(second)
@@ -67,14 +67,14 @@ final class GuestConsentCarryOverTests: XCTestCase {
     /// starts on the new launch. The yes is stored, so a fresh center reads it.
     func testTheCarriedYesSurvivesARelaunch() async {
         let (appState, _) = makeGuest(answer: true)
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
         await appState.establishAnonymousSessionIfNeeded()
 
-        let relaunched = AIConsentCenter(presenter: CarryOverPresenter(answer: false))
+        let relaunched = AIConsentCenter(defaults: defaults, presenter: CarryOverPresenter(answer: false))
         relaunched.userIdProvider = { "anon-1" }
 
         XCTAssertTrue(relaunched.hasConsented)
-        XCTAssertFalse(AIConsentStore(identity: AIConsentStore.guestIdentity).hasConsented,
+        XCTAssertFalse(store(AIConsentStore.guestIdentity).hasConsented,
                        "the yes moves to the anonymous identity; it is not left under guest")
     }
 
@@ -84,14 +84,14 @@ final class GuestConsentCarryOverTests: XCTestCase {
         let (appState, presenter) = makeGuest(answer: nil)
 
         let first = ResultBox<Bool>()
-        Task { first.value = await AIConsentCenter.shared.ensureConsent(source: "test") }
+        Task { first.value = await center.ensureConsent(source: "test") }
         guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
         await appState.establishAnonymousSessionIfNeeded()
         presenter.answerPending(true)
         guard await waitUntil("the caller gets an answer", { first.value != nil }) else { return }
 
         XCTAssertEqual(first.value, true)
-        XCTAssertTrue(AIConsentCenter.shared.hasConsented)
+        XCTAssertTrue(center.hasConsented)
         XCTAssertEqual(presenter.presentCount, 1)
     }
 
@@ -101,10 +101,10 @@ final class GuestConsentCarryOverTests: XCTestCase {
     func testRealSignInAfterGuestConsentStillAsks() async {
         let (appState, presenter) = makeGuest(answer: true)
 
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
         appState.session = account("user-2")
-        XCTAssertFalse(AIConsentCenter.shared.hasConsented)
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        XCTAssertFalse(center.hasConsented)
+        _ = await center.ensureConsent(source: "test")
 
         XCTAssertEqual(presenter.presentCount, 2)
     }
@@ -114,11 +114,11 @@ final class GuestConsentCarryOverTests: XCTestCase {
     func testRealSignInAfterTheCarryOverStillAsks() async {
         let (appState, presenter) = makeGuest(answer: true)
 
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
         await appState.establishAnonymousSessionIfNeeded()
         appState.session = account("user-2")
-        XCTAssertFalse(AIConsentCenter.shared.hasConsented)
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        XCTAssertFalse(center.hasConsented)
+        _ = await center.ensureConsent(source: "test")
 
         XCTAssertEqual(presenter.presentCount, 2)
     }
@@ -128,11 +128,11 @@ final class GuestConsentCarryOverTests: XCTestCase {
     func testAnAccountSessionFromTheAnonymousPathDoesNotTakeTheGuestYes() async {
         let (appState, _) = makeGuest(answer: true, anonymousSession: account("user-3"))
 
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
         await appState.establishAnonymousSessionIfNeeded()
 
         XCTAssertEqual(appState.session?.userId, "user-3")
-        XCTAssertFalse(AIConsentCenter.shared.hasConsented)
+        XCTAssertFalse(center.hasConsented)
     }
 
     // MARK: Sign-out still forgets
@@ -141,13 +141,13 @@ final class GuestConsentCarryOverTests: XCTestCase {
     func testSignOutAfterTheCarryOverClearsConsent() async {
         let (appState, presenter) = makeGuest(answer: true)
 
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
         await appState.establishAnonymousSessionIfNeeded()
         appState.signOut()
 
-        XCTAssertFalse(AIConsentStore(identity: "anon-1").hasConsented)
-        XCTAssertFalse(AIConsentStore(identity: AIConsentStore.guestIdentity).hasConsented)
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        XCTAssertFalse(store("anon-1").hasConsented)
+        XCTAssertFalse(store(AIConsentStore.guestIdentity).hasConsented)
+        _ = await center.ensureConsent(source: "test")
         XCTAssertEqual(presenter.presentCount, 2)
     }
 
@@ -158,10 +158,10 @@ final class GuestConsentCarryOverTests: XCTestCase {
 
         await appState.establishAnonymousSessionIfNeeded()
         appState.signOut()
-        _ = await AIConsentCenter.shared.ensureConsent(source: "test")
+        _ = await center.ensureConsent(source: "test")
 
-        XCTAssertTrue(AIConsentStore(identity: AIConsentStore.guestIdentity).hasConsented)
-        XCTAssertFalse(AIConsentStore(identity: "anon-1").hasConsented)
+        XCTAssertTrue(store(AIConsentStore.guestIdentity).hasConsented)
+        XCTAssertFalse(store("anon-1").hasConsented)
     }
 
     // MARK: Store
