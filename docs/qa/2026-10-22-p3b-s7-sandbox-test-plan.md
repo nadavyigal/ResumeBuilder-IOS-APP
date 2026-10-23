@@ -8,7 +8,7 @@ Sandbox (StoreKit spec F6). No paid sale before 2026-10-31 (EXD-037).
 
 | # | Step | Who | Done when |
 |---|---|---|---|
-| 0.1 | Merge web #195, then #196, then retarget #197 to `main` and merge, then retarget #198 and merge | Founder yes for each | All four on `main`, Vercel production deployed |
+| 0.1 | Merge web #195, then #196, then retarget #197 to `main` and merge, then retarget #198 and merge (runbook: comment on web #195) | Founder yes for each | All four on `main`, Vercel production deployed |
 | 0.2 | #174 history repair (`supabase/migrations_archive/README.md`), then apply `20261021120000_export_credits`, `20261022120000_harden_security_definer_grants`, `20261023120000_apple_iap_verification` | Founder named yes; Claude applies through the Supabase MCP | Claude reports the three versions in `schema_migrations` and the function grants |
 | 0.3 | Vercel, Production env (Settings, Environment Variables): `APPLE_IAP_BUNDLE_ID=Resumebuilder-IOS.ResumeBuilder-IOS-APP`, `APPLE_IAP_APP_APPLE_ID=<App Store Connect, App Information, Apple ID (digits)>`, `APPLE_IAP_ALLOWED_ENVIRONMENTS=Production,Sandbox`, `EXPORT_CREDITS_USER_IDS=<test account id>,<App Review demo account id>`. Leave `EXPORT_CREDITS_ENABLED` unset. Delete `APPLE_VERIFY_TRANSACTIONS_URL` and `APPLE_VERIFY_BEARER_TOKEN` if present. Redeploy | Founder | Claude confirms `/api/v1/iap/verify` no longer answers 503 for a signed-in call |
 | 0.4 | User ids: Supabase dashboard, Authentication, Users, search each email, copy the UUID | Founder | Two UUIDs in step 0.3 |
@@ -39,7 +39,7 @@ Use the `www` host: the bare domain answers 307, and Apple does not follow redir
 
 ## 2. TestFlight build
 
-Claude prepares the release branch with iOS #207 for the version you pick (1.5.5 if it is not yet archived, else 1.5.6), using the usual release checklist. You archive and upload as usual.
+Claude prepares the release branch with iOS #207 for **1.5.6**, using the usual release checklist. 1.5.5 carries the #205 and #206 session fixes without waiting on payments. **Build 1.5.6 only after web #195 is live in production:** the app calls `/api/v1/exports/unlock` before every export, and before #195 that route answers 404, so every export would fail. You archive and upload as usual.
 
 ## 3. The test, on your iPhone (about 15 minutes)
 
@@ -73,4 +73,4 @@ Your yes in that message: Vercel Production `EXPORT_CREDITS_ENABLED=true`, then 
 ## Not covered
 
 - Refund notifications: Sandbox refunds cannot be triggered from TestFlight. Server tests cover REFUND and REFUND_REVERSED (web #197, 16 local database checks). The first real refund is read in the day-7 review.
-- Web checkout: Phase 3 (Paddle).
+- Web checkout: Phase 3 (Paddle) is parked as of 2026-10-23 (vendor not decided; drafts #199 to #202). Web exports stay free.

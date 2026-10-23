@@ -403,3 +403,52 @@ private struct NoopTransport: AnalyticsTransport {
     func alias(previousDistinctId: String, userDistinctId: String, properties: [String: String]) async throws {}
     func identify(distinctId: String, userProperties: [String: String]) async throws {}
 }
+
+@MainActor
+final class PendingPurchaseLockTests: XCTestCase {
+    private let buyer = UUID(uuidString: "11111111-1111-4111-8111-111111111111")!
+    private let other = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
+    private var suiteName = ""
+    private var defaults: UserDefaults!
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "PendingPurchaseLockTests-\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
+    }
+
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        super.tearDown()
+    }
+
+    func testALockSurvivesARelaunch() {
+        StoreKitManager(defaults: defaults).setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        let relaunched = StoreKitManager(defaults: defaults)
+        XCTAssertEqual(relaunched.pendingProductID(for: buyer), "resumely.exports.5")
+    }
+
+    func testTheLockAppliesOnlyToTheBuyer() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.1")
+        XCTAssertNil(store.pendingProductID(for: other))
+        XCTAssertNil(store.pendingProductID(for: nil))
+        store.clearPendingLock(for: other)
+        XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.1", "another account cannot clear it")
+    }
+
+    func testTheLockExpires() {
+        let store = StoreKitManager(defaults: defaults)
+        let start = Date(timeIntervalSince1970: 1_761_000_000)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.10", now: start)
+        XCTAssertEqual(store.pendingProductID(for: buyer, now: start.addingTimeInterval(47 * 3600)), "resumely.exports.10")
+        XCTAssertNil(store.pendingProductID(for: buyer, now: start.addingTimeInterval(49 * 3600)))
+    }
+
+    func testClearingRemovesTheSavedLock() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        store.clearPendingLock(for: buyer)
+        XCTAssertNil(StoreKitManager(defaults: defaults).pendingProductID(for: buyer))
+    }
+}

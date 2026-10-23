@@ -136,14 +136,54 @@ enum StoreKitManagerError: LocalizedError, Equatable {
 final class StoreKitManager {
     static let shared = StoreKitManager()
 
+    /// A purchase Apple holds (Ask to Buy) or charged without a server grant yet,
+    /// for one account. Saved on the device so a relaunch keeps the paywall
+    /// locked (Codex P1s on #207), scoped to the buyer so another account on the
+    /// same phone is not blocked (Codex P2). Ask to Buy requests expire, so the
+    /// lock does too.
+    struct PendingPurchaseLock: Codable, Equatable {
+        let userId: UUID
+        let productID: String
+        let since: Date
+    }
+
+    static let pendingLockLifetime: TimeInterval = 48 * 3600
+    private static let pendingLockKey = "storekit_pending_purchase_lock"
+    @ObservationIgnored private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey: Self.pendingLockKey),
+           let lock = try? JSONDecoder().decode(PendingPurchaseLock.self, from: data) {
+            pendingLock = lock
+        }
+    }
+
     private(set) var products: [Product] = []
     /// Counts grants delivered outside `purchase()` (Ask to Buy approvals,
     /// retries). A paywall waiting on an approval watches it to resume the export.
     private(set) var backgroundGrantCount = 0
-    /// A purchase Apple holds (Ask to Buy) or charged without a server grant yet.
-    /// Kept here, not in the sheet, so closing and reopening the paywall stays
-    /// locked until it is delivered (Codex P1 on #207). Cleared by the grant.
-    private(set) var undeliveredProductID: String?
+    private(set) var pendingLock: PendingPurchaseLock?
+
+    /// The product still waiting for this account, or nil (none, another
+    /// account's, or expired).
+    func pendingProductID(for userId: UUID?, now: Date = Date()) -> String? {
+        guard let lock = pendingLock, let userId, lock.userId == userId,
+              now.timeIntervalSince(lock.since) < Self.pendingLockLifetime else { return nil }
+        return lock.productID
+    }
+
+    func setPendingLock(userId: UUID, productID: String, now: Date = Date()) {
+        let lock = PendingPurchaseLock(userId: userId, productID: productID, since: now)
+        pendingLock = lock
+        if let data = try? JSONEncoder().encode(lock) { defaults.set(data, forKey: Self.pendingLockKey) }
+    }
+
+    func clearPendingLock(for userId: UUID?) {
+        guard let lock = pendingLock, lock.userId == userId else { return }
+        pendingLock = nil
+        defaults.removeObject(forKey: Self.pendingLockKey)
+    }
     var verifier: PurchaseVerifying = ReceiptVerifier()
 
     /// Set by `AppState` at launch: the account a delivery is made for, or nil
@@ -189,7 +229,7 @@ final class StoreKitManager {
                 // Paid, not granted. Retry in this session too, not only at the
                 // next launch, and the sheet delivers it before selling again.
                 Self.logger.error("purchase paid but not granted yet: \(reason, privacy: .public)")
-                undeliveredProductID = transaction.productID
+                setPendingLock(userId: account.userId, productID: transaction.productID)
                 scheduleRetries()
                 throw StoreKitManagerError.grantPending
             }
@@ -198,7 +238,7 @@ final class StoreKitManager {
         case .userCancelled:
             return .cancelled
         case .pending:
-            undeliveredProductID = product.id
+            setPendingLock(userId: account.userId, productID: product.id)
             return .pending
         @unknown default:
             throw StoreKitManagerError.purchaseFailed
@@ -269,7 +309,7 @@ final class StoreKitManager {
         )
         guard case .finish(let verification) = decision else { return nil }
         onCreditsGranted?(verification.balance)
-        undeliveredProductID = nil
+        clearPendingLock(for: account?.userId)
         backgroundGrantCount += 1
         if verification.status == "granted" {
             // Ask to Buy approvals and retries land here, not in the sheet.

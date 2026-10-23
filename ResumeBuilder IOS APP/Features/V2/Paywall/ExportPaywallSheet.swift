@@ -62,12 +62,21 @@ final class ExportPaywallModel {
         self.optimizationId = optimizationId
         self.store = store
         self.isFixture = false
-        // A purchase still waiting from an earlier sheet keeps this one locked.
-        if let waiting = store.undeliveredProductID {
-            phase = .awaitingApproval(productID: waiting)
-            grantCountAtWait = store.backgroundGrantCount
-            message = StoreKitManagerError.grantPending.localizedDescription
-        }
+    }
+
+    /// The buyer, set by `load(for:)`; the waiting lock is per account.
+    private var userId: UUID?
+
+    /// Locks the sheet while this account has a purchase waiting (held or
+    /// charged, not granted), from an earlier sheet or an earlier launch.
+    /// Returns true when locked.
+    @discardableResult
+    private func applyPendingLock() -> Bool {
+        guard let waiting = store.pendingProductID(for: userId) else { return false }
+        if case .awaitingApproval = phase {} else { grantCountAtWait = store.backgroundGrantCount }
+        phase = .awaitingApproval(productID: waiting)
+        message = StoreKitManagerError.grantPending.localizedDescription
+        return true
     }
 
     #if DEBUG
@@ -81,11 +90,13 @@ final class ExportPaywallModel {
     }
     #endif
 
-    func load() async {
+    func load(for userId: UUID?) async {
         guard !isFixture else { return }
-        let waiting = phase
-        phase = .loading
-        message = nil
+        self.userId = userId
+        if applyPendingLock() == false {
+            phase = .loading
+            message = nil
+        }
         do {
             try await store.loadProducts()
             offers = store.products.compactMap { product in
@@ -93,11 +104,14 @@ final class ExportPaywallModel {
                     PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)
                 }
             }
-            // Stay locked if a purchase from an earlier sheet is still waiting.
-            if case .awaitingApproval = waiting { phase = waiting } else { phase = .ready }
+            // Every result is derived from the store's lock, so a failed load
+            // and a retry can never unlock a waiting purchase (Codex P1).
+            if !applyPendingLock() { phase = .ready }
         } catch {
-            phase = .unavailable
-            message = StoreKitManagerError.productUnavailable.localizedDescription
+            if !applyPendingLock() {
+                phase = .unavailable
+                message = StoreKitManagerError.productUnavailable.localizedDescription
+            }
         }
     }
 
@@ -109,7 +123,7 @@ final class ExportPaywallModel {
     }
 
     func buy(_ offer: PackOffer, account: PurchaseAccount?) async -> Bool {
-        guard phase == .ready, !isFixture,
+        guard phase == .ready, !isFixture, store.pendingProductID(for: account?.userId) == nil,
               let product = store.products.first(where: { $0.id == offer.id }) else { return false }
         let analytics = AnalyticsService.shared
         guard let account else {
@@ -246,7 +260,7 @@ struct ExportPaywallSheet: View {
         }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
-            await model.load()
+            await model.load(for: appState.purchaseAccount?.userId)
         }
     }
 
@@ -268,7 +282,7 @@ struct ExportPaywallSheet: View {
             .frame(maxWidth: .infinity, minHeight: 120)
         case .unavailable:
             Button {
-                Task { await model.load() }
+                Task { await model.load(for: appState.purchaseAccount?.userId) }
             } label: {
                 Text(ExportPaywallCopy.retry)
                     .font(.appSubheadline.weight(.semibold))
