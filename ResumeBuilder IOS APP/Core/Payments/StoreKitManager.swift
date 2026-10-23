@@ -179,10 +179,27 @@ final class StoreKitManager {
         if let data = try? JSONEncoder().encode(lock) { defaults.set(data, forKey: Self.pendingLockKey) }
     }
 
-    func clearPendingLock(for userId: UUID?) {
-        guard let lock = pendingLock, lock.userId == userId else { return }
+    /// Clears the lock only for the same account and pack, so a grant for an
+    /// older pack cannot unlock a pack still waiting (second-model P1 on #207).
+    func clearPendingLock(for userId: UUID?, productID: String) {
+        guard let lock = pendingLock, lock.userId == userId, lock.productID == productID else { return }
         pendingLock = nil
         defaults.removeObject(forKey: Self.pendingLockKey)
+    }
+
+    /// Lock bookkeeping after a background delivery. A transaction left
+    /// unfinished (server down at launch, app killed before the grant) locks its
+    /// buyer, so the paywall cannot sell again before it is delivered
+    /// (second-model P1 on #207). A lock already waiting is kept. A grant or a
+    /// refund clears the lock for that pack.
+    func recordDelivery(_ decision: PurchaseDelivery.Decision, buyer: UUID?, productID: String) {
+        switch decision {
+        case .finish, .finishRevoked:
+            clearPendingLock(for: buyer, productID: productID)
+        case .keep:
+            guard let buyer, pendingProductID(for: buyer) == nil else { return }
+            setPendingLock(userId: buyer, productID: productID)
+        }
     }
     var verifier: PurchaseVerifying = ReceiptVerifier()
 
@@ -307,9 +324,9 @@ final class StoreKitManager {
             refreshAccount: { [weak self] in await self?.accountProvider?(true) },
             finish: { await transaction.finish() }
         )
+        recordDelivery(decision, buyer: transaction.appAccountToken, productID: transaction.productID)
         guard case .finish(let verification) = decision else { return nil }
         onCreditsGranted?(verification.balance)
-        clearPendingLock(for: account?.userId)
         backgroundGrantCount += 1
         if verification.status == "granted" {
             // Ask to Buy approvals and retries land here, not in the sheet.

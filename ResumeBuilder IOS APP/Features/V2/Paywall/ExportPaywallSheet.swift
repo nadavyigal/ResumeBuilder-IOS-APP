@@ -71,7 +71,7 @@ final class ExportPaywallModel {
     /// charged, not granted), from an earlier sheet or an earlier launch.
     /// Returns true when locked.
     @discardableResult
-    private func applyPendingLock() -> Bool {
+    private func applyPendingLock(for userId: UUID?) -> Bool {
         guard let waiting = store.pendingProductID(for: userId) else { return false }
         if case .awaitingApproval = phase {} else { grantCountAtWait = store.backgroundGrantCount }
         phase = .awaitingApproval(productID: waiting)
@@ -93,7 +93,7 @@ final class ExportPaywallModel {
     func load(for userId: UUID?) async {
         guard !isFixture else { return }
         self.userId = userId
-        if applyPendingLock() == false {
+        if applyPendingLock(for: userId) == false {
             phase = .loading
             message = nil
         }
@@ -105,10 +105,12 @@ final class ExportPaywallModel {
                 }
             }
             // Every result is derived from the store's lock, so a failed load
-            // and a retry can never unlock a waiting purchase (Codex P1).
-            if !applyPendingLock() { phase = .ready }
+            // and a retry can never unlock a waiting purchase (Codex P1). A grant
+            // that landed during the load keeps the sheet waiting, so
+            // `approvalGranted` stays true and the export resumes (second-model P1).
+            if !applyPendingLock(for: userId), !approvalGranted { phase = .ready }
         } catch {
-            if !applyPendingLock() {
+            if !applyPendingLock(for: userId), !approvalGranted {
                 phase = .unavailable
                 message = StoreKitManagerError.productUnavailable.localizedDescription
             }
@@ -138,6 +140,9 @@ final class ExportPaywallModel {
         if await store.deliverPendingPurchases() != nil {
             return true
         }
+        // That delivery failed and locked this account: do not sell again
+        // until it is granted (second-model P1 on #207).
+        if applyPendingLock(for: account.userId) { return false }
         analytics.track(.purchaseStarted(productId: product.id))
         // Taken before the purchase, so a background grant that lands while
         // StoreKit is still returning is not missed.

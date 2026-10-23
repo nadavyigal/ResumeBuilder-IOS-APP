@@ -433,7 +433,7 @@ final class PendingPurchaseLockTests: XCTestCase {
         store.setPendingLock(userId: buyer, productID: "resumely.exports.1")
         XCTAssertNil(store.pendingProductID(for: other))
         XCTAssertNil(store.pendingProductID(for: nil))
-        store.clearPendingLock(for: other)
+        store.clearPendingLock(for: other, productID: "resumely.exports.1")
         XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.1", "another account cannot clear it")
     }
 
@@ -448,7 +448,48 @@ final class PendingPurchaseLockTests: XCTestCase {
     func testClearingRemovesTheSavedLock() {
         let store = StoreKitManager(defaults: defaults)
         store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
-        store.clearPendingLock(for: buyer)
+        store.clearPendingLock(for: buyer, productID: "resumely.exports.5")
         XCTAssertNil(StoreKitManager(defaults: defaults).pendingProductID(for: buyer))
+    }
+
+    func testAGrantForAnotherPackKeepsTheLock() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        store.recordDelivery(.finish(granted), buyer: buyer, productID: "resumely.exports.1")
+        XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.5")
+        store.recordDelivery(.finish(granted), buyer: buyer, productID: "resumely.exports.5")
+        XCTAssertNil(store.pendingProductID(for: buyer))
+    }
+
+    func testABackgroundDeliveryThatFailsLocksTheBuyer() {
+        let store = StoreKitManager(defaults: defaults)
+        store.recordDelivery(.keep(reason: "503_iap_verification_unavailable"), buyer: buyer, productID: "resumely.exports.1")
+        XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.1")
+        XCTAssertNil(store.pendingProductID(for: other))
+        XCTAssertEqual(StoreKitManager(defaults: defaults).pendingProductID(for: buyer), "resumely.exports.1", "saved for a relaunch")
+    }
+
+    func testAFailedDeliveryDoesNotReplaceAWaitingLock() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.10")
+        store.recordDelivery(.keep(reason: "network"), buyer: buyer, productID: "resumely.exports.1")
+        XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.10")
+    }
+
+    func testAFailedDeliveryWithNoBuyerLocksNobody() {
+        let store = StoreKitManager(defaults: defaults)
+        store.recordDelivery(.keep(reason: "no_account"), buyer: nil, productID: "resumely.exports.1")
+        XCTAssertNil(store.pendingLock)
+    }
+
+    func testARefundClearsTheLock() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        store.recordDelivery(.finishRevoked, buyer: buyer, productID: "resumely.exports.5")
+        XCTAssertNil(store.pendingProductID(for: buyer))
+    }
+
+    private var granted: PurchaseVerification {
+        PurchaseVerification(status: "granted", creditsGranted: 5, balance: 5)
     }
 }
