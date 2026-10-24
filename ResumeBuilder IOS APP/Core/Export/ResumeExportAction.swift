@@ -18,7 +18,8 @@ enum ResumeExportAction {
         viewModel: OptimizedResumeViewModel,
         appState: AppState,
         renderedHTML: String? = nil,
-        analytics: AnalyticsService = .shared
+        analytics: AnalyticsService = .shared,
+        unlockService: ExportUnlockService = ExportUnlockService()
     ) async throws -> Result {
         guard let optimizationId = viewModel.optimizationIdentifier else {
             throw APIClientError.invalidResponse
@@ -26,6 +27,10 @@ enum ResumeExportAction {
         analytics.track(.exportStarted(optimizationId: optimizationId))
         var styledHTMLFailureCode: String?
         do {
+            // The server decides first (StoreKit spec 6.4): no file is made, styled
+            // or local, for an export it refused. A 402 reaches the caller as
+            // ExportCreditsError.creditsRequired and opens the paywall.
+            try await appState.authorizeExport(optimizationId: optimizationId, service: unlockService)
             let url: URL
             if let html = renderedHTML {
                 // Generate PDF from the already-rendered styled HTML so the exported
@@ -85,6 +90,12 @@ enum ResumeExportAction {
 
 enum ExportFailureCode {
     static func code(for error: Error) -> String {
+        if let creditsError = error as? ExportCreditsError {
+            switch creditsError {
+            case .creditsRequired: return "export_credits_required"
+            case .accountRequired: return "account_required"
+            }
+        }
         if let apiError = error as? APIClientError {
             switch apiError {
             case .unauthorized: return "unauthorized"
@@ -116,6 +127,12 @@ enum ExportFailureCode {
 /// either altitude (WP-52).
 enum FailureReason {
     static func reason(for error: Error) -> String {
+        if let creditsError = error as? ExportCreditsError {
+            switch creditsError {
+            case .creditsRequired: return "entitlement"
+            case .accountRequired: return "auth"
+            }
+        }
         if let apiError = error as? APIClientError {
             switch apiError {
             case .unauthorized: return "auth"

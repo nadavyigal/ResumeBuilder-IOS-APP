@@ -26,6 +26,10 @@ struct ResumePreviewWebView: View {
     @State private var pdfURL: URL?
     @State private var showSharePDF = false
     @State private var isDownloadingPDF = false
+    /// Set when the server answers 402 for this export; opens the paywall sheet.
+    @State private var paywallOptimizationId: String?
+    /// Set when the server answers 401 `account_required`: exports need a real account.
+    @State private var showAccountOnboarding = false
     @State private var previewPolicy = PreviewRequestPolicy()
     @State private var downloadError: String?
 
@@ -124,6 +128,14 @@ struct ResumePreviewWebView: View {
         .sheet(isPresented: $showSharePDF, onDismiss: { pdfURL = nil }) {
             if let url = pdfURL {
                 ShareSheet(items: [url]).ignoresSafeArea()
+            }
+        }
+        .exportPaywall(optimizationId: $paywallOptimizationId) {
+            Task { await downloadAndShare() }
+        }
+        .sheet(isPresented: $showAccountOnboarding) {
+            NavigationStack {
+                OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
     }
@@ -240,6 +252,21 @@ struct ResumePreviewWebView: View {
         AnalyticsService.shared.track(.exportPdfTapped(optimizationId: optimizationId))
         AnalyticsService.shared.track(.exportStarted(optimizationId: optimizationId))
         defer { isDownloadingPDF = false }
+        // The server decides first (StoreKit spec 6.4): no file, styled or not,
+        // for an export it refused.
+        do {
+            try await appState.authorizeExport(optimizationId: optimizationId)
+        } catch {
+            AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error)))
+            if case ExportCreditsError.creditsRequired = error {
+                paywallOptimizationId = optimizationId
+            } else if case ExportCreditsError.accountRequired = error {
+                showAccountOnboarding = true
+            } else {
+                downloadError = (error as? LocalizedError)?.errorDescription ?? NSLocalizedString("Download failed", comment: "")
+            }
+            return
+        }
         // Use the already-rendered styled HTML when available so the exported PDF
         // includes the design template the user selected. This path needs no token.
         var styledHTMLFailureCode: String?

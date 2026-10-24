@@ -942,3 +942,13 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** New files in `ResumeBuilder IOS APPTests/` compile with no `project.pbxproj` edit. The test target is a `PBXFileSystemSynchronizedRootGroup` (`EBBAC22F32DDC2060C87D2CC`), like the app target. Still confirm the red state first: a new test that fails on a missing type proves it is compiled.
 **Why:** the 2026-07-16 lesson says a new test file needs 4 manual pbxproj entries. Following it would have added duplicate references. `AIConsentTests.swift` was added with no project change and failed to compile on the missing `AIConsentStore`, which proved the folder is synced.
+
+### 2026-10-24: Payment recovery belongs to the buyer across account changes
+
+**Rule:** Persist pending purchase locks per account, and recheck the active account after an awaited grant verification before publishing its balance or export signal. Subscribe to Transaction.updates independently of unfinished replay.
+**Why:** A single saved lock let account B replace A's pending purchase; a late network response could publish A's balance to B. New tests reproduce the overwrite and protect account-specific callbacks. The new checkout also needs the ignored Secrets.xcconfig before Xcode can build; reuse the existing local configuration without printing or committing it.
+
+### 2026-10-24: Keep delivery retry reachable behind a purchase lock
+
+**Rule:** Reopening a locked paywall must retry its unfinished transaction without enabling a new purchase. Preserve the waiting phase and resume the export after a successful grant.
+**Why:** A failed offline launch wrote the lock, but the lock then prevented entering buy(), the only place a user-triggered retry existed. Two failing model regressions drive the correction. Also reapply the existing 2026-10-16 smoke-language reset before every subsequent full suite: this session's Hebrew smoke preference caused 27 English-copy assertions to fail until the actual app-container preference was reset.

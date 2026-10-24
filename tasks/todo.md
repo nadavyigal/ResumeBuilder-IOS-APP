@@ -1,3 +1,34 @@
+# 2026-10-24: Recover unfinished purchases when reopening the paywall
+
+As a buyer whose launch-time verification failed offline, I want reopening Export to retry my existing purchase so I can receive my credits without restarting or buying again.
+
+- [x] Reproduce #207 review P2 at d17b7de with three deterministic model tests (two fail; ordinary unlocked load passes).
+- [x] Keep the purchase lock while retrying unfinished delivery on every paywall load; resume export if the grant succeeds, otherwise keep all purchases disabled.
+- [x] Inject delivery/product loaders at the existing model boundary so tests use no live StoreKit products.
+- [x] Full suite: 582 XCTest cases, one skipped, zero failures; five Swift Testing cases pass after resetting the Hebrew smoke preference to English.
+- [ ] Signed device Release build and current-head hosted review.
+- [ ] Push stacked follow-up and integrate into #207 after verification.
+
+Source scope: ExportPaywallSheet.swift and ExportCreditsTests.swift; task/QA records only beyond those files. No new package, migration or activation.
+
+# 2026-10-24: Complete payments Phase 2 (review fixes and Sandbox readiness)
+
+Founder asked to finish iOS payments and real Sandbox verification. Device: iPhone 13; founder test account selected in chat.
+
+- [x] Verify merged web #195–#198 and production migration versions/credit RPC grants read-only.
+- [x] Reproduce the multi-account pending-lock overwrite and raw export-error disclosure with failing tests.
+- [x] Persist pending locks per account, retaining the older single-lock format on read.
+- [x] Recheck the current account before publishing a background grant; leave another account's balance/export callback alone.
+- [x] Start Transaction.updates separately before replaying unfinished purchases.
+- [x] Localize unexpected export failure copy in English and Hebrew.
+- [x] Targeted 20 tests and full suite (579 XCTest cases, one skipped; five Swift Testing cases) pass.
+- [x] Unsigned and signed device Release 1.5.6 (35) builds pass; EN/HE simulator smoke checked. Hosted review still pending.
+- [ ] Push a follow-up PR stacked on #207; preserve the other checkout's uncommitted work.
+- [ ] Complete App Store Connect consumables and verify server configuration.
+- [ ] Real device Sandbox purchase and ledger/analytics confirmation. No Sandbox pass until Apple signs a transaction and the server records it.
+
+Scope: existing payment review corrections; no dependency, database migration or public billing activation. Source files: StoreKitManager.swift, ExportCredits.swift, Localizable.xcstrings; tests in ExportCreditsTests.swift. Only documentation/task records beyond those files.
+
 # 2026-10-21: Prepare 1.5.4 (33) release bump
 
 - [x] Verify and merge #200 at e1b6771; record #202 architectural exception approved by founder.

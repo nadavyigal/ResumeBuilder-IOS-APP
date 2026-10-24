@@ -1,6 +1,213 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "We couldn't prepare your export. Please try again." : {
+      "comment" : "Export unlock failed",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't prepare your export. Please try again."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להכין את הקובץ לייצוא. נסו שוב."
+          }
+        }
+      }
+    },
+    "You don't have enough credits for this." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין מספיק קרדיטים לפעולה הזו."
+          }
+        }
+      }
+    },
+    "Apple refunded this purchase, so no credits were added." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple החזירה את הכסף על הרכישה הזו, ולכן לא נוספו קרדיטים."
+          }
+        }
+      }
+    },
+    "Export your tailored résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא קורות החיים המותאמים"
+          }
+        }
+      }
+    },
+    "One credit exports one tailored résumé, in any format, as often as you need." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קרדיט אחד מייצא קורות חיים מותאמים למשרה אחת, בכל פורמט וכמה פעמים שצריך."
+          }
+        }
+      }
+    },
+    "Credits never expire." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לקרדיטים אין תאריך תפוגה."
+          }
+        }
+      }
+    },
+    "Credits stay on your account. Sign in to the same account on another device to use them." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקרדיטים נשמרים בחשבון. כדי להשתמש בהם במכשיר אחר, מתחברים לאותו חשבון."
+          }
+        }
+      }
+    },
+    "Loading prices…" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "טוענים מחירים…"
+          }
+        }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לנסות שוב"
+          }
+        }
+      }
+    },
+    "1 tailored export" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא מותאם אחד"
+          }
+        }
+      }
+    },
+    "5 tailored exports" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 ייצואים מותאמים"
+          }
+        }
+      }
+    },
+    "10 tailored exports" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 ייצואים מותאמים"
+          }
+        }
+      }
+    },
+    "You need an export credit to download this résumé." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צריך קרדיט ייצוא כדי להוריד את קורות החיים האלה."
+          }
+        }
+      }
+    },
+    "Create a free account to export your résumé." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לייצא את קורות החיים, פותחים חשבון בחינם."
+          }
+        }
+      }
+    },
+    "Create a free account to buy export credits." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לקנות קרדיטים לייצוא, פותחים חשבון בחינם."
+          }
+        }
+      }
+    },
+    "Export credits are not available right now. Try again later." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קרדיטים לייצוא לא זמינים כרגע. אפשר לנסות שוב מאוחר יותר."
+          }
+        }
+      }
+    },
+    "Apple could not confirm this purchase." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple לא אישרה את הרכישה הזו."
+          }
+        }
+      }
+    },
+    "Your purchase went through. Your credits will appear shortly." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה בוצעה. הקרדיטים יופיעו בעוד רגע."
+          }
+        }
+      }
+    },
+    "The purchase did not complete. You were not charged." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה לא הושלמה, ולא בוצע חיוב."
+          }
+        }
+      }
+    },
+    "Your purchase is waiting for approval. Your credits are added once it is approved." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה ממתינה לאישור. הקרדיטים יתווספו אחרי שהיא תאושר."
+          }
+        }
+      }
+    },
     "" : {
 
     },
