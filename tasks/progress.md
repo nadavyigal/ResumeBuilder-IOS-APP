@@ -1,3 +1,11 @@
+# 2026-10-24: Sandbox payment path verified and merged
+
+Status: QA / Sandbox payment path verified. #207 merged to main at `7ff303de60bf94924dae7f3c21843d358168a63b`, including #208/#209. Real iPhone 13 five-pack purchase: one Sandbox +5 grant, one -1 export, balance 4; automatic PDF export confirmed. Browser-authenticated PostHog project 270848 independently confirms paywall_shown → purchase_completed (five credits, build 35) → export_unlocked → export_success at 13:52–13:53 UTC. No separate iap_verified event exists in the discovered taxonomy; the server ledger proves verification.
+
+Validation: 582 XCTest cases (one skipped, zero failures), five Swift Testing cases, signed Release pass. Latest recovery candidate installed on iPhone 13; automatic launch denied because the phone is locked. Founder reports Hebrew export works; balance remains 4. A second newly tailored optimization/charge is not yet verified. The reported English Fit LinkedIn URL error needs its exact URL; paste full job description as workaround. No speculative parser edit.
+
+Follow-ups: P2 #210 overlapping-delivery stale lock and #211 terminal refund state in an open sheet, carried under standing policy; no P1 in combined review. App Review screenshots/submission and later activation remain. Public switch stays off; products remain Prepare for Submission. Detailed evidence: docs/qa/reports/payments-phase2-2026-10-24.md.
+
 # 2026-10-24: Real Sandbox grant verified; reopen recovery follow-up
 
 The founder confirmed the PDF share flow worked on the iPhone 13 after signing in with a newly created Apple Sandbox tester. Read-only production evidence: exactly one `iap_purchase` from `apple_iap`, product `resumely.exports.5`, environment `Sandbox`, delta +5; one `export_unlock` delta -1; balance 4. The initial Apple-looking verification failure produced no `/iap/verify` request from the phone in the inspected log window; Sandbox sign-in succeeded before the successful retry. No production-money purchase occurred. Public switch remains off; only the selected founder account is allowlisted.
