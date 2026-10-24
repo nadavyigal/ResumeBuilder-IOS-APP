@@ -5,7 +5,7 @@
 - [x] Real Apple Sandbox five-pack +5, export -1, balance 4 verified in database.
 - [x] PostHog actual test records independently confirm purchase and export success.
 - [x] Latest recovery candidate installed on iPhone 13; launch requires phone unlock.
-- [ ] Explicit same-optimization repeat and newly tailored optimization charge check.
+- [x] New export charged exactly one credit; subsequent same-résumé repeat added no debit, balance 3.
 - [ ] Exact failing LinkedIn URL for separate English Fit check diagnosis.
 - [ ] P2 follow-ups #210/#211 and App Review preparation. Global activation remains off.
 

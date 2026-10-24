@@ -1,3 +1,7 @@
+## 2026-10-24 — Final physical charging checks pass
+
+Founder completed another export, then repeated that same résumé export. Read-only production ledger confirms the new unlock cost exactly one credit at 16:27:21Z, and the subsequent repeat added no debit: balance remains 3. Ledger has one Sandbox +5 purchase and two -1 export unlocks, without duplicate grants. Founder reports Hebrew export works and the transient LinkedIn Fit issue now works. Payment Phase 2 implementation and core Sandbox verification are complete; App Review/submission and public activation remain separate, and tracked P2 follow-ups #210/#211 remain open. No global payment activation occurred.
+
 # 2026-10-24: Sandbox payment path verified and merged
 
 Status: QA / Sandbox payment path verified. #207 merged to main at `7ff303de60bf94924dae7f3c21843d358168a63b`, including #208/#209. Real iPhone 13 five-pack purchase: one Sandbox +5 grant, one -1 export, balance 4; automatic PDF export confirmed. Browser-authenticated PostHog project 270848 independently confirms paywall_shown → purchase_completed (five credits, build 35) → export_unlocked → export_success at 13:52–13:53 UTC. No separate iap_verified event exists in the discovered taxonomy; the server ledger proves verification.
