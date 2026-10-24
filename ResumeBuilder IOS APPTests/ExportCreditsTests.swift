@@ -119,6 +119,18 @@ final class ExportUnlockServiceTests: XCTestCase {
         }
     }
 
+    func testUnexpectedFailureDoesNotExposeTheServerCode() async {
+        let service = ExportUnlockService(apiClient: mockClient(status: 500, json: #"{"error":"failed_to_unlock_export"}"#, box: RequestBox()))
+        do {
+            _ = try await service.unlock(optimizationId: "opt-1", token: "tok")
+            XCTFail("expected server error")
+        } catch APIClientError.serverError(let status, let message) {
+            XCTAssertEqual(status, 500)
+            XCTAssertFalse(message.contains("failed_to_unlock_export"))
+            XCTAssertFalse(message.contains("export_unlock_failed"))
+        } catch { XCTFail("unexpected \(error)") }
+    }
+
     func testExportFailureCodesNameTheRefusal() {
         XCTAssertEqual(ExportFailureCode.code(for: ExportCreditsError.creditsRequired), "export_credits_required")
         XCTAssertEqual(ExportFailureCode.code(for: ExportCreditsError.accountRequired), "account_required")
@@ -479,7 +491,48 @@ final class PendingPurchaseLockTests: XCTestCase {
     func testAFailedDeliveryWithNoBuyerLocksNobody() {
         let store = StoreKitManager(defaults: defaults)
         store.recordDelivery(.keep(reason: "no_account"), buyer: nil, productID: "resumely.exports.1")
-        XCTAssertNil(store.pendingLock)
+        XCTAssertTrue(store.pendingLocks.isEmpty)
+    }
+
+    func testEachAccountsPendingPurchaseSurvivesAnotherAccountsPurchaseAndRelaunch() {
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        store.setPendingLock(userId: other, productID: "resumely.exports.1")
+        let relaunched = StoreKitManager(defaults: defaults)
+        XCTAssertEqual(relaunched.pendingProductID(for: buyer), "resumely.exports.5")
+        XCTAssertEqual(relaunched.pendingProductID(for: other), "resumely.exports.1")
+        relaunched.clearPendingLock(for: other, productID: "resumely.exports.1")
+        XCTAssertEqual(StoreKitManager(defaults: defaults).pendingProductID(for: buyer), "resumely.exports.5")
+    }
+
+    func testLegacySingleLockIsKeptWhenReadingTheNewFormat() throws {
+        let lock = StoreKitManager.PendingPurchaseLock(userId: buyer, productID: "resumely.exports.5", since: Date())
+        defaults.set(try JSONEncoder().encode(lock), forKey: "storekit_pending_purchase_lock")
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: other, productID: "resumely.exports.1")
+        let relaunched = StoreKitManager(defaults: defaults)
+        XCTAssertEqual(relaunched.pendingProductID(for: buyer), "resumely.exports.5")
+        XCTAssertEqual(relaunched.pendingProductID(for: other), "resumely.exports.1")
+    }
+
+    func testBackgroundGrantDoesNotPublishToAnotherAccountOrSignedOutSession() async {
+        let store = StoreKitManager(defaults: defaults)
+        var active: PurchaseAccount? = PurchaseAccount(userId: other, token: "b")
+        store.accountProvider = { _ in active }
+        var balances: [Int?] = []
+        store.onCreditsGranted = { balances.append($0) }
+        let switched = await store.publishBackgroundGrant(granted, for: buyer)
+        XCTAssertFalse(switched)
+        active = nil
+        let signedOut = await store.publishBackgroundGrant(granted, for: buyer)
+        XCTAssertFalse(signedOut)
+        XCTAssertEqual(store.backgroundGrantCount, 0)
+        XCTAssertTrue(balances.isEmpty)
+        active = PurchaseAccount(userId: buyer, token: "a")
+        let matching = await store.publishBackgroundGrant(granted, for: buyer)
+        XCTAssertTrue(matching)
+        XCTAssertEqual(store.backgroundGrantCount, 1)
+        XCTAssertEqual(balances, [5])
     }
 
     func testARefundClearsTheLock() {

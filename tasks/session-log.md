@@ -1176,3 +1176,7 @@ unauthenticated probe. Every new test was confirmed failing before its fix.
 
 **Next action:** retry an optimization in the installed app. The server fix
 means the current build should already work, with no App Store release needed.
+
+## 2026-10-24 — Payments Phase 2 closure
+
+Verified current backend merge/migration truth, reproduced and fixed #207 review defects in an isolated checkout, preserved existing dirty worktree. Targeted 20 and full 579 XCTest plus five Swift Testing cases pass. Created approved App Store consumables as draft metadata; detailed readiness is recorded in the handoff report once configured. Real Sandbox purchase remains a physical-device gate.

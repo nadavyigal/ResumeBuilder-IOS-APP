@@ -61,7 +61,7 @@ struct ExportUnlockService: Sendable {
             throw APIClientError.unauthorized
         default:
             Self.logger.error("export unlock failed status=\(http.statusCode) error=\(errorCode ?? "none", privacy: .public)")
-            throw APIClientError.serverError(status: http.statusCode, message: errorCode ?? "export_unlock_failed")
+            throw APIClientError.serverError(status: http.statusCode, message: NSLocalizedString("We couldn't prepare your export. Please try again.", comment: "Export unlock failed"))
         }
     }
 }

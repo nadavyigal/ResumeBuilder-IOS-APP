@@ -154,8 +154,12 @@ final class StoreKitManager {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let data = defaults.data(forKey: Self.pendingLockKey),
-           let lock = try? JSONDecoder().decode(PendingPurchaseLock.self, from: data) {
-            pendingLock = lock
+           let locks = try? JSONDecoder().decode([PendingPurchaseLock].self, from: data) {
+            pendingLocks = Dictionary(locks.map { ($0.userId, $0) }, uniquingKeysWith: { $1 })
+        } else if let data = defaults.data(forKey: Self.pendingLockKey),
+                  let lock = try? JSONDecoder().decode(PendingPurchaseLock.self, from: data) {
+            // Preserve a pending purchase saved by the earlier single-lock build.
+            pendingLocks[lock.userId] = lock
         }
     }
 
@@ -163,28 +167,38 @@ final class StoreKitManager {
     /// Counts grants delivered outside `purchase()` (Ask to Buy approvals,
     /// retries). A paywall waiting on an approval watches it to resume the export.
     private(set) var backgroundGrantCount = 0
-    private(set) var pendingLock: PendingPurchaseLock?
+    private(set) var pendingLocks: [UUID: PendingPurchaseLock] = [:]
 
     /// The product still waiting for this account, or nil (none, another
     /// account's, or expired).
     func pendingProductID(for userId: UUID?, now: Date = Date()) -> String? {
-        guard let lock = pendingLock, let userId, lock.userId == userId,
+        guard let userId, let lock = pendingLocks[userId],
               now.timeIntervalSince(lock.since) < Self.pendingLockLifetime else { return nil }
         return lock.productID
     }
 
     func setPendingLock(userId: UUID, productID: String, now: Date = Date()) {
         let lock = PendingPurchaseLock(userId: userId, productID: productID, since: now)
-        pendingLock = lock
-        if let data = try? JSONEncoder().encode(lock) { defaults.set(data, forKey: Self.pendingLockKey) }
+        pendingLocks[userId] = lock
+        savePendingLocks(now: now)
     }
 
     /// Clears the lock only for the same account and pack, so a grant for an
     /// older pack cannot unlock a pack still waiting (second-model P1 on #207).
     func clearPendingLock(for userId: UUID?, productID: String) {
-        guard let lock = pendingLock, lock.userId == userId, lock.productID == productID else { return }
-        pendingLock = nil
-        defaults.removeObject(forKey: Self.pendingLockKey)
+        guard let userId, pendingLocks[userId]?.productID == productID else { return }
+        pendingLocks[userId] = nil
+        savePendingLocks()
+    }
+
+    /// Persist all accounts' locks together; one account cannot erase another's.
+    private func savePendingLocks(now: Date = Date()) {
+        pendingLocks = pendingLocks.filter { now.timeIntervalSince($0.value.since) < Self.pendingLockLifetime }
+        if pendingLocks.isEmpty {
+            defaults.removeObject(forKey: Self.pendingLockKey)
+        } else if let data = try? JSONEncoder().encode(Array(pendingLocks.values)) {
+            defaults.set(data, forKey: Self.pendingLockKey)
+        }
     }
 
     /// Lock bookkeeping after a background delivery. A transaction left
@@ -212,6 +226,7 @@ final class StoreKitManager {
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
     @ObservationIgnored private var retryTask: Task<Void, Never>?
+    @ObservationIgnored private var unfinishedTask: Task<Void, Never>?
     private static let logger = Logger(subsystem: "ResumeBuilder", category: "StoreKit")
 
     func loadProducts() async throws {
@@ -262,18 +277,17 @@ final class StoreKitManager {
         }
     }
 
-    /// Delivers every unfinished transaction now, then every new one as it
-    /// arrives (spec 7.1 step 4). Safe to repeat: the server grants a
-    /// transaction ID once, ever.
+    /// Subscribe to updates immediately, independently of slow unfinished
+    /// verification. Replays and updates are idempotent on the server.
     func startObservingTransactions() {
         guard updatesTask == nil else { return }
         updatesTask = Task { [weak self] in
-            for await result in Transaction.unfinished {
-                await self?.deliverInBackground(result)
-            }
             for await result in Transaction.updates {
                 await self?.deliverInBackground(result)
             }
+        }
+        unfinishedTask = Task { [weak self] in
+            _ = await self?.deliverPendingPurchases()
         }
     }
 
@@ -308,6 +322,16 @@ final class StoreKitManager {
         }
     }
 
+    /// Verification can suspend while the user switches accounts. Publish only
+    /// to the account that was verified, after checking the current session.
+    @discardableResult
+    func publishBackgroundGrant(_ verification: PurchaseVerification, for userId: UUID) async -> Bool {
+        guard let current = await accountProvider?(false), current.userId == userId else { return false }
+        onCreditsGranted?(verification.balance)
+        backgroundGrantCount += 1
+        return true
+    }
+
     @discardableResult
     private func deliverInBackground(_ result: VerificationResult<Transaction>) async -> PurchaseVerification? {
         guard case .verified(let transaction) = result,
@@ -325,9 +349,8 @@ final class StoreKitManager {
             finish: { await transaction.finish() }
         )
         recordDelivery(decision, buyer: transaction.appAccountToken, productID: transaction.productID)
-        guard case .finish(let verification) = decision else { return nil }
-        onCreditsGranted?(verification.balance)
-        backgroundGrantCount += 1
+        guard case .finish(let verification) = decision, let account,
+              await publishBackgroundGrant(verification, for: account.userId) else { return nil }
         if verification.status == "granted" {
             // Ask to Buy approvals and retries land here, not in the sheet.
             AnalyticsService.shared.track(.purchaseCompleted(
