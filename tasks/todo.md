@@ -1,3 +1,14 @@
+# 2026-10-24: Payment Sandbox closeout
+
+- [x] #208/#209 integrated; #207 merged to main.
+- [x] Signed Release, full tests and current-head review completed (two tracked P2 follow-ups, no P1).
+- [x] Real Apple Sandbox five-pack +5, export -1, balance 4 verified in database.
+- [x] PostHog actual test records independently confirm purchase and export success.
+- [x] Latest recovery candidate installed on iPhone 13; launch requires phone unlock.
+- [x] New export charged exactly one credit; subsequent same-résumé repeat added no debit, balance 3.
+- [ ] Exact failing LinkedIn URL for separate English Fit check diagnosis.
+- [ ] P2 follow-ups #210/#211 and App Review preparation. Global activation remains off.
+
 # 2026-10-24: Recover unfinished purchases when reopening the paywall
 
 As a buyer whose launch-time verification failed offline, I want reopening Export to retry my existing purchase so I can receive my credits without restarting or buying again.

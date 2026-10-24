@@ -1184,3 +1184,12 @@ Verified current backend merge/migration truth, reproduced and fixed #207 review
 ## 2026-10-24 — Sandbox succeeds, recovery P2 addressed
 
 User confirmed the real Sandbox five-pack purchase opened the export flow. Production ledger independently confirms +5 apple_iap Sandbox / -1 export_unlock / balance 4. No duplicate grant. Corrected #207's new locked-paywall delivery-retry P2 with red-green model coverage; 582 XCTest cases (one skipped) and five Swift Testing cases pass. PostHog connector requires reauthentication; events are not claimed verified. Signed build/review and remaining physical checks pending at this record.
+
+## 2026-10-24 — Sandbox analytics verified; payment implementation merged
+
+Browser-authenticated PostHog verified the real build-35 purchase and export sequence, matching the +5/-1 Sandbox ledger and balance 4. #207 merged to main (7ff303d); #208/#209 included. Latest candidate installed; phone lock prevented automatic launch. Hebrew export reported successful; newly tailored second charge remains unverified. LinkedIn URL failure is separate; exact URL requested. Updated progress, todo and QA report. Public activation off; two P2 review findings tracked as #210/#211. Next: finish remaining physical checks and App Review preparation.
+
+## 2026-10-24 — Final physical charging checks pass
+
+Founder completed another export, then repeated that same résumé export. Read-only production ledger confirms the new unlock cost exactly one credit at 16:27:21Z, and the subsequent repeat added no debit: balance remains 3. Ledger has one Sandbox +5 purchase and two -1 export unlocks, without duplicate grants. Founder reports Hebrew export works and the transient LinkedIn Fit issue now works. Payment Phase 2 implementation and core Sandbox verification are complete; App Review/submission and public activation remain separate, and tracked P2 follow-ups #210/#211 remain open. No global payment activation occurred.
+
