@@ -546,3 +546,66 @@ final class PendingPurchaseLockTests: XCTestCase {
         PurchaseVerification(status: "granted", creditsGranted: 5, balance: 5)
     }
 }
+
+
+@MainActor
+final class PendingPaywallRecoveryTests: XCTestCase {
+    private let buyer = UUID(uuidString: "11111111-1111-4111-8111-111111111111")!
+
+    func testOpeningALockedPaywallDeliversBeforeLoadingPricesAndResumesTheExport() async {
+        let suite = "PendingPaywallRecovery-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = StoreKitManager(defaults: defaults)
+        store.accountProvider = { _ in PurchaseAccount(userId: self.buyer, token: "test") }
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        var retries = 0
+        var priceLoads = 0
+        let model = ExportPaywallModel(optimizationId: "opt", store: store, retryPendingPurchases: {
+            retries += 1
+            let grant = PurchaseVerification(status: "granted", creditsGranted: 5, balance: 5)
+            store.recordDelivery(.finish(grant), buyer: self.buyer, productID: "resumely.exports.5")
+            _ = await store.publishBackgroundGrant(grant, for: self.buyer)
+        }, loadStoreProducts: { priceLoads += 1 })
+
+        await model.load(for: buyer)
+
+        XCTAssertEqual(retries, 1)
+        XCTAssertEqual(priceLoads, 0, "delivered credits resume the export without another StoreKit price request")
+        XCTAssertNil(store.pendingProductID(for: buyer))
+        XCTAssertTrue(model.approvalGranted)
+        XCTAssertEqual(model.phase, .awaitingApproval(productID: "resumely.exports.5"))
+    }
+
+    func testFailedRecoveryKeepsTheLockAndReopeningRetriesAgain() async {
+        let suite = "PendingPaywallRecovery-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = StoreKitManager(defaults: defaults)
+        store.setPendingLock(userId: buyer, productID: "resumely.exports.5")
+        var retries = 0
+        let model = ExportPaywallModel(optimizationId: "opt", store: store,
+            retryPendingPurchases: { retries += 1 }, loadStoreProducts: {})
+        await model.load(for: buyer)
+        await model.load(for: buyer)
+        XCTAssertEqual(retries, 2)
+        XCTAssertEqual(model.phase, .awaitingApproval(productID: "resumely.exports.5"))
+        XCTAssertEqual(store.pendingProductID(for: buyer), "resumely.exports.5")
+        XCTAssertFalse(model.approvalGranted)
+    }
+
+    func testNormalPaywallLoadsPricesWithoutRetryingUnrelatedPurchases() async {
+        let suite = "PendingPaywallRecovery-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = StoreKitManager(defaults: defaults)
+        var retries = 0
+        var priceLoads = 0
+        let model = ExportPaywallModel(optimizationId: "opt", store: store,
+            retryPendingPurchases: { retries += 1 }, loadStoreProducts: { priceLoads += 1 })
+        await model.load(for: buyer)
+        XCTAssertEqual(retries, 0)
+        XCTAssertEqual(priceLoads, 1)
+        XCTAssertEqual(model.phase, .ready)
+    }
+}

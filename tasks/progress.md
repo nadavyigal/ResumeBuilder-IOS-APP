@@ -1,3 +1,9 @@
+# 2026-10-24: Real Sandbox grant verified; reopen recovery follow-up
+
+The founder confirmed the PDF share flow worked on the iPhone 13 after signing in with a newly created Apple Sandbox tester. Read-only production evidence: exactly one `iap_purchase` from `apple_iap`, product `resumely.exports.5`, environment `Sandbox`, delta +5; one `export_unlock` delta -1; balance 4. The initial Apple-looking verification failure produced no `/iap/verify` request from the phone in the inspected log window; Sandbox sign-in succeeded before the successful retry. No production-money purchase occurred. Public switch remains off; only the selected founder account is allowlisted.
+
+#208 is merged into #207 at d17b7de. Its current-head review found one new P2: a lock written after failed launch delivery prevented the paywall from reaching its pre-sale retry. This follow-up retries unfinished delivery on loading a locked paywall, while retaining the lock until delivery succeeds. Two of three deterministic regression cases fail before the behavior change. Full suite now passes 582 XCTest cases (one skipped) plus five Swift Testing cases. A first full run inherited `he` from the earlier smoke and failed 27 English-copy assertions; reset the actual app-container preference to `en`, then the full run passes. Device Release/review pending at this entry. Physical repeat-export/new-HE-export checks and PostHog reauthentication remain.
+
 # 2026-10-24: Phase 2 closure work, review follow-up on #207
 
 Status: implementation fixes verified locally; real Apple Sandbox purchase still pending. Follow-up branch `codex/payments-phase2-2026-10-24` starts at #207 head 7a9367a in a separate checkout because `ios-p3b-s6-paywall` has existing uncommitted pending-lock work. That work is preserved. The same multi-account finding is handled here with legacy persisted-lock compatibility added.
