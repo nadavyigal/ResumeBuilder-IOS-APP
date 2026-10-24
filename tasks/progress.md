@@ -1,3 +1,13 @@
+# 2026-10-24: Phase 2 closure work, review follow-up on #207
+
+Status: implementation fixes verified locally; real Apple Sandbox purchase still pending. Follow-up branch `codex/payments-phase2-2026-10-24` starts at #207 head 7a9367a in a separate checkout because `ios-p3b-s6-paywall` has existing uncommitted pending-lock work. That work is preserved. The same multi-account finding is handled here with legacy persisted-lock compatibility added.
+
+Changes: per-account saved purchase locks; current-account check before publishing a background grant; immediate independent Transaction.updates listener before unfinished replay; localized English/Hebrew export error. The terminal refund lock path was already fixed by #207's recordDelivery and is retained (regression passes).
+
+Validation: old source fails the new multi-account and raw-error tests (three assertions). Fixed: 20 targeted tests pass; full suite 579 XCTest cases, one skipped, no failures, plus five Swift Testing cases. Unsigned and signed device Release builds pass with candidate build settings 1.5.6 (35), production API host verified; EN/HE simulator paywall smoke checked. Hosted review pending. Device install attempt failed with a disconnected CoreDevice transport; no device pass claimed. No real StoreKit transaction simulated by these tests.
+
+Read-only deployment evidence: web #195/#196/#197/#198 merged; production schema_migrations includes export_credits, harden_security_definer_grants, apple_iap_verification; unlock_export and grant_apple_purchase have postgres/service_role EXECUTE only. Production credit_transactions has no apple_iap rows. This supersedes older migration-not-applied notes for the current production state, without asserting who applied them.
+
 # 2026-10-22: P3b S6, StoreKit 2 export paywall (server-decided)
 
 **Status:** branch `feat/p3b-s6-storekit-paywall`, PR open, not merged. Nothing changes for users while the web switch `EXPORT_CREDITS_ENABLED` is off: the server answers every unlock `ungated`, so the sheet never opens.

@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "We couldn't prepare your export. Please try again." : {
+      "comment" : "Export unlock failed",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't prepare your export. Please try again."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להכין את הקובץ לייצוא. נסו שוב."
+          }
+        }
+      }
+    },
     "You don't have enough credits for this." : {
       "localizations" : {
         "he" : {
