@@ -206,6 +206,8 @@ final class AppState {
         }
         await reconcileLatestOptimization()
         hasBootstrappedSession = true
+        // A purchase paid but not granted (crash, offline) is re-sent now.
+        startStoreKitObservation()
 
         // Deliberately after `hasBootstrappedSession`. Anonymous sign-in is a
         // network round trip, and `RootView` shows nothing but a spinner until
@@ -532,6 +534,11 @@ final class AppState {
         await convertAnonymousSessionIfNeeded()
         await refreshCredits()
         await reconcileLatestOptimization()
+        // A purchase left unfinished while signed out (or under another account)
+        // is delivered as soon as its own account signs in.
+        if session.isAccountSession {
+            Task { await StoreKitManager.shared.retryUnfinishedTransactions() }
+        }
     }
 
     func reconcileLatestOptimization() async {
@@ -703,7 +710,8 @@ final class AppState {
     }
 
     func refreshCredits() async {
-        guard BackendConfig.isMonetizationEnabled else { return }
+        // Export credits are read whatever `isMonetizationEnabled` says: the server
+        // decides the gate (StoreKit spec 11), and the paywall reports the balance.
         guard let token = session?.accessToken else { return }
 
         do {

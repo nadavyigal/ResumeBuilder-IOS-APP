@@ -230,6 +230,16 @@ enum AnalyticsEvent: Sendable {
     case aiConsentShown(source: String)
     case aiConsentAccepted(source: String)
     case aiConsentDeclined(source: String)
+    /// Export credits paywall (StoreKit spec 10.3). Shown only after the server
+    /// answers 402 `export_credits_required`. Prices come from StoreKit, never typed.
+    case paywallShown(optimizationId: String, balance: Int)
+    case paywallDismissed(optimizationId: String, balance: Int)
+    case purchaseStarted(productId: String)
+    case purchaseCancelled(productId: String)
+    case purchasePending(productId: String)
+    /// Fired only after the server granted the credits, not when StoreKit returned.
+    case purchaseCompleted(productId: String, price: String, currency: String, creditsGranted: Int)
+    case purchaseFailed(productId: String, reason: String)
 
     nonisolated var name: String {
         switch self {
@@ -295,6 +305,13 @@ enum AnalyticsEvent: Sendable {
         case .aiConsentShown: return "ai_consent_shown"
         case .aiConsentAccepted: return "ai_consent_accepted"
         case .aiConsentDeclined: return "ai_consent_declined"
+        case .paywallShown: return "paywall_shown"
+        case .paywallDismissed: return "paywall_dismissed"
+        case .purchaseStarted: return "purchase_started"
+        case .purchaseCancelled: return "purchase_cancelled"
+        case .purchasePending: return "purchase_pending"
+        case .purchaseCompleted: return "purchase_completed"
+        case .purchaseFailed: return "purchase_failed"
         }
     }
 
@@ -375,6 +392,22 @@ enum AnalyticsEvent: Sendable {
             return ["optimization_id": optimizationId, "outcome": outcome]
         case .exportFailed(let optimizationId, let errorCode):
             return ["optimization_id": optimizationId, "error_code": errorCode]
+        case .paywallShown(let optimizationId, let balance),
+             .paywallDismissed(let optimizationId, let balance):
+            return ["optimization_id": optimizationId, "balance": "\(balance)"]
+        case .purchaseStarted(let productId),
+             .purchaseCancelled(let productId),
+             .purchasePending(let productId):
+            return ["product_id": productId]
+        case .purchaseCompleted(let productId, let price, let currency, let creditsGranted):
+            return [
+                "product_id": productId,
+                "price": price,
+                "currency": currency,
+                "credits_granted": "\(creditsGranted)",
+            ]
+        case .purchaseFailed(let productId, let reason):
+            return ["product_id": productId, "reason": reason]
         case .appStoreReviewRequested(let source):
             return ["source": source]
         case .saveFailed(let optimizationId, let reason, let errorCode):

@@ -1176,3 +1176,11 @@ unauthenticated probe. Every new test was confirmed failing before its fix.
 
 **Next action:** retry an optimization in the installed app. The server fix
 means the current build should already work, with no App Store release needed.
+
+## 2026-10-24 — Payments Phase 2 closure
+
+Verified current backend merge/migration truth, reproduced and fixed #207 review defects in an isolated checkout, preserved existing dirty worktree. Targeted 20 and full 579 XCTest plus five Swift Testing cases pass. Created approved App Store consumables as draft metadata; detailed readiness is recorded in the handoff report once configured. Real Sandbox purchase remains a physical-device gate.
+
+## 2026-10-24 — Sandbox succeeds, recovery P2 addressed
+
+User confirmed the real Sandbox five-pack purchase opened the export flow. Production ledger independently confirms +5 apple_iap Sandbox / -1 export_unlock / balance 4. No duplicate grant. Corrected #207's new locked-paywall delivery-retry P2 with red-green model coverage; 582 XCTest cases (one skipped) and five Swift Testing cases pass. PostHog connector requires reauthentication; events are not claimed verified. Signed build/review and remaining physical checks pending at this record.
