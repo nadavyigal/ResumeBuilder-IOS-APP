@@ -2,14 +2,14 @@
 
 ## Current result
 
-Implementation and production backend prerequisites are ready for the real Sandbox test. Phase 2 is **not complete** until an Apple-signed Sandbox purchase grants credits and resumes the intended export on the physical phone. No public billing activation or App Review submission was performed.
+The real Sandbox five-pack purchase and automatic export passed on the physical iPhone 13. Production ledger confirms one +5 `apple_iap` grant for `resumely.exports.5`, environment `Sandbox`, followed by one -1 `export_unlock`; balance 4. No public billing activation or App Review submission was performed. Repeat export, a new HE export, the recovery follow-up review, and analytics verification remain explicit checks.
 
 ## Verified backend
 
 - Web PRs #195, #196, #197 and #198 are merged.
 - Production Supabase project `brtdyamysfmctrhuankn` lists `20261021120000_export_credits`, `20261022120000_harden_security_definer_grants`, and `20261023120000_apple_iap_verification` after the baseline/purge migrations.
 - `unlock_export` and `grant_apple_purchase` EXECUTE ACLs contain only postgres and service_role.
-- Read-only aggregate of `credit_transactions where source = 'apple_iap'` returns no rows. No real purchase has been verified.
+- Before testing the aggregate had no Apple purchase rows. After the device test it has one Sandbox five-pack grant, independently verified read-only.
 - The production unlock route exists (GET is 405, as expected for a POST route); authenticated configuration still needs verification.
 - Vercel connector returns 403 for team access; authenticated browser fallback used. Three Apple verification config values and the founder-selected test-account allowlist were saved for Production only. EXPORT_CREDITS_ENABLED remains unset. Redeployed existing main cd4ab91; deployment 77PjJSPyGV1nAaoMYhRrYrfKmETa is Ready and assigned to www.resumelybuilderai.com. After deployment, unauthenticated /iap/verify returns 401 (configuration available), and a forged notification returns 400 (no database mutation).
 
@@ -33,7 +33,7 @@ The original checkout has uncommitted multi-account lock work, preserved untouch
 - Unsigned arm64 device Release build: pass.
 - Signed arm64 device Release build: pass, candidate overrides 1.5.6 (35); generated API_BASE_URL is `https://www.resumelybuilderai.com`.
 - EN/HE simulator smoke: full sheet, all three rows and close control visible, RTL correct. Prices in this DEBUG harness are fixtures, not evidence of StoreKit product loading.
-- Initial iPhone 13 installation attempts failed while the cached pairing had no connected tunnel. Once wired, installation succeeded using its hardware UDID; app launch succeeded. Candidate 1.5.6 (35) is installed. Physical flow and purchase remain pending.
+- Initial iPhone 13 installation attempts failed while the cached pairing had no connected tunnel. Once wired, installation succeeded using its hardware UDID; app launch succeeded. Candidate 1.5.6 (35) is installed. The founder subsequently confirmed the Sandbox purchase/export flow; its +5/-1 ledger effects are verified above.
 
 ## App Store Connect configuration
 
@@ -60,3 +60,9 @@ Production and Sandbox notification URLs are both saved as `https://www.resumely
 5. Cancel/dismiss once; buy the five-export pack in Apple Sandbox; verify automatic export, same-optimization free re-download, a new export spending one credit, and HE layout.
 6. Read only: confirm exactly one apple_iap grant, Sandbox environment, product resumely.exports.5, delta five, correct balance/unlock rows and analytics. Save transaction identifiers privately, not in this public report.
 7. Capture real review screenshots, attach the products to the decided release and follow the existing submission/activation gates. No real-money sale before October 31.
+
+## Current-head recovery follow-up
+
+Combined #207 at d17b7de received one new P2: reopening a lock created by failed launch delivery did not retry its transaction. The model now retries before prices load, keeps the lock after a failed retry, and lets an actual grant resume the original export. Three deterministic model tests: two fail before the fix, all pass afterward; ordinary paywalls do not retry unrelated purchases. Full suite is 582 XCTest cases (one skipped) and five Swift Testing cases, all passing after resetting the smoke language preference to English. Signed device build and hosted review pending at this entry.
+
+PostHog connector returns UNAUTHORIZED / reauthentication required. Purchase analytics are not claimed verified from the ledger. Apple Paid Apps Agreement, bank account and U.S. tax forms show Active in App Store Connect on this date; Small Business Program approval remains unverified. No financial-account settings were changed.

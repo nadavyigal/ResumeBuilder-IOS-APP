@@ -57,11 +57,20 @@ final class ExportPaywallModel {
     private(set) var offers: [PackOffer] = []
     private let store: StoreKitManager
     private let isFixture: Bool
+    private let retryPendingPurchases: @MainActor () async -> Void
+    private let loadStoreProducts: @MainActor () async throws -> Void
 
-    init(optimizationId: String, store: StoreKitManager = .shared) {
+    init(
+        optimizationId: String,
+        store: StoreKitManager = .shared,
+        retryPendingPurchases: (@MainActor () async -> Void)? = nil,
+        loadStoreProducts: (@MainActor () async throws -> Void)? = nil
+    ) {
         self.optimizationId = optimizationId
         self.store = store
         self.isFixture = false
+        self.retryPendingPurchases = retryPendingPurchases ?? { _ = await store.deliverPendingPurchases() }
+        self.loadStoreProducts = loadStoreProducts ?? { try await store.loadProducts() }
     }
 
     /// The buyer, set by `load(for:)`; the waiting lock is per account.
@@ -85,6 +94,8 @@ final class ExportPaywallModel {
         self.optimizationId = optimizationId
         self.store = .shared
         self.isFixture = true
+        self.retryPendingPurchases = {}
+        self.loadStoreProducts = {}
         self.offers = fixtureOffers
         self.phase = .ready
     }
@@ -93,12 +104,17 @@ final class ExportPaywallModel {
     func load(for userId: UUID?) async {
         guard !isFixture else { return }
         self.userId = userId
-        if applyPendingLock(for: userId) == false {
+        if applyPendingLock(for: userId) {
+            // Launch delivery may have failed offline. Retry the existing
+            // transaction on every reopen, keeping the lock against repurchase.
+            await retryPendingPurchases()
+            if approvalGranted { return }
+        } else {
             phase = .loading
             message = nil
         }
         do {
-            try await store.loadProducts()
+            try await loadStoreProducts()
             offers = store.products.compactMap { product in
                 ExportCreditProducts.credits(for: product.id).map {
                     PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)

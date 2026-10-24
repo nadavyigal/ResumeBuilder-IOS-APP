@@ -1,3 +1,16 @@
+# 2026-10-24: Recover unfinished purchases when reopening the paywall
+
+As a buyer whose launch-time verification failed offline, I want reopening Export to retry my existing purchase so I can receive my credits without restarting or buying again.
+
+- [x] Reproduce #207 review P2 at d17b7de with three deterministic model tests (two fail; ordinary unlocked load passes).
+- [x] Keep the purchase lock while retrying unfinished delivery on every paywall load; resume export if the grant succeeds, otherwise keep all purchases disabled.
+- [x] Inject delivery/product loaders at the existing model boundary so tests use no live StoreKit products.
+- [x] Full suite: 582 XCTest cases, one skipped, zero failures; five Swift Testing cases pass after resetting the Hebrew smoke preference to English.
+- [ ] Signed device Release build and current-head hosted review.
+- [ ] Push stacked follow-up and integrate into #207 after verification.
+
+Source scope: ExportPaywallSheet.swift and ExportCreditsTests.swift; task/QA records only beyond those files. No new package, migration or activation.
+
 # 2026-10-24: Complete payments Phase 2 (review fixes and Sandbox readiness)
 
 Founder asked to finish iOS payments and real Sandbox verification. Device: iPhone 13; founder test account selected in chat.
