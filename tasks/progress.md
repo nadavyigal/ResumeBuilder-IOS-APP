@@ -1,3 +1,9 @@
+# 2026-10-25: Score floor stays on its own job
+
+Status: draft PR open, not merged. Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
+Change: the free-check floor no longer carries a higher score from a different job onto the next one. Re-checking the same job, and later stages of that job, still hold the higher number.
+Last Validation: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.

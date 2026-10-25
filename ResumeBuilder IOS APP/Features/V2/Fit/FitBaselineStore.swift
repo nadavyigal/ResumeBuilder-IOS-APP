@@ -13,28 +13,53 @@ import Foundation
 /// boundary so `FitJourney` can floor every later stage to it.
 ///
 /// Keyed by resume: a baseline from one resume must never floor another's
-/// journey. Session-scoped and in-memory on purpose — this is a display
+/// journey, and a different job on the same resume replaces the floor instead
+/// of keeping the higher one. The same job still keeps the higher score.
+/// Session-scoped and in-memory on purpose — this is a display
 /// guarantee for the run the user is in, not a durable record. Optimizations
 /// are still stored with their real measured scores.
 @MainActor
 final class FitBaselineStore {
     static let shared = FitBaselineStore()
 
-    private var scoresByKey: [String: Int] = [:]
+    private struct Baseline {
+        var score: Int
+        var jobKey: String?
+    }
+
+    private var scoresByKey: [String: Baseline] = [:]
 
     init() {}
 
+    /// A job identity for the floor. A URL and a pasted description of a
+    /// different posting are different jobs, so neither one inherits the other's score.
+    static func jobKey(url: String?, description: String?) -> String? {
+        if let url, !url.isEmpty { return "url:\(url)" }
+        if let description, !description.isEmpty { return "text:\(description)" }
+        return nil
+    }
+
     /// Record the verdict score from a free match check, keyed by resume.
-    func record(score: Int, resumeID: String?) {
-        record(score: score, key: resumeID)
+    func record(score: Int, resumeID: String?, jobKey: String? = nil) {
+        record(score: score, key: resumeID, jobKey: jobKey)
     }
 
     /// Record a baseline against any identity the journey is keyed by.
-    func record(score: Int, key: String?) {
+    ///
+    /// The same job keeps the highest score the user has already been shown.
+    /// A different job replaces it, so one posting cannot floor another.
+    func record(score: Int, key: String?, jobKey: String? = nil) {
         guard let key, !key.isEmpty else { return }
-        // Keep the highest the user has been shown under this key. Running the
-        // check twice against different jobs must not lower the floor.
-        scoresByKey[key] = max(scoresByKey[key] ?? 0, score)
+        guard let existing = scoresByKey[key] else {
+            scoresByKey[key] = Baseline(score: score, jobKey: jobKey)
+            return
+        }
+        let differentJob = existing.jobKey != nil && jobKey != nil && existing.jobKey != jobKey
+        if differentJob {
+            scoresByKey[key] = Baseline(score: score, jobKey: jobKey)
+        } else {
+            scoresByKey[key] = Baseline(score: max(existing.score, score), jobKey: existing.jobKey ?? jobKey)
+        }
     }
 
     /// Carry an existing baseline onto a second identity for the same journey.
@@ -42,10 +67,11 @@ final class FitBaselineStore {
     /// The free check knows the resume id; the screens that later show the
     /// score know the optimization id, and nothing joins the two. Without this
     /// the floor was recorded and then never found — present in the code and
-    /// inert in the shipping path.
+    /// inert in the shipping path. The job identity travels with the score, so
+    /// a later posting cannot overwrite an optimization that already has one.
     func carryForward(from oldKey: String?, to newKey: String?) {
-        guard let score = baseline(for: oldKey) else { return }
-        record(score: score, key: newKey)
+        guard let oldKey, let existing = scoresByKey[oldKey] else { return }
+        record(score: existing.score, key: newKey, jobKey: existing.jobKey)
     }
 
     /// The floor for a resume's journey, if a free check produced one.
@@ -56,7 +82,7 @@ final class FitBaselineStore {
     /// The floor recorded under any journey identity.
     func baseline(for key: String?) -> Int? {
         guard let key, !key.isEmpty else { return nil }
-        return scoresByKey[key]
+        return scoresByKey[key]?.score
     }
 
     /// Drop everything. Call on sign-out so one account's floor cannot follow
