@@ -3,8 +3,8 @@
 Founder objective: prepare and submit the payment release to App Review today.
 
 - [x] Bump Debug/Release metadata to 1.5.6 (35), no runtime change.
-- [ ] Validate project, script tests, full simulator suite and signed Release archive.
-- [ ] Inspect archived version, production API configuration and entitlements.
+- [x] Validate project, script tests, full simulator suite and signed Release archive.
+- [x] Inspect archived version, production API configuration and distribution entitlements.
 - [ ] Reconcile screenshot assets, consumable attachments and review notes against live ASC.
 - [ ] Confirm candidate device smoke and current-head review before distribution.
 - [ ] Submit with all three consumables after readiness passes.

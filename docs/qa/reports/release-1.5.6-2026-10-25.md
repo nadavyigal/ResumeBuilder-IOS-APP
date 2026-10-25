@@ -18,15 +18,20 @@ Status: release preparation, not submitted. Runtime base is merged main `7ff303d
 - Distribution export started with automatic App Store signing, team 8VC4R5M425 and manageAppVersionAndBuildNumber=false. No build-number rewriting or upload was requested by this export command.
 - Chrome native path dialog is not accepting automated navigation. Browser extension file upload is available but requires the user-controlled Allow access to file URLs setting; no extension permission was changed by the agent.
 
+- App Store distribution export PASSED: `/tmp/Resumely-1.5.6-35-export/ResumeBuilder IOS APP.ipa`. Extracted package version/build, bundle and production API match. Deep/strict signature verification passes; `get-task-allow=false`, Sign in with Apple entitlement and `beta-reports-active=true` are present.
+- Actual physical iPhone 13 build-35 paywall captured at 07:34 Jerusalem after the founder reached it on a new optimization at zero credits. All three localized StoreKit prices are visible: ILS 12.90 / 39.90 / 59.90. Screenshot staged outside git at `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`; no purchase performed today.
+- Build upload command started using the validated archive and destination=upload. It is pending in codesign at this entry; no successful upload or ASC processing is claimed.
+- Browser upload continues to reject local-file access after the founder reported enabling it and the page was refreshed. Attempt to inspect chrome://extensions was rejected by browser URL policy; no alternate route to those settings was attempted. Native screenshot selection is handed to the founder.
+
 ## Existing device evidence
 
 Payment source from #208/#209 is in main via #207. #212 at `71f6f9f` records the final real iPhone five-pack Sandbox purchase (+5), automatic export (-1), new export (-1), free repeat and balance 3. This is prior dated evidence, not a repeated device test today. Its hosted documentation review is pending. No production-money sale is inferred. P2 issues #210/#211 remain accepted follow-ups, not marked fixed.
 
 ## Blocking before submission
 
-- Complete App Store distribution export/signing. The Release archive succeeded at `/tmp/Resumely-1.5.6-35.xcarchive`; metadata is 1.5.6 (35), expected bundle, production API, non-exempt encryption false. Deep/strict codesign verification passes and internal-file scan passes. Archive uses development signing (`get-task-allow=true`); export must be rechecked for distribution entitlements (`false`) before upload. Export is waiting inside codesign.
+- Finish the pending upload and verify processing in ASC. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
 - Current-head release PR review and integration.
-- Capture the real candidate paywall after real StoreKit product loading; attach to all three consumables and associate all three with 1.5.6. Fixture screenshots are not real purchase evidence.
+- Attach the captured real candidate paywall to all three consumables and associate all three with 1.5.6. The screenshot is captured, not uploaded yet. Fixture screenshots were not used.
 - Set up the existing review demo account to reach the paywall, preserving the public-off switch; verify its allowlist and zero-credit state. The demo balance reset is approved and verified; existing unlocked resumes remain free.
 - Validate/export and upload build 35, wait for processing, select it for 1.5.6, check encryption/privacy and all localizations, then submit with products.
 
