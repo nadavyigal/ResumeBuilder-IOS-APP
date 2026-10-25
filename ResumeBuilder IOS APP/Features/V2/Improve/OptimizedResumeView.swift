@@ -1148,8 +1148,13 @@ struct OptimizedResumeView: View {
         isDownloadingPDF = true
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
-        let templateId = designVM?.selectedTemplateId
-        let customization = designVM?.customization
+        if designVM == nil {
+            designVM = DesignViewModel(optimizationId: optimizationId)
+        }
+        // The saved design loads in the background. Read it after that load, not before.
+        let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken)
+        let templateId = settings?.templateId
+        let customization = settings?.customization
         let sections = viewModel.sections
         let contact = viewModel.contact
         do {

@@ -3,7 +3,7 @@
 Status: draft PR open, not merged. Branch `fix/export-styled-pdf-when-preview-not-loaded` from main e7a5e36.
 Change: the Optimized tab export now fetches the styled design HTML and renders the PDF on the phone when the preview hasn't loaded; the server download is the last fallback. `export_success` carries `pdf_path` (`styled_preview` / `styled_fetched` / `server`). Preview and export share `StyledResumeHTML` for the request and the Hebrew direction rule.
 Evidence for the change: all 21 server `export_success` events in 120 days used the plain jsPDF renderer.
-Last Validation: 591 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
+Last Validation: 593 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator. Export waits for the saved design to load before choosing a template.
 Next Recommended Story: route History, Track, Submit Package and preview-screen exports through the same styled path, keeping the credit gate.
 
 # 2026-10-25: Prepare release 1.5.6 (35)

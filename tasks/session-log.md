@@ -3,7 +3,8 @@
 - Worktree /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-export-styled-pdf, branch fix/export-styled-pdf-when-preview-not-loaded, from main e7a5e36.
 - Added `StyledResumeHTML` (shared render request and direction rule); export fetches styled HTML when the preview isn't loaded; `pdf_path` on `export_success`.
 - Ignored local Secrets.xcconfig copied from the main clone for the build; not committed.
-- 46 targeted tests and the full suite (591 XCTest, one skipped; five Swift Testing) pass on the iPhone 17 simulator.
+- 46 targeted tests and the full suite (593 XCTest, one skipped; five Swift Testing) pass on the iPhone 17 simulator.
+- Codex review found one defect: an early Export tap captured the template before the saved design loaded. Export now waits for that load. Regression added.
 - Next: draft PR review; follow-up story for the other export entry points.
 
 # 2026-10-21: 1.5.4 release readiness continuation

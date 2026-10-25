@@ -24,6 +24,9 @@ final class DesignViewModel {
     private var templatesByCategory: [String: [DesignTemplate]] = [:]
     private var loadingCategories: Set<String> = []
     private var didLoadInitialAssignment = false
+    /// The assignment load already running, so a second caller waits for it
+    /// instead of starting another one or reading the state too early.
+    private var assignmentLoad: Task<Void, Never>?
 
     init(
         optimizationId: String?,
@@ -52,6 +55,7 @@ final class DesignViewModel {
         didApplyCustomization = false
         styleHistory = []
         didLoadInitialAssignment = false
+        assignmentLoad = nil
     }
 
     func loadTemplates(token: String?) async {
@@ -94,8 +98,28 @@ final class DesignViewModel {
 
     func loadCurrentAssignment(token: String?) async {
         guard let token, let optId = optimizationId else { return }
-        await loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
-        didLoadInitialAssignment = true
+        // Join only the first load. A later call is a refresh and has to hit the server again,
+        // otherwise a preview refresh would keep the previous design.
+        if !didLoadInitialAssignment, let assignmentLoad {
+            await assignmentLoad.value
+            if didLoadInitialAssignment { return }
+        }
+        let load = Task { @MainActor in
+            await self.loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
+            self.didLoadInitialAssignment = true
+        }
+        assignmentLoad = load
+        await load.value
+    }
+
+    /// The template and customization an export should use. Waits out the saved-design
+    /// load when it is still running, and does not refetch once that load has finished,
+    /// so a template the user picked afterwards is kept.
+    func exportDesignSettings(token: String?) async -> (templateId: String?, customization: DesignCustomization) {
+        if !didLoadInitialAssignment {
+            await loadCurrentAssignment(token: token)
+        }
+        return (selectedTemplateId, customization)
     }
 
     func selectCategory(_ category: String) {

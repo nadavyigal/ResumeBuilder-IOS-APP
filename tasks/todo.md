@@ -12,6 +12,8 @@ Evidence: PostHog, last 120 days. All 21 `export_success` events from `/api/down
 
 Review: 46 targeted tests pass (two render a real on-device PDF from fetched HTML). Full suite: 591 XCTest cases (one skipped, zero failures) plus five Swift Testing cases, iPhone 17 simulator. Not covered by an automated test: the fetch-fails-then-server path, because `/api/download` goes through the app's shared API client.
 
+Codex review, one finding: an early Export tap read the template before the saved design finished loading, so the PDF could be the default template. Export now waits for that load. A regression suspends the load, starts the export read, then returns a non-default template and customization.
+
 Source scope: new `Core/Export/StyledResumeHTML.swift`, `ResumeExportAction.swift`, `OptimizedResumeView.swift` (pass the loader), `ResumePreviewWebView.swift` (use the shared helper), `AnalyticsService.swift`, tests. Not in scope: History, Track, Submit Package and `ResumePreviewExportView` export paths (follow-up story; some skip the credit gate today), and the backend jsPDF fallback.
 
 # 2026-10-25: Resumely 1.5.6 (35) release preparation
