@@ -1,6 +1,6 @@
 # Resumely 1.5.6 (35), October 25, 2026
 
-Status: build uploaded, processed and selected; final submission not performed yet. Release branch: `release/1.5.6-35`, PR #213. Runtime base: merged main `7ff303de60bf94924dae7f3c21843d358168a63b`. Only Debug/Release version/build metadata changes; runtime code is unchanged.
+Status: submitted to App Review on October 25, 2026; Apple confirmed **4 Items Submitted** (version 1.5.6 build 35 and all three consumables). Release branch: `release/1.5.6-35`, PR #213. Runtime base: merged main `7ff303de60bf94924dae7f3c21843d358168a63b`. Only Debug/Release version/build metadata changes; runtime code is unchanged.
 
 ## Binary and tests
 
@@ -54,3 +54,13 @@ The prior published ASC label declared Name, Email Address, User ID and Other Us
 Public billing remains off. No sale before October 31 and no public activation performed. This release preparation does not change pricing, server configuration, migrations or account credentials.
 
 The extension upload bridge rejects local-file access; its Chrome settings URL was blocked by browser policy and not bypassed. The founder restored the ordinary native Open picker, which allowed the agent to select the staged images through supported UI controls. No extension/security settings were changed by the agent.
+
+## Final submission completion, October 25
+
+- Live Chrome verified the 6.5-inch screenshot order as 01 Tailor, 02 Blockers, 03 AI edits, 04 Templates, 05 Expert.
+- Published User ID Analytics alongside App Functionality, linked to identity, no tracking.
+- Published Other Diagnostic Data for Analytics and App Functionality, linked to identity, no tracking.
+- Added app version 1.5.6 to the existing three-consumable draft. Apple enabled Submit for Review and returned **4 Items Submitted**.
+- Submission: https://appstoreconnect.apple.com/apps/6776752349/distribution/reviewsubmissions/details/ce906e98-b73a-4007-bc08-abaf6a276318
+- Confirmation screenshot saved in the Codex task outputs. Public billing remains off; no backend configuration, pricing, credentials, binary, or runtime code changed in this completion session.
+- Earlier pending-privacy/screenshot/submission notes above are historical and superseded by this completion entry. PR integration/current-head review is separate from Apple's accepted submission and was not performed in this session.

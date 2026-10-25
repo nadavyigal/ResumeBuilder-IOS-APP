@@ -1,3 +1,7 @@
+# 2026-10-25: App Store submission finished
+
+Completed the two remaining privacy disclosures, verified 6.5-inch screenshot order, and submitted app version 1.5.6 (35) with the three export consumables. Apple confirmed 4 Items Submitted. Public billing remains off. Updated progress and release report; no code changes or repeat tests. Next: await Apple review; billing activation requires separate authorization.
+
 # 2026-10-21: 1.5.4 release readiness continuation
 
 - Reused release/1.5.4-33 in /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-release-1-5-4; original head bed4245 and main 3e36474 unchanged when checked.
