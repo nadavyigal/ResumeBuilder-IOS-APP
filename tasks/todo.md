@@ -1,3 +1,18 @@
+# 2026-10-25: Resumely 1.5.6 (35) release preparation
+
+Founder objective: prepare and submit the payment release to App Review today.
+
+- [x] Bump Debug/Release metadata to 1.5.6 (35), no runtime change.
+- [ ] Validate project, script tests, full simulator suite and signed Release archive.
+- [ ] Inspect archived version, production API configuration and entitlements.
+- [ ] Reconcile screenshot assets, consumable attachments and review notes against live ASC.
+- [ ] Confirm candidate device smoke and current-head review before distribution.
+- [ ] Submit with all three consumables after readiness passes.
+
+Existing payment implementation is merged (#207/#208/#209). Core Sandbox checks are recorded in #212; its current-head documentation review remains pending. P2 issues #210/#211 remain follow-ups. Public billing activation stays off and requires separate authorization on/after October 31.
+
+Changes planned: project.pbxproj version/build; this checklist; tasks/progress.md and docs/qa/reports/release-1.5.6-2026-10-25.md for exact validation and remaining actions. Verification: project plist, script suite, full simulator tests, signed archive and metadata inspection. Main risk: missing ASC/device evidence must remain explicit, never inferred from automated checks.
+
 # 2026-10-24: Recover unfinished purchases when reopening the paywall
 
 As a buyer whose launch-time verification failed offline, I want reopening Export to retry my existing purchase so I can receive my credits without restarting or buying again.

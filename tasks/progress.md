@@ -1,3 +1,14 @@
+# 2026-10-25: Prepare release 1.5.6 (35)
+
+Status: release preparation, not submitted.
+Current Phase: App Review candidate 1.5.6 (35).
+Active Story: metadata bump and release validation on `release/1.5.6-35`, base `7ff303d`.
+Last Completed Story: payment implementation #207/#208/#209 merged; final core physical Sandbox evidence is recorded in documentation PR #212.
+Next Recommended Story: complete signed archive, release review, actual paywall review screenshots, review-demo setup, upload and submission.
+Blockers: archive pending; current-head release review; real consumable review screenshots and version attachment; demo-account paywall reachability; upload/processing. Public billing activation remains off until separately authorized on/after October 31. P2 #210/#211 remain follow-ups.
+Last Validation: project plist and diff checks pass; 11 Python tests pass; full simulator suite 582 XCTest cases (one skipped, zero failures), plus five Swift Testing cases. ASC 1.5.6 Prepare for Submission created with current EN notes; no upload or submission. See `docs/qa/reports/release-1.5.6-2026-10-25.md`.
+Last Updated: 2026-10-25
+
 # 2026-10-24: Real Sandbox grant verified; reopen recovery follow-up
 
 The founder confirmed the PDF share flow worked on the iPhone 13 after signing in with a newly created Apple Sandbox tester. Read-only production evidence: exactly one `iap_purchase` from `apple_iap`, product `resumely.exports.5`, environment `Sandbox`, delta +5; one `export_unlock` delta -1; balance 4. The initial Apple-looking verification failure produced no `/iap/verify` request from the phone in the inspected log window; Sandbox sign-in succeeded before the successful retry. No production-money purchase occurred. Public switch remains off; only the selected founder account is allowlisted.
