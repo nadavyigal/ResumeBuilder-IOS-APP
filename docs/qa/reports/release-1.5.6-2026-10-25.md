@@ -7,7 +7,7 @@ Status: release preparation, not submitted. Runtime base is merged main `7ff303d
 - Bumped both configurations from 1.5.4 (33) to 1.5.6 (35). Intermediate 1.5.5 is not uploaded; this candidate includes its merged account/consent fixes and the payment implementation.
 - Project plist and whitespace checks pass. All 11 Python release-script tests pass.
 - Full iOS 26.5 iPhone 17 Pro simulator test run: 582 XCTest cases, one skipped, zero failures; five Swift Testing cases pass. Result: `/tmp/resumely-release-1-5-6-tests.xcresult`.
-- ASC live read: 1.5.4 (33) Ready for Distribution; TestFlight has no 1.5.6 upload. Created 1.5.6 Prepare for Submission and saved English release notes and revised App Review instructions. No submission or upload yet.
+- ASC live read: 1.5.4 (33) Ready for Distribution; TestFlight has no 1.5.6 upload. Created 1.5.6 Prepare for Submission and saved English release notes and revised App Review instructions. No submission yet; build upload later succeeded as recorded below.
 - ASC live catalog: three existing consumables remain Prepare for Submission; one-export review screenshot field is empty. EN/HE metadata and review-note text exist.
 - Xcode Devices confirms connected iPhone 13 with app build 35 installed. Screenshot capture works, but the initial capture shows iOS Settings, not a review asset.
 - Read-only database check: existing ASC demo account has balance 3 and one purchase grant. Founder explicitly approved setting only this demo account to zero. The update was conditional on its observed balance of 3, returned one row at 0, and a separate read confirmed 0. Purchase and unlock ledger history was preserved.
@@ -20,7 +20,7 @@ Status: release preparation, not submitted. Runtime base is merged main `7ff303d
 
 - App Store distribution export PASSED: `/tmp/Resumely-1.5.6-35-export/ResumeBuilder IOS APP.ipa`. Extracted package version/build, bundle and production API match. Deep/strict signature verification passes; `get-task-allow=false`, Sign in with Apple entitlement and `beta-reports-active=true` are present.
 - Actual physical iPhone 13 build-35 paywall captured at 07:34 Jerusalem after the founder reached it on a new optimization at zero credits. All three localized StoreKit prices are visible: ILS 12.90 / 39.90 / 59.90. Screenshot staged outside git at `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`; no purchase performed today.
-- Build upload command started using the validated archive and destination=upload. It is pending in codesign at this entry; no successful upload or ASC processing is claimed.
+- Build upload PASSED at 07:49:35 Asia/Jerusalem after founder completed the macOS signing prompt. Xcode reports Upload succeeded and uploaded package processing. Build selection/review submission remain unverified.
 - Browser upload continues to reject local-file access after the founder reported enabling it and the page was refreshed. Attempt to inspect chrome://extensions was rejected by browser URL policy; no alternate route to those settings was attempted. Native screenshot selection is handed to the founder.
 
 ## Existing device evidence
@@ -29,11 +29,11 @@ Payment source from #208/#209 is in main via #207. #212 at `71f6f9f` records the
 
 ## Blocking before submission
 
-- Finish the pending upload and verify processing in ASC. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
+- Verify processing in ASC and select uploaded build 35. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
 - Current-head release PR review and integration.
 - Attach the captured real candidate paywall to all three consumables and associate all three with 1.5.6. The screenshot is captured, not uploaded yet. Fixture screenshots were not used.
 - Set up the existing review demo account to reach the paywall, preserving the public-off switch; verify its allowlist and zero-credit state. The demo balance reset is approved and verified; existing unlocked resumes remain free.
-- Validate/export and upload build 35, wait for processing, select it for 1.5.6, check encryption/privacy and all localizations, then submit with products.
+- Archive/export/upload are complete. Wait for processing, select build 35 for 1.5.6, check encryption/privacy and all localizations, then submit with products.
 
 ## Billing boundary
 
