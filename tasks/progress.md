@@ -1,12 +1,12 @@
 # 2026-10-25: Prepare release 1.5.6 (35)
 
-Status: release preparation, not submitted.
+Status: build uploaded and selected; final submission pending.
 Current Phase: App Review candidate 1.5.6 (35).
-Active Story: metadata bump and release validation on `release/1.5.6-35`, base `7ff303d`.
-Last Completed Story: payment implementation #207/#208/#209 merged; final core physical Sandbox evidence is recorded in documentation PR #212.
-Next Recommended Story: finish current-head release review, upload/attach captured paywall screenshots, select processed build 35, and submit.
-Blockers: current-head release review; consumable screenshot upload and version attachment; consumable screenshot upload (Apple explicitly requires it). Build 35 uploaded, processed, selected and saved for ASC 1.5.6. Actual phone paywall is captured; demo account reaches it. Public billing activation remains off until separately authorized on/after October 31. P2 #210/#211 remain follow-ups.
-Last Validation: project plist and diff checks pass; 11 Python tests pass; full simulator suite 582 XCTest cases (one skipped, zero failures), plus five Swift Testing cases. Signed Release archive and App Store export passed; extracted distribution metadata, production API, bundle, strict signature and get-task-allow=false verified. Real phone StoreKit prices captured. ASC 1.5.6 Prepare for Submission created with current EN notes; upload succeeded; submission not performed. See `docs/qa/reports/release-1.5.6-2026-10-25.md`.
+Active Story: complete combined app/consumable review readiness, PR #213.
+Last Completed Story: archive/export/upload validated; processed build 35 selected; all three consumables have real review screenshots and are Ready for Review in one draft.
+Next Recommended Story: finish screenshot/localization checks, final-head PR pre-check, integrate metadata and submit the combined app/products.
+Blockers: desktop-control tools unavailable after founder unlocked Mac; finish Other Diagnostic Data and User ID analytics privacy disclosures, verify 6.5 screenshot order, stage app version in existing draft, and complete current-head review. Public billing stays off; activation needs separate authorization on/after October 31. P2 #210/#211 remain follow-ups.
+Last Validation: project/diff checks; 11 Python tests; 582 XCTest cases (one skipped, zero failures), five Swift Testing cases; signed archive and App Store export; extracted metadata, production host, strict signature and distribution entitlements; successful upload, processed build selection and real phone StoreKit screenshot. See `docs/qa/reports/release-1.5.6-2026-10-25.md`.
 Last Updated: 2026-10-25
 
 # 2026-10-24: Real Sandbox grant verified; reopen recovery follow-up

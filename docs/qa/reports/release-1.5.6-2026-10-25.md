@@ -1,44 +1,56 @@
 # Resumely 1.5.6 (35), October 25, 2026
 
-Status: release preparation, not submitted. Runtime base is merged main `7ff303de60bf94924dae7f3c21843d358168a63b`. Only Debug/Release version/build metadata changes for this candidate.
+Status: build uploaded, processed and selected; final submission not performed yet. Release branch: `release/1.5.6-35`, PR #213. Runtime base: merged main `7ff303de60bf94924dae7f3c21843d358168a63b`. Only Debug/Release version/build metadata changes; runtime code is unchanged.
 
-## Completed this session
+## Binary and tests
 
-- Bumped both configurations from 1.5.4 (33) to 1.5.6 (35). Intermediate 1.5.5 is not uploaded; this candidate includes its merged account/consent fixes and the payment implementation.
+- Both configurations advance from 1.5.4 (33) to 1.5.6 (35). This candidate includes the merged account/consent fixes and payment implementation. Intermediate 1.5.5 was not uploaded.
 - Project plist and whitespace checks pass. All 11 Python release-script tests pass.
-- Full iOS 26.5 iPhone 17 Pro simulator test run: 582 XCTest cases, one skipped, zero failures; five Swift Testing cases pass. Result: `/tmp/resumely-release-1-5-6-tests.xcresult`.
-- ASC live read: 1.5.4 (33) Ready for Distribution; TestFlight has no 1.5.6 upload. Created 1.5.6 Prepare for Submission and saved English release notes and revised App Review instructions. No submission yet; build upload later succeeded as recorded below.
-- ASC live catalog: three existing consumables remain Prepare for Submission; one-export review screenshot field is empty. EN/HE metadata and review-note text exist.
-- Xcode Devices confirms connected iPhone 13 with app build 35 installed. Screenshot capture works, but the initial capture shows iOS Settings, not a review asset.
-- Read-only database check: existing ASC demo account has balance 3 and one purchase grant. Founder explicitly approved setting only this demo account to zero. The update was conditional on its observed balance of 3, returned one row at 0, and a separate read confirmed 0. Purchase and unlock ledger history was preserved.
+- Full iOS 26.5 iPhone 17 Pro simulator run: 582 XCTest cases, one skipped, zero failures, plus five Swift Testing cases. `/tmp/resumely-release-1-5-6-tests.xcresult`.
+- Signed Release archive passes: `/tmp/Resumely-1.5.6-35.xcarchive`. Version/build, expected bundle, production API host and no unintended source/config documents in the payload verified.
+- App Store distribution export passes: `/tmp/Resumely-1.5.6-35-export/ResumeBuilder IOS APP.ipa`. Extracted package metadata matches; deep/strict signature verification passes. Distribution entitlements contain `get-task-allow=false`, Sign in with Apple and `beta-reports-active=true`.
+- Xcode upload succeeded at 07:49:35 Asia/Jerusalem. ASC processed build 35; selected and saved on version 1.5.6. No upload is pending.
+- Store-version validator intentionally exits 1 for this future candidate: repo 1.5.6, live App Store 1.5.4 released October 22. This is not shipped-version drift on main.
 
-- Rechecked all 15 existing marketing PNGs: each size set has five distinct opaque files at the expected 1206x2622, 1242x2688 and 2064x2752 dimensions. Upload staging copies are in `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/`.
-- Store-version validator exits 1 as expected for a future candidate: repo 1.5.6, live 1.5.4 released October 22. This is not a claim that main/public already runs 1.5.6.
+## Device and payment evidence
 
-- Distribution export started with automatic App Store signing, team 8VC4R5M425 and manageAppVersionAndBuildNumber=false. No build-number rewriting or upload was requested by this export command.
-- Chrome native path dialog is not accepting automated navigation. Browser extension file upload is available but requires the user-controlled Allow access to file URLs setting; no extension permission was changed by the agent.
+- Connected iPhone 13 runs build 35, confirmed in Xcode Devices.
+- #212 at `71f6f9f` records the final prior real iPhone five-pack Sandbox purchase (+5), automatic export (-1), new export (-1), free repeat and balance 3. This is prior dated evidence, not a repeated purchase today. No production-money sale is inferred.
+- Founder explicitly approved resetting only the existing App Review demo account from three credits to zero. The conditional one-row update returned zero; a separate read confirmed it. Purchase/unlock ledger history was preserved.
+- Today the founder signed in, tailored a new resume and reached the actual paywall. Physical screenshot captured at 07:34 Jerusalem shows all three real StoreKit prices: ILS 12.90 / 39.90 / 59.90. No purchase performed today.
+- Real screenshot is outside git: `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`. No credentials or user resume files are committed.
+- P2 #210/#211 remain accepted follow-ups, not falsely marked fixed.
 
-- App Store distribution export PASSED: `/tmp/Resumely-1.5.6-35-export/ResumeBuilder IOS APP.ipa`. Extracted package version/build, bundle and production API match. Deep/strict signature verification passes; `get-task-allow=false`, Sign in with Apple entitlement and `beta-reports-active=true` are present.
-- Actual physical iPhone 13 build-35 paywall captured at 07:34 Jerusalem after the founder reached it on a new optimization at zero credits. All three localized StoreKit prices are visible: ILS 12.90 / 39.90 / 59.90. Screenshot staged outside git at `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`; no purchase performed today.
-- Build upload PASSED at 07:49:35 Asia/Jerusalem after founder completed the macOS signing prompt. Xcode reports Upload succeeded and uploaded package processing. Build 35 subsequently finished processing and was selected and saved on ASC version 1.5.6. Final review submission remains outstanding.
-- Browser upload continues to reject local-file access after the founder reported enabling it and the page was refreshed. Attempt to inspect chrome://extensions was rejected by browser URL policy; no alternate route to those settings was attempted. Native screenshot selection is handed to the founder.
+## App Store Connect
 
-## Existing device evidence
+- Version 1.5.6 created as Prepare for Submission; build 35 selected and saved. EN release notes and actual purchase-review instructions saved. Existing review credentials are retained.
+- All three consumables (`resumely.exports.1`, `.5`, `.10`) have the actual paywall screenshot uploaded and are Ready for Review in one draft submission. The one-export product was initially rejected for a missing screenshot; that field is now supplied and validation passes.
+- English native iPhone 6.3 screenshot set uploaded and ordered: Tailor, Blockers, AI edits, Templates, Expert.
+- English iPad 13 screenshot set replaced with five validated images in the same order. Old candidate references were removed; originals remain in Asset Library.
+- English iPhone 6.5 replacement upload completed with five images; final order verification remains before submission. All 15 local marketing PNGs pass expected dimensions, opacity and uniqueness checks.
+- Header/search creative asset experiment stays separate; no creative asset assigned to this release. HE screenshots remain check-only under the existing publishing checklist.
 
-Payment source from #208/#209 is in main via #207. #212 at `71f6f9f` records the final real iPhone five-pack Sandbox purchase (+5), automatic export (-1), new export (-1), free repeat and balance 3. This is prior dated evidence, not a repeated device test today. Its hosted documentation review is pending. No production-money sale is inferred. P2 issues #210/#211 remain accepted follow-ups, not marked fixed.
+## Privacy disclosure correction
 
-## Blocking before submission
+The prior published ASC label declared Name, Email Address, User ID and Other User Content only. Release source additionally sends persistent installation/session IDs (aliased to the account), product interaction events, purchase-completed product/price/currency and technical error codes through AnalyticsService; the server retains purchase ledger records.
 
-- Build 35 is processed, selected and saved for 1.5.6. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
-- Current-head release PR review and integration.
-- Attach the captured real candidate paywall to all three consumables and associate all three with 1.5.6. The screenshot is captured, not uploaded yet. Fixture screenshots were not used.
-- Set up the existing review demo account to reach the paywall, preserving the public-off switch; verify its allowlist and zero-credit state. The demo balance reset is approved and verified; existing unlocked resumes remain free.
-- Archive/export/upload are complete. Build 35 is processed and selected. Check encryption/privacy and all localizations, then submit with products.
+- Published Device ID: Analytics, linked to identity, not used for tracking.
+- Published Purchase History: App Functionality and Analytics, linked to identity, not used for tracking.
+- Published Product Interaction: Analytics, linked to identity, not used for tracking.
+- Other Diagnostic Data remains incomplete: App Functionality and Analytics selected, linked-to-identity selected; continue through tracking definitions, select no tracking, then Publish.
+- Existing User ID still needs Analytics added alongside App Functionality.
+- No card details are collected by this implementation. No advertising-ID or advertising-tracking code was found in the iOS source search.
+- Desktop control first stopped because the Mac locked. Founder confirmed unlock, but computer-control tools were then unavailable in the continuation. No final submission is claimed.
 
-## Billing boundary
+## Review and remaining steps
 
-Public `EXPORT_CREDITS_ENABLED` remains off. No public sale before October 31 and no activation performed by this release preparation. Account credentials and raw user records are not included here.
+- Hosted Codex completed clean on original metadata head `0297189`; later commits record validation/status only and need one final-head request.
+- Independent fresh read-only review at `c4bd49b` passes with no release blockers. Two stale documentation statements were identified for this final rewrite; no runtime fix or repeated test run required.
+- Verify 6.5 screenshot order, finish the two privacy items above and add version 1.5.6 to the existing three-product draft. English (U.S.) is the only existing ASC localization; Hebrew is an add-localization option, not a missing release-note field.
+- Complete current-head PR pre-check per Agentic OS GLOBAL-WORKFLOWS 7b, integrate the release metadata, and submit the combined app/products when ready.
 
-## Apple validation and final browser handoff
+## Boundaries and tooling
 
-Adding the one-export consumable for review was rejected with the explicit validation: "You must add a Review Information screenshot." No consumable was added/submitted by that validation attempt. The browser file-upload bridge still reports local-file access unavailable after a connection reset; native path-navigation attempts did not work. No blocked Chrome-settings route was bypassed. The required one-export review screenshot picker is open for the founder to select `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`. After selection, save and repeat for the five/ten packs, then associate all three with the version. Existing marketing screenshots are inherited; replacement sets are staged but not uploaded.
+Public billing remains off. No sale before October 31 and no public activation performed. This release preparation does not change pricing, server configuration, migrations or account credentials.
+
+The extension upload bridge rejects local-file access; its Chrome settings URL was blocked by browser policy and not bypassed. The founder restored the ordinary native Open picker, which allowed the agent to select the staged images through supported UI controls. No extension/security settings were changed by the agent.
