@@ -15,13 +15,16 @@ Status: release preparation, not submitted. Runtime base is merged main `7ff303d
 - Rechecked all 15 existing marketing PNGs: each size set has five distinct opaque files at the expected 1206x2622, 1242x2688 and 2064x2752 dimensions. Upload staging copies are in `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/`.
 - Store-version validator exits 1 as expected for a future candidate: repo 1.5.6, live 1.5.4 released October 22. This is not a claim that main/public already runs 1.5.6.
 
+- Distribution export started with automatic App Store signing, team 8VC4R5M425 and manageAppVersionAndBuildNumber=false. No build-number rewriting or upload was requested by this export command.
+- Chrome native path dialog is not accepting automated navigation. Browser extension file upload is available but requires the user-controlled Allow access to file URLs setting; no extension permission was changed by the agent.
+
 ## Existing device evidence
 
 Payment source from #208/#209 is in main via #207. #212 at `71f6f9f` records the final real iPhone five-pack Sandbox purchase (+5), automatic export (-1), new export (-1), free repeat and balance 3. This is prior dated evidence, not a repeated device test today. Its hosted documentation review is pending. No production-money sale is inferred. P2 issues #210/#211 remain accepted follow-ups, not marked fixed.
 
 ## Blocking before submission
 
-- Finish signed Release archive and inspect version, API host, bundle, signature, entitlements and payload.
+- Complete App Store distribution export/signing. The Release archive succeeded at `/tmp/Resumely-1.5.6-35.xcarchive`; metadata is 1.5.6 (35), expected bundle, production API, non-exempt encryption false. Deep/strict codesign verification passes and internal-file scan passes. Archive uses development signing (`get-task-allow=true`); export must be rechecked for distribution entitlements (`false`) before upload. Export is waiting inside codesign.
 - Current-head release PR review and integration.
 - Capture the real candidate paywall after real StoreKit product loading; attach to all three consumables and associate all three with 1.5.6. Fixture screenshots are not real purchase evidence.
 - Set up the existing review demo account to reach the paywall, preserving the public-off switch; verify its allowlist and zero-credit state. The demo balance reset is approved and verified; existing unlocked resumes remain free.
