@@ -173,7 +173,7 @@ enum AnalyticsEvent: Sendable {
     /// `hasCoverLetter` / `hasScreeningAnswers` describe what the share sheet actually
     /// carried, not what exists. Without them there is no way to tell whether anyone
     /// ever exports a full application package.
-    case exportSuccess(optimizationId: String, hasCoverLetter: Bool = false, hasScreeningAnswers: Bool = false)
+    case exportSuccess(optimizationId: String, hasCoverLetter: Bool = false, hasScreeningAnswers: Bool = false, pdfPath: String? = nil)
     case appStoreReviewRequested(source: String)
     case exportShareResult(optimizationId: String, outcome: String)
     case exportFailed(optimizationId: String, errorCode: String)
@@ -382,12 +382,14 @@ enum AnalyticsEvent: Sendable {
             ]
         case .scoreScreenSignInTapped(let source, let scoreBucket):
             return ["source": source, "score_bucket": scoreBucket]
-        case .exportSuccess(let optimizationId, let hasCoverLetter, let hasScreeningAnswers):
-            return [
+        case .exportSuccess(let optimizationId, let hasCoverLetter, let hasScreeningAnswers, let pdfPath):
+            var properties = [
                 "optimization_id": optimizationId,
                 "has_cover_letter": hasCoverLetter ? "true" : "false",
                 "has_screening_answers": hasScreeningAnswers ? "true" : "false",
             ]
+            if let pdfPath { properties["pdf_path"] = pdfPath }
+            return properties
         case .exportShareResult(let optimizationId, let outcome):
             return ["optimization_id": optimizationId, "outcome": outcome]
         case .exportFailed(let optimizationId, let errorCode):

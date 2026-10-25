@@ -1148,11 +1148,28 @@ struct OptimizedResumeView: View {
         isDownloadingPDF = true
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
+        let templateId = designVM?.selectedTemplateId
+        let customization = designVM?.customization
+        let sections = viewModel.sections
+        let contact = viewModel.contact
         do {
             let result = try await ResumeExportAction.exportPDF(
                 viewModel: viewModel,
                 appState: appState,
-                renderedHTML: renderedPreviewHTML
+                renderedHTML: renderedPreviewHTML,
+                loadStyledHTML: { [appState] in
+                    try await appState.callWithFreshToken { token in
+                        try await StyledResumeHTML.fetch(
+                            optimizationId: optimizationId,
+                            templateId: templateId,
+                            customization: customization,
+                            sections: sections,
+                            contact: contact,
+                            token: token,
+                            service: RuntimeServices.resumeDesignService()
+                        )
+                    }
+                }
             )
             pdfTempURL = result.fileURL
             packageFileURLs = result.packageFileURLs

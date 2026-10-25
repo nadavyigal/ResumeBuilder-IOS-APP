@@ -453,6 +453,11 @@ final class AnalyticsServiceTests: XCTestCase {
             ).properties,
             ["optimization_id": "opt-1", "has_cover_letter": "true", "has_screening_answers": "true"]
         )
+        // `pdf_path` is a bounded label for which renderer made the file.
+        XCTAssertEqual(
+            AnalyticsEvent.exportSuccess(optimizationId: "opt-1", pdfPath: "styled_fetched").properties,
+            ["optimization_id": "opt-1", "has_cover_letter": "false", "has_screening_answers": "false", "pdf_path": "styled_fetched"]
+        )
     }
 
     func testValidationAndRecommendationEventsUseBoundedCategoriesAndIds() {
