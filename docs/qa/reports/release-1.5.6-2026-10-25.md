@@ -20,7 +20,7 @@ Status: release preparation, not submitted. Runtime base is merged main `7ff303d
 
 - App Store distribution export PASSED: `/tmp/Resumely-1.5.6-35-export/ResumeBuilder IOS APP.ipa`. Extracted package version/build, bundle and production API match. Deep/strict signature verification passes; `get-task-allow=false`, Sign in with Apple entitlement and `beta-reports-active=true` are present.
 - Actual physical iPhone 13 build-35 paywall captured at 07:34 Jerusalem after the founder reached it on a new optimization at zero credits. All three localized StoreKit prices are visible: ILS 12.90 / 39.90 / 59.90. Screenshot staged outside git at `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`; no purchase performed today.
-- Build upload PASSED at 07:49:35 Asia/Jerusalem after founder completed the macOS signing prompt. Xcode reports Upload succeeded and uploaded package processing. Build selection/review submission remain unverified.
+- Build upload PASSED at 07:49:35 Asia/Jerusalem after founder completed the macOS signing prompt. Xcode reports Upload succeeded and uploaded package processing. Build 35 subsequently finished processing and was selected and saved on ASC version 1.5.6. Final review submission remains outstanding.
 - Browser upload continues to reject local-file access after the founder reported enabling it and the page was refreshed. Attempt to inspect chrome://extensions was rejected by browser URL policy; no alternate route to those settings was attempted. Native screenshot selection is handed to the founder.
 
 ## Existing device evidence
@@ -29,12 +29,16 @@ Payment source from #208/#209 is in main via #207. #212 at `71f6f9f` records the
 
 ## Blocking before submission
 
-- Verify processing in ASC and select uploaded build 35. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
+- Build 35 is processed, selected and saved for 1.5.6. Release archive and App Store distribution export both pass; extracted distribution entitlements verified as described above.
 - Current-head release PR review and integration.
 - Attach the captured real candidate paywall to all three consumables and associate all three with 1.5.6. The screenshot is captured, not uploaded yet. Fixture screenshots were not used.
 - Set up the existing review demo account to reach the paywall, preserving the public-off switch; verify its allowlist and zero-credit state. The demo balance reset is approved and verified; existing unlocked resumes remain free.
-- Archive/export/upload are complete. Wait for processing, select build 35 for 1.5.6, check encryption/privacy and all localizations, then submit with products.
+- Archive/export/upload are complete. Build 35 is processed and selected. Check encryption/privacy and all localizations, then submit with products.
 
 ## Billing boundary
 
 Public `EXPORT_CREDITS_ENABLED` remains off. No public sale before October 31 and no activation performed by this release preparation. Account credentials and raw user records are not included here.
+
+## Apple validation and final browser handoff
+
+Adding the one-export consumable for review was rejected with the explicit validation: "You must add a Review Information screenshot." No consumable was added/submitted by that validation attempt. The browser file-upload bridge still reports local-file access unavailable after a connection reset; native path-navigation attempts did not work. No blocked Chrome-settings route was bypassed. The required one-export review screenshot picker is open for the founder to select `/Users/nadavyigal/Desktop/Resumely-1.5.6-assets/paywall-review-iphone13.png`. After selection, save and repeat for the five/ten packs, then associate all three with the version. Existing marketing screenshots are inherited; replacement sets are staged but not uploaded.

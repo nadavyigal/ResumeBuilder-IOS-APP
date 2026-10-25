@@ -8,7 +8,8 @@ Founder objective: prepare and submit the payment release to App Review today.
 - [ ] Reconcile screenshot assets, consumable attachments and review notes against live ASC.
 - [ ] Confirm candidate device smoke and current-head review before distribution.
 - [x] Upload signed build 35; Xcode reports success and processing (07:49:35 Jerusalem).
-- [ ] Select processed build and submit with all three consumables after readiness passes.
+- [x] Select processed build 35 and save ASC 1.5.6.
+- [ ] Submit with all three consumables after readiness passes.
 
 Existing payment implementation is merged (#207/#208/#209). Core Sandbox checks are recorded in #212; its current-head documentation review remains pending. P2 issues #210/#211 remain follow-ups. Public billing activation stays off and requires separate authorization on/after October 31.
 
