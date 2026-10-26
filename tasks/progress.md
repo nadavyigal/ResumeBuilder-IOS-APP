@@ -1,3 +1,14 @@
+# 2026-10-25: Combined App Store submission completed
+
+Status: Submitted to App Review; Apple confirmed **4 Items Submitted**.
+Current Phase: App Review, iOS 1.5.6 (35), plus resumely.exports.1/.5/.10.
+Last Completed Story: verified 6.5-inch screenshot order (Tailor, Blockers, AI edits, Templates, Expert); published User ID Analytics and Other Diagnostic Data (Analytics + App Functionality, linked to identity, no tracking); added the version to the existing three-product draft and submitted all four items.
+Next Recommended Story: await Apple's review outcome. Public billing stays off; activation requires separate authorization on/after October 31.
+Blockers: no submission blocker remains. P2 #210/#211 remain accepted follow-ups.
+Last Validation: live Chrome confirmation says 4 Items Submitted, with review submission ce906e98-b73a-4007-bc08-abaf6a276318. Existing build/archive/test evidence retained; no runtime changes or repeat build performed.
+Current Branch: release/1.5.6-35
+Last Updated: 2026-10-25
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.
