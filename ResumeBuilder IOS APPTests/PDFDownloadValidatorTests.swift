@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import ResumeBuilder_IOS_APP
 
 @MainActor
@@ -27,5 +28,34 @@ final class PDFDownloadValidatorTests: XCTestCase {
     func testValidatePDFDataRejectsNonSuccessStatus() {
         let data = Data("%PDF-1.4".utf8)
         XCTAssertThrowsError(try PDFDownloadValidator.validatePDFData(data, statusCode: 500))
+    }
+
+    func testTheExportedTextMustContainTheResumeName() throws {
+        let data = pdf(containing: "Dana Levi\nSenior iOS engineer")
+        XCTAssertNoThrow(try PDFDownloadValidator.validatePDFData(data, statusCode: 200, includes: "Dana Levi"))
+        XCTAssertThrowsError(try PDFDownloadValidator.validatePDFData(data, statusCode: 200, includes: "Other Person")) { error in
+            XCTAssertTrue(error is PDFValidationError)
+        }
+    }
+
+    func testAReversedHebrewNameStillCounts() {
+        XCTAssertTrue(PDFDownloadValidator.pdfText("יאוי בדנ", contains: "נדב יואי"))
+        XCTAssertTrue(PDFDownloadValidator.pdfText("Dana Levi", contains: "dana levi"))
+        XCTAssertFalse(PDFDownloadValidator.pdfText("Hello", contains: "Dana Levi"))
+    }
+
+    func testAnEmptyNameDoesNotAddARequirement() throws {
+        let data = pdf(containing: "Senior iOS engineer with Swift")
+        XCTAssertNoThrow(try PDFDownloadValidator.validatePDFData(data, statusCode: 200, includes: " "))
+    }
+
+    private func pdf(containing text: String) -> Data {
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 300, height: 200))
+        return renderer.pdfData { context in
+            context.beginPage()
+            (text as NSString).draw(at: CGPoint(x: 20, y: 40), withAttributes: [
+                .font: UIFont.systemFont(ofSize: 18)
+            ])
+        }
     }
 }

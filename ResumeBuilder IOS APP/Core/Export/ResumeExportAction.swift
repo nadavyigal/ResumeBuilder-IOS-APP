@@ -37,7 +37,7 @@ enum ResumeExportAction {
                 // PDF matches the design template the user applied in the Design tab.
                 do {
                     let styledURL = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
-                    try PDFDownloadValidator.validatePDF(at: styledURL)
+                    try PDFDownloadValidator.validatePDF(at: styledURL, includes: viewModel.contact?.name)
                     url = styledURL
                 } catch {
                     styledHTMLFailureCode = ExportFailureCode.code(for: error)
@@ -46,7 +46,7 @@ enum ResumeExportAction {
             } else {
                 url = try await viewModel.downloadPDF(appState: appState)
             }
-            try PDFDownloadValidator.validatePDF(at: url)
+            try PDFDownloadValidator.validatePDF(at: url, includes: viewModel.contact?.name)
 
             // Whatever the user already generated ships with the résumé. Assembly runs
             // after validation and can only add files, so it cannot fail the export.
