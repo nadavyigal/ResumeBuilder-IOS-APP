@@ -105,8 +105,10 @@ final class DesignViewModel {
             if didLoadInitialAssignment { return }
         }
         let load = Task { @MainActor in
-            await self.loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
-            self.didLoadInitialAssignment = true
+            let result = await self.loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)
+            if result == .ready {
+                self.didLoadInitialAssignment = true
+            }
         }
         assignmentLoad = load
         await load.value
@@ -114,10 +116,17 @@ final class DesignViewModel {
 
     /// The template and customization an export should use. Waits out the saved-design
     /// load when it is still running, and does not refetch once that load has finished,
-    /// so a template the user picked afterwards is kept.
-    func exportDesignSettings(token: String?) async -> (templateId: String?, customization: DesignCustomization) {
+    /// so a template the user picked afterwards is kept. An expired token is not treated
+    /// as "no saved design": the caller supplies a refreshed token and the load runs once more.
+    func exportDesignSettings(
+        token: String?,
+        refreshedToken: @MainActor () async -> String? = { nil }
+    ) async -> (templateId: String?, customization: DesignCustomization) {
         if !didLoadInitialAssignment {
             await loadCurrentAssignment(token: token)
+        }
+        if !didLoadInitialAssignment {
+            await loadCurrentAssignment(token: await refreshedToken())
         }
         return (selectedTemplateId, customization)
     }
@@ -138,9 +147,15 @@ final class DesignViewModel {
         selectedTemplateId = templateId
     }
 
-    private func loadCurrentAssignment(optimizationId optId: String, token: String, shouldSyncCategory: Bool) async {
+    private enum AssignmentLoadResult {
+        case ready
+        case unauthorized
+        case failed
+    }
+
+    private func loadCurrentAssignment(optimizationId optId: String, token: String, shouldSyncCategory: Bool) async -> AssignmentLoadResult {
         do {
-            guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return }
+            guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return .ready }
             if let template = assignment.template {
                 templatesByCategory[template.category] = mergeTemplate(template, into: templatesByCategory[template.category] ?? [])
                 if shouldSyncCategory, activeCategory != template.category {
@@ -156,12 +171,17 @@ final class DesignViewModel {
                 customization = decoded
             }
             didApplyCustomization = true
+            return .ready
         } catch let apiError as APIClientError {
             if case .serverError(let status, _) = apiError, status == 404 {
-                return
+                return .ready
             }
+            if case .unauthorized = apiError {
+                return .unauthorized
+            }
+            return .failed
         } catch {
-            // Non-fatal: the user can still choose a fresh template.
+            return .failed
         }
     }
 

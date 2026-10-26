@@ -99,4 +99,48 @@ final class DesignExportSettingsTests: XCTestCase {
         XCTAssertEqual(settings.templateId, "ats-clean")
         XCTAssertEqual(service.assignmentCalls, 1, "a finished load is not fetched again")
     }
+
+    func testAnExpiredTokenIsRefreshedBeforeTheSavedDesignIsChosen() async {
+        let service = UnauthorizedThenSavedDesignService()
+        let viewModel = DesignViewModel(optimizationId: "opt-1", designService: service)
+
+        let settings = await viewModel.exportDesignSettings(token: "stale") { "fresh" }
+
+        XCTAssertEqual(service.calls, 2)
+        XCTAssertEqual(service.tokens, ["stale", "fresh"])
+        XCTAssertEqual(settings.templateId, "sidebar-ssr")
+    }
+}
+
+private final class UnauthorizedThenSavedDesignService: ResumeDesignServiceProtocol, @unchecked Sendable {
+    private(set) var tokens: [String] = []
+    var calls: Int { tokens.count }
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        tokens.append(token)
+        if tokens.count == 1 { throw APIClientError.unauthorized }
+        return DesignAssignmentDTO(
+            id: "assignment-1",
+            optimizationId: optimizationId,
+            template: DesignTemplate(
+                id: "sidebar-ssr",
+                slug: "sidebar-ssr",
+                name: "Sidebar",
+                description: "Saved design",
+                category: "modern",
+                isPremium: false,
+                thumbnailURL: nil,
+                atsScore: nil
+            ),
+            customization: nil
+        )
+    }
+
+    func templates(category: String, token: String) async throws -> [DesignTemplate] { [] }
+    func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
+        RenderPreviewResponse(success: true, previewHTML: nil, error: nil)
+    }
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+        true
+    }
 }

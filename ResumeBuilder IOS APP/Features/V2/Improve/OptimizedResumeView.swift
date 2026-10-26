@@ -1152,7 +1152,9 @@ struct OptimizedResumeView: View {
             designVM = DesignViewModel(optimizationId: optimizationId)
         }
         // The saved design loads in the background. Read it after that load, not before.
-        let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken)
+        let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken) {
+            await appState.refreshAccessToken()
+        }
         let templateId = settings?.templateId
         let customization = settings?.customization
         let sections = viewModel.sections
