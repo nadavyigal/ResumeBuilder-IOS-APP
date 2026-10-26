@@ -1,3 +1,9 @@
+# 2026-10-26: Account deletion removes résumé files
+
+Status: draft PR, not deployed. Branch `feat/account-deletion-removes-files` from main e7a5e36.
+Guest checks stay for 7 days, then the existing daily purge deletes them. Account résumé text, job text and saved résumés stay until Delete Account. Delete Account now also removes the files in resume-uploads, resume-exports and applications.
+Last Validation: 3 node tests in supabase/functions/delete_account. The function is not deployed.
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.

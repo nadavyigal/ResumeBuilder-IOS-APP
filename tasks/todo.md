@@ -1,3 +1,12 @@
+# 2026-10-26: Deleting an account removes the résumé files too
+
+Guest checks already expire after 7 days. An account keeps its résumé text, job text and saved résumés until the user deletes the account. Delete Account already removed the database rows and left the uploaded files in storage.
+
+- [x] Delete Account removes files in resume-uploads, resume-exports and applications before it removes the rows.
+- [x] The wipe list includes saved résumés, job text, résumé text and the AI consent record.
+- [x] Tests for the retention rules and the file paths.
+- [ ] Deploy `delete_account` is a separate step. This pull request does not deploy it.
+
 # 2026-10-25: Resumely 1.5.6 (35) release preparation
 
 Founder objective: prepare and submit the payment release to App Review today.

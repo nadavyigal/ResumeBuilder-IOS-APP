@@ -1,9 +1,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  ACCOUNT_CONTENT_TABLES,
+  ACCOUNT_FILE_BUCKETS,
+  isStorageFolder,
+  storageObjectPath,
+} from "./account-deletion.ts";
 
 // Account deletion endpoint required by App Store Guideline 5.1.1(v).
-// Validates the caller's JWT, removes all rows owned by the user across
-// public tables (children cascade from their parents), then deletes the
-// auth user itself via the admin API.
+// Validates the caller's JWT, removes the user's uploaded files, removes the
+// rows that hold the résumé and job text, then deletes the auth user.
+// Guest checks without an account are not handled here; they expire after 7 days.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +56,44 @@ Deno.serve(async (req) => {
 
   const failures: string[] = [];
 
+  async function listFiles(bucket: string, folder: string, depth: number): Promise<string[]> {
+    if (depth > 4) return [];
+    const paths: string[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await admin.storage.from(bucket).list(folder, { limit: 100, offset });
+      if (error) {
+        failures.push(`${bucket}: ${error.message}`);
+        return paths;
+      }
+      if (!data || data.length === 0) return paths;
+      for (const entry of data) {
+        const path = storageObjectPath(folder, entry.name);
+        if (isStorageFolder(entry)) {
+          paths.push(...await listFiles(bucket, path, depth + 1));
+        } else {
+          paths.push(path);
+        }
+      }
+      if (data.length < 100) return paths;
+      offset += data.length;
+    }
+  }
+
+  for (const location of ACCOUNT_FILE_BUCKETS) {
+    const paths = await listFiles(location.bucket, location.folder(userId), 0);
+    for (let start = 0; start < paths.length; start += 100) {
+      const batch = paths.slice(start, start + 100);
+      const { error } = await admin.storage.from(location.bucket).remove(batch);
+      if (error) failures.push(`${location.bucket}: ${error.message}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error("[delete_account] file removal failed", { userId, failures });
+    return jsonResponse(500, { error: "Some account files could not be deleted. Please try again." });
+  }
+
   async function wipe(table: string, column: string) {
     const { error } = await admin.from(table).delete().eq(column, userId);
     // Ignore "relation does not exist" so schema drift never blocks the rest.
@@ -58,32 +102,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Order matters only loosely: most children cascade from these parents.
-  const userTables: Array<[string, string]> = [
-    ["device_tokens", "user_id"],
-    ["events", "user_id"],
-    ["credit_transactions", "user_id"],
-    ["agent_shadow_logs", "user_id"],
-    ["anonymous_ats_scores", "user_id"],
-    ["applications", "user_id"],
-    ["expert_workflow_runs", "user_id"],
-    ["application_expert_reports", "user_id"],
-    ["chat_sessions", "user_id"],
-    ["content_modifications", "user_id"],
-    ["style_customization_history", "user_id"],
-    ["ai_threads", "user_id"],
-    ["design_assignments", "user_id"],
-    ["resume_design_assignments", "user_id"],
-    ["optimization_review_runs", "user_id"],
-    ["optimizations", "user_id"],
-    ["job_descriptions", "user_id"],
-    ["resumes", "user_id"],
-    ["conversations", "profile_id"],
-    ["plans", "profile_id"],
-    ["idempotency_keys", "profile_id"],
-    ["profiles", "user_id"],
-    ["profiles", "auth_user_id"],
-  ];
+  const userTables = ACCOUNT_CONTENT_TABLES;
   for (const [table, column] of userTables) {
     await wipe(table, column);
   }
