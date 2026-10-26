@@ -64,6 +64,7 @@ final class AIConsentTests: XCTestCase {
     func testClearAllRemovesEveryIdentityAndTheUnscopedKey() {
         let defaults = makeDefaults()
         AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        AIConsentStore(identity: "user-a", defaults: defaults).markServerRecorded()
         AIConsentStore(identity: "guest", defaults: defaults).recordConsent()
         defaults.set(1.0, forKey: "ai_data_consent_v1")
         defaults.set("keep", forKey: "ai_data_consent_v10_unrelated")
@@ -73,6 +74,7 @@ final class AIConsentTests: XCTestCase {
         XCTAssertFalse(AIConsentStore(identity: "user-a", defaults: defaults).hasConsented)
         XCTAssertFalse(AIConsentStore(identity: "guest", defaults: defaults).hasConsented)
         XCTAssertNil(defaults.object(forKey: "ai_data_consent_v1"))
+        XCTAssertNil(defaults.object(forKey: AIConsentStore.serverKey(for: "user-a")))
         XCTAssertEqual(defaults.string(forKey: "ai_data_consent_v10_unrelated"), "keep")
     }
 
@@ -102,6 +104,65 @@ final class AIConsentTests: XCTestCase {
         XCTAssertTrue(second)
         XCTAssertEqual(presenter.presentCount, 1)
         XCTAssertTrue(center.hasConsented)
+    }
+
+    func testAgreeingSendsTheServerRecordBeforeTheCheckContinues() async {
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        var recordedIdentity: String?
+        center.serverRecorder = { store in
+            recordedIdentity = store.identity
+            return true
+        }
+
+        let agreed = await center.ensureConsent(source: "test")
+
+        XCTAssertTrue(agreed)
+        XCTAssertEqual(recordedIdentity, "user-a")
+        XCTAssertFalse(center.currentStore.needsServerRecord)
+    }
+
+    func testAFailedServerRecordStillLetsTheCheckContinueAndRetries() async {
+        let presenter = StubPresenter(answer: true)
+        let defaults = makeDefaults()
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        var attempts = 0
+        center.serverRecorder = { _ in
+            attempts += 1
+            return attempts > 1
+        }
+
+        let first = await center.ensureConsent(source: "test")
+        XCTAssertTrue(first)
+        XCTAssertEqual(attempts, 1)
+        XCTAssertTrue(center.currentStore.needsServerRecord)
+
+        let second = await center.ensureConsent(source: "test")
+        XCTAssertTrue(second)
+        XCTAssertEqual(attempts, 2)
+        XCTAssertFalse(center.currentStore.needsServerRecord)
+    }
+
+    func testAGuestYesIsNotSentUntilItBelongsToAUser() async {
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { nil }
+        var calls = 0
+        center.serverRecorder = { _ in
+            calls += 1
+            return true
+        }
+
+        let agreed = await center.ensureConsent(source: "test")
+        XCTAssertTrue(agreed)
+        XCTAssertEqual(calls, 0)
+
+        center.userIdProvider = { "anon-1" }
+        center.carryGuestConsent(toAnonymousUserId: "anon-1")
+        await center.flushServerRecordIfNeeded()
+        XCTAssertEqual(calls, 1)
     }
 
     func testCenterDeclineSendsNothingAndAsksAgainNextTime() async {

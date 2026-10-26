@@ -138,6 +138,10 @@ final class AppState {
         self.optimizationHistoryService = optimizationHistoryService
         self.authClient = authClient
         self.consentCenter = consentCenter
+        consentCenter.serverRecorder = { [weak self] store in
+            guard let self else { return false }
+            return await self.recordAIConsentGrant(store)
+        }
     }
 
     /// Whether the user has a **real account**.
@@ -200,6 +204,7 @@ final class AppState {
 
     func bootstrapAndRefreshSession() async {
         bootstrap()
+        await consentCenter.flushServerRecordIfNeeded()
         await refreshSessionIfNeeded()
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
@@ -243,6 +248,7 @@ final class AppState {
             // (#204). Anonymous only: a real account is asked (5.1.2(i)).
             if !anonymous.isAccountSession {
                 consentCenter.carryGuestConsent(toAnonymousUserId: anonymous.userId)
+                await consentCenter.flushServerRecordIfNeeded()
             }
             AnalyticsService.shared.track(.anonymousSessionStarted)
         } catch AuthServiceError.anonymousSignInDisabled {
@@ -694,6 +700,27 @@ final class AppState {
         return try? await task.value
     }
 
+    /// Best-effort. A failure leaves the local yes in place and retries on the next launch or send.
+    private func recordAIConsentGrant(_ store: AIConsentStore) async -> Bool {
+        guard let grantedAt = store.consentedAt else { return false }
+        do {
+            let _: AIConsentRecordResponse = try await callWithFreshToken { token in
+                try await self.apiClient.postJSON(
+                    endpoint: .aiConsentRecord,
+                    body: [
+                        "version": AIConsentStore.keyPrefix,
+                        "action": "grant",
+                        "clientRecordedAt": ISO8601DateFormatter().string(from: grantedAt),
+                    ],
+                    token: token
+                )
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func callWithFreshToken<T>(_ work: (String) async throws -> T) async throws -> T {
         guard let token = session?.accessToken else {
             throw APIClientError.unauthorized
@@ -750,4 +777,8 @@ final class AppState {
         guard normalizedOptimizationId(item.id) == item.id else { return false }
         return item.status?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "completed"
     }
+}
+
+private struct AIConsentRecordResponse: Decodable {
+    let recorded: Bool
 }

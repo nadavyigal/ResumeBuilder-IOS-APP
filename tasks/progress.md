@@ -1,3 +1,9 @@
+# 2026-10-26: AI consent server record and privacy manifest
+
+Status: draft PR, not merged. Branch `feat/ai-consent-record` from main e7a5e36.
+The phone reports a grant to `POST /api/v1/ai-consent` once the user has an account or anonymous session. The privacy manifest lists the collected data types. AI calls are not blocked when the server record is missing.
+Last Validation: 585 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.

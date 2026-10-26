@@ -15,6 +15,7 @@ import Foundation
 @MainActor
 struct AIConsentStore {
     static let keyPrefix = "ai_data_consent_v1"
+    static let serverKeyPrefix = "ai_data_consent_server_v1"
     static let guestIdentity = "guest"
 
     let identity: String
@@ -37,6 +38,10 @@ struct AIConsentStore {
         "\(keyPrefix).\(identity)"
     }
 
+    static func serverKey(for identity: String) -> String {
+        "\(serverKeyPrefix).\(identity)"
+    }
+
     var consentedAt: Date? {
         let key = Self.key(for: identity)
         guard defaults.object(forKey: key) != nil else { return nil }
@@ -44,6 +49,16 @@ struct AIConsentStore {
     }
 
     var hasConsented: Bool { consentedAt != nil }
+
+    /// A guest yes has no account to attach a server row to. Everyone else who
+    /// has agreed, and whose yes has not been stored on the server yet, needs a record.
+    var needsServerRecord: Bool {
+        hasConsented && identity != Self.guestIdentity && defaults.object(forKey: Self.serverKey(for: identity)) == nil
+    }
+
+    func markServerRecorded() {
+        defaults.set(true, forKey: Self.serverKey(for: identity))
+    }
 
     /// True until this identity agrees. Nothing that sends résumé, job or chat
     /// text to an OpenAI-backed endpoint may run while this is true.
@@ -70,7 +85,8 @@ struct AIConsentStore {
     /// build of this branch wrote. Called on sign-out and account deletion.
     static func clearAll(defaults: UserDefaults = .standard) {
         for key in defaults.dictionaryRepresentation().keys
-        where key == keyPrefix || key.hasPrefix(keyPrefix + ".") {
+        where key == keyPrefix || key.hasPrefix(keyPrefix + ".")
+            || key == serverKeyPrefix || key.hasPrefix(serverKeyPrefix + ".") {
             defaults.removeObject(forKey: key)
         }
     }

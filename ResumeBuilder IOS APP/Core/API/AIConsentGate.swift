@@ -113,11 +113,30 @@ final class AIConsentCenter {
         AIConsentStore(identity: AIConsentStore.identity(forUserId: userIdProvider()), defaults: defaults)
     }
 
+    /// Posts the grant for an identity that already has a local yes. Returns true
+    /// when the server stored it. A guest has no user id, so this is a no-op for them.
+    var serverRecorder: (@MainActor (AIConsentStore) async -> Bool)?
+
     var hasConsented: Bool { currentStore.hasConsented }
+
+    func flushServerRecordIfNeeded() async {
+        let store = currentStore
+        await flushServerRecord(for: store)
+    }
+
+    private func flushServerRecord(for store: AIConsentStore) async {
+        guard store.needsServerRecord, let serverRecorder else { return }
+        if await serverRecorder(store) {
+            store.markServerRecorded()
+        }
+    }
 
     func ensureConsent(source: String) async -> Bool {
         let store = currentStore
-        if store.hasConsented { return true }
+        if store.hasConsented {
+            await flushServerRecord(for: store)
+            return true
+        }
         let askedGeneration = generation
         return await withCheckedContinuation { continuation in
             waiting.append(continuation)
@@ -127,19 +146,24 @@ final class AIConsentCenter {
                 guard let self else { return }
                 // A sign-out while the sheet was open voids the answer.
                 let agreed = answer && self.generation == askedGeneration
-                if agreed {
-                    store.recordConsent()
-                    if store.identity == AIConsentStore.guestIdentity,
-                       let successor = self.anonymousSuccessor {
-                        AIConsentStore.carryGuestConsent(to: successor, defaults: self.defaults)
+                Task { @MainActor in
+                    if agreed {
+                        store.recordConsent()
+                        var recorded = store
+                        if store.identity == AIConsentStore.guestIdentity,
+                           let successor = self.anonymousSuccessor {
+                            AIConsentStore.carryGuestConsent(to: successor, defaults: self.defaults)
+                            recorded = AIConsentStore(identity: successor, defaults: self.defaults)
+                        }
+                        await self.flushServerRecord(for: recorded)
+                        AnalyticsService.shared.track(.aiConsentAccepted(source: source))
+                    } else {
+                        AnalyticsService.shared.track(.aiConsentDeclined(source: source))
                     }
-                    AnalyticsService.shared.track(.aiConsentAccepted(source: source))
-                } else {
-                    AnalyticsService.shared.track(.aiConsentDeclined(source: source))
+                    let resumed = self.waiting
+                    self.waiting = []
+                    resumed.forEach { $0.resume(returning: agreed) }
                 }
-                let resumed = self.waiting
-                self.waiting = []
-                resumed.forEach { $0.resume(returning: agreed) }
             }
         }
     }
