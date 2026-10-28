@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Resumely App Store panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,800&display=block" rel="stylesheet">
+<style>
+  :root {
+    --cobalt: #1F3BFF;
+    --cobalt-deep: #1328C9;
+    --marker: #FFE34D;
+    --ink: #0A0F2C;
+    --paper: #F7F8FF;
+    --screen: #0B1020;
+    --u: 1px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: var(--cobalt);
+    background-image:
+      radial-gradient(calc(var(--u) * 1400) calc(var(--u) * 1100) at 85% 8%, #3A55FF 0%, rgba(58, 85, 255, 0) 70%),
+      linear-gradient(180deg, var(--cobalt) 0%, var(--cobalt-deep) 100%);
+    font-family: "Bricolage Grotesque", -apple-system, system-ui, sans-serif;
+    color: var(--paper);
+    position: relative;
+  }
+  .copy {
+    position: absolute;
+    left: calc(var(--u) * 84);
+    right: calc(var(--u) * 84);
+    top: calc(var(--u) * 150);
+    text-align: center;
+  }
+  h1 {
+    font-weight: 800;
+    font-size: calc(var(--u) * 142);
+    line-height: 1.16;
+    white-space: nowrap;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+  h1 span {
+    display: inline;
+    padding: 0 calc(var(--u) * 26);
+    background: linear-gradient(100deg,
+      rgba(255, 227, 77, 0) 0.6%, var(--marker) 2.2%,
+      var(--marker) 96.8%, rgba(255, 227, 77, 0) 99%);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .sub {
+    margin: calc(var(--u) * 58) auto 0;
+    max-width: calc(var(--u) * 960);
+    font-weight: 500;
+    font-size: calc(var(--u) * 58);
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+    color: var(--paper);
+  }
+  .phone {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(var(--u) * 1010);
+    width: calc(var(--u) * 1000);
+    height: calc(var(--u) * 2400);
+    border-radius: calc(var(--u) * 132);
+    background: #05070F;
+    padding: calc(var(--u) * 24);
+    box-shadow:
+      0 0 0 calc(var(--u) * 5) #2B3150,
+      0 calc(var(--u) * 60) calc(var(--u) * 140) rgba(5, 10, 60, 0.55);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--u) * 110);
+    overflow: hidden;
+    background: linear-gradient(180deg, #121A33 0%, var(--screen) 40%);
+    position: relative;
+  }
+  .status {
+    height: calc(var(--u) * 130);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(var(--u) * 20) calc(var(--u) * 70) 0;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: calc(var(--u) * 40);
+    color: #fff;
+  }
+  .island {
+    width: calc(var(--u) * 250);
+    height: calc(var(--u) * 72);
+    border-radius: calc(var(--u) * 40);
+    background: #000;
+  }
+  .bars { display: flex; gap: calc(var(--u) * 7); align-items: flex-end; }
+  .bars i { display: block; width: calc(var(--u) * 9); background: #fff; border-radius: 2px; }
+  .screen img { display: block; width: 100%; }
+  .screen img.header { margin-top: calc(var(--u) * -6); }
+
+  /* Slot 1 only: a slice of the job post, marked up the way a job seeker would mark it. */
+  .post {
+    position: absolute;
+    left: calc(var(--u) * 46);
+    top: calc(var(--u) * 1530);
+    width: calc(var(--u) * 560);
+    padding: calc(var(--u) * 42) calc(var(--u) * 44) calc(var(--u) * 48);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: calc(var(--u) * 34);
+    transform: rotate(-4deg);
+    box-shadow: 0 calc(var(--u) * 40) calc(var(--u) * 90) rgba(5, 10, 60, 0.45);
+    z-index: 2;
+  }
+  .post h2 {
+    font-weight: 800;
+    font-size: calc(var(--u) * 44);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+  .post .co {
+    margin-top: calc(var(--u) * 8);
+    font-weight: 500;
+    font-size: calc(var(--u) * 30);
+    color: #4A5070;
+  }
+  .post p {
+    margin-top: calc(var(--u) * 26);
+    font-weight: 500;
+    font-size: calc(var(--u) * 33);
+    line-height: 1.5;
+  }
+  .post mark {
+    color: var(--ink);
+    background: var(--marker);
+    padding: 0 calc(var(--u) * 6);
+    border-radius: calc(var(--u) * 6);
+  }
+  .post .miss {
+    margin-top: calc(var(--u) * 26);
+    padding-top: calc(var(--u) * 22);
+    border-top: calc(var(--u) * 3) dashed #C9CCE0;
+    font-weight: 600;
+    font-size: calc(var(--u) * 31);
+    color: #C2263B;
+  }
+  .slot-1 .phone { left: auto; right: calc(var(--u) * 40); transform: none; }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <h1 id="h"></h1>
+    <p class="sub" id="s"></p>
+  </div>
+  <div class="phone">
+    <div class="screen">
+      <div class="status">
+        <span>9:41</span>
+        <span class="island"></span>
+        <span class="bars"><i style="height:calc(var(--u)*14)"></i><i style="height:calc(var(--u)*20)"></i><i style="height:calc(var(--u)*26)"></i><i style="height:calc(var(--u)*32)"></i></span>
+      </div>
+      <img class="header" src="src/header.png" alt="">
+      <img id="shot" alt="">
+    </div>
+  </div>
+  <div class="post" id="post" hidden>
+    <h2>Senior Product Designer</h2>
+    <div class="co">Mobile flows, full time</div>
+    <p>You will own <mark>mobile onboarding</mark>, run <mark>user research</mark> and ship in <mark>Figma</mark> with engineering.</p>
+    <div class="miss">3 keywords not in your resume</div>
+  </div>
+<script>
+  const SLOTS = {
+    1: { shot: "01-tailor", h: ["Tailor your resume", "to this job"],
+         s: "Paste a job post. See your Match Score and what's missing." },
+    2: { shot: "02-blockers", h: ["See what's missing", "before you apply"],
+         s: "Top gaps and missing keywords, straight from the job post." },
+    3: { shot: "03-ai-edits", h: ["Fix it in", "your own voice"],
+         s: "Targeted edits, one section at a time. You approve each one." },
+    4: { shot: "04-templates", h: ["Send a clean PDF", "from your phone"],
+         s: "Classic, Modern and Minimal templates, ready to share." },
+    5: { shot: "05-expert", h: ["Get an expert", "second look"],
+         s: "Six review tools with rewrites you can stand behind." },
+  };
+  const q = new URLSearchParams(location.search);
+  const slot = SLOTS[q.get("slot") || "1"];
+  document.documentElement.style.setProperty("--u", (q.get("u") || "1") + "px");
+  document.body.classList.add("slot-" + (q.get("slot") || "1"));
+  document.getElementById("h").innerHTML = slot.h.map(l => `<span>${l}</span>`).join("<br>");
+  document.getElementById("s").textContent = slot.s;
+  document.getElementById("shot").src = `src/${slot.shot}.png`;
+  if ((q.get("slot") || "1") === "1") document.getElementById("post").hidden = false;
+
+  // Layout pass: two-line headline sized to the frame width, phone bled off the bottom so the
+  // app content ends just above the frame edge, copy centred in the space left above the phone.
+  const u = parseFloat(q.get("u") || "1");
+  const W = innerWidth, H = innerHeight;
+  const layout = () => {
+    const h1 = document.getElementById("h");
+    const maxW = W - 2 * 84 * u;
+    // One size for the whole set: the largest that fits every slot's headline.
+    let size = 150 * u;
+    const fits = s => Object.values(SLOTS).every(o => {
+      h1.innerHTML = o.h.map(l => `<span>${l}</span>`).join("<br>");
+      h1.style.fontSize = s + "px";
+      return h1.scrollWidth <= maxW;
+    });
+    while (!fits(size) && size > 60) size -= 2;
+    h1.style.fontSize = size + "px";
+    h1.innerHTML = slot.h.map(l => `<span>${l}</span>`).join("<br>");
+    const screen = document.querySelector(".screen");
+    const content = [...screen.children].reduce((t, el) => t + el.getBoundingClientRect().height, 0);
+    const copy = document.querySelector(".copy");
+    const copyH = copy.getBoundingClientRect().height;
+    const minTop = 110 * u + copyH + 90 * u;
+    const phoneTop = Math.max(minTop, H - content - 24 * u + 40 * u);
+    document.querySelector(".phone").style.top = phoneTop + "px";
+    copy.style.top = Math.max(110 * u, (phoneTop - copyH) / 2) + "px";
+    const post = document.getElementById("post");
+    if (!post.hidden) post.style.top = Math.min(phoneTop + 860 * u, H - post.offsetHeight - 140 * u) + "px";
+  };
+  Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(() => {}))]).then(layout);
+</script>
+</body>
+</html>

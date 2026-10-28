@@ -16,7 +16,10 @@ IPHONE_ID=<iPhone 17 simulator id> IPHONE_DIR=iphone-6.3-1206x2622 CAPTURE_IPAD=
 the simulator: `SKIP_CAPTURE=1 IPHONE_DIR=... CAPTURE_IPAD=0 ./scripts/generate-app-store-screenshots.sh`.
 Regression checks: `python3 -m unittest discover -s scripts -p 'test_app_store_screenshot_scripts.py'`.
 
-Final drag-and-drop folders:
+**Current set: `app-store-v3/` (2026-10-28).** Upload folders and copy are in `app-store-v3/upload-manifest.md`;
+it is rendered by `scripts/aso-v3/render.sh`, not by the simulator script below. `app-store-v2/` is the set live in 1.5.6.
+
+v2 drag-and-drop folders (history):
 
 - `app-store-v2/iphone-6.3-1206x2622/` (Apple's required "Dynamic Island, medium display" size)
 - `app-store-v2/iphone-6.5-1242x2688/`
