@@ -1,3 +1,14 @@
+# 2026-10-26: Record AI consent on the server, and declare collected data
+
+As a user who agrees that Resumely may send a résumé and job text to OpenAI, I want that yes kept on the server for my account, not only on this phone.
+
+The privacy manifest lists the data the app actually collects. AI routes are not blocked on the new record, so an already-installed app keeps working. The migration is not applied to production.
+
+- [x] `POST /api/v1/ai-consent` stores grant or withdraw for the token's user id.
+- [x] The phone sends the grant after a signed-in yes, and after a guest yes is carried to an anonymous user. A failed send retries and does not block the check.
+- [x] `PrivacyInfo.xcprivacy` declares name, email, user id, other user content, device id, purchase history, product interaction and diagnostic data. None of it is used for tracking.
+- [x] Tests: API 5 pass. iOS full suite 585 XCTest (1 skipped, 0 failures) plus 5 Swift Testing.
+
 # 2026-10-25: Keep the chosen design when exporting before the preview loads
 
 As a user who taps Export on the Optimized tab before the styled preview has finished loading, I want my PDF to keep the template I chose instead of a plain server layout.

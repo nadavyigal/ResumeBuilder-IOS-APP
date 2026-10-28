@@ -16,6 +16,7 @@ enum Endpoint {
     case uploadResume
     case iapVerify
     case exportsUnlock
+    case aiConsentRecord
     case resumeText(id: String)
 
     // New – v1 surface
@@ -86,6 +87,7 @@ enum Endpoint {
         case .uploadResume:                    return "/api/upload-resume"
         case .iapVerify:                       return "/api/v1/iap/verify"
         case .exportsUnlock:                   return "/api/v1/exports/unlock"
+        case .aiConsentRecord:                 return "/api/v1/ai-consent"
         case .resumeText(let id):              return "/api/resumes/\(id)"
         case .refineSection:                   return "/api/v1/refine-section"
         case .refineSectionApply:              return "/api/v1/refine-section/apply"

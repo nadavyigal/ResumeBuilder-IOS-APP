@@ -64,6 +64,7 @@ final class AIConsentTests: XCTestCase {
     func testClearAllRemovesEveryIdentityAndTheUnscopedKey() {
         let defaults = makeDefaults()
         AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        AIConsentStore(identity: "user-a", defaults: defaults).markServerRecorded()
         AIConsentStore(identity: "guest", defaults: defaults).recordConsent()
         defaults.set(1.0, forKey: "ai_data_consent_v1")
         defaults.set("keep", forKey: "ai_data_consent_v10_unrelated")
@@ -73,6 +74,7 @@ final class AIConsentTests: XCTestCase {
         XCTAssertFalse(AIConsentStore(identity: "user-a", defaults: defaults).hasConsented)
         XCTAssertFalse(AIConsentStore(identity: "guest", defaults: defaults).hasConsented)
         XCTAssertNil(defaults.object(forKey: "ai_data_consent_v1"))
+        XCTAssertNil(defaults.object(forKey: AIConsentStore.serverKey(for: "user-a")))
         XCTAssertEqual(defaults.string(forKey: "ai_data_consent_v10_unrelated"), "keep")
     }
 
@@ -102,6 +104,65 @@ final class AIConsentTests: XCTestCase {
         XCTAssertTrue(second)
         XCTAssertEqual(presenter.presentCount, 1)
         XCTAssertTrue(center.hasConsented)
+    }
+
+    func testAgreeingSendsTheServerRecordBeforeTheCheckContinues() async {
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        var recordedIdentity: String?
+        center.serverRecorder = { store in
+            recordedIdentity = store.identity
+            return true
+        }
+
+        let agreed = await center.ensureConsent(source: "test")
+
+        XCTAssertTrue(agreed)
+        XCTAssertEqual(recordedIdentity, "user-a")
+        XCTAssertFalse(center.currentStore.needsServerRecord)
+    }
+
+    func testAFailedServerRecordStillLetsTheCheckContinueAndRetries() async {
+        let presenter = StubPresenter(answer: true)
+        let defaults = makeDefaults()
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        var attempts = 0
+        center.serverRecorder = { _ in
+            attempts += 1
+            return attempts > 1
+        }
+
+        let first = await center.ensureConsent(source: "test")
+        XCTAssertTrue(first)
+        XCTAssertEqual(attempts, 1)
+        XCTAssertTrue(center.currentStore.needsServerRecord)
+
+        let second = await center.ensureConsent(source: "test")
+        XCTAssertTrue(second)
+        XCTAssertEqual(attempts, 2)
+        XCTAssertFalse(center.currentStore.needsServerRecord)
+    }
+
+    func testAGuestYesIsNotSentUntilItBelongsToAUser() async {
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: makeDefaults(), presenter: presenter)
+        center.userIdProvider = { nil }
+        var calls = 0
+        center.serverRecorder = { _ in
+            calls += 1
+            return true
+        }
+
+        let agreed = await center.ensureConsent(source: "test")
+        XCTAssertTrue(agreed)
+        XCTAssertEqual(calls, 0)
+
+        center.userIdProvider = { "anon-1" }
+        center.carryGuestConsent(toAnonymousUserId: "anon-1")
+        await center.flushServerRecordIfNeeded()
+        XCTAssertEqual(calls, 1)
     }
 
     func testCenterDeclineSendsNothingAndAsksAgainNextTime() async {
@@ -184,6 +245,168 @@ final class AIConsentTests: XCTestCase {
 
         XCTAssertTrue(agreed)
         XCTAssertTrue(center.hasConsented)
+    }
+
+    /// Codex on #217 (P1): a sign-out while the server record is in flight must
+    /// not let the next identity's send ride on the old yes.
+    func testSignOutDuringServerRecordDoesNotAuthorizeTheNextIdentity() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId = "user-a"
+        center.userIdProvider = { userId }
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let first = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        presenter.answerPending(true)
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+
+        center.clearAll()
+        userId = "user-b"
+        let second = ResultBox<Bool>()
+        Task { second.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        recorder.release(true)
+
+        guard await waitUntil("user-a's send gets an answer", { first.value != nil }) else { return }
+        XCTAssertEqual(first.value, false)
+        XCTAssertNil(defaults.object(forKey: AIConsentStore.serverKey(for: "user-a")),
+                     "a record that finished after sign-out must not mark user-a as recorded")
+        guard await waitUntil("user-b gets its own sheet", { !presenter.pending.isEmpty }) else { return }
+        XCTAssertNil(second.value)
+        XCTAssertEqual(presenter.presentCount, 2)
+        presenter.answerPending(false)
+
+        guard await waitUntil("user-b's send gets an answer", { second.value != nil }) else { return }
+        XCTAssertEqual(second.value, false)
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
+    }
+
+    /// Codex P2 on 0611b97: an identity with a local yes and a pending server
+    /// record signs out while that record is in flight. Its send must not go.
+    func testSignOutDuringAPendingRecordBlocksTheAlreadyConsentedSend() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let result = ResultBox<Bool>()
+        Task { result.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+        center.clearAll()
+        recorder.release(true)
+
+        guard await waitUntil("the send gets an answer", { result.value != nil }) else { return }
+        XCTAssertEqual(result.value, false)
+        XCTAssertEqual(presenter.presentCount, 0)
+    }
+
+    /// Codex P2 on 18eadd3: a sign-out after the sheet answers, but before the
+    /// task that records the answer runs, must not bring the cleared yes back.
+    func testSignOutBeforeTheAnswerIsRecordedDoesNotRestoreConsent() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { nil }
+
+        let result = ResultBox<Bool>()
+        Task { result.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        // Same main-actor turn: the recording task has not started yet.
+        presenter.answerPending(true)
+        center.clearAll()
+
+        guard await waitUntil("the send gets an answer", { result.value != nil }) else { return }
+        XCTAssertEqual(result.value, false)
+        XCTAssertFalse(AIConsentStore(identity: AIConsentStore.guestIdentity, defaults: defaults).hasConsented,
+                       "the guest's cleared consent came back")
+    }
+
+    /// Codex P2 on 18eadd3: the consent record is best-effort. A slow or stalled
+    /// request must not hold the launch spinner.
+    func testLaunchDoesNotWaitForTheConsentRecord() async {
+        let defaults = makeDefaults()
+        let center = AIConsentCenter(defaults: defaults, presenter: StubPresenter(answer: true))
+        center.userIdProvider = { "user-a" }
+        AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        let appState = AppState(authClient: ConsentTestAuthClient(), consentCenter: center)
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        Task { await appState.bootstrapAndRefreshSession() }
+        let launched = await waitUntil("the app finishes launching", { appState.hasBootstrappedSession })
+        recorder.release(false)
+        XCTAssertTrue(launched)
+    }
+
+    /// Codex P2 on 123144e: B queued behind A's in-flight record, then B signed
+    /// out too. B's send must not be re-asked as the guest and inherit a yes.
+    func testAWaiterWhoseIdentitySignedOutIsNotReaskedAsSomeoneElse() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId: String? = "user-a"
+        center.userIdProvider = { userId }
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let first = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        presenter.answerPending(true)
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+
+        center.clearAll()
+        userId = "user-b"
+        let second = ResultBox<Bool>()
+        Task { second.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        center.clearAll()
+        userId = nil
+        recorder.release(true)
+
+        guard await waitUntil("B's send gets an answer or a guest sheet opens", {
+            second.value != nil || !presenter.pending.isEmpty
+        }) else { return }
+        if second.value == nil { presenter.answerPending(true) }
+        guard await waitUntil("B's send gets an answer", { second.value != nil }) else { return }
+        XCTAssertEqual(second.value, false, "B signed out; a guest's yes must not send B's request")
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
+    }
+
+    /// A guest's open sheet answers only for the guest. An account that signs in
+    /// while it is open, and sends, is asked for itself (5.1.2(i)).
+    func testAGuestAnswerDoesNotAuthorizeAnAccountThatJoinedTheQueue() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId: String? = nil
+        center.userIdProvider = { userId }
+
+        let guest = ResultBox<Bool>()
+        Task { guest.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        userId = "user-b"
+        let account = ResultBox<Bool>()
+        Task { account.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        presenter.answerPending(true)
+
+        guard await waitUntil("the guest's send gets an answer", { guest.value != nil }) else { return }
+        XCTAssertEqual(guest.value, true)
+        guard await waitUntil("the account gets its own sheet", { !presenter.pending.isEmpty }) else { return }
+        XCTAssertNil(account.value)
+        presenter.answerPending(false)
+
+        guard await waitUntil("the account's send gets an answer", { account.value != nil }) else { return }
+        XCTAssertEqual(account.value, false)
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
     }
 
     /// CodeRabbit on b4169f5: two quick taps on "Check my fit" must start one
@@ -465,6 +688,22 @@ final class AIConsentTests: XCTestCase {
 @MainActor
 private final class ResultBox<Value> {
     var value: Value?
+}
+
+/// A server recorder that stays suspended until `release` is called.
+@MainActor
+private final class SuspendedRecorder {
+    private var continuation: CheckedContinuation<Bool, Never>?
+    var isWaiting: Bool { continuation != nil }
+
+    func wait() async -> Bool {
+        await withCheckedContinuation { continuation = $0 }
+    }
+
+    func release(_ recorded: Bool) {
+        continuation?.resume(returning: recorded)
+        continuation = nil
+    }
 }
 
 @MainActor
