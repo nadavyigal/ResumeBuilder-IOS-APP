@@ -1,3 +1,13 @@
+# 2026-10-28: App Store screenshots v3 (rb-aso-004)
+
+Status: PR open, not merged. Branch `aso/screenshots-v3` from main 96e89aa. Nothing uploaded to App Store Connect.
+Current Phase: ASO. Active Story: v3 screenshot set. Last Completed Story: v3 render for iPhone 6.3, 6.5 and iPad 13.
+Change: the live v2 set (1.5.6, checked on apps.apple.com 2026-10-28) is near-black with a small headline and reads as dark slabs in search. v3: cobalt background, two-line highlighter headline at one shared size, app screen in a phone filling the lower frame. Generator in `scripts/aso-v3/`, files and copy in `dist/app-store-screenshots/app-store-v3/upload-manifest.md`. New subtitle "Tailor Your Resume to Any Job" and promotional text proposed there.
+Last Validation: 15 PNGs at exact sizes, all opaque (sips hasAlpha: no); every frame viewed after render; no ATS or guarantee claims. No app code changed, so no XCTest run.
+Next Recommended Story: founder uploads v3 on the next editable version (1.5.7) and sets the subtitle; log rb-aso-004. Then a brighter app icon to match.
+Blockers: needs an editable version in App Store Connect.
+Last Updated: 2026-10-28
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
