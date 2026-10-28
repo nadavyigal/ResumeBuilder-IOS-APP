@@ -108,7 +108,11 @@ final class FitCheckViewModel {
             // produced, rather than at each screen that shows one.
             FitBaselineStore.shared.record(
                 score: checkResult.verdict.score,
-                resumeID: resumeId
+                resumeID: resumeId,
+                jobKey: FitBaselineStore.jobKey(
+                    url: evaluation.normalizedURL,
+                    description: evaluation.normalizedDescription
+                )
             )
 
             AnalyticsService.shared.track(

@@ -308,10 +308,61 @@ final class FitBaselineStoreJoinTests: XCTestCase {
     }
 
     func testRunningTheCheckTwiceKeepsTheHigherFloor() {
-        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc")
-        FitBaselineStore.shared.record(score: 48, resumeID: "resume_abc")
+        let job = FitBaselineStore.jobKey(url: "https://example.com/jobs/ios", description: nil)
+        FitBaselineStore.shared.record(score: 56, resumeID: "resume_abc", jobKey: job)
+        FitBaselineStore.shared.record(score: 48, resumeID: "resume_abc", jobKey: job)
 
         XCTAssertEqual(FitBaselineStore.shared.baseline(for: "resume_abc"), 56)
+    }
+
+    func testADifferentJobDoesNotInheritThePreviousFloors() {
+        let firstJob = FitBaselineStore.jobKey(url: "https://example.com/jobs/ios", description: nil)
+        let secondJob = FitBaselineStore.jobKey(url: "https://example.com/jobs/backend", description: nil)
+        FitBaselineStore.shared.record(score: 90, resumeID: "resume_abc", jobKey: firstJob)
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_first")
+
+        FitBaselineStore.shared.record(score: 40, resumeID: "resume_abc", jobKey: secondJob)
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_second")
+
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "opt_first"), 90)
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "resume_abc"), 40)
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "opt_second"), 40)
+
+        let second = OptimizedResumeViewModel(optimizationId: "opt_second")
+        second.atsScoreBefore = 40
+        XCTAssertEqual(second.currentATSScore, 40, "the first job's 90 must not floor this posting")
+    }
+
+    /// Sonnet on e58366c: check job A, then optimize job B without a fresh
+    /// check. A's floor must stay behind; the same job still carries it.
+    func testOptimizingADifferentJobWithoutACheckDoesNotCarryTheFloor() {
+        let jobA = FitBaselineStore.jobKey(url: "https://example.com/jobs/ios", description: nil)
+        let jobB = FitBaselineStore.jobKey(url: "https://example.com/jobs/backend", description: nil)
+        FitBaselineStore.shared.record(score: 90, resumeID: "resume_abc", jobKey: jobA)
+
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_b", currentJobKey: jobB)
+        XCTAssertNil(FitBaselineStore.shared.baseline(for: "opt_b"), "job A's 90 must not floor job B")
+
+        FitBaselineStore.shared.carryForward(from: "resume_abc", to: "opt_a", currentJobKey: jobA)
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "opt_a"), 90)
+    }
+
+    func testTheTailorJobKeyMatchesTheCheckJobKey() {
+        let url = "https://example.com/jobs/ios"
+        let evaluation = JobInputPolicy.evaluate(description: "", urlString: "  \(url)  ", destination: .publicCheck)
+        XCTAssertEqual(
+            FitBaselineStore.jobKey(for: evaluation),
+            FitBaselineStore.jobKey(url: evaluation.normalizedURL, description: evaluation.normalizedDescription)
+        )
+        XCTAssertNotNil(FitBaselineStore.jobKey(for: evaluation))
+    }
+
+    func testTheSamePastedJobKeepsTheHigherFloor() {
+        let pasted = FitBaselineStore.jobKey(url: nil, description: "Senior iOS engineer, Swift and SwiftUI")
+        FitBaselineStore.shared.record(score: 70, resumeID: "resume_abc", jobKey: pasted)
+        FitBaselineStore.shared.record(score: 62, resumeID: "resume_abc", jobKey: pasted)
+
+        XCTAssertEqual(FitBaselineStore.shared.baseline(for: "resume_abc"), 70)
     }
 
     func testSignOutDropsTheFloor() {
