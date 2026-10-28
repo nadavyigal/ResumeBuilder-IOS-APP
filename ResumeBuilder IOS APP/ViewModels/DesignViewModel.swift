@@ -96,13 +96,15 @@ final class DesignViewModel {
         }
     }
 
-    func loadCurrentAssignment(token: String?) async {
+    /// `forceRefresh`: the user just saved a design elsewhere. Wait out a first load
+    /// still running (it may have started before the save), then fetch again.
+    func loadCurrentAssignment(token: String?, forceRefresh: Bool = false) async {
         guard let token, let optId = optimizationId else { return }
         // Join only the first load. A later call is a refresh and has to hit the server again,
         // otherwise a preview refresh would keep the previous design.
         if !didLoadInitialAssignment, let assignmentLoad {
             await assignmentLoad.value
-            if didLoadInitialAssignment { return }
+            if didLoadInitialAssignment && !forceRefresh { return }
         }
         let load = Task { @MainActor in
             let result = await self.loadCurrentAssignment(optimizationId: optId, token: token, shouldSyncCategory: true)

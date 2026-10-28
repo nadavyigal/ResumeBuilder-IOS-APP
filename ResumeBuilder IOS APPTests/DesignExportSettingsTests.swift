@@ -70,6 +70,38 @@ final class DesignExportSettingsTests: XCTestCase {
         XCTAssertEqual(settings.customization.spacing, 0.8)
     }
 
+    /// Codex P2 on f817db3: the user saves a new design in the Design tab while
+    /// the first load is still running. The refresh must not keep the old one.
+    func testARefreshDuringTheFirstLoadFetchesTheNewlySavedDesign() async {
+        let service = SuspendedDesignService()
+        let viewModel = DesignViewModel(optimizationId: "opt-1", designService: service)
+        func assignment(_ templateId: String) -> DesignAssignmentDTO {
+            DesignAssignmentDTO(
+                id: "assignment-\(templateId)",
+                optimizationId: "opt-1",
+                template: DesignTemplate(
+                    id: templateId, slug: templateId, name: templateId, description: "",
+                    category: "modern", isPremium: false, thumbnailURL: nil, atsScore: nil
+                ),
+                customization: .object([:])
+            )
+        }
+        let loading = Task { await viewModel.loadCurrentAssignment(token: "tok") }
+        for _ in 0..<50 where service.assignmentCalls == 0 { await Task.yield() }
+        XCTAssertEqual(service.assignmentCalls, 1)
+
+        let refreshing = Task { await viewModel.loadCurrentAssignment(token: "tok", forceRefresh: true) }
+        for _ in 0..<5 { await Task.yield() }
+        service.resume(with: assignment("sidebar-ssr"))
+        await loading.value
+        for _ in 0..<50 where service.assignmentCalls < 2 { await Task.yield() }
+        XCTAssertEqual(service.assignmentCalls, 2, "the refresh fetches again after the first load")
+        service.resume(with: assignment("timeline-ssr"))
+        await refreshing.value
+
+        XCTAssertEqual(viewModel.selectedTemplateId, "timeline-ssr")
+    }
+
     func testExportKeepsATemplateChosenAfterTheSavedDesignLoaded() async {
         let service = SuspendedDesignService()
         let viewModel = DesignViewModel(optimizationId: "opt-1", designService: service)

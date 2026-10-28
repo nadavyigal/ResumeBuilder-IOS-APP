@@ -163,7 +163,7 @@ struct OptimizedResumeView: View {
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {
                 await viewModel.forceReloadSections(appState: appState)
-                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken, forceRefresh: true)
             }
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, newId in
