@@ -1,3 +1,14 @@
+# 2026-10-28: 1.5.6 (35) live
+
+Status: 1.5.6 (35) live on the App Store since 2026-10-26T21:36:26Z. The 2026-10-25 entry below ("final submission pending") is superseded: it was submitted and released.
+Current Phase: Post-release verification of 1.5.6 (35).
+Active Story: P1 fixes on open PRs: #214 export auth (a32fe3c) and #217 consent queue (56d946f), both awaiting exact-head review.
+Last Completed Story: 1.5.6 (35) released.
+Next Recommended Story: confirm the three consumables' App Review state in App Store Connect (not checked this session), then exact-head review of #214 and #217.
+Blockers: public billing stays off; activation needs separate founder authorization on or after 2026-10-31. #217 needs backend #203 merged and its migration applied (named yes) first.
+Last Validation: 2026-10-28: App Store lookup returned 1.5.6, released 2026-10-26T21:36:26Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-10-28
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.
