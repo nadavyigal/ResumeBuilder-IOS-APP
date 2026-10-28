@@ -204,13 +204,15 @@ final class AppState {
 
     func bootstrapAndRefreshSession() async {
         bootstrap()
-        await consentCenter.flushServerRecordIfNeeded()
         await refreshSessionIfNeeded()
         if UserDefaults.standard.bool(forKey: Self.anonymousConversionPendingKey) {
             await convertAnonymousSessionIfNeeded()
         }
         await reconcileLatestOptimization()
         hasBootstrappedSession = true
+        // Best-effort and after the launch gate: a slow consent endpoint must
+        // not hold the spinner (Codex on 18eadd3). It retries on the next send.
+        Task { await consentCenter.flushServerRecordIfNeeded() }
         // A purchase paid but not granted (crash, offline) is re-sent now.
         startStoreKitObservation()
 

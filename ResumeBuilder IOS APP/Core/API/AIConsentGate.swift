@@ -159,9 +159,11 @@ final class AIConsentCenter {
             AnalyticsService.shared.track(.aiConsentShown(source: source))
             presenter.present { [weak self] answer in
                 guard let self else { return }
-                // A sign-out while the sheet was open voids the answer.
-                let agreed = answer && self.generation == askedGeneration
                 Task { @MainActor in
+                    // Checked here, not when the sheet answered: a sign-out
+                    // before this task runs voids the answer too, or the
+                    // cleared consent would be recorded again (Codex on 18eadd3).
+                    let agreed = answer && self.generation == askedGeneration
                     var recorded = store
                     if agreed {
                         store.recordConsent()

@@ -36,6 +36,10 @@ final class GuestConsentCarryOverTests: XCTestCase {
         let center = AIConsentCenter(defaults: defaults, presenter: presenter)
         let appState = AppState(authClient: CarryOverAuthClient(anonymousSession: anonymous, restoredSession: restoredSession), consentCenter: center)
         center.userIdProvider = { [weak appState] in appState?.session?.userId }
+        // AppState wires the real recorder (#217). Without this the fake token
+        // reaches the live /api/v1/ai-consent, gets a 401, and the refresh with
+        // no refresh token signs the test user out.
+        center.serverRecorder = { _ in true }
         self.center = center
         return (appState, presenter)
     }

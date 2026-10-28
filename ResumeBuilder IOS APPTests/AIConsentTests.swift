@@ -307,6 +307,44 @@ final class AIConsentTests: XCTestCase {
         XCTAssertEqual(presenter.presentCount, 0)
     }
 
+    /// Codex P2 on 18eadd3: a sign-out after the sheet answers, but before the
+    /// task that records the answer runs, must not bring the cleared yes back.
+    func testSignOutBeforeTheAnswerIsRecordedDoesNotRestoreConsent() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { nil }
+
+        let result = ResultBox<Bool>()
+        Task { result.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        // Same main-actor turn: the recording task has not started yet.
+        presenter.answerPending(true)
+        center.clearAll()
+
+        guard await waitUntil("the send gets an answer", { result.value != nil }) else { return }
+        XCTAssertEqual(result.value, false)
+        XCTAssertFalse(AIConsentStore(identity: AIConsentStore.guestIdentity, defaults: defaults).hasConsented,
+                       "the guest's cleared consent came back")
+    }
+
+    /// Codex P2 on 18eadd3: the consent record is best-effort. A slow or stalled
+    /// request must not hold the launch spinner.
+    func testLaunchDoesNotWaitForTheConsentRecord() async {
+        let defaults = makeDefaults()
+        let center = AIConsentCenter(defaults: defaults, presenter: StubPresenter(answer: true))
+        center.userIdProvider = { "user-a" }
+        AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        let appState = AppState(authClient: ConsentTestAuthClient(), consentCenter: center)
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        Task { await appState.bootstrapAndRefreshSession() }
+        let launched = await waitUntil("the app finishes launching", { appState.hasBootstrappedSession })
+        recorder.release(false)
+        XCTAssertTrue(launched)
+    }
+
     /// A guest's open sheet answers only for the guest. An account that signs in
     /// while it is open, and sends, is asked for itself (5.1.2(i)).
     func testAGuestAnswerDoesNotAuthorizeAnAccountThatJoinedTheQueue() async {
