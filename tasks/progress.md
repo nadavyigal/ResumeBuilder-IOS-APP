@@ -1,3 +1,14 @@
+# 2026-10-28: Release 1 plan approved
+
+Status: improvement plan approved for Release 1 only; Releases 2 and 3 parked. `docs/superpowers/plans/2026-10-25-resumely-improvement-plan.md`.
+Current Phase: Release 1, trust and export.
+Active Story: show "previous best" as its own label (tracker story 7).
+Last Completed Story: #215 merged (a0764a5); P1 fixes on #203, #214, #217 (2026-10-28).
+Next Recommended Story: web #203 merge, then its migration (named yes), then iOS #217.
+Blockers: #217 needs web #203 merged and its migration applied (separate named yes).
+Last Validation: docs-only change.
+Last Updated: 2026-10-28
+
 # 2026-10-28: 1.5.6 (35) live
 
 Status: 1.5.6 (35) live on the App Store since 2026-10-26T21:36:26Z. The 2026-10-25 entry below ("final submission pending") is superseded: it was submitted and released.
