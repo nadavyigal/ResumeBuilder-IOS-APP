@@ -273,6 +273,8 @@ final class AIConsentTests: XCTestCase {
 
         guard await waitUntil("user-a's send gets an answer", { first.value != nil }) else { return }
         XCTAssertEqual(first.value, false)
+        XCTAssertNil(defaults.object(forKey: AIConsentStore.serverKey(for: "user-a")),
+                     "a record that finished after sign-out must not mark user-a as recorded")
         guard await waitUntil("user-b gets its own sheet", { !presenter.pending.isEmpty }) else { return }
         XCTAssertNil(second.value)
         XCTAssertEqual(presenter.presentCount, 2)

@@ -135,7 +135,10 @@ final class AIConsentCenter {
 
     private func flushServerRecord(for store: AIConsentStore) async {
         guard store.needsServerRecord, let serverRecorder else { return }
-        if await serverRecorder(store) {
+        let askedGeneration = generation
+        // A sign-out during the request wiped this store. Marking it recorded
+        // now would stop that identity's next yes from reaching the server.
+        if await serverRecorder(store), generation == askedGeneration {
             store.markServerRecorded()
         }
     }

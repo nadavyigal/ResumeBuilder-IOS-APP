@@ -3,7 +3,7 @@
 Status: draft PR, not merged. Branch `feat/ai-consent-record` from main e7a5e36.
 The phone reports a grant to `POST /api/v1/ai-consent` once the user has an account or anonymous session. The privacy manifest lists the collected data types. AI calls are not blocked when the server record is missing.
 Last Validation: 585 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
-2026-10-28: Codex P1 fixed in 56d946f. Each queued send keeps its identity and generation; after the server record the answer is checked again, and a send from another identity is asked for its own answer. Last Validation: two new regressions fail on the old gate and pass now; full suite 587 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Open P2 follow-up: bind the record retry to the consenting identity. Blocker: backend #203 must merge and be applied first. Last Updated: 2026-10-28.
+2026-10-28: Codex P1 fixed in 56d946f. Each queued send keeps its identity and generation; after the server record the answer is checked again, and a send from another identity is asked for its own answer. Last Validation: two new regressions fail on the old gate and pass now; full suite 587 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Sonnet P2 fixed in the next commit: a record that returns after sign-out no longer marks the identity recorded (new assertion fails without it). Open P2 follow-up: bind the record retry to the consenting identity. Blocker: backend #203 must merge and be applied first. Last Updated: 2026-10-28.
 
 # 2026-10-25: Prepare release 1.5.6 (35)
 
