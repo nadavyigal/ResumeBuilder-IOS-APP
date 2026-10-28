@@ -196,10 +196,12 @@ final class OptimizedResumeJourneyTests: XCTestCase {
 
     func testStatusLabelReadsTheSameNumberAsTheHeadline() {
         // It used to compute its own `after ?? before`, so the badge could
-        // disagree with the ring on the same screen.
-        let vm = model(before: 29, after: 48, expert: 40)
+        // disagree with the ring on the same screen. 80 then 40 crosses every
+        // band, so a badge still reading the floor would say "High" (Sonnet on #222).
+        let vm = model(before: 29, after: 80, expert: 40)
         XCTAssertEqual(vm.currentATSScore, 40)
         XCTAssertEqual(vm.atsStatusLabel, "Low")
+        XCTAssertEqual(vm.previousBestATSScore, 80)
     }
 
     func testThereIsNoPreviousBestWhileTheScoreClimbs() {

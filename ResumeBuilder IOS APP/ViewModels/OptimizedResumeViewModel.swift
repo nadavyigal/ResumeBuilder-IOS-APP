@@ -178,7 +178,7 @@ final class OptimizedResumeViewModel {
     }
 
     var atsStatusLabel: String {
-        let score = fitJourney.currentDisplayedScore ?? 0
+        let score = currentATSScore
         if score >= 80 { return "High" }
         if score >= 70 { return "Strong" }
         if score >= 55 { return "Medium" }
@@ -747,7 +747,9 @@ final class OptimizedResumeViewModel {
         defer { isRefreshingATS = false }
 
         do {
-            let previouslyShown = currentATSScore
+            // The best the user has seen, not the current measurement, so the
+            // regression signal keeps its meaning (Sonnet on #222).
+            let previouslyShown = fitJourney.currentDisplayedScore ?? 0
             let response = try await analysisService.rescan(optimizationId: optId, token: token)
 
             // The baseline is NOT updated here, and this is deliberate.
