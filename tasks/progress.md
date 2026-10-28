@@ -1,3 +1,10 @@
+# 2026-10-25: Score floor stays on its own job
+
+Status: draft PR open, not merged. Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
+Change: the free-check floor no longer carries a higher score from a different job onto the next one. Re-checking the same job, and later stages of that job, still hold the higher number.
+Last Validation: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
+2026-10-28: Sonnet P2 fixed: carryForward now takes the current job, so optimizing job B without a fresh check does not inherit job A's floor; an unmatched key drops the floor (the real score shows). Founder approved merge (show "previous best" as a separate label is the next story). Last Validation: full suite 586 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Follow-ups (P2/P3): normalize the job key (whitespace, URL host case, trailing slash); hash the text key; tests for URL-then-pasted and nil-key paths. Last Updated: 2026-10-28.
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.
