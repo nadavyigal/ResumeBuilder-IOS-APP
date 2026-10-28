@@ -39,6 +39,11 @@ final class FitBaselineStore {
         return nil
     }
 
+    /// The job identity for what the user has entered on the Tailor screen.
+    static func jobKey(for evaluation: JobInputPolicy.Evaluation) -> String? {
+        jobKey(url: evaluation.normalizedURL, description: evaluation.normalizedDescription)
+    }
+
     /// Record the verdict score from a free match check, keyed by resume.
     func record(score: Int, resumeID: String?, jobKey: String? = nil) {
         record(score: score, key: resumeID, jobKey: jobKey)
@@ -69,8 +74,13 @@ final class FitBaselineStore {
     /// the floor was recorded and then never found — present in the code and
     /// inert in the shipping path. The job identity travels with the score, so
     /// a later posting cannot overwrite an optimization that already has one.
-    func carryForward(from oldKey: String?, to newKey: String?) {
+    ///
+    /// `currentJobKey` is the posting being optimized now. A floor recorded for
+    /// another posting stays behind, so optimizing job B without a fresh check
+    /// cannot inherit job A's score.
+    func carryForward(from oldKey: String?, to newKey: String?, currentJobKey: String? = nil) {
         guard let oldKey, let existing = scoresByKey[oldKey] else { return }
+        if let currentJobKey, let recordedJob = existing.jobKey, recordedJob != currentJobKey { return }
         record(score: existing.score, key: newKey, jobKey: existing.jobKey)
     }
 
