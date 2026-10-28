@@ -191,12 +191,10 @@ struct ResumePreviewWebView: View {
         errorMessage = nil
         defer { isLoading = false }
         do {
-            let request = RenderPreviewRequest(
+            let request = StyledResumeHTML.request(
                 optimizationId: optimizationId,
-                templateId: templateId ?? "ats-clean",
-                customization: customization ?? .default,
-                resumeData: nil,
-                locale: LocalizationManager.shared.language.rawValue
+                templateId: templateId,
+                customization: customization
             )
             let response = try await designService.renderPreview(request, token: token)
             #if DEBUG
@@ -206,17 +204,9 @@ struct ResumePreviewWebView: View {
                 #if DEBUG
                 print("✅ [PREVIEW] using rendered HTML")
                 #endif
-                // Ensure RTL output for Hebrew résumés even if the backend ignored
-                // the locale hint. Direction is decided from the résumé content so
-                // an English résumé is never forced RTL.
-                // When sections are empty, detect direction from the rendered text
-                // only — strip tags first so Latin tag/attribute names don't skew it.
-                let plainPreviewText = previewHTML.replacingOccurrences(
-                    of: "<[^>]+>", with: " ", options: .regularExpression
+                let finalHTML = StyledResumeHTML.applyingDirection(
+                    to: previewHTML, sections: sections, contact: contact
                 )
-                let rtl = ResumeTextDirection.isRTL(sections: sections, contact: contact)
-                    || (sections.isEmpty && ResumeTextDirection.isRTLText(plainPreviewText))
-                let finalHTML = ResumeHTMLDirection.applyRTLIfNeeded(to: previewHTML, isRTL: rtl)
                 html = finalHTML
                 renderedHTML.wrappedValue = finalHTML
                 PreviewHTMLCache.store(finalHTML, for: key)

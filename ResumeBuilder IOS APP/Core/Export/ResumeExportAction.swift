@@ -18,6 +18,10 @@ enum ResumeExportAction {
         viewModel: OptimizedResumeViewModel,
         appState: AppState,
         renderedHTML: String? = nil,
+        /// Fetches the styled HTML when the preview hasn't produced it yet; nil means none available.
+        loadStyledHTML: (@MainActor () async throws -> String?)? = nil,
+        /// Whether the user had a session when they tapped export. See `authorizeExport`.
+        beganSignedIn: Bool = false,
         analytics: AnalyticsService = .shared,
         unlockService: ExportUnlockService = ExportUnlockService()
     ) async throws -> Result {
@@ -30,23 +34,30 @@ enum ResumeExportAction {
             // The server decides first (StoreKit spec 6.4): no file is made, styled
             // or local, for an export it refused. A 402 reaches the caller as
             // ExportCreditsError.creditsRequired and opens the paywall.
-            try await appState.authorizeExport(optimizationId: optimizationId, service: unlockService)
-            let url: URL
-            if let html = renderedHTML {
-                // Generate PDF from the already-rendered styled HTML so the exported
-                // PDF matches the design template the user applied in the Design tab.
-                do {
-                    let styledURL = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
-                    try PDFDownloadValidator.validatePDF(at: styledURL)
-                    url = styledURL
-                } catch {
-                    styledHTMLFailureCode = ExportFailureCode.code(for: error)
-                    url = try await viewModel.downloadPDF(appState: appState)
+            try await appState.authorizeExport(optimizationId: optimizationId, beganSignedIn: beganSignedIn, service: unlockService)
+            // The styled PDF matches the design the user picked; the server download
+            // can come back as a plain layout, so it is only the last fallback.
+            var styledURL: URL?
+            var pdfPath = PDFPath.server
+            do {
+                if let html = renderedHTML {
+                    pdfPath = .styledPreview
+                    styledURL = try await renderStyledPDF(html: html, optimizationId: optimizationId)
+                } else if let loadStyledHTML, let html = try await loadStyledHTML() {
+                    pdfPath = .styledFetched
+                    styledURL = try await renderStyledPDF(html: html, optimizationId: optimizationId)
                 }
+            } catch {
+                styledHTMLFailureCode = ExportFailureCode.code(for: error)
+                pdfPath = .server
+            }
+            let url: URL
+            if let styledURL {
+                url = styledURL
             } else {
                 url = try await viewModel.downloadPDF(appState: appState)
+                try PDFDownloadValidator.validatePDF(at: url)
             }
-            try PDFDownloadValidator.validatePDF(at: url)
 
             // Whatever the user already generated ships with the résumé. Assembly runs
             // after validation and can only add files, so it cannot fail the export.
@@ -69,7 +80,8 @@ enum ResumeExportAction {
             analytics.track(.exportSuccess(
                 optimizationId: optimizationId,
                 hasCoverLetter: package.includedCoverLetter,
-                hasScreeningAnswers: package.includedScreeningAnswers
+                hasScreeningAnswers: package.includedScreeningAnswers,
+                pdfPath: pdfPath.rawValue
             ))
             return Result(
                 fileURL: url,
@@ -85,6 +97,19 @@ enum ResumeExportAction {
             analytics.track(.exportFailed(optimizationId: optimizationId, errorCode: code))
             throw error
         }
+    }
+
+    enum PDFPath: String {
+        case styledPreview = "styled_preview"
+        case styledFetched = "styled_fetched"
+        case server
+    }
+
+    @MainActor
+    private static func renderStyledPDF(html: String, optimizationId: String) async throws -> URL {
+        let url = try await HTMLPDFExporter.exportPDF(html: html, optimizationId: optimizationId)
+        try PDFDownloadValidator.validatePDF(at: url)
+        return url
     }
 }
 

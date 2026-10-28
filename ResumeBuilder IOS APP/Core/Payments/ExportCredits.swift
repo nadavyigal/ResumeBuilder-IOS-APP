@@ -71,9 +71,20 @@ extension AppState {
     /// only when the server's gate applies. Guests with no session skip it: the
     /// server cannot identify them, so it has nothing to charge, and their export
     /// path is the local copy of what is already on screen (spec section 3, E6).
+    ///
+    /// `beganSignedIn`: the export started with a session. If that session is gone
+    /// now (a rejected token refresh signs out), this is not a guest export: stop
+    /// instead of skipping the unlock (Codex P1 on #214).
     @MainActor
-    func authorizeExport(optimizationId: String, service: ExportUnlockService = ExportUnlockService()) async throws {
-        guard session != nil else { return }
+    func authorizeExport(
+        optimizationId: String,
+        beganSignedIn: Bool = false,
+        service: ExportUnlockService = ExportUnlockService()
+    ) async throws {
+        guard session != nil else {
+            if beganSignedIn { throw APIClientError.unauthorized }
+            return
+        }
         let response = try await callWithFreshToken { token in
             try await service.unlock(optimizationId: optimizationId, token: token)
         }

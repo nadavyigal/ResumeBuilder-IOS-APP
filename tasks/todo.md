@@ -1,3 +1,21 @@
+# 2026-10-25: Keep the chosen design when exporting before the preview loads
+
+As a user who taps Export on the Optimized tab before the styled preview has finished loading, I want my PDF to keep the template I chose instead of a plain server layout.
+
+Evidence: PostHog, last 120 days. All 21 `export_success` events from `/api/download` report `renderer=jspdf` (the plain last-resort renderer); 19 of the 21 come from people who also export on iOS. iOS uses its styled on-device export only when `renderedPreviewHTML` is already set.
+
+- [x] Shared `StyledResumeHTML` helper: one render-preview request and RTL direction rule, used by the preview and by export so the two cannot drift.
+- [x] `ResumeExportAction.exportPDF`: when no preview HTML is loaded, fetch the styled HTML and render on-device; `/api/download` stays the last fallback.
+- [x] `export_success` gains a bounded `pdf_path` (`styled_preview` / `styled_fetched` / `server`) so the share of plain exports is measurable.
+- [x] Tests: fetched-HTML export makes no `/api/download` request; analytics property; RTL helper for Hebrew, English and tag-only text.
+- [x] Simulator build, targeted tests, full suite; draft PR.
+
+Review: 46 targeted tests pass (two render a real on-device PDF from fetched HTML). Full suite: 591 XCTest cases (one skipped, zero failures) plus five Swift Testing cases, iPhone 17 simulator. Not covered by an automated test: the fetch-fails-then-server path, because `/api/download` goes through the app's shared API client.
+
+Codex review, one finding: an early Export tap read the template before the saved design finished loading, so the PDF could be the default template. Export now waits for that load. A regression suspends the load, starts the export read, then returns a non-default template and customization.
+
+Source scope: new `Core/Export/StyledResumeHTML.swift`, `ResumeExportAction.swift`, `OptimizedResumeView.swift` (pass the loader), `ResumePreviewWebView.swift` (use the shared helper), `AnalyticsService.swift`, tests. Not in scope: History, Track, Submit Package and `ResumePreviewExportView` export paths (follow-up story; some skip the credit gate today), and the backend jsPDF fallback.
+
 # 2026-10-25: A different job does not keep the previous job's score floor
 
 As a user who checks a second job with the same resume, I want the score I see to be that job's score. A high score on an earlier job must not raise it.
