@@ -96,7 +96,16 @@ final class AIConsentCenter {
     var userIdProvider: @MainActor () -> String? = { nil }
     var presenter: any AIConsentPresenting
     private let defaults: UserDefaults
-    private var waiting: [CheckedContinuation<Bool, Never>] = []
+    /// A send waiting on the open sheet, with the identity and generation it was
+    /// asked for. The answer only goes to waiters it belongs to (Codex on #217).
+    private struct Waiter {
+        let identity: String
+        let generation: Int
+        let source: String
+        let continuation: CheckedContinuation<Bool, Never>
+    }
+    private var waiting: [Waiter] = []
+    private var sheetIsOpen = false
     /// Bumped by `clearAll`. A sheet that was open across a sign-out may still
     /// be answered; its yes must not be recorded for the identity that left.
     private var generation = 0
@@ -139,17 +148,18 @@ final class AIConsentCenter {
         }
         let askedGeneration = generation
         return await withCheckedContinuation { continuation in
-            waiting.append(continuation)
-            guard waiting.count == 1 else { return }
+            waiting.append(Waiter(identity: store.identity, generation: askedGeneration, source: source, continuation: continuation))
+            guard !sheetIsOpen else { return }
+            sheetIsOpen = true
             AnalyticsService.shared.track(.aiConsentShown(source: source))
             presenter.present { [weak self] answer in
                 guard let self else { return }
                 // A sign-out while the sheet was open voids the answer.
                 let agreed = answer && self.generation == askedGeneration
                 Task { @MainActor in
+                    var recorded = store
                     if agreed {
                         store.recordConsent()
-                        var recorded = store
                         if store.identity == AIConsentStore.guestIdentity,
                            let successor = self.anonymousSuccessor {
                             AIConsentStore.carryGuestConsent(to: successor, defaults: self.defaults)
@@ -160,9 +170,25 @@ final class AIConsentCenter {
                     } else {
                         AnalyticsService.shared.track(.aiConsentDeclined(source: source))
                     }
+                    // Check again after the await: a sign-out during the server
+                    // record also voids the answer.
+                    let stillAgreed = agreed && self.generation == askedGeneration
+                    self.sheetIsOpen = false
                     let resumed = self.waiting
                     self.waiting = []
-                    resumed.forEach { $0.resume(returning: agreed) }
+                    for waiter in resumed {
+                        let belongs = waiter.generation == askedGeneration
+                            && (waiter.identity == store.identity || waiter.identity == recorded.identity)
+                        if belongs {
+                            waiter.continuation.resume(returning: stillAgreed)
+                        } else {
+                            // Joined for another identity while this sheet was open:
+                            // ask for that identity's own answer.
+                            Task { @MainActor in
+                                waiter.continuation.resume(returning: await self.ensureConsent(source: waiter.source))
+                            }
+                        }
+                    }
                 }
             }
         }

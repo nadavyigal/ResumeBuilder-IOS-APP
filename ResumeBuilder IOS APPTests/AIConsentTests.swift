@@ -247,6 +247,71 @@ final class AIConsentTests: XCTestCase {
         XCTAssertTrue(center.hasConsented)
     }
 
+    /// Codex on #217 (P1): a sign-out while the server record is in flight must
+    /// not let the next identity's send ride on the old yes.
+    func testSignOutDuringServerRecordDoesNotAuthorizeTheNextIdentity() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId = "user-a"
+        center.userIdProvider = { userId }
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let first = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        presenter.answerPending(true)
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+
+        center.clearAll()
+        userId = "user-b"
+        let second = ResultBox<Bool>()
+        Task { second.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        recorder.release(true)
+
+        guard await waitUntil("user-a's send gets an answer", { first.value != nil }) else { return }
+        XCTAssertEqual(first.value, false)
+        guard await waitUntil("user-b gets its own sheet", { !presenter.pending.isEmpty }) else { return }
+        XCTAssertNil(second.value)
+        XCTAssertEqual(presenter.presentCount, 2)
+        presenter.answerPending(false)
+
+        guard await waitUntil("user-b's send gets an answer", { second.value != nil }) else { return }
+        XCTAssertEqual(second.value, false)
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
+    }
+
+    /// A guest's open sheet answers only for the guest. An account that signs in
+    /// while it is open, and sends, is asked for itself (5.1.2(i)).
+    func testAGuestAnswerDoesNotAuthorizeAnAccountThatJoinedTheQueue() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId: String? = nil
+        center.userIdProvider = { userId }
+
+        let guest = ResultBox<Bool>()
+        Task { guest.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        userId = "user-b"
+        let account = ResultBox<Bool>()
+        Task { account.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        presenter.answerPending(true)
+
+        guard await waitUntil("the guest's send gets an answer", { guest.value != nil }) else { return }
+        XCTAssertEqual(guest.value, true)
+        guard await waitUntil("the account gets its own sheet", { !presenter.pending.isEmpty }) else { return }
+        XCTAssertNil(account.value)
+        presenter.answerPending(false)
+
+        guard await waitUntil("the account's send gets an answer", { account.value != nil }) else { return }
+        XCTAssertEqual(account.value, false)
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
+    }
+
     /// CodeRabbit on b4169f5: two quick taps on "Check my fit" must start one
     /// check, not two.
     func testCheckStartLatchLetsOneStartThrough() {
@@ -526,6 +591,22 @@ final class AIConsentTests: XCTestCase {
 @MainActor
 private final class ResultBox<Value> {
     var value: Value?
+}
+
+/// A server recorder that stays suspended until `release` is called.
+@MainActor
+private final class SuspendedRecorder {
+    private var continuation: CheckedContinuation<Bool, Never>?
+    var isWaiting: Bool { continuation != nil }
+
+    func wait() async -> Bool {
+        await withCheckedContinuation { continuation = $0 }
+    }
+
+    func release(_ recorded: Bool) {
+        continuation?.resume(returning: recorded)
+        continuation = nil
+    }
 }
 
 @MainActor
