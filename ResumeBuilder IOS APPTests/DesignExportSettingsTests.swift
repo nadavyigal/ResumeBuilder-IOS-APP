@@ -64,10 +64,10 @@ final class DesignExportSettingsTests: XCTestCase {
 
         let settings = await exporting.value
         await loading.value
-        XCTAssertEqual(settings.templateId, "sidebar-ssr")
-        XCTAssertEqual(settings.customization.accentColor, "112233")
-        XCTAssertEqual(settings.customization.fontStyle, "classic")
-        XCTAssertEqual(settings.customization.spacing, 0.8)
+        XCTAssertEqual(settings?.templateId, "sidebar-ssr")
+        XCTAssertEqual(settings?.customization.accentColor, "112233")
+        XCTAssertEqual(settings?.customization.fontStyle, "classic")
+        XCTAssertEqual(settings?.customization.spacing, 0.8)
     }
 
     /// Codex P2 on f817db3: the user saves a new design in the Design tab while
@@ -128,7 +128,7 @@ final class DesignExportSettingsTests: XCTestCase {
 
         viewModel.selectTemplate("ats-clean")
         let settings = await viewModel.exportDesignSettings(token: "tok")
-        XCTAssertEqual(settings.templateId, "ats-clean")
+        XCTAssertEqual(settings?.templateId, "ats-clean")
         XCTAssertEqual(service.assignmentCalls, 1, "a finished load is not fetched again")
     }
 
@@ -140,7 +140,53 @@ final class DesignExportSettingsTests: XCTestCase {
 
         XCTAssertEqual(service.calls, 2)
         XCTAssertEqual(service.tokens, ["stale", "fresh"])
-        XCTAssertEqual(settings.templateId, "sidebar-ssr")
+        XCTAssertEqual(settings?.templateId, "sidebar-ssr")
+    }
+
+    /// Codex P1 on d77b6a4: a guest has no session. Refreshing would sign them
+    /// out (no refresh token) and wipe their local progress, so do not refresh.
+    func testAGuestExportDoesNotRefreshTheSession() async {
+        let service = SuspendedDesignService()
+        let viewModel = DesignViewModel(optimizationId: "opt-1", designService: service)
+        var refreshed = false
+
+        _ = await viewModel.exportDesignSettings(token: nil) {
+            refreshed = true
+            return nil
+        }
+
+        XCTAssertFalse(refreshed, "a sessionless export must not call the token refresh")
+        XCTAssertEqual(service.assignmentCalls, 0)
+    }
+
+    /// Codex P2 on d77b6a4: when the saved design cannot be read, export gets
+    /// no settings rather than the default template posing as the chosen one.
+    func testAFailedSavedDesignReadGivesNoSettings() async {
+        let service = AlwaysFailingDesignService()
+        let viewModel = DesignViewModel(optimizationId: "opt-1", designService: service)
+
+        let settings: (templateId: String?, customization: DesignCustomization)? =
+            await viewModel.exportDesignSettings(token: "tok") { "fresh" }
+
+        XCTAssertNil(settings, "an unavailable saved design is not the default design")
+        XCTAssertEqual(service.calls, 2, "it still retries once with a fresh token")
+    }
+}
+
+private final class AlwaysFailingDesignService: ResumeDesignServiceProtocol, @unchecked Sendable {
+    private(set) var calls = 0
+
+    func currentAssignment(optimizationId: String, token: String) async throws -> DesignAssignmentDTO? {
+        calls += 1
+        throw APIClientError.serverError(status: 500, message: "unavailable")
+    }
+
+    func templates(category: String, token: String) async throws -> [DesignTemplate] { [] }
+    func renderPreview(_ request: RenderPreviewRequest, token: String) async throws -> RenderPreviewResponse {
+        RenderPreviewResponse(success: true, previewHTML: nil, error: nil)
+    }
+    func applyCustomization(optimizationId: String, templateId: String, customization: DesignCustomization, token: String) async throws -> Bool {
+        true
     }
 }
 

@@ -1157,29 +1157,34 @@ struct OptimizedResumeView: View {
         // The saved design loads in the background. Read it after that load, not before.
         let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken) {
             await appState.refreshAccessToken()
-        }
-        let templateId = settings?.templateId
-        let customization = settings?.customization
+        } ?? nil
         let sections = viewModel.sections
         let contact = viewModel.contact
+        // No settings means the saved design could not be read. Do not fetch a
+        // styled page for the default template as if it were the user's choice;
+        // use the loaded preview or the server PDF instead.
+        var loadStyledHTML: (@MainActor () async throws -> String?)?
+        if let settings {
+            loadStyledHTML = { [appState] in
+                try await appState.callWithFreshToken { token in
+                    try await StyledResumeHTML.fetch(
+                        optimizationId: optimizationId,
+                        templateId: settings.templateId,
+                        customization: settings.customization,
+                        sections: sections,
+                        contact: contact,
+                        token: token,
+                        service: RuntimeServices.resumeDesignService()
+                    )
+                }
+            }
+        }
         do {
             let result = try await ResumeExportAction.exportPDF(
                 viewModel: viewModel,
                 appState: appState,
                 renderedHTML: renderedPreviewHTML,
-                loadStyledHTML: { [appState] in
-                    try await appState.callWithFreshToken { token in
-                        try await StyledResumeHTML.fetch(
-                            optimizationId: optimizationId,
-                            templateId: templateId,
-                            customization: customization,
-                            sections: sections,
-                            contact: contact,
-                            token: token,
-                            service: RuntimeServices.resumeDesignService()
-                        )
-                    }
-                },
+                loadStyledHTML: loadStyledHTML,
                 beganSignedIn: beganSignedIn
             )
             pdfTempURL = result.fileURL

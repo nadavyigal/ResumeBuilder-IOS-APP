@@ -123,13 +123,19 @@ final class DesignViewModel {
     func exportDesignSettings(
         token: String?,
         refreshedToken: @MainActor () async -> String? = { nil }
-    ) async -> (templateId: String?, customization: DesignCustomization) {
+    ) async -> (templateId: String?, customization: DesignCustomization)? {
         if !didLoadInitialAssignment {
             await loadCurrentAssignment(token: token)
         }
-        if !didLoadInitialAssignment {
+        // Retry only a session whose token was rejected. A guest has no token,
+        // and refreshing without a session signs out and clears their local
+        // progress (Codex P1 on d77b6a4).
+        if !didLoadInitialAssignment, token != nil {
             await loadCurrentAssignment(token: await refreshedToken())
         }
+        // A saved design that could not be read is not "no saved design":
+        // return nothing instead of the default template (Codex P2 on d77b6a4).
+        guard didLoadInitialAssignment else { return nil }
         return (selectedTemplateId, customization)
     }
 
