@@ -204,6 +204,32 @@ final class OptimizedResumeJourneyTests: XCTestCase {
         XCTAssertEqual(vm.previousBestATSScore, 80)
     }
 
+    /// Codex on fc5b0fb: a rescan that replaces a stage's score must not lose
+    /// the higher number the user already saw at that stage.
+    func testARescanThatReplacesAStageKeepsTheEarlierBest() {
+        let vm = model(before: 29, after: 80)
+        vm.atsScoreAfter = 40
+        XCTAssertEqual(vm.currentATSScore, 40)
+        XCTAssertEqual(vm.previousBestATSScore, 80)
+    }
+
+    /// Codex on fc5b0fb: after an expert pass, a manual edit's rescan is the
+    /// latest measurement and becomes the headline.
+    func testAnEditAfterAnExpertPassShowsTheNewMeasurement() async {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-test",
+            atsScoreBefore: 29,
+            atsScoreAfter: 60,
+            analysisService: JourneyRescanStub(original: 29, optimized: 40)
+        )
+        vm.atsScoreAfterExpert = 82
+
+        await vm.rescanATS(token: "tok")
+
+        XCTAssertEqual(vm.currentATSScore, 40)
+        XCTAssertEqual(vm.previousBestATSScore, 82)
+    }
+
     func testThereIsNoPreviousBestWhileTheScoreClimbs() {
         XCTAssertNil(model(before: 29, after: nil).previousBestATSScore)
         XCTAssertNil(model(before: 29, after: 48).previousBestATSScore)
@@ -492,5 +518,20 @@ final class ExpertStageAttributionTests: XCTestCase {
         XCTAssertEqual(vm.currentATSScore, 40)
         XCTAssertEqual(vm.previousBestATSScore, 48)
         XCTAssertEqual(vm.atsScoreAfterExpert, 40, "the raw measurement is still recorded")
+    }
+}
+
+/// Answers every rescan with fixed original and optimized scores.
+private struct JourneyRescanStub: ResumeAnalysisServiceProtocol {
+    let original: Int
+    let optimized: Int
+
+    func score(resumeId: String, jobDescription: String, token: String) async throws -> ResumeAnalysis {
+        ResumeAnalysis(overall: 0, ats: 0, content: 0, design: 0, missingKeywords: [])
+    }
+    func improvements(resumeId: String, jobDescription: String, token: String) async throws -> [ResumeImprovement] { [] }
+    func rescan(optimizationId: String, token: String) async throws -> ATSRescanResponse {
+        let json = #"{"success":true,"scores":{"original":\#(original),"optimized":\#(optimized)}}"#
+        return try JSONDecoder().decode(ATSRescanResponse.self, from: Data(json.utf8))
     }
 }
