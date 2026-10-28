@@ -5,6 +5,7 @@ Change: the Optimized tab export now fetches the styled design HTML and renders 
 Evidence for the change: all 21 server `export_success` events in 120 days used the plain jsPDF renderer.
 Last Validation: 593 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator. Export waits for the saved design to load before choosing a template.
 Next Recommended Story: route History, Track, Submit Package and preview-screen exports through the same styled path, keeping the credit gate.
+2026-10-28: Codex P1 fixed in a32fe3c. An export that began signed in and lost its session in the design-load refresh now stops (unauthorized), with no PDF and no export_success; a real guest still exports locally. Last Validation: full suite 596 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Open P2 follow-ups from CodeRabbit: failed preview render never tries a fresh styled fetch; cached preview not cleared on template change; failed assignment reads return default settings. Last Updated: 2026-10-28.
 
 # 2026-10-25: Prepare release 1.5.6 (35)
 
