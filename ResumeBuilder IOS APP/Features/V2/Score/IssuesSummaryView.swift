@@ -95,7 +95,7 @@ struct IssuesSummaryView: View {
             result.append(IssuePanel(
                 kind: .formatting,
                 title: "Format risk",
-                subtitle: "ATS parsing safeguards & readable structure.",
+                subtitle: "Readable structure, simple to parse.",
                 tint: Color.orange.opacity(0.95),
                 suggestions: format
             ))

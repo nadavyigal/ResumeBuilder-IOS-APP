@@ -1712,23 +1712,12 @@
         }
       }
     },
-    "ATS match" : {
-      "extractionState" : "stale",
+    "Readable structure, simple to parse." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "התאמת ATS"
-          }
-        }
-      }
-    },
-    "ATS parsing safeguards & readable structure." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הגנות פענוח ATS ומבנה קריא."
+            "value" : "מבנה קריא, פשוט לפענוח."
           }
         }
       }
@@ -1872,17 +1861,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "לפני:"
-          }
-        }
-      }
-    },
-    "Best ATS" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ATS מיטבי"
           }
         }
       }
@@ -2088,17 +2066,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "בדוק את האימייל כדי לאשר את החשבון, ואז התחבר."
-          }
-        }
-      }
-    },
-    "Checking ATS signals before you sign in." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "בודק אותות ATS לפני שתתחבר."
           }
         }
       }
@@ -3330,12 +3297,12 @@
         }
       }
     },
-    "Estimated fit vs this job — Resumely's guidance, not an employer ATS score. No optimization credit used." : {
+    "Resumely Match Score: an estimate of fit for this job, not an employer's score. No optimization credit used." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אומדן התאמה למשרה זו — הנחיה של Resumely, לא ציון ATS של מעסיק. לא מנוכה קרדיט אופטימיזציה."
+            "value" : "ציון ההתאמה של Resumely: אומדן התאמה למשרה זו, לא ציון של מעסיק. לא מנוכה קרדיט אופטימיזציה."
           }
         }
       }
@@ -9645,12 +9612,12 @@
         }
       }
     },
-    "Traditional · ATS-Safe" : {
+    "Traditional · Simple layout" : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "מסורתי · עמיד ב-ATS"
+            "value" : "מסורתי · פריסה פשוטה"
           }
         }
       }

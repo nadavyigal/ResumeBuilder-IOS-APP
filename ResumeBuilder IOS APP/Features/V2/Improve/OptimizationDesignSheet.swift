@@ -158,7 +158,7 @@ struct OptimizationDesignSheet: View {
                     Text(template.name)
                         .font(.appSubheadline)
                         .foregroundStyle(AppColors.textPrimary)
-                    Text(categoryLabel(for: template.category))
+                    Text(Self.categoryLabel(for: template.category))
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                 }
@@ -354,9 +354,9 @@ struct OptimizationDesignSheet: View {
         }
     }
 
-    private func categoryLabel(for slug: String) -> String {
+    static func categoryLabel(for slug: String) -> String {
         switch slug.lowercased() {
-        case "traditional", "ats_safe", "ats-safe": return NSLocalizedString("Traditional · ATS-Safe", comment: "")
+        case "traditional", "ats_safe", "ats-safe": return NSLocalizedString("Traditional · Simple layout", comment: "")
         case "modern":    return NSLocalizedString("Modern", comment: "")
         case "creative":  return NSLocalizedString("Creative", comment: "")
         case "corporate": return NSLocalizedString("Corporate", comment: "")
