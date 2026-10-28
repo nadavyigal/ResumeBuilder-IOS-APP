@@ -1,3 +1,12 @@
+# 2026-10-28: Previous best as its own label (Release 1, story 7)
+
+Status: draft PR open, not merged. Branch `feat/previous-best-label` from main 5e0bb58.
+Change: the Optimized match score now shows what the resume measures now. When an earlier score for the same job was higher, a "Previous best: N" line (Hebrew "הציון הטוב הקודם: N") appears under the status text. This supersedes the display half of the 2026-07-26 never-decrease rule; the floored value stays in `FitJourney.currentDisplayedScore` for diagnostics.
+Last Validation: score tests red on the floored headline, green after; full suite 592 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). English and Hebrew card rendered in the simulator test host (64 with previous best 72).
+Next Recommended Story: Release 1 story 8, remove ATS claims from copy and App Store screenshots.
+Blockers: none.
+Last Updated: 2026-10-28
+
 # 2026-10-28: Release 1 plan approved
 
 Status: improvement plan approved for Release 1 only; Releases 2 and 3 parked. `docs/superpowers/plans/2026-10-25-resumely-improvement-plan.md`.

@@ -237,9 +237,19 @@ final class OptimizedResumeViewModel {
     /// The stage the user has reached, for labelling the score they can see.
     var currentFitStage: FitStage? { fitJourney.currentStage }
 
-    /// The number to show right now. Never below anything already shown.
+    /// The number to show right now: what this resume measures for this job.
+    /// A higher earlier score is `previousBestATSScore`, shown as its own label.
     var currentATSScore: Int {
-        fitJourney.currentDisplayedScore ?? 0
+        fitJourney.currentMeasuredScore ?? 0
+    }
+
+    /// A higher score the user saw earlier for this job, or nil.
+    var previousBestATSScore: Int? { fitJourney.previousBest }
+
+    /// "Previous best: 72", or nil when the current score is the best so far.
+    var previousBestLabel: String? {
+        guard let best = previousBestATSScore else { return nil }
+        return String(format: NSLocalizedString("Previous best: %lld", comment: "Below the match score when an earlier score was higher"), best)
     }
 
     /// Where the resume started, for the "you were here" end of the journey.

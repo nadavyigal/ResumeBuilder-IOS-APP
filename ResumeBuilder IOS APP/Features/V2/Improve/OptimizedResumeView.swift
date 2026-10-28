@@ -466,6 +466,12 @@ struct OptimizedResumeView: View {
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let previousBest = viewModel.previousBestLabel {
+                        Text(previousBest)
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer(minLength: AppSpacing.sm)
