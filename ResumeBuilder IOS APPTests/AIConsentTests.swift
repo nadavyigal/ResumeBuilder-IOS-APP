@@ -409,6 +409,50 @@ final class AIConsentTests: XCTestCase {
         XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
     }
 
+    /// Codex P2 on 6a2347b: A's record was in flight when A signed out and B
+    /// signed in, then it came back 401. The retry must not refresh B's token
+    /// and store A's yes as B's (5.1.2(i)).
+    func testARecordRetryIsNotSentUnderTheNextAccount() async {
+        let defaults = makeDefaults()
+        let center = AIConsentCenter(defaults: defaults, presenter: StubPresenter(answer: true))
+        AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        let appState = AppState(
+            authClient: ConsentTestAuthClient(refreshed: Self.session("user-b", token: "token-b-fresh")),
+            consentCenter: center,
+            apiClient: makeClient(gate: .live)
+        )
+        center.userIdProvider = { [appState] in appState.session?.userId }
+        appState.session = Self.session("user-a", token: "token-a")
+
+        let firstResponse = DispatchSemaphore(value: 0)
+        ConsentMockURLProtocol.reset()
+        ConsentMockURLProtocol.handler = { request in
+            if ConsentMockURLProtocol.requestCount == 1 { firstResponse.wait() }
+            let status = ConsentMockURLProtocol.requestCount == 1 ? 401 : 200
+            let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
+            return (response, Data(#"{"recorded":true}"#.utf8))
+        }
+        defer { ConsentMockURLProtocol.handler = nil }
+
+        let flushed = ResultBox<Bool>()
+        Task { await center.flushServerRecordIfNeeded(); flushed.value = true }
+        guard await waitUntil("A's record is in flight", { ConsentMockURLProtocol.requestCount == 1 }) else {
+            firstResponse.signal()
+            return
+        }
+        appState.signOut()
+        appState.session = Self.session("user-b", token: "token-b")
+        firstResponse.signal()
+
+        guard await waitUntil("A's record gives up", { flushed.value != nil }) else { return }
+        XCTAssertEqual(ConsentMockURLProtocol.authorizations, ["Bearer token-a"])
+        XCTAssertEqual(appState.session?.userId, "user-b")
+    }
+
+    private static func session(_ userId: String, token: String) -> AuthSession {
+        AuthSession(accessToken: token, refreshToken: "refresh-\(userId)", userId: userId, email: nil)
+    }
+
     /// CodeRabbit on b4169f5: two quick taps on "Check my fit" must start one
     /// check, not two.
     func testCheckStartLatchLetsOneStartThrough() {
@@ -732,21 +776,36 @@ private final class StubPresenter: AIConsentPresenting {
 }
 
 private final class ConsentTestAuthClient: AuthClient, @unchecked Sendable {
+    /// What a refresh returns; nil fails it as if offline.
+    private let refreshed: AuthSession?
+
+    init(refreshed: AuthSession? = nil) { self.refreshed = refreshed }
+
     func restoreSession() -> AuthSession? { nil }
     func clearSession() {}
-    func refreshSession(refreshToken: String) async throws -> AuthSession { throw URLError(.notConnectedToInternet) }
+    func refreshSession(refreshToken: String) async throws -> AuthSession {
+        guard let refreshed else { throw URLError(.notConnectedToInternet) }
+        return refreshed
+    }
     func deleteAccount(accessToken: String) async throws {}
 }
 
 private final class ConsentMockURLProtocol: URLProtocol {
     nonisolated(unsafe) static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
     nonisolated(unsafe) static var requestCount = 0
+    nonisolated(unsafe) static var authorizations: [String] = []
+
+    static func reset() {
+        requestCount = 0
+        authorizations = []
+    }
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
         Self.requestCount += 1
+        Self.authorizations.append(request.value(forHTTPHeaderField: "Authorization") ?? "")
         guard let handler = Self.handler else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return

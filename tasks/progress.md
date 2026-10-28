@@ -1,3 +1,12 @@
+# 2026-10-28: Consent record retry stays with the consenting account
+
+Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
+Change: the AI consent record checks, before the first POST and before and after the 401 token refresh, that the signed-in account is still the one that agreed. Before, a sign-out and sign-in during the request let the retry store account A's yes under account B's token. `AppState` takes an injectable `APIClient` so the test can stub the network.
+Last Validation: new test fails on the old code (A's yes re-sent with B's fresh token) and passes now; full suite 626 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Codex on #217's final commit 11c26c6: no major issues.
+Next Recommended Story: none in this area. Open follow-up: a failed refresh during the consent record still signs the user out, like any other signed-in call.
+Blockers: none.
+Last Updated: 2026-10-28
+
 # 2026-10-26: AI consent server record and privacy manifest
 
 Status: draft PR, not merged. Branch `feat/ai-consent-record` from main e7a5e36.
