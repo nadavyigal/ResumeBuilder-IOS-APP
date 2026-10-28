@@ -188,9 +188,16 @@ final class AIConsentCenter {
                             && (waiter.identity == store.identity || waiter.identity == recorded.identity)
                         if belongs {
                             waiter.continuation.resume(returning: stillAgreed)
+                        } else if waiter.generation != self.generation
+                                    || waiter.identity != self.currentStore.identity {
+                            // Its identity signed out, or is no longer the one
+                            // signed in: nothing it asked for may be sent, and
+                            // someone else's answer must not stand in for it
+                            // (Codex on 123144e).
+                            waiter.continuation.resume(returning: false)
                         } else {
-                            // Joined for another identity while this sheet was open:
-                            // ask for that identity's own answer.
+                            // Joined for the identity signed in now while another
+                            // identity's sheet was open: ask for its own answer.
                             Task { @MainActor in
                                 waiter.continuation.resume(returning: await self.ensureConsent(source: waiter.source))
                             }

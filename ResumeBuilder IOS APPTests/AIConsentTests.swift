@@ -345,6 +345,41 @@ final class AIConsentTests: XCTestCase {
         XCTAssertTrue(launched)
     }
 
+    /// Codex P2 on 123144e: B queued behind A's in-flight record, then B signed
+    /// out too. B's send must not be re-asked as the guest and inherit a yes.
+    func testAWaiterWhoseIdentitySignedOutIsNotReaskedAsSomeoneElse() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: nil)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        var userId: String? = "user-a"
+        center.userIdProvider = { userId }
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let first = ResultBox<Bool>()
+        Task { first.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the consent sheet is presented", { !presenter.pending.isEmpty }) else { return }
+        presenter.answerPending(true)
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+
+        center.clearAll()
+        userId = "user-b"
+        let second = ResultBox<Bool>()
+        Task { second.value = await center.ensureConsent(source: "b") }
+        for _ in 0..<5 { await Task.yield() }
+        center.clearAll()
+        userId = nil
+        recorder.release(true)
+
+        guard await waitUntil("B's send gets an answer or a guest sheet opens", {
+            second.value != nil || !presenter.pending.isEmpty
+        }) else { return }
+        if second.value == nil { presenter.answerPending(true) }
+        guard await waitUntil("B's send gets an answer", { second.value != nil }) else { return }
+        XCTAssertEqual(second.value, false, "B signed out; a guest's yes must not send B's request")
+        XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
+    }
+
     /// A guest's open sheet answers only for the guest. An account that signs in
     /// while it is open, and sends, is asked for itself (5.1.2(i)).
     func testAGuestAnswerDoesNotAuthorizeAnAccountThatJoinedTheQueue() async {
