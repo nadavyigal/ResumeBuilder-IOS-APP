@@ -1,6 +1,17 @@
+# 2026-10-28: 1.5.6 (35) live
+
+Status: 1.5.6 (35) live on the App Store since 2026-10-26T21:36:26Z. The 2026-10-25 entry below ("final submission pending") is superseded: it was submitted and released.
+Current Phase: Post-release verification of 1.5.6 (35).
+Active Story: P1 fixes on open PRs: #214 export auth (a32fe3c) and #217 consent queue (56d946f), both awaiting exact-head review.
+Last Completed Story: 1.5.6 (35) released.
+Next Recommended Story: confirm the three consumables' App Review state in App Store Connect (not checked this session), then exact-head review of #214 and #217.
+Blockers: public billing stays off; activation needs separate founder authorization on or after 2026-10-31. #217 needs backend #203 merged and its migration applied (named yes) first.
+Last Validation: 2026-10-28: App Store lookup returned 1.5.6, released 2026-10-26T21:36:26Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-10-28
+
 # 2026-10-25: Score floor stays on its own job
 
-Status: draft PR open, not merged. Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
+Status: merged 2026-10-28 as #215 (a0764a5). Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
 Change: the free-check floor no longer carries a higher score from a different job onto the next one. Re-checking the same job, and later stages of that job, still hold the higher number.
 Last Validation: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
 2026-10-28: Sonnet P2 fixed: carryForward now takes the current job, so optimizing job B without a fresh check does not inherit job A's floor; an unmatched key drops the floor (the real score shows). Founder approved merge (show "previous best" as a separate label is the next story). Last Validation: full suite 586 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Follow-ups (P2/P3): normalize the job key (whitespace, URL host case, trailing slash); hash the text key; tests for URL-then-pasted and nil-key paths. Last Updated: 2026-10-28.
