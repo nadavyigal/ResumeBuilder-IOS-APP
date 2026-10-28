@@ -108,7 +108,8 @@ struct HomeTabView: View {
                                 // Optimized tab can find it (WP-45 D7).
                                 FitBaselineStore.shared.carryForward(
                                     from: viewModel.uploadResponse?.resumeId,
-                                    to: optimizationId
+                                    to: optimizationId,
+                                    currentJobKey: FitBaselineStore.jobKey(for: JobInputPolicy.evaluate(description: viewModel.jobDescription, urlString: viewModel.jobDescriptionURL, destination: .publicCheck))
                                 )
                                 FitBaselineStore.shared.carryForward(
                                     from: reviewId,
@@ -717,7 +718,8 @@ struct HomeTabView: View {
             persist: { optimizationId in
                 FitBaselineStore.shared.carryForward(
                     from: viewModel.uploadResponse?.resumeId,
-                    to: optimizationId
+                    to: optimizationId,
+                    currentJobKey: FitBaselineStore.jobKey(for: JobInputPolicy.evaluate(description: viewModel.jobDescription, urlString: viewModel.jobDescriptionURL, destination: .publicCheck))
                 )
                 FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
                 appState.latestOptimizationId = optimizationId
@@ -740,7 +742,8 @@ struct HomeTabView: View {
         // recorded and never found (WP-45 D7).
         FitBaselineStore.shared.carryForward(
             from: viewModel.uploadResponse?.resumeId,
-            to: viewModel.optimizationId ?? viewModel.reviewId
+            to: viewModel.optimizationId ?? viewModel.reviewId,
+            currentJobKey: FitBaselineStore.jobKey(for: JobInputPolicy.evaluate(description: viewModel.jobDescription, urlString: viewModel.jobDescriptionURL, destination: .publicCheck))
         )
 
         let next = HomeJourneyNextStep.after(

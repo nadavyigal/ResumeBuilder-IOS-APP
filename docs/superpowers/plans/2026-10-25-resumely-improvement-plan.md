@@ -19,7 +19,7 @@ Release 1 is mostly already in flight. Finish these before writing new stories.
 
 | # | Story | Workstream | Where | State, 2026-10-28 |
 |---|---|---|---|---|
-| 1 | Score floor stays on its job | WS4a | iOS #215 | Codex clean at e58366c; Sonnet P2 fixed in 35cbe91; founder approved merge |
+| 1 | Score floor stays on its job | WS4a | iOS #215 | Merged 2026-10-28 (a0764a5) |
 | 2 | Server consent record | WS1 | web #203 | P1 fixed (rerunnable migration); migration needs a separate named yes to apply |
 | 3 | Consent record on iOS, identity-safe queue | WS1 | iOS #217 | P1 + Sonnet P2 fixed; needs #203 merged and applied first |
 | 4 | Styled PDF when the preview has not loaded | WS5 | iOS #214 | P1 fixed (lost session stops export); three CodeRabbit P2 follow-ups |

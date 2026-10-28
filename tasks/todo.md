@@ -1,3 +1,14 @@
+# 2026-10-25: A different job does not keep the previous job's score floor
+
+As a user who checks a second job with the same resume, I want the score I see to be that job's score. A high score on an earlier job must not raise it.
+
+The floor inside one job stays: re-running the same posting, and later stages of that posting, still hold the higher number already shown.
+
+- [x] `FitBaselineStore` keeps the higher score only when the job is the same. A different URL or pasted description replaces it.
+- [x] The free check records the job identity with the score, and carrying the score onto an optimization keeps that identity.
+- [x] Tests: a second job shows its own score; the first optimization is unchanged; the same pasted job still keeps the higher score.
+- [x] Simulator tests, draft PR. Full suite: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
+
 # 2026-10-25: Resumely 1.5.6 (35) release preparation
 
 Founder objective: prepare and submit the payment release to App Review today.
