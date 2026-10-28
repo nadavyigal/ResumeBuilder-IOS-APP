@@ -2,7 +2,7 @@
 
 Status: draft PR open, not merged. Branch `feat/remove-ats-claims` from main 4d7b6c3.
 Change: three in-app claims replaced in English and Hebrew: the Fit check disclaimer now names the Resumely Match Score (was "not an employer ATS score"); the format panel says "Readable structure, simple to parse." (was "ATS parsing safeguards"); the traditional template is "Traditional · Simple layout" (was "ATS-Safe"). Three unused catalog entries that claimed ATS deleted. MarketingScreenshotView already carried no ATS. The screenshot generator already matched the 5 slots; a new Python test now fails if they drift again.
-Last Validation: CopyClaimsTests scan every shipped English key and Hebrew value (red on the 6 entries first); full suite 599 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5); screenshot script tests 6 pass. All 5 slots rendered in English (real generator, validation PASS) and Hebrew: no ATS.
+Last Validation: CopyClaimsTests scan every shipped English key and Hebrew value (red on the 6 entries first); full suite 599 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5); screenshot script tests 6 pass, both via discover and run directly (Sonnet P2: the guard class sat after the __main__ block). All 5 slots rendered in English (real generator, validation PASS) and Hebrew: no ATS.
 Next Recommended Story: upload the regenerated 5-slot set to App Store Connect (founder, ASC access); Hebrew marketing copy for the slots is a separate story.
 Blockers: none in code. The live App Store screenshots change only when the new set is uploaded.
 Last Updated: 2026-10-28

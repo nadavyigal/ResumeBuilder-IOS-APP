@@ -94,10 +94,6 @@ class GeneratorValidationTests(unittest.TestCase):
             self.assertIn("iPad 13-inch", result.stderr)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class GeneratorMatchesRendererTests(unittest.TestCase):
     """tasks/lessons.md 2026-10-19: the generator kept looping 1 to 10 after the
     renderer went to 5 slots, so the stale June set stayed live for months.
@@ -116,3 +112,7 @@ class GeneratorMatchesRendererTests(unittest.TestCase):
         self.assertEqual(len(slots), 5, slots)
         self.assertEqual(names, kebab)
         self.assertEqual([n.split("-", 1)[1] for n in NAMES], kebab)
+
+
+if __name__ == "__main__":
+    unittest.main()
