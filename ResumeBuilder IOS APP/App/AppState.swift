@@ -123,7 +123,7 @@ final class AppState {
         }
     }
 
-    let apiClient = RuntimeServices.sharedAPIClient
+    let apiClient: APIClient
     private let optimizationHistoryService: any OptimizationHistoryServiceProtocol
     private let authClient: any AuthClient
     private let consentCenter: AIConsentCenter
@@ -133,8 +133,10 @@ final class AppState {
     init(
         optimizationHistoryService: any OptimizationHistoryServiceProtocol = OptimizationHistoryService(),
         authClient: any AuthClient = AuthService.shared,
-        consentCenter: AIConsentCenter = .shared
+        consentCenter: AIConsentCenter = .shared,
+        apiClient: APIClient = RuntimeServices.sharedAPIClient
     ) {
+        self.apiClient = apiClient
         self.optimizationHistoryService = optimizationHistoryService
         self.authClient = authClient
         self.consentCenter = consentCenter
@@ -703,21 +705,41 @@ final class AppState {
     }
 
     /// Best-effort. A failure leaves the local yes in place and retries on the next launch or send.
+    ///
+    /// The server stores the grant for whoever owns the token, so every attempt
+    /// first checks that the signed-in account is still the one that agreed.
+    /// `callWithFreshToken` would retry a 401 with the next account's token
+    /// after a sign-out and sign-in (Codex P2 on 6a2347b).
     private func recordAIConsentGrant(_ store: AIConsentStore) async -> Bool {
         guard let grantedAt = store.consentedAt else { return false }
+        let body = [
+            "version": AIConsentStore.keyPrefix,
+            "action": "grant",
+            "clientRecordedAt": ISO8601DateFormatter().string(from: grantedAt),
+        ]
+        var stillTheConsentingAccount: Bool {
+            AIConsentStore.identity(forUserId: session?.userId) == store.identity
+        }
+        func post(_ token: String) async throws {
+            let _: AIConsentRecordResponse = try await apiClient.postJSON(
+                endpoint: .aiConsentRecord, body: body, token: token
+            )
+        }
+
+        guard stillTheConsentingAccount, let token = session?.accessToken else { return false }
         do {
-            let _: AIConsentRecordResponse = try await callWithFreshToken { token in
-                try await self.apiClient.postJSON(
-                    endpoint: .aiConsentRecord,
-                    body: [
-                        "version": AIConsentStore.keyPrefix,
-                        "action": "grant",
-                        "clientRecordedAt": ISO8601DateFormatter().string(from: grantedAt),
-                    ],
-                    token: token
-                )
-            }
+            try await post(token)
             return true
+        } catch APIClientError.unauthorized {
+            guard stillTheConsentingAccount,
+                  let freshToken = await refreshAccessToken(),
+                  stillTheConsentingAccount else { return false }
+            do {
+                try await post(freshToken)
+                return true
+            } catch {
+                return false
+            }
         } catch {
             return false
         }
