@@ -285,6 +285,28 @@ final class AIConsentTests: XCTestCase {
         XCTAssertFalse(AIConsentStore(identity: "user-b", defaults: defaults).hasConsented)
     }
 
+    /// Codex P2 on 0611b97: an identity with a local yes and a pending server
+    /// record signs out while that record is in flight. Its send must not go.
+    func testSignOutDuringAPendingRecordBlocksTheAlreadyConsentedSend() async {
+        let defaults = makeDefaults()
+        let presenter = StubPresenter(answer: true)
+        let center = AIConsentCenter(defaults: defaults, presenter: presenter)
+        center.userIdProvider = { "user-a" }
+        AIConsentStore(identity: "user-a", defaults: defaults).recordConsent()
+        let recorder = SuspendedRecorder()
+        center.serverRecorder = { _ in await recorder.wait() }
+
+        let result = ResultBox<Bool>()
+        Task { result.value = await center.ensureConsent(source: "a") }
+        guard await waitUntil("the server record is in flight", { recorder.isWaiting }) else { return }
+        center.clearAll()
+        recorder.release(true)
+
+        guard await waitUntil("the send gets an answer", { result.value != nil }) else { return }
+        XCTAssertEqual(result.value, false)
+        XCTAssertEqual(presenter.presentCount, 0)
+    }
+
     /// A guest's open sheet answers only for the guest. An account that signs in
     /// while it is open, and sends, is asked for itself (5.1.2(i)).
     func testAGuestAnswerDoesNotAuthorizeAnAccountThatJoinedTheQueue() async {

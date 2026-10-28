@@ -146,8 +146,10 @@ final class AIConsentCenter {
     func ensureConsent(source: String) async -> Bool {
         let store = currentStore
         if store.hasConsented {
+            let consentedGeneration = generation
             await flushServerRecord(for: store)
-            return true
+            // A sign-out during the record request cleared this consent: do not send.
+            return generation == consentedGeneration
         }
         let askedGeneration = generation
         return await withCheckedContinuation { continuation in
