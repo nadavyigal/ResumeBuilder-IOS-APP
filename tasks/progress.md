@@ -1,3 +1,14 @@
+# 2026-10-28: Release 1 plan approved
+
+Status: improvement plan approved for Release 1 only; Releases 2 and 3 parked. `docs/superpowers/plans/2026-10-25-resumely-improvement-plan.md`.
+Current Phase: Release 1, trust and export.
+Active Story: merge #215 (score floor stays on its job, founder approved).
+Last Completed Story: P1 fixes on #203, #214, #217 (2026-10-28).
+Next Recommended Story: show "previous best" as its own label (tracker story 7), after #215.
+Blockers: #217 needs web #203 merged and its migration applied (separate named yes).
+Last Validation: docs-only change.
+Last Updated: 2026-10-28
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.
