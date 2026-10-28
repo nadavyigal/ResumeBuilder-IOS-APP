@@ -20,6 +20,8 @@ enum ResumeExportAction {
         renderedHTML: String? = nil,
         /// Fetches the styled HTML when the preview hasn't produced it yet; nil means none available.
         loadStyledHTML: (@MainActor () async throws -> String?)? = nil,
+        /// Whether the user had a session when they tapped export. See `authorizeExport`.
+        beganSignedIn: Bool = false,
         analytics: AnalyticsService = .shared,
         unlockService: ExportUnlockService = ExportUnlockService()
     ) async throws -> Result {
@@ -32,7 +34,7 @@ enum ResumeExportAction {
             // The server decides first (StoreKit spec 6.4): no file is made, styled
             // or local, for an export it refused. A 402 reaches the caller as
             // ExportCreditsError.creditsRequired and opens the paywall.
-            try await appState.authorizeExport(optimizationId: optimizationId, service: unlockService)
+            try await appState.authorizeExport(optimizationId: optimizationId, beganSignedIn: beganSignedIn, service: unlockService)
             // The styled PDF matches the design the user picked; the server download
             // can come back as a plain layout, so it is only the last fallback.
             var styledURL: URL?

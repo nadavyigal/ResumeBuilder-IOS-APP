@@ -431,6 +431,69 @@ final class ExportActionGateTests: XCTestCase {
         XCTAssertFalse(loaderCalled)
     }
 
+    /// Codex P1 on #214: signed in, the design load fails, the token refresh is
+    /// rejected and signs out. With preview HTML on hand, the export must stop:
+    /// no file, no export_success, no silent guest export.
+    func testAnExportThatLostItsSessionStopsInsteadOfExportingAsAGuest() async throws {
+        let optimizationId = "lost-session-\(UUID().uuidString)"
+        let box = RequestBox()
+        let appState = AppState()
+        appState.session = AuthSession(accessToken: "tok", refreshToken: "r", userId: "11111111-1111-4111-8111-111111111111", email: "a@example.com")
+        let beganSignedIn = appState.session != nil
+        // What the rejected refresh's sign-out leaves behind.
+        appState.session = nil
+        let transport = RecordingTransport()
+        let exportsDirectory = FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ResumeBuilderExports", isDirectory: true)
+        let before = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+
+        do {
+            _ = try await ResumeExportAction.exportPDF(
+                viewModel: OptimizedResumeViewModel(optimizationId: optimizationId),
+                appState: appState,
+                renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
+                beganSignedIn: beganSignedIn,
+                analytics: AnalyticsService(transport: transport),
+                unlockService: ExportUnlockService(
+                    apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+                )
+            )
+            XCTFail("expected the export to stop")
+        } catch {
+            guard case APIClientError.unauthorized = error else {
+                return XCTFail("expected unauthorized, got \(error)")
+            }
+        }
+
+        XCTAssertEqual(box.requests.count, 0, "no unlock is attempted without a session")
+        let after = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+        XCTAssertEqual(after.subtracting(before), [], "no export file may be written")
+        _ = try await transport.waitForEvent("export_failed")
+        XCTAssertFalse(transport.events.contains { $0.name == "export_success" })
+    }
+
+    /// A real guest (no session from the start) still gets the local export.
+    func testAGuestExportStillSkipsTheUnlock() async throws {
+        let box = RequestBox()
+        let appState = AppState()
+        appState.session = nil
+
+        let result = try await ResumeExportAction.exportPDF(
+            viewModel: OptimizedResumeViewModel(optimizationId: "guest-\(UUID().uuidString)"),
+            appState: appState,
+            renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
+            beganSignedIn: false,
+            analytics: AnalyticsService(transport: NoopTransport()),
+            unlockService: ExportUnlockService(
+                apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+            )
+        )
+
+        XCTAssertEqual(box.requests.count, 0)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.fileURL.path))
+    }
+
     /// Before the preview finishes, export fetches the styled HTML and renders it on
     /// the phone, so the PDF keeps the chosen design instead of the server's layout.
     func testExportBeforeThePreviewLoadsUsesFetchedStyledHTMLNotTheServer() async throws {

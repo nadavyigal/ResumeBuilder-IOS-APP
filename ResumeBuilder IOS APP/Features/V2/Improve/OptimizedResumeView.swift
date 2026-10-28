@@ -1151,6 +1151,9 @@ struct OptimizedResumeView: View {
         if designVM == nil {
             designVM = DesignViewModel(optimizationId: optimizationId)
         }
+        // Read before the design load: a rejected token refresh there signs out,
+        // and that must stop the export, not turn it into a guest one.
+        let beganSignedIn = appState.session != nil
         // The saved design loads in the background. Read it after that load, not before.
         let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken) {
             await appState.refreshAccessToken()
@@ -1176,7 +1179,8 @@ struct OptimizedResumeView: View {
                             service: RuntimeServices.resumeDesignService()
                         )
                     }
-                }
+                },
+                beganSignedIn: beganSignedIn
             )
             pdfTempURL = result.fileURL
             packageFileURLs = result.packageFileURLs
