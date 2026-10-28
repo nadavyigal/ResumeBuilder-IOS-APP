@@ -2,6 +2,12 @@ import Foundation
 
 /// The user's fit score as a journey with stages, not a single number.
 ///
+/// Founder decision 2026-10-28 (Release 1, WS4a), superseding the display
+/// half of the 2026-07-26 rule below: the headline shows what the resume
+/// measures now (`currentMeasuredScore`). A higher earlier score is shown as
+/// its own "Previous best" label (`previousBest`), never substituted for it.
+/// The screen said "Current score" while showing the floored number.
+///
 /// Founder direction 2026-07-26, after testing 1.4.7 on device: the flow is
 /// optimize, then fit check, then improve, then experts — and **the number the
 /// user sees must never go down**. Seeing a score drop after taking the action
@@ -112,10 +118,25 @@ struct FitJourney: Equatable, Sendable {
         FitStage.allCases.filter { rawScores[$0] != nil }.max()
     }
 
-    /// The number to show right now.
+    /// The never-decrease number. Kept for diagnostics and `regressed(at:)`;
+    /// the headline shows `currentMeasuredScore` since 2026-10-28.
     var currentDisplayedScore: Int? {
         guard let stage = currentStage else { return nil }
         return displayedScore(at: stage)
+    }
+
+    /// What the resume measures now, at the furthest stage reached. The headline.
+    var currentMeasuredScore: Int? {
+        guard let stage = currentStage else { return nil }
+        return rawScores[stage]
+    }
+
+    /// The highest score the user was shown earlier in this journey, when it is
+    /// above the current measurement. Shown as its own label, never in place of
+    /// the current score (Release 1, WS4a).
+    var previousBest: Int? {
+        guard let now = currentMeasuredScore, let best = currentDisplayedScore, best > now else { return nil }
+        return best
     }
 
     /// Gain from the starting point to where the user is now, never negative.

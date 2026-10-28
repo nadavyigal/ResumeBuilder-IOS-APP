@@ -145,6 +145,11 @@ struct ImproveView: View {
                     .frame(height: 180)
             } else {
                 ScoreRingView(score: viewModel.analysis?.overall ?? 0, size: 160)
+                if let previousBest = viewModel.previousBestLabel {
+                    Text(previousBest)
+                        .font(.appCaption.weight(.semibold))
+                        .foregroundStyle(AppColors.textTertiary)
+                }
             }
 
             if let keywords = viewModel.analysis?.missingKeywords, !keywords.isEmpty {
