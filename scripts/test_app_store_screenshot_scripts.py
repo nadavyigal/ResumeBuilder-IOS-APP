@@ -96,3 +96,23 @@ class GeneratorValidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GeneratorMatchesRendererTests(unittest.TestCase):
+    """tasks/lessons.md 2026-10-19: the generator kept looping 1 to 10 after the
+    renderer went to 5 slots, so the stale June set stayed live for months.
+    Fail as soon as the two disagree."""
+
+    def test_generator_names_match_marketing_slots(self):
+        import re
+        swift = (SCRIPTS.parent / "ResumeBuilder IOS APP" / "Features" / "V2" / "Marketing" / "MarketingScreenshotView.swift").read_text()
+        enum = re.search(r"enum MarketingScreenshotSlot[^{]*\{(.*?)\n    var id", swift, re.S).group(1)
+        slots = re.findall(r"^\s*case (\w+)", enum, re.M)
+        kebab = [re.sub(r"(?<!^)([A-Z])", r"-\1", name).lower() for name in slots]
+
+        script = GENERATOR.read_text()
+        names = re.search(r"^names=\((.*?)^\)", script, re.S | re.M).group(1).split()
+
+        self.assertEqual(len(slots), 5, slots)
+        self.assertEqual(names, kebab)
+        self.assertEqual([n.split("-", 1)[1] for n in NAMES], kebab)
