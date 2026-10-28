@@ -9,6 +9,35 @@ The privacy manifest lists the data the app actually collects. AI routes are not
 - [x] `PrivacyInfo.xcprivacy` declares name, email, user id, other user content, device id, purchase history, product interaction and diagnostic data. None of it is used for tracking.
 - [x] Tests: API 5 pass. iOS full suite 585 XCTest (1 skipped, 0 failures) plus 5 Swift Testing.
 
+# 2026-10-25: Keep the chosen design when exporting before the preview loads
+
+As a user who taps Export on the Optimized tab before the styled preview has finished loading, I want my PDF to keep the template I chose instead of a plain server layout.
+
+Evidence: PostHog, last 120 days. All 21 `export_success` events from `/api/download` report `renderer=jspdf` (the plain last-resort renderer); 19 of the 21 come from people who also export on iOS. iOS uses its styled on-device export only when `renderedPreviewHTML` is already set.
+
+- [x] Shared `StyledResumeHTML` helper: one render-preview request and RTL direction rule, used by the preview and by export so the two cannot drift.
+- [x] `ResumeExportAction.exportPDF`: when no preview HTML is loaded, fetch the styled HTML and render on-device; `/api/download` stays the last fallback.
+- [x] `export_success` gains a bounded `pdf_path` (`styled_preview` / `styled_fetched` / `server`) so the share of plain exports is measurable.
+- [x] Tests: fetched-HTML export makes no `/api/download` request; analytics property; RTL helper for Hebrew, English and tag-only text.
+- [x] Simulator build, targeted tests, full suite; draft PR.
+
+Review: 46 targeted tests pass (two render a real on-device PDF from fetched HTML). Full suite: 591 XCTest cases (one skipped, zero failures) plus five Swift Testing cases, iPhone 17 simulator. Not covered by an automated test: the fetch-fails-then-server path, because `/api/download` goes through the app's shared API client.
+
+Codex review, one finding: an early Export tap read the template before the saved design finished loading, so the PDF could be the default template. Export now waits for that load. A regression suspends the load, starts the export read, then returns a non-default template and customization.
+
+Source scope: new `Core/Export/StyledResumeHTML.swift`, `ResumeExportAction.swift`, `OptimizedResumeView.swift` (pass the loader), `ResumePreviewWebView.swift` (use the shared helper), `AnalyticsService.swift`, tests. Not in scope: History, Track, Submit Package and `ResumePreviewExportView` export paths (follow-up story; some skip the credit gate today), and the backend jsPDF fallback.
+
+# 2026-10-25: A different job does not keep the previous job's score floor
+
+As a user who checks a second job with the same resume, I want the score I see to be that job's score. A high score on an earlier job must not raise it.
+
+The floor inside one job stays: re-running the same posting, and later stages of that posting, still hold the higher number already shown.
+
+- [x] `FitBaselineStore` keeps the higher score only when the job is the same. A different URL or pasted description replaces it.
+- [x] The free check records the job identity with the score, and carrying the score onto an optimization keeps that identity.
+- [x] Tests: a second job shows its own score; the first optimization is unchanged; the same pasted job still keeps the higher score.
+- [x] Simulator tests, draft PR. Full suite: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
+
 # 2026-10-25: Resumely 1.5.6 (35) release preparation
 
 Founder objective: prepare and submit the payment release to App Review today.

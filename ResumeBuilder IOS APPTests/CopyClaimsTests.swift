@@ -118,6 +118,48 @@ final class CopyClaimsTests: XCTestCase {
             }
         }
     }
+
+    // MARK: - Every shipped string (Release 1, story 8)
+
+    /// Claims no shipped string may make, in English or Hebrew. "ATS-friendly"
+    /// (process wording) and "not affiliated with any ATS vendor" (disclaimer) stay.
+    private let bannedCatalogFragments = [
+        "ATS match", "Best ATS", "ATS-Safe", "ATS signals", "ATS parsing",
+        "ציון ATS", "התאמת ATS", "עמיד ב-ATS", "אותות ATS", "פענוח ATS", "ATS מיטבי"
+    ]
+
+    func testNoShippedStringClaimsAnATSScoreInEitherLanguage() throws {
+        let lproj = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let tablePath = try XCTUnwrap(Bundle(path: lproj)?.path(forResource: "Localizable", ofType: "strings"))
+        let table = try XCTUnwrap(NSDictionary(contentsOfFile: tablePath) as? [String: String])
+        XCTAssertGreaterThan(table.count, 100, "the Hebrew table did not load")
+        for (english, hebrew) in table {
+            assertClean(english, context: "catalog key")
+            assertClean(hebrew, context: "Hebrew for \"\(english)\"")
+            for fragment in bannedCatalogFragments {
+                XCTAssertFalse(english.contains(fragment), "catalog key claims \"\(fragment)\": \(english)")
+                XCTAssertFalse(hebrew.contains(fragment), "Hebrew claims \"\(fragment)\": \(hebrew)")
+            }
+        }
+    }
+
+    func testTheFitCheckDisclaimerNamesTheResumelyMatchScore() throws {
+        let key = "Resumely Match Score: an estimate of fit for this job, not an employer's score. No optimization credit used."
+        let lproj = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let hebrew = try XCTUnwrap(Bundle(path: lproj)).localizedString(forKey: key, value: nil, table: nil)
+        XCTAssertNotEqual(hebrew, key, "Hebrew falls back to English")
+        XCTAssertTrue(hebrew.contains("ציון ההתאמה של Resumely"), hebrew)
+        XCTAssertFalse(key.contains("—"))
+        XCTAssertFalse(hebrew.contains("—"))
+    }
+
+    func testTheTraditionalTemplateLabelMakesNoATSClaim() {
+        for slug in ["traditional", "ats_safe", "ats-safe"] {
+            let label = OptimizationDesignSheet.categoryLabel(for: slug)
+            XCTAssertEqual(label, "Traditional · Simple layout")
+            XCTAssertNil(label.range(of: #"\bATS\b"#, options: .regularExpression), label)
+        }
+    }
 }
 
 /// Guards the auth entry points (Story 3): "Create free account" must open the

@@ -163,7 +163,7 @@ struct OptimizedResumeView: View {
         .onChange(of: appState.resumePreviewRefreshToken) { _, _ in
             Task {
                 await viewModel.forceReloadSections(appState: appState)
-                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken)
+                await designVM?.loadCurrentAssignment(token: appState.session?.accessToken, forceRefresh: true)
             }
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, newId in
@@ -466,6 +466,12 @@ struct OptimizedResumeView: View {
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let previousBest = viewModel.previousBestLabel {
+                        Text(previousBest)
+                            .font(.appCaption.weight(.semibold))
+                            .foregroundStyle(AppColors.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Spacer(minLength: AppSpacing.sm)
@@ -1148,11 +1154,44 @@ struct OptimizedResumeView: View {
         isDownloadingPDF = true
         viewModel.errorMessage = nil
         defer { isDownloadingPDF = false }
+        if designVM == nil {
+            designVM = DesignViewModel(optimizationId: optimizationId)
+        }
+        // Read before the design load: a rejected token refresh there signs out,
+        // and that must stop the export, not turn it into a guest one.
+        let beganSignedIn = appState.session != nil
+        // The saved design loads in the background. Read it after that load, not before.
+        let settings = await designVM?.exportDesignSettings(token: appState.session?.accessToken) {
+            await appState.refreshAccessToken()
+        } ?? nil
+        let sections = viewModel.sections
+        let contact = viewModel.contact
+        // No settings means the saved design could not be read. Do not fetch a
+        // styled page for the default template as if it were the user's choice;
+        // use the loaded preview or the server PDF instead.
+        var loadStyledHTML: (@MainActor () async throws -> String?)?
+        if let settings {
+            loadStyledHTML = { [appState] in
+                try await appState.callWithFreshToken { token in
+                    try await StyledResumeHTML.fetch(
+                        optimizationId: optimizationId,
+                        templateId: settings.templateId,
+                        customization: settings.customization,
+                        sections: sections,
+                        contact: contact,
+                        token: token,
+                        service: RuntimeServices.resumeDesignService()
+                    )
+                }
+            }
+        }
         do {
             let result = try await ResumeExportAction.exportPDF(
                 viewModel: viewModel,
                 appState: appState,
-                renderedHTML: renderedPreviewHTML
+                renderedHTML: renderedPreviewHTML,
+                loadStyledHTML: loadStyledHTML,
+                beganSignedIn: beganSignedIn
             )
             pdfTempURL = result.fileURL
             packageFileURLs = result.packageFileURLs

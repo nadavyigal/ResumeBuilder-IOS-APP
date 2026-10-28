@@ -12,6 +12,15 @@ final class ImproveViewModel {
     }
 
     var analysis: ResumeAnalysis? = nil
+    /// A higher score shown earlier in this session, when the latest rescan
+    /// measured lower. Shown as its own label (founder decision 2026-10-28).
+    private(set) var previousBestScore: Int? = nil
+
+    /// "Previous best: 72", or nil.
+    var previousBestLabel: String? {
+        guard let best = previousBestScore else { return nil }
+        return String(format: NSLocalizedString("Previous best: %lld", comment: "Below the match score when an earlier score was higher"), best)
+    }
     var improvements: [ResumeImprovement] = []
     var isLoading = false
     var isOptimizing = false
@@ -214,17 +223,10 @@ final class ImproveViewModel {
         guard response.success ?? true else {
             throw APIClientError.invalidResponse
         }
-        // The score the user sees never goes down (founder direction 2026-07-26).
-        //
-        // This used to assign the rescan result unconditionally, so a rescan
-        // that came back lower than where the user already was lowered the
-        // number in front of someone who had just asked the product to improve
-        // it. That reads as "you made it worse" and it is the same class of
-        // damage as the 42 -> 44 the moderated session hit.
-        //
-        // The raw measurement is still reported to analytics; only the display
-        // holds. Suppressing a bad presentation is not the same as hiding a bad
-        // result from ourselves.
+        // The ring shows what the rescan measured. A higher earlier score is
+        // kept as `previousBestScore` and labelled, the same rule as the
+        // Optimized tab (founder decision 2026-10-28, superseding the
+        // 2026-07-26 never-decrease display). A drop is still reported.
         if let measured = response.optimizedScore {
             let previous = analysis?.overall ?? 0
             if measured < previous {
@@ -232,8 +234,9 @@ final class ImproveViewModel {
                     .improveScoreRegressed(previous: previous, measured: measured)
                 )
             }
-            let shown = max(previous, measured)
-            analysis = analysis?.withUpdatedScores(overall: shown, ats: shown)
+            let best = max(previousBestScore ?? 0, previous)
+            previousBestScore = best > measured ? best : nil
+            analysis = analysis?.withUpdatedScores(overall: measured, ats: measured)
         }
     }
 

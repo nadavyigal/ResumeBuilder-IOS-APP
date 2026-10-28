@@ -5,6 +5,64 @@ The phone reports a grant to `POST /api/v1/ai-consent` once the user has an acco
 Last Validation: 585 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
 2026-10-28: Codex P1 fixed in 56d946f. Each queued send keeps its identity and generation; after the server record the answer is checked again, and a send from another identity is asked for its own answer. Last Validation: two new regressions fail on the old gate and pass now; full suite 587 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Sonnet P2 fixed in the next commit: a record that returns after sign-out no longer marks the identity recorded (new assertion fails without it). Codex P2 fixed next: the already-consented path re-checks after the record await, so a sign-out during it blocks the send (new test fails without it; full suite 588 tests, 0 failures, 1 skipped). Open P2 follow-up: bind the record retry to the consenting identity. Blocker: backend #203 must merge and be applied first. Last Updated: 2026-10-28.
 
+# 2026-10-25: Styled PDF when exporting before the preview loads
+
+Status: merging into main 2026-10-28 (founder approved, Codex clean at 74594da). Branch `fix/export-styled-pdf-when-preview-not-loaded`.
+Change: the Optimized tab export now fetches the styled design HTML and renders the PDF on the phone when the preview hasn't loaded; the server download is the last fallback. `export_success` carries `pdf_path` (`styled_preview` / `styled_fetched` / `server`). Preview and export share `StyledResumeHTML` for the request and the Hebrew direction rule.
+Evidence for the change: all 21 server `export_success` events in 120 days used the plain jsPDF renderer.
+Last Validation: 593 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator. Export waits for the saved design to load before choosing a template.
+Next Recommended Story: route History, Track, Submit Package and preview-screen exports through the same styled path, keeping the credit gate.
+2026-10-28: Codex P1 fixed in a32fe3c. An export that began signed in and lost its session in the design-load refresh now stops (unauthorized), with no PDF and no export_success; a real guest still exports locally. Last Validation: full suite 596 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Codex P2 fixed next: a design refresh during the first saved-design load now fetches again, so the Optimized preview and export pick up a design saved in the Design tab (new test fails without it; full suite 597 tests, 0 failures, 1 skipped). Codex fixes on d77b6a4: a guest export no longer calls the token refresh (it signed the guest out and cleared their local progress); a saved design that cannot be read gives no settings, so export uses the loaded preview or the server PDF instead of the default template. Both new tests fail on the old code; full suite 599 tests, 0 failures, 1 skipped. Open P2 follow-ups from CodeRabbit: failed preview render never tries a fresh styled fetch; cached preview not cleared on template change; failed assignment reads return default settings. Last Updated: 2026-10-28.
+
+# 2026-10-28: Remove ATS claims (Release 1, story 8)
+
+Status: draft PR open, not merged. Branch `feat/remove-ats-claims` from main 4d7b6c3.
+Change: three in-app claims replaced in English and Hebrew: the Fit check disclaimer now names the Resumely Match Score (was "not an employer ATS score"); the format panel says "Readable structure, simple to parse." (was "ATS parsing safeguards"); the traditional template is "Traditional · Simple layout" (was "ATS-Safe"). Three unused catalog entries that claimed ATS deleted. MarketingScreenshotView already carried no ATS. The screenshot generator already matched the 5 slots; a new Python test now fails if they drift again.
+Last Validation: CopyClaimsTests scan every shipped English key and Hebrew value (red on the 6 entries first); full suite 599 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5); screenshot script tests 5 pass (4 existing plus the new guard), both via discover and run directly (Sonnet P2: the guard class sat after the __main__ block). All 5 slots rendered in English (real generator, validation PASS) and Hebrew: no ATS.
+Next Recommended Story: upload the regenerated 5-slot set to App Store Connect (founder, ASC access); Hebrew marketing copy for the slots is a separate story.
+Blockers: none in code. The live App Store screenshots change only when the new set is uploaded.
+Last Updated: 2026-10-28
+
+# 2026-10-28: Previous best as its own label (Release 1, story 7)
+
+Status: draft PR open, not merged. Branch `feat/previous-best-label` from main 5e0bb58.
+Change: the Optimized match score now shows what the resume measures now. When an earlier score for the same job was higher, a "Previous best: N" line (Hebrew "הציון הטוב הקודם: N") appears under the status text. This supersedes the display half of the 2026-07-26 never-decrease rule; the floored value stays in `FitJourney.currentDisplayedScore` for diagnostics.
+Last Validation: score tests red on the floored headline, green after; full suite 592 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). English and Hebrew card rendered in the simulator test host (64 with previous best 72).
+Sonnet fixes: status badge and description read the measured score (red: a 40 read "High"); the Improve tab ring shows the measured rescan with the same Previous best label; the rescan regression signal compares against the best shown. Full suite 594 tests, 0 failures, 1 skipped. Track and TargetReached screens checked: no floor.
+Codex fixes (on fc5b0fb): a rescan that replaces a stage keeps the earlier best as Previous best; an edit after an expert pass updates the expert-stage score so the headline is the latest measurement. Codex's badge finding was already fixed in fc5b0fb. Full suite 596 tests, 0 failures, 1 skipped.
+Next Recommended Story: Release 1 story 8, remove ATS claims from copy and App Store screenshots.
+Blockers: none.
+Last Updated: 2026-10-28
+
+# 2026-10-28: Release 1 plan approved
+
+Status: improvement plan approved for Release 1 only; Releases 2 and 3 parked. `docs/superpowers/plans/2026-10-25-resumely-improvement-plan.md`.
+Current Phase: Release 1, trust and export.
+Active Story: show "previous best" as its own label (tracker story 7).
+Last Completed Story: #215 merged (a0764a5); P1 fixes on #203, #214, #217 (2026-10-28).
+Next Recommended Story: web #203 merge, then its migration (named yes), then iOS #217.
+Blockers: #217 needs web #203 merged and its migration applied (separate named yes).
+Last Validation: docs-only change.
+Last Updated: 2026-10-28
+
+# 2026-10-28: 1.5.6 (35) live
+
+Status: 1.5.6 (35) live on the App Store since 2026-10-26T21:36:26Z. The 2026-10-25 entry below ("final submission pending") is superseded: it was submitted and released.
+Current Phase: Post-release verification of 1.5.6 (35).
+Active Story: P1 fixes on open PRs: #214 export auth (a32fe3c) and #217 consent queue (56d946f), both awaiting exact-head review.
+Last Completed Story: 1.5.6 (35) released.
+Next Recommended Story: confirm the three consumables' App Review state in App Store Connect (not checked this session), then exact-head review of #214 and #217.
+Blockers: public billing stays off; activation needs separate founder authorization on or after 2026-10-31. #217 needs backend #203 merged and its migration applied (named yes) first.
+Last Validation: 2026-10-28: App Store lookup returned 1.5.6, released 2026-10-26T21:36:26Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-10-28
+
+# 2026-10-25: Score floor stays on its own job
+
+Status: merged 2026-10-28 as #215 (a0764a5). Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
+Change: the free-check floor no longer carries a higher score from a different job onto the next one. Re-checking the same job, and later stages of that job, still hold the higher number.
+Last Validation: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
+2026-10-28: Sonnet P2 fixed: carryForward now takes the current job, so optimizing job B without a fresh check does not inherit job A's floor; an unmatched key drops the floor (the real score shows). Founder approved merge (show "previous best" as a separate label is the next story). Last Validation: full suite 586 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Follow-ups (P2/P3): normalize the job key (whitespace, URL host case, trailing slash); hash the text key; tests for URL-then-pasted and nil-key paths. Last Updated: 2026-10-28.
+
 # 2026-10-25: Prepare release 1.5.6 (35)
 
 Status: build uploaded and selected; final submission pending.

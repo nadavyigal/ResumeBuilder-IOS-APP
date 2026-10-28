@@ -1,3 +1,18 @@
+# 2026-10-25: Styled PDF when exporting before the preview loads
+
+- Worktree /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-export-styled-pdf, branch fix/export-styled-pdf-when-preview-not-loaded, from main e7a5e36.
+- Added `StyledResumeHTML` (shared render request and direction rule); export fetches styled HTML when the preview isn't loaded; `pdf_path` on `export_success`.
+- Ignored local Secrets.xcconfig copied from the main clone for the build; not committed.
+- 46 targeted tests and the full suite (593 XCTest, one skipped; five Swift Testing) pass on the iPhone 17 simulator.
+- Codex review found one defect: an early Export tap captured the template before the saved design loaded. Export now waits for that load. Regression added.
+- Next: draft PR review; follow-up story for the other export entry points.
+
+# 2026-10-25: Score floor stays on its own job
+
+- Worktree /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-score-floor-per-job, branch fix/score-floor-stays-on-its-job, from main e7a5e36.
+- The same-job display floor in FitJourney is unchanged.
+- Full suite: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
+
 # 2026-10-21: 1.5.4 release readiness continuation
 
 - Reused release/1.5.4-33 in /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-release-1-5-4; original head bed4245 and main 3e36474 unchanged when checked.
