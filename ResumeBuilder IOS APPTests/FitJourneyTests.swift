@@ -48,6 +48,26 @@ final class FitJourneyTests: XCTestCase {
         XCTAssertEqual(journey.totalGain, 0)
     }
 
+    func testTheCurrentMeasurementAndPreviousBestAreSeparate() {
+        let journey = FitJourney(fit: 29, improved: 48, expert: 40)
+        XCTAssertEqual(journey.currentMeasuredScore, 40)
+        XCTAssertEqual(journey.previousBest, 48)
+        XCTAssertEqual(journey.currentDisplayedScore, 48, "the floored value stays for diagnostics")
+    }
+
+    func testABaselineAboveTheMeasurementIsAPreviousBest() {
+        let journey = FitJourney(fit: 51, baseline: 56)
+        XCTAssertEqual(journey.currentMeasuredScore, 51)
+        XCTAssertEqual(journey.previousBest, 56)
+    }
+
+    func testNoPreviousBestWhenTheCurrentScoreIsTheBest() {
+        XCTAssertNil(FitJourney(fit: 29, improved: 48).previousBest)
+        XCTAssertNil(FitJourney(fit: 60, baseline: 56).previousBest)
+        XCTAssertNil(FitJourney().previousBest)
+        XCTAssertNil(FitJourney().currentMeasuredScore)
+    }
+
     func testStagesNotYetReachedHaveNoScore() {
         let journey = FitJourney(fit: 29)
         XCTAssertEqual(journey.displayedScore(at: .fit), 29)
@@ -151,9 +171,12 @@ final class OptimizedResumeJourneyTests: XCTestCase {
         XCTAssertEqual(model(before: 29, after: 48, expert: 63).currentFitStage, .expert)
     }
 
-    func testAnExpertPassThatMeasuresLowerCannotPullTheNumberDown() {
+    /// Founder decision 2026-10-28 (Release 1, WS4a): the headline is the
+    /// current measurement; a higher earlier score is labelled separately.
+    func testAnExpertPassThatMeasuresLowerShowsTheLowerScoreAndThePreviousBest() {
         let vm = model(before: 29, after: 48, expert: 40)
-        XCTAssertEqual(vm.currentATSScore, 48, "holds at what the user already saw")
+        XCTAssertEqual(vm.currentATSScore, 40, "the headline is what this resume measures now")
+        XCTAssertEqual(vm.previousBestATSScore, 48)
         XCTAssertEqual(vm.fitJourney.rawScore(at: .expert), 40, "measurement still recorded")
         XCTAssertTrue(vm.fitJourney.regressed(at: .expert))
     }
@@ -166,16 +189,68 @@ final class OptimizedResumeJourneyTests: XCTestCase {
 
     func testGainIsNeverNegativeEvenWhenTheRewriteMeasuresWorse() {
         let vm = model(before: 55, after: 41)
-        XCTAssertEqual(vm.currentATSScore, 55)
+        XCTAssertEqual(vm.currentATSScore, 41)
+        XCTAssertEqual(vm.previousBestATSScore, 55)
         XCTAssertEqual(vm.fitGainSoFar, 0)
     }
 
-    func testStatusLabelReadsTheSameMonotonicNumber() {
+    func testStatusLabelReadsTheSameNumberAsTheHeadline() {
         // It used to compute its own `after ?? before`, so the badge could
-        // disagree with the ring on the same screen.
-        let vm = model(before: 29, after: 48, expert: 40)
-        XCTAssertEqual(vm.currentATSScore, 48)
+        // disagree with the ring on the same screen. 80 then 40 crosses every
+        // band, so a badge still reading the floor would say "High" (Sonnet on #222).
+        let vm = model(before: 29, after: 80, expert: 40)
+        XCTAssertEqual(vm.currentATSScore, 40)
         XCTAssertEqual(vm.atsStatusLabel, "Low")
+        XCTAssertEqual(vm.previousBestATSScore, 80)
+    }
+
+    /// Codex on fc5b0fb: a rescan that replaces a stage's score must not lose
+    /// the higher number the user already saw at that stage.
+    func testARescanThatReplacesAStageKeepsTheEarlierBest() {
+        let vm = model(before: 29, after: 80)
+        vm.atsScoreAfter = 40
+        XCTAssertEqual(vm.currentATSScore, 40)
+        XCTAssertEqual(vm.previousBestATSScore, 80)
+    }
+
+    /// Codex on fc5b0fb: after an expert pass, a manual edit's rescan is the
+    /// latest measurement and becomes the headline.
+    func testAnEditAfterAnExpertPassShowsTheNewMeasurement() async {
+        let vm = OptimizedResumeViewModel(
+            optimizationId: "opt-test",
+            atsScoreBefore: 29,
+            atsScoreAfter: 60,
+            analysisService: JourneyRescanStub(original: 29, optimized: 40)
+        )
+        vm.atsScoreAfterExpert = 82
+
+        await vm.rescanATS(token: "tok")
+
+        XCTAssertEqual(vm.currentATSScore, 40)
+        XCTAssertEqual(vm.previousBestATSScore, 82)
+    }
+
+    func testThereIsNoPreviousBestWhileTheScoreClimbs() {
+        XCTAssertNil(model(before: 29, after: nil).previousBestATSScore)
+        XCTAssertNil(model(before: 29, after: 48).previousBestATSScore)
+        XCTAssertNil(model(before: 29, after: 48, expert: 63).previousBestATSScore)
+        XCTAssertNil(model(before: 48, after: 48).previousBestATSScore, "an equal score is not a previous best")
+        XCTAssertNil(model(before: 29, after: 48).previousBestLabel)
+    }
+
+    func testThePreviousBestLabelNamesTheNumber() {
+        let vm = model(before: 29, after: 48, expert: 40)
+        XCTAssertEqual(vm.previousBestLabel, "Previous best: 48")
+    }
+
+    func testThePreviousBestLabelIsTranslatedToHebrew() throws {
+        let path = try XCTUnwrap(Bundle.main.path(forResource: "he", ofType: "lproj"))
+        let hebrew = try XCTUnwrap(Bundle(path: path))
+        let key = "Previous best: %lld"
+        let translated = hebrew.localizedString(forKey: key, value: nil, table: nil)
+        XCTAssertNotEqual(translated, key, "Hebrew falls back to English")
+        XCTAssertTrue(translated.unicodeScalars.contains { (0x0590...0x05FF).contains($0.value) })
+        XCTAssertTrue(translated.contains("%lld") || translated.contains("%1$lld"))
     }
 }
 
@@ -287,7 +362,8 @@ final class FitBaselineStoreJoinTests: XCTestCase {
         vm.atsScoreBefore = 51
 
         XCTAssertEqual(vm.freeCheckScore, 56)
-        XCTAssertEqual(vm.currentATSScore, 56, "the 56/51 regression must not survive the hop")
+        XCTAssertEqual(vm.currentATSScore, 51, "the headline is this resume's own measurement")
+        XCTAssertEqual(vm.previousBestATSScore, 56, "the free check's 56 is labelled, not substituted")
     }
 
     func testCarryingForwardFromNothingIsHarmless() {
@@ -430,7 +506,7 @@ final class ExpertStageAttributionTests: XCTestCase {
         XCTAssertNil(vm.atsScoreAfterExpert)
     }
 
-    func testAnExpertPassThatMeasuresLowerStillShowsTheImprovedScore() throws {
+    func testAnExpertPassThatMeasuresLowerShowsItsOwnScore() throws {
         let dto = try XCTUnwrap(applyResult(score: 40))
         let vm = OptimizedResumeViewModel(optimizationId: "opt_1")
         vm.atsScoreBefore = 29
@@ -438,8 +514,24 @@ final class ExpertStageAttributionTests: XCTestCase {
 
         vm.applyExpertATSResult(dto, recordingAs: .expert)
 
-        // Never down: the user keeps the 48 they were already shown.
-        XCTAssertEqual(vm.currentATSScore, 48)
+        // The lower measurement is shown; the 48 the user saw is labelled.
+        XCTAssertEqual(vm.currentATSScore, 40)
+        XCTAssertEqual(vm.previousBestATSScore, 48)
         XCTAssertEqual(vm.atsScoreAfterExpert, 40, "the raw measurement is still recorded")
+    }
+}
+
+/// Answers every rescan with fixed original and optimized scores.
+private struct JourneyRescanStub: ResumeAnalysisServiceProtocol {
+    let original: Int
+    let optimized: Int
+
+    func score(resumeId: String, jobDescription: String, token: String) async throws -> ResumeAnalysis {
+        ResumeAnalysis(overall: 0, ats: 0, content: 0, design: 0, missingKeywords: [])
+    }
+    func improvements(resumeId: String, jobDescription: String, token: String) async throws -> [ResumeImprovement] { [] }
+    func rescan(optimizationId: String, token: String) async throws -> ATSRescanResponse {
+        let json = #"{"success":true,"scores":{"original":\#(original),"optimized":\#(optimized)}}"#
+        return try JSONDecoder().decode(ATSRescanResponse.self, from: Data(json.utf8))
     }
 }

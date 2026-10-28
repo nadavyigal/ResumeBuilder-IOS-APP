@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Previous best: %lld" : {
+      "comment" : "Below the match score when an earlier score was higher",
+      "extractionState" : "manual",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הציון הטוב הקודם: %lld"
+          }
+        }
+      }
+    },
     "We couldn't prepare your export. Please try again." : {
       "comment" : "Export unlock failed",
       "localizations" : {

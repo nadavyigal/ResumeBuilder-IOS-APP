@@ -31,8 +31,8 @@ final class OptimizedResumeViewModel {
     var activeSectionId: String? = nil
 
     /// ATS scores passed in at init time (from the review apply response).
-    var atsScoreBefore: Int?
-    var atsScoreAfter: Int?
+    var atsScoreBefore: Int? { didSet { rememberShown(oldValue) } }
+    var atsScoreAfter: Int? { didSet { rememberShown(oldValue) } }
     /// Job context for the header card.
     var jobTitle: String?
     var company: String?
@@ -178,7 +178,7 @@ final class OptimizedResumeViewModel {
     }
 
     var atsStatusLabel: String {
-        let score = fitJourney.currentDisplayedScore ?? 0
+        let score = currentATSScore
         if score >= 80 { return "High" }
         if score >= 70 { return "Strong" }
         if score >= 55 { return "Medium" }
@@ -201,7 +201,17 @@ final class OptimizedResumeViewModel {
     /// Score after an expert pass, when one has run. Recorded separately so the
     /// journey can show experts as their own stage rather than overwriting the
     /// improved number.
-    var atsScoreAfterExpert: Int?
+    var atsScoreAfterExpert: Int? { didSet { rememberShown(oldValue) } }
+
+    /// The highest score a replaced measurement held. A rescan overwrites its
+    /// stage, so without this the earlier best is gone before `previousBest`
+    /// can see it (Codex on fc5b0fb).
+    private var highestReplacedScore: Int?
+
+    private func rememberShown(_ replaced: Int?) {
+        guard let replaced else { return }
+        highestReplacedScore = max(highestReplacedScore ?? 0, replaced)
+    }
 
     /// The user's fit as a journey with stages, not a single number.
     ///
@@ -237,9 +247,22 @@ final class OptimizedResumeViewModel {
     /// The stage the user has reached, for labelling the score they can see.
     var currentFitStage: FitStage? { fitJourney.currentStage }
 
-    /// The number to show right now. Never below anything already shown.
+    /// The number to show right now: what this resume measures for this job.
+    /// A higher earlier score is `previousBestATSScore`, shown as its own label.
     var currentATSScore: Int {
-        fitJourney.currentDisplayedScore ?? 0
+        fitJourney.currentMeasuredScore ?? 0
+    }
+
+    /// A higher score the user saw earlier for this job, or nil.
+    var previousBestATSScore: Int? {
+        let best = max(fitJourney.currentDisplayedScore ?? 0, highestReplacedScore ?? 0)
+        return best > currentATSScore ? best : nil
+    }
+
+    /// "Previous best: 72", or nil when the current score is the best so far.
+    var previousBestLabel: String? {
+        guard let best = previousBestATSScore else { return nil }
+        return String(format: NSLocalizedString("Previous best: %lld", comment: "Below the match score when an earlier score was higher"), best)
     }
 
     /// Where the resume started, for the "you were here" end of the journey.
@@ -737,7 +760,9 @@ final class OptimizedResumeViewModel {
         defer { isRefreshingATS = false }
 
         do {
-            let previouslyShown = currentATSScore
+            // The best the user has seen, not the current measurement, so the
+            // regression signal keeps its meaning (Sonnet on #222).
+            let previouslyShown = fitJourney.currentDisplayedScore ?? 0
             let response = try await analysisService.rescan(optimizationId: optId, token: token)
 
             // The baseline is NOT updated here, and this is deliberate.
@@ -777,7 +802,14 @@ final class OptimizedResumeViewModel {
                 case .expert:
                     atsScoreAfterExpert = optimized
                 case .fit, .improved:
-                    atsScoreAfter = optimized
+                    // After an expert pass, the résumé being re-measured carries
+                    // the expert edits: this is now the latest expert-stage score,
+                    // or the headline would keep the old one (Codex on fc5b0fb).
+                    if atsScoreAfterExpert != nil {
+                        atsScoreAfterExpert = optimized
+                    } else {
+                        atsScoreAfter = optimized
+                    }
                 }
             }
             backendDiagnosis = nil
