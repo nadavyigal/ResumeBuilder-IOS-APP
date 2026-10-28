@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Resumely App Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,800&display=block" rel="stylesheet">
+<style>
+  /* App Preview, 886x1920 portrait. Every frame is drawn by render(t), so capture is deterministic. */
+  :root {
+    --cobalt: #1F3BFF;
+    --cobalt-deep: #1328C9;
+    --marker: #FFE34D;
+    --ink: #0A0F2C;
+    --paper: #F7F8FF;
+    --screen: #0B1020;
+    --u: 0.7347px; /* 886 / 1206, so sizes match the 1206-wide stills */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 886px; height: 1920px; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(calc(var(--u) * 1400) calc(var(--u) * 1100) at 85% 8%, #3A55FF 0%, rgba(58, 85, 255, 0) 70%),
+      linear-gradient(180deg, var(--cobalt) 0%, var(--cobalt-deep) 100%);
+    font-family: "Bricolage Grotesque", -apple-system, system-ui, sans-serif;
+    color: var(--paper);
+    position: relative;
+  }
+  .copy {
+    position: absolute;
+    left: calc(var(--u) * 60);
+    right: calc(var(--u) * 60);
+    top: calc(var(--u) * 150);
+    text-align: center;
+  }
+  h1 {
+    font-weight: 800;
+    line-height: 1.16;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  h1 span {
+    display: inline-block;
+    padding: 0 calc(var(--u) * 26);
+    background: linear-gradient(100deg,
+      rgba(255, 227, 77, 0) 0.6%, var(--marker) 2.2%,
+      var(--marker) 96.8%, rgba(255, 227, 77, 0) 99%);
+  }
+  .sub {
+    margin: calc(var(--u) * 50) auto 0;
+    max-width: calc(var(--u) * 960);
+    font-weight: 500;
+    font-size: calc(var(--u) * 58);
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+  }
+  .phone {
+    position: absolute;
+    left: calc(50% - var(--u) * 500);
+    width: calc(var(--u) * 1000);
+    height: calc(var(--u) * 2400);
+    border-radius: calc(var(--u) * 132);
+    background: #05070F;
+    padding: calc(var(--u) * 24);
+    box-shadow:
+      0 0 0 calc(var(--u) * 5) #2B3150,
+      0 calc(var(--u) * 60) calc(var(--u) * 140) rgba(5, 10, 60, 0.55);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--u) * 110);
+    overflow: hidden;
+    background: linear-gradient(180deg, #121A33 0%, var(--screen) 40%);
+    position: relative;
+  }
+  .status {
+    height: calc(var(--u) * 130);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(var(--u) * 20) calc(var(--u) * 70) 0;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: calc(var(--u) * 40);
+    color: #fff;
+  }
+  .island { width: calc(var(--u) * 250); height: calc(var(--u) * 72); border-radius: calc(var(--u) * 40); background: #000; }
+  .bars { display: flex; gap: calc(var(--u) * 7); align-items: flex-end; }
+  .bars i { display: block; width: calc(var(--u) * 9); background: #fff; border-radius: 2px; }
+  .screen img { display: block; width: 100%; }
+  .screen img.header { margin-top: calc(var(--u) * -6); }
+  .shots { position: relative; }
+  .shots img { position: absolute; left: 0; top: 0; }
+  .tap {
+    position: absolute;
+    width: calc(var(--u) * 120);
+    height: calc(var(--u) * 120);
+    margin: calc(var(--u) * -60) 0 0 calc(var(--u) * -60);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    opacity: 0;
+  }
+  .bot {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    transform-origin: 50% 60%;
+    filter: drop-shadow(0 calc(var(--u) * 30) calc(var(--u) * 40) rgba(5, 10, 60, 0.45));
+  }
+  .post {
+    position: absolute;
+    left: calc(var(--u) * 40);
+    width: calc(var(--u) * 560);
+    padding: calc(var(--u) * 42) calc(var(--u) * 44) calc(var(--u) * 48);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: calc(var(--u) * 34);
+    box-shadow: 0 calc(var(--u) * 40) calc(var(--u) * 90) rgba(5, 10, 60, 0.45);
+    z-index: 2;
+  }
+  .post h2 { font-weight: 800; font-size: calc(var(--u) * 44); line-height: 1.12; letter-spacing: -0.02em; }
+  .post .co { margin-top: calc(var(--u) * 8); font-weight: 500; font-size: calc(var(--u) * 30); color: #4A5070; }
+  .post p { margin-top: calc(var(--u) * 26); font-weight: 500; font-size: calc(var(--u) * 33); line-height: 1.5; }
+  .post mark {
+    color: var(--ink);
+    background: linear-gradient(var(--marker), var(--marker)) no-repeat 0 0 / 0% 100%;
+    padding: 0 calc(var(--u) * 6);
+    border-radius: calc(var(--u) * 6);
+  }
+  .post .miss {
+    margin-top: calc(var(--u) * 26);
+    padding-top: calc(var(--u) * 22);
+    border-top: calc(var(--u) * 3) dashed #C9CCE0;
+    font-weight: 600;
+    font-size: calc(var(--u) * 31);
+    color: #C2263B;
+  }
+  .end {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--u) * 1560);
+    text-align: center;
+  }
+  .end .word {
+    font-weight: 800;
+    font-size: calc(var(--u) * 190);
+    letter-spacing: -0.04em;
+    color: var(--paper);
+  }
+  .end .line {
+    display: inline-block;
+    margin-top: calc(var(--u) * 30);
+    padding: calc(var(--u) * 8) calc(var(--u) * 30);
+    font-weight: 800;
+    font-size: calc(var(--u) * 70);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    background: var(--marker);
+  }
+  .end .cta {
+    margin-top: calc(var(--u) * 60);
+    font-weight: 600;
+    font-size: calc(var(--u) * 56);
+  }
+</style>
+</head>
+<body>
+  <div class="copy" id="copy"><h1 id="h"></h1><p class="sub" id="s"></p></div>
+  <div class="phone" id="phone">
+    <div class="screen">
+      <div class="status">
+        <span>9:41</span><span class="island"></span>
+        <span class="bars"><i style="height:calc(var(--u)*14)"></i><i style="height:calc(var(--u)*20)"></i><i style="height:calc(var(--u)*26)"></i><i style="height:calc(var(--u)*32)"></i></span>
+      </div>
+      <img class="header" src="src/header.png" alt="">
+      <div class="shots" id="shots">
+        <img src="src/01-tailor.png" alt=""><img src="src/02-blockers.png" alt="">
+        <img src="src/03-ai-edits.png" alt=""><img src="src/04-templates.png" alt="">
+      </div>
+      <div class="tap" id="tap"></div>
+    </div>
+  </div>
+  <div class="post" id="post">
+    <h2>Senior Product Designer</h2>
+    <div class="co">Mobile flows, full time</div>
+    <p>You will own <mark>mobile onboarding</mark>, run <mark>user research</mark> and ship in <mark>Figma</mark> with engineering.</p>
+    <div class="miss" id="miss">3 keywords not in your resume</div>
+  </div>
+  <div class="end" id="end">
+    <div class="word">Resumely</div>
+    <div class="line">Tailor your resume to any job</div>
+    <div class="cta">Paste your first job post</div>
+  </div>
+  <img class="bot" id="bot" src="src/robot.png" alt="">
+<script>
+  const U = 886 / 1206, W = 886, H = 1920, DURATION = 21;
+  const SCENES = [
+    { at: 0,    h: ["Tailor your resume", "to this job"], s: "Paste a job post. See your Match Score and what's missing." },
+    { at: 7.5,  h: ["See what's missing", "before you apply"], s: "Top gaps and missing keywords, straight from the job post." },
+    { at: 11,   h: ["Fix it in", "your own voice"], s: "Targeted edits, one section at a time. You approve each one." },
+    { at: 14.5, h: ["Send a clean PDF", "from your phone"], s: "Classic, Modern and Minimal templates, ready to share." },
+  ];
+  // Avatar poses in 1206-wide units: x/y of its box, width, tilt.
+  const POSE = {
+    hero:  { x: 213, y: 1060, w: 780, r: 0 },
+    s1:    { x: 735, y: 760,  w: 500, r: 8 },
+    s2:    { x: 920, y: 1760, w: 620, r: -14 },
+    s3:    { x: -170, y: 2080, w: 600, r: 10 },
+    s4:    { x: -330, y: 2120, w: 640, r: 16 },
+    end:   { x: 253, y: 640,  w: 700, r: 0 },
+  };
+  const PHONE_TOP = 1010;
+
+  const $ = id => document.getElementById(id);
+  const clamp = v => Math.max(0, Math.min(1, v));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const back = p => { const c = 1.70158, d = c + 1; return 1 + d * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+  const mix = (a, b, p) => a + (b - a) * p;
+  const mixPose = (a, b, p) => ({ x: mix(a.x, b.x, p), y: mix(a.y, b.y, p), w: mix(a.w, b.w, p), r: mix(a.r, b.r, p) });
+
+  let headSize = 150;
+  function setScene(i) {
+    const sc = SCENES[i];
+    $("h").innerHTML = sc.h.map(l => `<span>${l}</span>`).join("<br>");
+    $("h").style.fontSize = headSize + "px";
+    $("s").textContent = sc.s;
+    $("h").dataset.scene = i;
+  }
+  function fitHeadline() {
+    const h1 = $("h"), maxW = W - 2 * 60 * U;
+    let size = 150 * U;
+    const fits = s => SCENES.every(sc => {
+      h1.innerHTML = sc.h.map(l => `<span>${l}</span>`).join("<br>");
+      h1.style.fontSize = s + "px";
+      return Math.max(...[...h1.children].filter(n => n.tagName === "SPAN").map(n => n.getBoundingClientRect().width)) <= maxW;
+    });
+    while (!fits(size) && size > 40) size -= 1;
+    headSize = size;
+  }
+
+  // Draw the frame at time t (seconds).
+  window.render = function (t) {
+    // Which headline is showing, and how far its marker wipe has gone.
+    let idx = 0;
+    SCENES.forEach((sc, i) => { if (t >= sc.at) idx = i; });
+    if ($("h").dataset.scene != idx) setScene(idx);
+    const start = SCENES[idx].at + (idx === 0 ? 0.5 : 0.15);
+    const lines = [...$("h").children].filter(n => n.tagName === "SPAN");
+    lines.forEach((el, k) => {
+      const p = easeOut(prog(t, start + k * 0.35, start + k * 0.35 + 0.55));
+      el.style.clipPath = `inset(-10% ${100 - p * 100}% -10% 0)`;
+    });
+    const next = SCENES[idx + 1] ? SCENES[idx + 1].at : 17.5;
+    const outP = prog(t, next - 0.3, next);
+    $("s").style.opacity = prog(t, start + 0.8, start + 1.3) * (1 - outP);
+    $("h").style.opacity = 1 - outP;
+    $("copy").style.top = (150 * U - 30 * U * easeOut(prog(t, start + 0.8, start + 1.3)) + 30 * U) + "px";
+
+    // Phone: rises at 3.2s, leaves for the end card at 17.5s.
+    const rise = easeOut(prog(t, 3.2, 4.3)), fall = easeInOut(prog(t, 17.5, 18.3));
+    $("phone").style.top = (PHONE_TOP * U + (1 - rise) * 1900 * U + fall * 2300 * U) + "px";
+
+    // Screens cross-fade with each scene.
+    const shots = [...$("shots").children];
+    shots.forEach((img, k) => {
+      const inAt = k === 0 ? -1 : SCENES[k].at;
+      const outAt = SCENES[k + 1] ? SCENES[k + 1].at : 99;
+      const o = prog(t, inAt, inAt + 0.45) * (1 - prog(t, outAt, outAt + 0.45));
+      img.style.opacity = o;
+      img.style.transform = `translateY(${(1 - prog(t, inAt, inAt + 0.45)) * 40 * U}px)`;
+    });
+    // Tap on "Apply improvement" in the edits scene.
+    const tp = prog(t, 13.0, 13.6);
+    $("tap").style.left = 50 + "%";
+    $("tap").style.top = 1050 * U + "px";
+    $("tap").style.opacity = tp > 0 && tp < 1 ? 1 - tp : 0;
+    $("tap").style.transform = `scale(${0.4 + tp * 1.6})`;
+
+    // Job post card: slides in, marks keywords one by one, leaves with scene 2.
+    const pin = easeOut(prog(t, 4.6, 5.2)), pout = easeInOut(prog(t, 7.4, 7.9));
+    $("post").style.top = (PHONE_TOP + 820) * U + "px";
+    $("post").style.transform = `translateX(${(-1 + pin) * 700 * U - pout * 700 * U}px) rotate(-4deg)`;
+    [...document.querySelectorAll(".post mark")].forEach((m, k) => {
+      const p = easeOut(prog(t, 5.4 + k * 0.35, 5.75 + k * 0.35));
+      m.style.backgroundSize = `${p * 100}% 100%`;
+    });
+    $("miss").style.opacity = prog(t, 6.5, 6.9);
+
+    // Avatar: pops in, hops between poses, gentle float and wave throughout.
+    let pose;
+    if (t < 3.2) pose = POSE.hero;
+    else if (t < 7.5) pose = mixPose(POSE.hero, POSE.s1, easeInOut(prog(t, 3.2, 4.1)));
+    else if (t < 11) pose = mixPose(POSE.s1, POSE.s2, easeInOut(prog(t, 7.5, 8.3)));
+    else if (t < 14.5) pose = mixPose(POSE.s2, POSE.s3, easeInOut(prog(t, 11, 11.8)));
+    else if (t < 17.5) pose = mixPose(POSE.s3, POSE.s4, easeInOut(prog(t, 14.5, 15.3)));
+    else pose = mixPose(POSE.s4, POSE.end, easeInOut(prog(t, 17.5, 18.4)));
+    const pop = back(prog(t, 0.0, 0.7));
+    const endPop = t > 18.4 ? 1 + 0.06 * Math.sin((t - 18.4) * 9) * Math.exp(-(t - 18.4) * 2.5) : 1;
+    const float = Math.sin(t * 2.2) * 14 * U;
+    const wave = Math.sin(t * 5.5) * 4;
+    const bot = $("bot");
+    bot.style.width = pose.w * U + "px";
+    bot.style.transform = `translate(${pose.x * U}px, ${pose.y * U + float}px) rotate(${pose.r + wave}deg) scale(${Math.max(0.01, pop) * endPop})`;
+    bot.style.opacity = prog(t, 0, 0.15);
+
+    // End card.
+    const e = easeOut(prog(t, 18.2, 18.9));
+    $("end").style.opacity = e;
+    $("end").style.transform = `translateY(${(1 - e) * 60 * U}px)`;
+    $("end").querySelector(".cta").style.opacity = prog(t, 19.2, 19.7);
+  };
+
+  window.ready = Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(() => {}))])
+    .then(() => {
+      fitHeadline(); setScene(0);
+      render(parseFloat(new URLSearchParams(location.search).get("t") || "0"));
+      return true;
+    });
+</script>
+</body>
+</html>

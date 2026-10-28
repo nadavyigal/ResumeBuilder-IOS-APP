@@ -13,6 +13,40 @@ the message is lost at thumbnail size. v3 uses a cobalt background, a two-line h
 stroke (the size is shared by all five frames), and a phone that fills the lower frame. Search shows only the
 first three frames, so 1 to 3 carry the whole story: tailor, see what is missing, fix it.
 
+## Resumely avatar
+
+Every frame carries the Resumely avatar (the robot with the R on its chest), in a different place on each:
+waving from the phone's corner (1), peeking in from the right (2), rising from the bottom left (3), peeking
+from the left (4), on the phone's corner (5). It is never mirrored: a flip reverses the R.
+Cutout: `scripts/aso-v3/src/robot.png`, made from `robot-source.png` by uniting Apple Vision subject masks
+(`avatar-mask.swift`, run on the full image and on the right hand alone) with a flood fill of the white
+background. Vision alone dropped the right hand; the flood fill alone ate the white fingertips.
+
+## App Preview (motion, plays before the screenshots)
+
+File: `app-preview/resumely-app-preview-886x1920.mov`. 21 s, 886x1920 portrait, H.264 High 4.0 at about
+11 Mbps, 30 fps, silent stereo AAC 256 kbps / 48 kHz (Apple requires a stereo track). Apple's accepted
+iPhone preview size is 886x1920 for every 19.5:9 iPhone section (spec read 2026-10-28), so one file covers
+6.3", 6.5" and 6.9". Upload it to the first slot of the iPhone 6.5" (or 6.9") **App Previews** well.
+Set the poster frame at 5 s (phone, job post card and avatar all on screen).
+
+Storyboard: avatar pops in, headline highlights in (0-3 s); phone rises, job post card marks three keywords
+(3-7.5 s); what's missing (7.5-11 s); edits with a tap on Apply improvement (11-14.5 s); PDF templates
+(14.5-17.5 s); end card with the avatar, "Resumely", "Tailor your resume to any job" (17.5-21 s).
+
+Review risk: App Review guideline 2.3.4 says previews should show captured footage of the app, with
+overlays allowed. The phone screens are the app's own `MarketingScreenshotView` renders and the avatar
+and text are overlays, but the opening 3 s and the end card show no app screen. If Apple rejects the
+preview, shorten those two parts first.
+
+Checked 2026-10-28 with `probe.swift`: 21.0 s; video avc1 886x1920, 30 fps, about 8.4 Mbps average
+(static frames compress below the 10-12 Mbps target, which is a target, not a limit); audio AAC, 2 channels,
+48 kHz, both tracks enabled. The silent track encodes far below 256 kbps because it is silence.
+
+Regenerate: serve `scripts/aso-v3/` over http, run `capture-frames.js` as a Playwright snippet, then compile
+and run the encoder (the `swift` interpreter stalls on it; compile with `swiftc` first):
+`swiftc -O encode.swift -o encode && ./encode <framesDir> <out.mov> 886 1920`.
+
 ## Drag-And-Drop Folders
 
 | App Store Connect section | Folder | Size |

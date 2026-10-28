@@ -150,6 +150,13 @@
     color: #C2263B;
   }
   .slot-1 .phone { left: auto; right: calc(var(--u) * 40); transform: none; }
+  .bot {
+    position: absolute;
+    z-index: 3;
+    width: calc(var(--u) * 480);
+    filter: drop-shadow(0 calc(var(--u) * 30) calc(var(--u) * 40) rgba(5, 10, 60, 0.45));
+    transform-origin: 50% 60%;
+  }
 </style>
 </head>
 <body>
@@ -168,6 +175,7 @@
       <img id="shot" alt="">
     </div>
   </div>
+  <img class="bot" id="bot" src="src/robot.png" alt="">
   <div class="post" id="post" hidden>
     <h2>Senior Product Designer</h2>
     <div class="co">Mobile flows, full time</div>
@@ -186,6 +194,15 @@
          s: "Classic, Modern and Minimal templates, ready to share." },
     5: { shot: "05-expert", h: ["Get an expert", "second look"],
          s: "Six review tools with rewrites you can stand behind." },
+  };
+  // Avatar versions: x/y are offsets in u from the phone's top-left (x) and top (y).
+  // Never mirrored: a flip reverses the R on its chest.
+  const BOT = {
+    1: { w: 560, x: 610, y: -250, r: 8 },    // big, waving from the phone's top corner
+    2: { w: 680, x: 830, y: 820, r: -14 },   // peeking in from the right edge
+    3: { w: 640, x: -300, y: 1080, r: 10 },  // rising from the bottom left, under the button
+    4: { w: 700, x: -440, y: 1120, r: 16 },   // peeking in from the left edge
+    5: { w: 520, x: 640, y: -230, r: -6 },   // on the phone's top corner, pointing in
   };
   const q = new URLSearchParams(location.search);
   const slot = SLOTS[q.get("slot") || "1"];
@@ -221,6 +238,15 @@
     const phoneTop = Math.max(minTop, H - content - 24 * u + 40 * u);
     document.querySelector(".phone").style.top = phoneTop + "px";
     copy.style.top = Math.max(110 * u, (phoneTop - copyH) / 2) + "px";
+    const b = BOT[q.get("slot") || "1"], bot = document.getElementById("bot");
+    const phoneLeft = document.querySelector(".phone").getBoundingClientRect().left;
+    bot.style.width = b.w * u + "px";
+    bot.style.left = phoneLeft + b.x * u + "px";
+    // Keep it clear of the copy and at least 60% inside the frame, whatever the device.
+    const botH = b.w * u * 815 / 1198;
+    const copyBottom = copy.getBoundingClientRect().bottom;
+    bot.style.top = Math.min(Math.max(phoneTop + b.y * u, copyBottom + 30 * u), H - botH * 0.6) + "px";
+    bot.style.transform = `rotate(${b.r}deg)`;
     const post = document.getElementById("post");
     if (!post.hidden) post.style.top = Math.min(phoneTop + 860 * u, H - post.offsetHeight - 140 * u) + "px";
   };
