@@ -1,3 +1,14 @@
+# 2026-10-29: Pricing v2 plan (waiting for approval)
+
+Status: plan only, no code. Branch `claude/resumely-pricing-v2`, file `plans/resumely-pricing-v2.md`.
+Current Phase: Payments v2 (welcome grant 5 exports + 5 Match Scores, packs `resumely.exports.5.v2` $3.99 and `resumely.exports.14` $7.99, `resumely.pro.monthly` $9.99, paywall after score + PDF preview, paste and sample starts, PostHog funnel contract).
+Active Story: none until the founder approves the plan and decisions D1 to D7.
+Last Completed Story: plan written from the code (web `src/lib/iap.ts`, `export-credits.ts`, verify/notifications routes, iOS `StoreKitManager.swift`, `ExportPaywallSheet.swift`).
+Next Recommended Story: S1 server pricing v2 in the web repo, behind `PRICING_V2_ENABLED` (off).
+Blockers: founder approval; ASC products needed before real Sandbox (S6).
+Last Validation: none (docs only).
+Last Updated: 2026-10-29
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
