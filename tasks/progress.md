@@ -1,3 +1,15 @@
+# 2026-10-28: App Store screenshots v3 (rb-aso-004)
+
+Status: PR open, not merged. Branch `aso/screenshots-v3` from main 96e89aa. Uploaded to App Store Connect version 1.5.7 on 2026-10-29 (not submitted).
+Current Phase: ASO. Active Story: v3 screenshot set. Last Completed Story: v3 render for iPhone 6.3, 6.5 and iPad 13.
+Change: the live v2 set (1.5.6, checked on apps.apple.com 2026-10-28) is near-black with a small headline and reads as dark slabs in search. v3: cobalt background, two-line highlighter headline at one shared size, app screen in a phone filling the lower frame. Generator in `scripts/aso-v3/`, files and copy in `dist/app-store-screenshots/app-store-v3/upload-manifest.md`. New subtitle "Tailor Your Resume to Any Job" and promotional text proposed there.
+Last Validation: 15 PNGs at exact sizes, all opaque (sips hasAlpha: no); every frame viewed after render; no ATS or guarantee claims. No app code changed, so no XCTest run.
+2026-10-28 later: added the Resumely avatar to all five frames (a different placement on each, never mirrored) and a 21 s App Preview video (886x1920, H.264 30 fps, silent stereo AAC) that plays before the screenshots. Generator: `preview.html`, `capture-frames.js`, `encode.swift`. Last Validation: probe shows 21.0 s, 886x1920 avc1 30 fps, AAC 2 ch 48 kHz; stills extracted from the encoded file at 7 times viewed; 15 PNGs opaque.
+2026-10-29: created version 1.5.7 (Prepare for Submission) in App Store Connect and uploaded the v3 set: 5 screenshots each for iPhone 6.3", 6.5" and iPad 13" (v2 removed from 1.5.7 only, still in the Asset Library), the App Preview in the first slot of 6.3" and 6.5", subtitle "Tailor Your Resume to Any Job", and the new Promotional Text. The preview was re-encoded at 3.3 Mbps (8.7 MB) because the browser upload takes 10 MB at most; stills checked sharp. Last Validation: Media Manager shows 5 of 10 screenshots in order in all three sections and 1 of 3 previews in both iPhone sections; Apple was still processing the previews.
+Next Recommended Story: attach a 1.5.7 build, write What's New, submit 1.5.7 for review, then log rb-aso-004 with the publish date. Then a brighter app icon with the avatar.
+Blockers: 1.5.7 needs a build before it can be submitted.
+Last Updated: 2026-10-29
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
