@@ -1,17 +1,25 @@
 # Resumely pricing v2: plan
 
-Status: PLAN ONLY, waiting for founder approval. No code written. Written 2026-10-29, revised 2026-10-29 (v2).
+Status: PLAN ONLY, waiting for founder approval. No code written. Written 2026-10-29, revised 2026-10-29 (v2), amended 2026-10-29 (v3, advice A1 to A5 accepted).
 iOS branch: `claude/resumely-pricing-v2` (worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2`).
 Web branch: a new worktree `web-pricing-v2` from `main` (the server half lives in `nadavyigal/new-ResumeBuilder-ai-`).
 
-Objective: replace the 1/5/10 export packs with a welcome grant of free PDF exports, two cheaper export packs and a $9.99 monthly plan, keep the Match Score unlimited and free for everyone, show the paywall only after real value, add a sample-CV start, and make one PostHog funnel from new user to paid user.
+Objective: replace the 1/5/10 export packs with a welcome grant of 3 free PDF exports, two cheaper export packs and a $9.99 monthly plan, keep the Match Score unlimited and free for everyone, show the paywall only after real value, add a sample-CV start, and make one PostHog funnel from new user to paid user.
 
 ## Founder changes in v2 (2026-10-29)
 
 1. **Match Score is unlimited for everyone.** No score credits, no score metering, no score paywall. Only PDF exports are counted and paid.
 2. **Upload stays file-only.** No paste-text path, no change to `/api/upload-resume`.
 
-What this removed from v1: the `score_unlocks` table, `score_balance`, `authorizeScore()`, every change to the score routes, the 402 for scores, scores inside packs, the "scores ran out before a preview" card, the paste start and the upload route change. Old decisions D2 and D5 are gone.
+## Founder changes in v3 (2026-10-29): advice accepted
+
+- **A1:** welcome grant is **3** free PDF exports (was 5). One server constant, `WELCOME_EXPORTS = 3`.
+- **A2:** packs are the main offer. The paywall lists the 14-pack first, preselected, marked "Best value", then the 5-pack, then Pro. Pro gets a 60-day review (section 12).
+- **A3:** "Check any job, free, as often as you like" leads on Home (S4) and on the App Store page (checklist item 13).
+- **A4:** LinkedIn PDF hint under Upload, with a "How?" sheet (founder chose it 2026-10-29). Copy only.
+- **A5:** the post-launch funnel is saved as a PostHog insight in S5, with a 30-day read.
+
+What v2 removed from v1: the `score_unlocks` table, `score_balance`, `authorizeScore()`, every change to the score routes, the 402 for scores, scores inside packs, the "scores ran out before a preview" card, the paste start and the upload route change. Old decisions D2 and D5 are gone.
 
 ---
 
@@ -53,12 +61,12 @@ Retired forever (server grants 0 for new sales, app never loads them): `resumely
 
 ### 2.3 Welcome grant
 
-- **5 free PDF exports**, once per account, granted on the server.
+- **3 free PDF exports** (`WELCOME_EXPORTS = 3`), once per account, granted on the server. Changing the number later is a server change only, no app build.
 - Idempotency: a `welcome_grants` table with `user_id` as primary key. The grant inserts the row and adds the credits in one transaction; a second call does nothing. Reinstall or a new device signs into the same account, so it can never re-grant.
 - When: lazily, inside every credit read or spend, so no signup hook is needed and old accounts get it the first time they open v2.
 - Real accounts only. Exports already require a real account (anonymous sessions get `401 account_required`), so anonymous users need nothing here; they get the grant when they create the account.
-- Known gap: a person can create a second account for another 5. Apple DeviceCheck can mark "this device already got a grant", but it needs a key in App Store Connect and server work. Recommended: ship without it, add it only if PostHog shows grant farming. (D3.)
-- The column default `credit_balance = 1` goes to `0`, so a new account gets exactly 5, not 6.
+- Known gap: a person can create a second account for another 3. Apple DeviceCheck can mark "this device already got a grant", but it needs a key in App Store Connect and server work. Recommended: ship without it, add it only if PostHog shows grant farming. (D3.)
+- The column default `credit_balance = 1` goes to `0`, so a new account gets exactly 3, not 4.
 
 ### 2.4 Subscription and fair use
 
@@ -70,7 +78,7 @@ Retired forever (server grants 0 for new sales, app never loads them): `resumely
 
 ### 2.5 Existing users
 
-Recommended: **every existing account also gets the 5-export welcome grant once, on top of what it holds.** Unlocked exports stay unlocked. Anyone who bought an old pack keeps every credit. Most accounts hold 0 or 1 credit and there are very few users, so the cost is tiny and nobody feels penalized by the price drop. (D1. Alternative: top up to 5 instead of adding 5.)
+Recommended: **every existing account also gets the 3-export welcome grant once, on top of what it holds.** Unlocked exports stay unlocked. Anyone who bought an old pack keeps every credit. Most accounts hold 0 or 1 credit and there are very few users, so the cost is tiny and nobody feels penalized by the price drop. (D1. Alternative: top up to 5 instead of adding 5.)
 
 Before the migration runs, one read-only query lists `credit_transactions` where `source='apple_iap'`; if anyone bought an old pack, they keep everything and get the grant too. Not checked this session (Supabase connection needs sign-in).
 
@@ -92,7 +100,8 @@ Rules applied: Match Score always "estimate"; no ATS-beating claim; no guarantee
 - Body: "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate. All on your phone, in under a minute." / "צ'אטבוט חינמי נותן לכם טקסט. Resumely נותן PDF מוכן, מימין לשמאל בעברית, בתבנית נקייה, עם הערכת ציון התאמה לפני ואחרי. הכול בטלפון, בפחות מדקה."
 - Reassurance line: "Match Scores stay free and unlimited." / "ציוני ההתאמה נשארים בחינם וללא הגבלה."
 - Plan row: "Pro, unlimited PDF downloads (fair use)" / "Pro, הורדות PDF ללא הגבלה (שימוש הוגן)"
-- Pack rows: "5 tailored CVs" / "5 קורות חיים מותאמים"; "14 tailored CVs" / "14 קורות חיים מותאמים"
+- Pack rows, in this order: "14 tailored CVs" / "14 קורות חיים מותאמים" with badge "Best value" / "המשתלם ביותר"; "5 tailored CVs" / "5 קורות חיים מותאמים"
+- Plan row (last): see above.
 - Footer: "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction." / "ציון ההתאמה הוא הערכה של התאמת קורות החיים למשרה, לא תחזית לקבלה לעבודה."
 - Required by Apple for the subscription: price and period from StoreKit, "Renews monthly until cancelled", links to Terms of Use (EULA) and Privacy Policy, Restore Purchases.
 
@@ -134,11 +143,11 @@ Env vars to add in Vercel (I do not set them): `PRICING_V2_ENABLED`, and reuse `
 | `Core/Payments/ReceiptVerifier.swift` | Decode `entitlement`. New error `ownedByAnotherAccount`: "This subscription belongs to another Resumely account. Sign in with that account." | S2 |
 | `Core/Payments/ExportCredits.swift` | Unlock response may say `source: subscription`. | S2 |
 | `App/AppState.swift` | `subscription` state, `paywallEligibility(for:)`. | S2/S3 |
-| `Features/V2/Paywall/ExportPaywallSheet.swift` | Redesign: plan card first, two packs, copy from 3.2, legal links, Restore. | S3 |
+| `Features/V2/Paywall/ExportPaywallSheet.swift` | Redesign: 14-pack first, preselected, "Best value" badge; then 5-pack; then Pro as the last row. Copy from 3.2, legal links, Restore. | S3 |
 | `Features/V2/Paywall/PaywallSmokeHarness.swift` | Fixture offers for the 3 new products; `--smoke-paywall-sub` variant showing an active plan; Hebrew via `--smoke-he`. | S3 |
 | `Features/Profile/PaywallView.swift` | Delete (dead scaffold). Profile gains a "Plan" row: Pro until date / exports left / Restore / Manage subscription (`showManageSubscriptions`). | S3 |
 | `ResumeBuilder IOS APP/Resumely.storekit` (new) | Local StoreKit config: 2 consumables, 1 subscription group with the monthly plan, accelerated renewal. Debug scheme only. | S2 |
-| `Features/V2/Home/HomeTabView.swift`, `UploadSheetView.swift` | Two starts: Upload file (unchanged path) and Try a sample CV. Upload hint adds "LinkedIn profile saved as PDF works too" (copy only, no new upload path). | S4 |
+| `Features/V2/Home/HomeTabView.swift`, `UploadSheetView.swift` | Two starts: Upload file (unchanged path) and Try a sample CV. Home headline (A3): "Check any job, free, as often as you like." / "בדקו התאמה לכל משרה, בחינם, כמה שתרצו." with the subline "Your Match Score is an estimate." / "ציון ההתאמה הוא הערכה." LinkedIn hint under Upload (A4): "No CV file? Save your LinkedIn profile as PDF." / "אין לכם קובץ קורות חיים? שמרו את פרופיל הלינקדאין כ-PDF." with a "How?" / "איך?" sheet: 1. Open linkedin.com in Safari (not the LinkedIn app) and go to your profile. 2. Tap More, then Save to PDF. 3. Save the file to Files, then come back and tap Upload. Text only; the steps are re-checked on a real iPhone in S4 before shipping. | S4 |
 | `Features/V2/Home/SampleCV/` (new) | Bundled Hebrew + English sample CV and sample job with a **precomputed** Match Score: no server call, no AI cost, shows in under a second, then "Now try with your CV". | S4 |
 | `Core/Analytics/AnalyticsService.swift` | Event contract from section 6. | S5 |
 | `Localizable` catalog | All new strings EN + HE, RTL checked in harness screenshots. | S3/S4 |
@@ -146,7 +155,7 @@ Env vars to add in Vercel (I do not set them): `PRICING_V2_ENABLED`, and reuse `
 
 ### 5.1 The guest export gap (must verify in S3)
 
-`authorizeExport` lets a guest **with no session** skip the unlock and export the on-screen copy for free (`ExportCredits.swift`, comment on spec section 3, E6). If a no-session guest can reach a PDF today, any price is bypassable. Now that exports are the only paid thing, this matters more than in v1. S3 starts by checking this on the simulator. If reachable, the export button asks for a free account (Sign in with Apple, one tap), which also lands the 5 free exports. (D5.)
+`authorizeExport` lets a guest **with no session** skip the unlock and export the on-screen copy for free (`ExportCredits.swift`, comment on spec section 3, E6). If a no-session guest can reach a PDF today, any price is bypassable. Now that exports are the only paid thing, this matters more than in v1. S3 starts by checking this on the simulator. If reachable, the export button asks for a free account (Sign in with Apple, one tap), which also lands the 3 free exports. (D5.)
 
 ---
 
@@ -160,7 +169,7 @@ Scheme: `snake_case`, `object_action` in past tense, one event per funnel step, 
 | `cv_uploaded` | app | after a successful file upload or sample load | `method: file \| sample` |
 | `match_score_viewed` | app | score card on screen | `source: sample \| own`, `score_bucket` |
 | `pdf_preview_viewed` | app | Optimized preview rendered | `optimization_id`, `template` |
-| `free_grant_used` | server | the export that takes the welcome grant to 0 | `exports_used: 5` |
+| `free_grant_used` | server | the export that takes the welcome grant to 0 | `exports_used: 3` |
 | `paywall_viewed` | app | sheet appears | `entry_point`, `balance` |
 | `purchase_started` | app | buy tapped | `product_id` |
 | `purchase_completed` | app | after server grant | `product_id`, `price`, `currency` |
@@ -185,8 +194,8 @@ One story at a time; I stop after each with evidence.
 | S1 Server pricing v2 | web | migration file written (not applied), grant, subscription entitlement, verify + notifications, tests green, switch off |
 | S2 StoreKit v2 + entitlements | iOS | new catalog, subscription buy/restore/renew/expire, `.storekit`, unit + SKTestSession tests green |
 | S3 Paywall placement + copy | iOS | eligibility rule, redesigned sheet EN/HE, guest gap decided, Profile plan row |
-| S4 Sample CV start | iOS | sample score in < 1 s, EN/HE RTL screenshots |
-| S5 Analytics | iOS + web | contract above, one test account seen end to end in PostHog |
+| S4 Sample CV start + Home headline + LinkedIn hint | iOS | sample score in < 1 s, free-scores headline, LinkedIn hint and How sheet, EN/HE RTL screenshots |
+| S5 Analytics | iOS + web | contract above, one test account seen end to end in PostHog, funnel insight saved in PostHog 270848 (A5) |
 | S6 QA | both | test matrix below, timing check, App Store Connect checklist final |
 
 PRs: two **draft** PRs, one per repo, one commit series per story, each with the GLOBAL-WORKFLOWS 7b pre-check. Not merged. No App Store Connect changes by me.
@@ -196,7 +205,7 @@ PRs: two **draft** PRs, one per repo, one commit series per story, each with the
 ## 8. Test plan
 
 Unit (automated):
-- Welcome grant: first call grants 5; second call, reinstall (same user), new device (same user) grant nothing; anonymous gets nothing until the account is real; conversion grants once.
+- Welcome grant: first call grants 3; second call, reinstall (same user), new device (same user) grant nothing; anonymous gets nothing until the account is real; conversion grants once.
 - Credit math: 5-pack adds 5, 14-pack adds 14; quantity > 1; replay grants once; refund deducts outstanding only; export unlock idempotent; re-download free.
 - Entitlements: active, grace, expired, refunded, renewed (new expiry), cancelled-but-not-expired stays active, export 41 in a period falls back to credits then refuses with reset date, subscription spent before credits.
 - Match Score: no route returns 402 for a score; a user at 0 credits can still score.
@@ -207,8 +216,8 @@ Sandbox matrix (S6, on your phone signed into a Sandbox tester; I cannot type Ap
 
 | # | Flow | Expect |
 |---|---|---|
-| 1 | New account | 5 free exports shown; scores unlimited |
-| 2 | Use all 5 exports | paywall only after score + preview |
+| 1 | New account | 3 free exports shown; scores unlimited |
+| 2 | Use all 3 exports | paywall only after score + preview |
 | 3 | Buy 5-pack | +5, export resumes without a second tap |
 | 4 | Buy 14-pack | +14 |
 | 5 | Subscribe | unlimited exports, Profile shows renew date |
@@ -232,7 +241,7 @@ Regression: full `xcodebuild test`, web `npm run lint`, `npx tsc --noEmit`, `npm
 
 1. **Server cannot verify local `.storekit` transactions.** End-to-end needs the ASC products first. Blocks S6 until you create them.
 2. **Guest no-session export bypass** (5.1). Exports are now the only paid thing, so this could make every price moot.
-3. **5 free exports may mean very few people ever reach the paywall.** Most job seekers tailor 1 to 3 CVs in their first week. See advice A1.
+3. **Even 3 free exports may cover a light user's whole search.** Watched with the A5 funnel; the number is a server constant.
 4. **Fair-use number is a guess** without OpenAI cost per optimization.
 5. **Unlimited scores cost AI calls with no revenue.** Today's rate limits stay; watch the scoring line in the OpenAI bill after launch.
 6. **Grant farming** via new accounts (2.3). Mitigation ready (DeviceCheck) but not built.
@@ -255,7 +264,8 @@ Regression: full `xcodebuild test`, web `npm run lint`, `npx tsc --noEmit`, `npm
 9. **Metadata**: mention the subscription in the description; add Terms of Use (Apple standard EULA is fine).
 10. **Sandbox tester** with accelerated renewal.
 11. **Attach** all three products to version 1.6.0 before submitting.
-12. Review note (paste): "Match Scores are free and unlimited. Every new account gets 5 free tailored CV downloads as PDF; after that, PDF downloads need a pack or the monthly plan. The demo account has no free downloads left: open a saved result and tap Export to reach the purchase screen. The Match Score is shown as an estimate. Restore Purchases is on the purchase screen and in Profile."
+12. Review note (paste): "Match Scores are free and unlimited. Every new account gets 3 free tailored CV downloads as PDF; after that, PDF downloads need a pack or the monthly plan. The demo account has no free downloads left: open a saved result and tap Export to reach the purchase screen. The Match Score is shown as an estimate. Restore Purchases is on the purchase screen and in Profile."
+13. **App Store page copy (A3):** first line of the description and the promotional text lead with free scores. EN: "Check any job, free, as often as you like. Get a Match Score estimate, then a tailored Hebrew or English PDF in under a minute." HE: "בדקו התאמה לכל משרה, בחינם, כמה שתרצו. קבלו הערכת ציון התאמה, ואז PDF מותאם בעברית או באנגלית בפחות מדקה." (Promotional text changes without a new build.)
 
 ---
 
@@ -263,19 +273,19 @@ Regression: full `xcodebuild test`, web `npm run lint`, `npx tsc --noEmit`, `npm
 
 | # | Question | My recommendation |
 |---|---|---|
-| D1 | Existing users | Add the 5-export welcome grant on top of current balance |
+| D1 | Existing users | Add the 3-export welcome grant on top of current balance |
 | D2 | Fair-use cap on Pro | 40 PDF exports per 30 days (check OpenAI cost first) |
 | D3 | DeviceCheck against grant farming | Not now; add if data shows abuse |
 | D4 | Old products | Remove from sale on 1.6.0 launch day |
 | D5 | No-session guest export | If reachable, ask for a free account at export |
 
-## 12. Advice (not in scope unless you say so)
+## 12. Advice (accepted 2026-10-29)
 
-- **A1. Grant size: consider 3 free exports instead of 5.** With unlimited free scores, the free tier is already generous, and the PDF is the only thing you sell. Most users tailor 1 to 3 CVs early, so with 5 free almost nobody hits the paywall in their first weeks, and you learn nothing about willingness to pay. 3 still lets someone apply to three jobs. It is one constant on the server (`ensure_welcome_grant`), so it can change later without an app build. Your call; the plan uses 5 as you asked.
-- **A2. Pro is worth it only above 14 exports a month.** Most buyers will pick a pack. Plan revenue around packs and treat Pro as the option for an intense search month. The paywall shows the plan first but highlights the 14-pack as "best value" for most people. If Pro sells near zero after 60 days, drop to two packs.
-- **A3. Use unlimited scores as the hook.** "Check any job, free, as often as you like" is your strongest message for the 86% who never upload. It belongs on the Home screen and the App Store page, not only on the paywall. Copy and screenshots, no code beyond S4.
-- **A4. Without paste, push the LinkedIn PDF.** LinkedIn's "Save to PDF" on a profile gives a file your current upload already accepts. One line of hint copy in S4, no server change.
-- **A5. Watch one number after launch:** share of users with `free_grant_used` who reach `paywall_viewed` and then `purchase_completed`. If `free_grant_used` stays near zero for a month, the grant is too big (see A1).
+- **A1. 3 free exports.** Applied in 2.3. Move it back to 5 (or to 2) with one server constant if the A5 funnel says so.
+- **A2. Packs first.** Applied in 3.2 and 5. Revenue plan counts packs, not Pro. **60-day rule:** if Pro has fewer than 10 paying subscribers 60 days after `PRICING_V2_ENABLED` turns on, remove it from the paywall and keep two packs.
+- **A3. Free scores lead.** Applied in S4 (Home headline) and checklist item 13 (App Store page).
+- **A4. LinkedIn PDF hint.** Applied in S4. The LinkedIn iPhone app has no Save to PDF; it works in Safari on LinkedIn's site (third-party guides, no official LinkedIn page found). S4 re-checks the 3 steps on a real iPhone; if LinkedIn changed them, the copy changes before shipping.
+- **A5. One funnel to watch.** Applied in S5: a saved PostHog funnel `free_grant_used → paywall_viewed → purchase_completed`, read 30 days after launch. If under 10% of new accounts reach `free_grant_used`, the grant is too big for the usage; if over 50% reach it and under 2% of those buy, the price or the paywall copy is the problem.
 
 ## 13. Could not verify this session
 
