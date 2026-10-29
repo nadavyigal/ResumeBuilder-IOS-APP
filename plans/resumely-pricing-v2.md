@@ -23,6 +23,16 @@ What v2 removed from v1: the `score_unlocks` table, `score_balance`, `authorizeS
 
 ---
 
+## S1 as built (2026-10-29), web PR nadavyigal/new-ResumeBuilder-ai-#204 (draft)
+
+Two changes from section 4, both simpler and both safe:
+- **No `PRICING_V2_ENABLED` switch.** `unlock_export` and `grant_apple_purchase` keep their signatures, so the server code works before and after the migration. Charging is still decided only by `EXPORT_CREDITS_ENABLED` / `EXPORT_CREDITS_USER_IDS`. Once the migration is applied, the only user-visible change is the welcome grant.
+- **The two constants live in SQL**, `welcome_export_grant()` = 3 and `subscription_export_cap()` = 40. Changing one is a one-line migration (no app build, no deploy).
+- Retired v1 packs are still granted when a paid transaction arrives (never refuse money Apple took); they are retired by "Remove from Sale" in App Store Connect and by the app not loading them.
+- The migration `20261029120000_pricing_v2.sql` is written, **not applied**.
+
+---
+
 ## 1. What exists today (read from the code, 2026-10-29)
 
 | Area | Fact | Where |

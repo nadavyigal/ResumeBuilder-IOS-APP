@@ -1,3 +1,14 @@
+# 2026-10-29: Pricing v2, S1 server (draft PR open)
+
+Status: S1 done as a draft PR in the web repo, nadavyigal/new-ResumeBuilder-ai-#204 (branch `claude/pricing-v2-server`, worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/web-pricing-v2`). Not merged. Migration `20261029120000_pricing_v2.sql` written, not applied.
+Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, approved 2026-10-29 with D1 to D5 as recommended).
+Active Story: S1 review (hosted Codex requested; second-model review running).
+Last Completed Story: S1 server pricing v2: welcome grant (3, once per real account; existing accounts +3), packs 5.v2 and 14, retired v1 packs still honored when paid, Pro subscription per original transaction with fair use 40 per period, renewals / auto-renew / grace / expiry / refunds from notifications, server funnel events, credits route returns plan state.
+Next Recommended Story: S2 StoreKit v2 + entitlements in this repo.
+Blockers: founder yes needed to apply the migration; ASC products before real Sandbox (S6).
+Last Validation: web lint 0 errors; tsc 24 pre-existing errors in untouched test files, none new; jest 1153 passed / 84 skipped; build passes; local Postgres tests pricing-v2 17, export-credits 13, apple-iap 18, security-definer-grants 11 checks.
+Last Updated: 2026-10-29
+
 # 2026-10-29: Pricing v2 plan v3 (waiting for approval)
 
 Status: plan only, no code. Branch `claude/resumely-pricing-v2`, file `plans/resumely-pricing-v2.md`.
