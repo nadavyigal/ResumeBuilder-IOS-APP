@@ -1,12 +1,12 @@
-# 2026-10-29: Pricing v2, S1 server (draft PR open)
+# 2026-10-29: Pricing v2, S1 server (draft PR open, review fixes pushed)
 
-Status: S1 done as a draft PR in the web repo, nadavyigal/new-ResumeBuilder-ai-#204 (branch `claude/pricing-v2-server`, worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/web-pricing-v2`). Not merged. Migration `20261029120000_pricing_v2.sql` written, not applied.
+Status: S1 is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (branch `claude/pricing-v2-server`, head 82d2de4, worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/web-pricing-v2`). Not merged. Migration `20261029120000_pricing_v2.sql` written, not applied.
 Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, approved 2026-10-29 with D1 to D5 as recommended).
-Active Story: S1 review (hosted Codex requested; second-model review running).
-Last Completed Story: S1 server pricing v2: welcome grant (3, once per real account; existing accounts +3), packs 5.v2 and 14, retired v1 packs still honored when paid, Pro subscription per original transaction with fair use 40 per period, renewals / auto-renew / grace / expiry / refunds from notifications, server funnel events, credits route returns plan state.
-Next Recommended Story: S2 StoreKit v2 + entitlements in this repo.
-Blockers: founder yes needed to apply the migration; ASC products before real Sandbox (S6).
-Last Validation: web lint 0 errors; tsc 24 pre-existing errors in untouched test files, none new; jest 1153 passed / 84 skipped; build passes; local Postgres tests pricing-v2 17, export-credits 13, apple-iap 18, security-definer-grants 11 checks.
+Active Story: S1 review. Codex on c3892ae: 1 P1 + 2 P2, all fixed in bc9951a (a pre-refund replay can no longer clear a revocation; renewal info ordered by signedDate; subscription_renewed sent by whichever path records the renewal). Second-model review: same P1, plus older-period refund documented as intended, GRACE_PERIOD_EXPIRED event, unused credit functions start at 0. Codex re-requested on bc9951a and 82d2de4, not finished yet.
+Last Completed Story: S1 server pricing v2 (welcome grant 3, packs 5.v2 and 14, retired v1 still honored, Pro subscription with fair use 40, notifications, server funnel events, credits route plan state).
+Next Recommended Story: S2 StoreKit v2 + entitlements in this repo, after the founder reviews #204.
+Blockers: founder yes to apply the migration; ASC products before real Sandbox (S6).
+Last Validation: at bc9951a: web lint 0 errors; tsc 24 pre-existing test-file errors, none new; jest 1157 passed / 84 skipped; build passes; local Postgres pricing-v2 19, export-credits 13, apple-iap 18, security-definer-grants 11 checks.
 Last Updated: 2026-10-29
 
 # 2026-10-29: Pricing v2 plan v3 (waiting for approval)
