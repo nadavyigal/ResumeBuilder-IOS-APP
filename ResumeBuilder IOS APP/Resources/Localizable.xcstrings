@@ -110,6 +110,27 @@
         }
       }
     },
+    "14 tailored exports" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 ייצואים מותאמים"
+          }
+        }
+      }
+    },
+    "This subscription belongs to another Resumely account. Sign in with that account." : {
+      "comment" : "Restore or purchase of Pro under a different account",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המנוי הזה שייך לחשבון Resumely אחר. התחברו לחשבון שבו נרכש המנוי."
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {

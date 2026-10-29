@@ -34,6 +34,15 @@ struct ExportUnlockService: Sendable {
     struct Response: Decodable, Equatable, Sendable {
         let status: String
         let balance: Int?
+        /// `credit`, `subscription` (Pro paid for it) or `ungated`. Nil from a
+        /// server before pricing v2.
+        let source: String?
+
+        init(status: String, balance: Int?, source: String? = nil) {
+            self.status = status
+            self.balance = balance
+            self.source = source
+        }
     }
 
     var apiClient: APIClient = RuntimeServices.sharedAPIClient
@@ -113,6 +122,9 @@ extension AppState {
         }
         store.onCreditsGranted = { [weak self] balance in
             if let balance { self?.creditsBalance = balance }
+        }
+        store.onPlanChanged = { [weak self] in
+            Task { await self?.refreshCredits() }
         }
         store.startObservingTransactions()
     }

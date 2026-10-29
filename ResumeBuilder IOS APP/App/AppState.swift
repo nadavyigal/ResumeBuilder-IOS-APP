@@ -68,6 +68,9 @@ final class AppState {
     var pendingSharedJobURL: URL?
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    /// Pro as the server last reported it; nil before the first read or
+    /// signed out.
+    var subscription: SubscriptionStatus?
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
     var applicationsRefreshToken: Int = 0
@@ -273,6 +276,7 @@ final class AppState {
         optimizationRecoveryGeneration &+= 1
         session = nil
         creditsBalance = 0
+        subscription = nil
         latestOptimizationId = nil
         latestOptimization = nil
         optimizationRecoveryState = .idle
@@ -768,6 +772,7 @@ final class AppState {
         do {
             let response: CreditsResponse = try await apiClient.get(endpoint: .credits, token: token)
             creditsBalance = response.balance
+            subscription = response.subscription
         } catch {
             // Keep prior balance on transient failures.
         }

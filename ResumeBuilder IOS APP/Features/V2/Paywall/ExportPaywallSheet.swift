@@ -14,9 +14,8 @@ enum ExportPaywallCopy {
 
     static func packTitle(credits: Int) -> LocalizedStringKey {
         switch credits {
-        case 1: return "1 tailored export"
-        case 5: return "5 tailored exports"
-        default: return "10 tailored exports"
+        case 14: return "14 tailored exports"
+        default: return "5 tailored exports"
         }
     }
 }
@@ -115,8 +114,9 @@ final class ExportPaywallModel {
         }
         do {
             try await loadStoreProducts()
+            // Packs only. Pro joins this sheet in S3 (plan section 5).
             offers = store.products.compactMap { product in
-                ExportCreditProducts.credits(for: product.id).map {
+                ResumelyProducts.exports(for: product.id).map {
                     PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)
                 }
             }

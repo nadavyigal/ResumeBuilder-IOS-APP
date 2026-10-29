@@ -33,6 +33,19 @@ Two changes from section 4, both simpler and both safe:
 
 ---
 
+## S2 as built (2026-10-29), branch `claude/resumely-pricing-v2`
+
+- `ResumelyProducts` replaces `ExportCreditProducts`: sale order 14-pack, 5-pack (`resumely.exports.5.v2`), Pro. The v1 packs are never loaded, but a paid, unfinished v1 transaction is still delivered (the server still grants it).
+- Pro: `purchase()` buys it like a pack; `refreshEntitlements()` sends Apple's current Pro transaction to `/api/v1/iap/verify` at launch and after sign-in; `restorePurchases()` = `AppStore.sync()`, then unfinished transactions, then the current plan; renewals and refunds from `Transaction.updates` are delivered and re-read the plan.
+- The app shows Pro from `GET /api/v1/credits` (`AppState.subscription`); the server still decides every export.
+- Pro bought under another Resumely account: "This subscription belongs to another Resumely account. Sign in with that account." The transaction stays unfinished for that account and never locks this one.
+- An expired or refunded Pro transaction does not count as a grant, so it cannot resume a waiting paywall.
+- The paywall sheet sells the two packs only. Pro joins it in S3. `paywallEligibility(for:)` also moves to S3.
+- **Changes from section 5:** `Resumely.storekit` lives in the test folder (the test bundle needs it) and is **not** wired into the Run scheme, so a run from Xcode on your phone still uses real Sandbox in S6. To try it in the simulator: Edit Scheme > Run > Options > StoreKit Configuration.
+- **Not verified from the command line:** the 10 `StoreKitSessionTests` (buy, renew, expire, refund, restore). `xcodebuild test` on iOS 26.5 does not hand the `.storekit` file to the simulator (Apple forums thread 826971), so they skip there. They need one run from Xcode (Product > Test).
+
+---
+
 ## 1. What exists today (read from the code, 2026-10-29)
 
 | Area | Fact | Where |

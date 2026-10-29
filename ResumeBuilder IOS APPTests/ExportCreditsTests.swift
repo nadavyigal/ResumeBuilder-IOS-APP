@@ -336,15 +336,40 @@ final class PurchaseDeliveryTests: XCTestCase {
 
 @MainActor
 final class ExportCreditProductsTests: XCTestCase {
-    func testThreePacksInDisplayOrder() {
-        XCTAssertEqual(ExportCreditProducts.orderedIDs, ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"])
-        XCTAssertEqual(ExportCreditProducts.orderedIDs.map { ExportCreditProducts.credits(for: $0) }, [1, 5, 10])
+    private let retiredIDs = [
+        "credits_basic", "credits_saver", "credits_super",
+        "resumely.exports.1", "resumely.exports.5", "resumely.exports.10",
+    ]
+
+    func testTwoPacksThenProInSaleOrder() {
+        XCTAssertEqual(ResumelyProducts.orderedIDs, ["resumely.exports.14", "resumely.exports.5.v2", "resumely.pro.monthly"])
+        XCTAssertEqual(ResumelyProducts.orderedIDs.map { ResumelyProducts.exports(for: $0) }, [14, 5, nil])
+        XCTAssertEqual(ResumelyProducts.orderedIDs.map { ResumelyProducts.isSubscription($0) }, [false, false, true])
     }
 
     func testOldProductIdsAreNeverSold() {
-        for id in ["credits_basic", "credits_saver", "credits_super"] {
-            XCTAssertNil(ExportCreditProducts.credits(for: id))
+        for id in retiredIDs {
+            XCTAssertNil(ResumelyProducts.exports(for: id), id)
+            XCTAssertFalse(ResumelyProducts.isSubscription(id), id)
+            XCTAssertFalse(ResumelyProducts.orderedIDs.contains(id), id)
         }
+    }
+
+    /// A v1 pack someone already paid for, still unfinished, is still sent to
+    /// the server, which still grants it. The prototype IDs never were sold.
+    func testPaidV1PacksAreStillDeliveredButPrototypeIdsAreNot() {
+        XCTAssertEqual(ResumelyProducts.retiredPackIDs, ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"])
+        for id in ResumelyProducts.retiredPackIDs + ResumelyProducts.orderedIDs {
+            XCTAssertTrue(ResumelyProducts.isDeliverable(id), id)
+        }
+        for id in ["credits_basic", "credits_saver", "credits_super", "resumely.pro.yearly", ""] {
+            XCTAssertFalse(ResumelyProducts.isDeliverable(id), id)
+        }
+    }
+
+    func testPackRowsNameTheExportsInThePack() {
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored exports")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored exports")
     }
 
     func testOnlyARealAccountCanBuy() {

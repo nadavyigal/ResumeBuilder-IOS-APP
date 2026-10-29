@@ -26,9 +26,8 @@ struct PaywallSmokeHarness: View {
                 ExportPaywallSheet(
                     optimizationId: item.id,
                     model: ExportPaywallModel(optimizationId: item.id, fixtureOffers: [
-                        PackOffer(id: "resumely.exports.1", credits: 1, displayPrice: "$3.99"),
-                        PackOffer(id: "resumely.exports.5", credits: 5, displayPrice: "$12.99"),
-                        PackOffer(id: "resumely.exports.10", credits: 10, displayPrice: "$19.99"),
+                        PackOffer(id: "resumely.exports.14", credits: 14, displayPrice: "$7.99"),
+                        PackOffer(id: "resumely.exports.5.v2", credits: 5, displayPrice: "$3.99"),
                     ]),
                     onUnlocked: {},
                     onClose: { optimizationId = nil }
