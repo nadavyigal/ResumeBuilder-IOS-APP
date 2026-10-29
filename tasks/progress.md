@@ -1,3 +1,14 @@
+# 2026-10-29: Pricing v2, S3 paywall placement and copy (same draft PR)
+
+Status: S3 on branch `claude/resumely-pricing-v2`, code commit 94aa208, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3). Not merged.
+Current Phase: Payments v2 (plan "S3 as built" note).
+Active Story: S3 review (Codex + second-model pre-check).
+Last Completed Story: S3: redesigned sheet (14-pack preselected "Best value", 5-pack, Pro with "/ month" and renewal line, Continue, Restore, Terms, Privacy, estimate footer); paywall only after own score + preview, notice otherwise; no-session export asks for an account (D5, code fix, not reproduced on the simulator); Profile Plan section with Manage subscription and Restore; PaywallView and CreditsView deleted; harness `--smoke-paywall-sub`; EN/HE screenshots in `audit/pricing-v2-s3/`. Copy drops "in under a minute" until S6 times it.
+Next Recommended Story: S4 sample CV start, Home headline, LinkedIn hint.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests.
+Last Validation: at 94aa208: full suite 672 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5. Note: the paywall harness with `--smoke-he` saves Hebrew in the app's defaults; clear `app_selected_language` before running tests or 30 English-string tests fail.
+Last Updated: 2026-10-29
+
 # 2026-10-29: Pricing v2, S2 StoreKit v2 + Pro in the app (draft PR)
 
 Status: S2 on branch `claude/resumely-pricing-v2` (worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2`), code commit 3f39b0a. Draft PR, not merged. Server half is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (migration not applied).
