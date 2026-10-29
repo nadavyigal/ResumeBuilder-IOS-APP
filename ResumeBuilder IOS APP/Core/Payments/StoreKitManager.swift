@@ -60,6 +60,13 @@ enum PurchaseDelivery {
         case otherAccount
     }
 
+    /// A `.keep` reason that a later retry can turn into a grant: no account
+    /// yet, offline, an expired token, rate limiting or a server error.
+    static func isRetryable(_ reason: String) -> Bool {
+        reason == "no_account" || reason == "network"
+            || reason.hasPrefix("401_") || reason.hasPrefix("429_") || reason.hasPrefix("5")
+    }
+
     /// Sends the signed transaction to the server and decides, before anything
     /// is finished, whether it may be finished. `finish()` runs only on a grant
     /// (spec 7.1 steps 2 and 3): finishing first would lose a paid purchase if
@@ -236,12 +243,19 @@ final class StoreKitManager {
     /// buyer, so the paywall cannot sell again before it is delivered
     /// (second-model P1 on #207). A lock already waiting is kept. A grant or a
     /// refund clears the lock for that pack.
+    ///
+    /// Only a pack locks, and only on a failure a retry can fix (offline, 5xx,
+    /// an expired token, signed out). Pro cannot be bought twice, so a failed
+    /// renewal must not stop pack sales; a permanent refusal (400, 403) would
+    /// otherwise lock the paywall again every 48 hours (second-model on #226).
     func recordDelivery(_ decision: PurchaseDelivery.Decision, buyer: UUID?, productID: String) {
         switch decision {
         case .finish, .finishRevoked:
             clearPendingLock(for: buyer, productID: productID)
-        case .keep:
-            guard let buyer, pendingProductID(for: buyer) == nil else { return }
+        case .keep(let reason):
+            guard let buyer, pendingProductID(for: buyer) == nil,
+                  !ResumelyProducts.isSubscription(productID),
+                  PurchaseDelivery.isRetryable(reason) else { return }
             setPendingLock(userId: buyer, productID: productID)
         case .otherAccount:
             // The buyer's own account delivers it at sign-in; nothing to lock here.
@@ -381,8 +395,11 @@ final class StoreKitManager {
             case .finish(let verification):
                 if let entitlement = verification.entitlement { outcome = .recorded(entitlement) }
             case .otherAccount:
+                if case .recorded = outcome { break }
                 outcome = .ownedByAnotherAccount
             case .keep:
+                // A plan already recorded in this pass stays the answer.
+                if case .recorded = outcome { break }
                 outcome = .failed
             case .finishRevoked:
                 break

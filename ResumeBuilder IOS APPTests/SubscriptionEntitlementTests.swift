@@ -122,6 +122,25 @@ final class SubscriptionEntitlementTests: XCTestCase {
         XCTAssertNil(store.pendingProductID(for: account.userId))
     }
 
+    func testAFailedProDeliveryNeverLocksPackSales() {
+        let store = StoreKitManager(defaults: UserDefaults(suiteName: "plan-keep-\(UUID().uuidString)")!)
+        store.recordDelivery(.keep(reason: "network"), buyer: account.userId, productID: ResumelyProducts.proMonthly)
+        XCTAssertNil(store.pendingProductID(for: account.userId))
+    }
+
+    func testOnlyARetryablePackFailureLocks() {
+        for reason in ["network", "no_account", "401_token_expired", "429_rate_limited", "500_failed_to_grant_credits", "503_iap_verification_unavailable"] {
+            let store = StoreKitManager(defaults: UserDefaults(suiteName: "pack-keep-\(UUID().uuidString)")!)
+            store.recordDelivery(.keep(reason: reason), buyer: account.userId, productID: ResumelyProducts.exports14)
+            XCTAssertEqual(store.pendingProductID(for: account.userId), ResumelyProducts.exports14, reason)
+        }
+        for reason in ["400_invalid_signature", "400_unknown_product", "403_account_mismatch", "409_transaction_owned_by_another_account"] {
+            let store = StoreKitManager(defaults: UserDefaults(suiteName: "pack-refused-\(UUID().uuidString)")!)
+            store.recordDelivery(.keep(reason: reason), buyer: account.userId, productID: ResumelyProducts.exports14)
+            XCTAssertNil(store.pendingProductID(for: account.userId), reason)
+        }
+    }
+
     func testOnlyAnActivePlanResumesAWaitingPaywall() async {
         let store = StoreKitManager(defaults: UserDefaults(suiteName: "plan-grant-\(UUID().uuidString)")!)
         let account = account
