@@ -2,11 +2,11 @@
 
 Status: S3 on branch `claude/resumely-pricing-v2`, code commit 94aa208, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3). Not merged.
 Current Phase: Payments v2 (plan "S3 as built" note).
-Active Story: S3 review (Codex + second-model pre-check).
+Active Story: S3 review. Codex on d56ca0d: 1 P2 (empty offers left a "ready" sheet with nothing to buy), fixed in 4152160. Second-model review on 94aa208: no P0/P1; P2s fixed in 4152160 (account switch on the same screen re-marks score and preview; Restore at the Pro cap no longer reopens a refusing paywall; Profile Restore names a restored purchase first; footer wraps). Open for the founder: "unlimited (fair use)" copy vs the 40-per-period cap.
 Last Completed Story: S3: redesigned sheet (14-pack preselected "Best value", 5-pack, Pro with "/ month" and renewal line, Continue, Restore, Terms, Privacy, estimate footer); paywall only after own score + preview, notice otherwise; no-session export asks for an account (D5, code fix, not reproduced on the simulator); Profile Plan section with Manage subscription and Restore; PaywallView and CreditsView deleted; harness `--smoke-paywall-sub`; EN/HE screenshots in `audit/pricing-v2-s3/`. Copy drops "in under a minute" until S6 times it.
 Next Recommended Story: S4 sample CV start, Home headline, LinkedIn hint.
 Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests.
-Last Validation: at 94aa208: full suite 672 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5. Note: the paywall harness with `--smoke-he` saves Hebrew in the app's defaults; clear `app_selected_language` before running tests or 30 English-string tests fail.
+Last Validation: at 4152160: full suite 674 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5. Clear `app_selected_language` after a `--smoke-he` run (lesson 2026-10-29).
 Last Updated: 2026-10-29
 
 # 2026-10-29: Pricing v2, S2 StoreKit v2 + Pro in the app (draft PR)
