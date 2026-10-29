@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 private struct ApplicationComparePair: Identifiable {
@@ -12,7 +13,9 @@ struct ProfileView: View {
 
     @Environment(AppState.self) private var appState
     @Environment(LocalizationManager.self) private var localization
-    @State private var showPaywall = false
+    @State private var showManageSubscription = false
+    @State private var isRestoring = false
+    @State private var restoreMessage: String?
     @State private var showOnboarding = false
     @State private var onboardingStartsInSignUp = false
     @State private var appeared = false
@@ -74,8 +77,8 @@ struct ProfileView: View {
                         VStack(spacing: 14) {
                             latestResumeSection
                             applicationsSection
-                            if BackendConfig.isMonetizationEnabled {
-                                creditsSection
+                            if appState.isAuthenticated {
+                                planSection
                             }
                             trustCard
                             accountSection
@@ -116,11 +119,7 @@ struct ProfileView: View {
                     withAnimation(.easeOut(duration: 0.5)) { appeared = true }
                 }
             }
-            .sheet(isPresented: $showPaywall) {
-                NavigationStack { PaywallView() }
-                    .preferredColorScheme(.dark)
-                    .tint(Theme.accent)
-            }
+            .manageSubscriptionsSheet(isPresented: $showManageSubscription)
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState, startInSignUp: onboardingStartsInSignUp))
@@ -481,23 +480,89 @@ struct ProfileView: View {
 
     // MARK: - Section: Credits
 
-    private var creditsSection: some View {
-        ProfileSection(title: "Credits", icon: "creditcard.fill", iconColor: Theme.accentBlue) {
+    /// Pro and its date, or the PDF downloads left, with Restore and Apple's
+    /// Manage Subscription sheet (pricing v2, S3). Numbers come from the server.
+    private var planSection: some View {
+        let summary = PlanSummary.make(
+            subscription: appState.subscription,
+            balance: appState.creditsBalance,
+            locale: localization.locale
+        )
+        return ProfileSection(title: "Plan", icon: "doc.badge.arrow.up", iconColor: Theme.accentBlue) {
             VStack(spacing: 0) {
-                NavigationLink { CreditsView() } label: {
-                    profileRow(icon: "list.bullet.rectangle", label: "View Credits", color: Theme.accentBlue)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(summary.headline)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.textPrimary)
+                    if let detail = summary.detail {
+                        Text(detail)
+                            .font(.caption)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                    Text("Match Scores stay free and unlimited.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("profile.plan")
+
+                if summary.canManageSubscription {
+                    Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+                    Button { showManageSubscription = true } label: {
+                        profileRow(icon: "gearshape.fill", label: "Manage subscription", color: Theme.accentBlue, isAction: true)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("profile.manageSubscription")
+                }
+
+                Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+                Button { Task { await restorePurchases() } } label: {
+                    profileRow(icon: "arrow.clockwise", label: "Restore Purchases", color: Theme.accentBlue, isAction: true)
                 }
                 .buttonStyle(.plain)
+                .disabled(isRestoring)
+                .accessibilityIdentifier("profile.restore")
 
-                Divider()
-                    .background(Color.white.opacity(0.06))
-                    .padding(.horizontal, 14)
-
-                Button { showPaywall = true } label: {
-                    profileRow(icon: "plus.circle.fill", label: "Buy Credits", color: Theme.accent, isAction: true)
+                if let restoreMessage {
+                    Text(restoreMessage)
+                        .font(.caption)
+                        .foregroundStyle(Theme.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding([.horizontal, .bottom], 14)
                 }
-                .buttonStyle(.plain)
             }
+        }
+        .task { await appState.refreshCredits() }
+    }
+
+    @MainActor
+    private func restorePurchases() async {
+        isRestoring = true
+        restoreMessage = nil
+        defer { isRestoring = false }
+        do {
+            let result = try await StoreKitManager.shared.restorePurchases()
+            await appState.refreshCredits()
+            switch result.plan {
+            case .ownedByAnotherAccount:
+                restoreMessage = StoreKitManagerError.ownedByAnotherAccount.localizedDescription
+            case .failed:
+                restoreMessage = ExportPaywallCopy.restoreFailed
+            case .recorded(let entitlement) where entitlement.active:
+                restoreMessage = NSLocalizedString("Your Pro plan is restored.", comment: "Restore found an active Pro plan")
+            case .noAccount, .noPlan, .recorded:
+                restoreMessage = result.deliveredGrant
+                    ? NSLocalizedString("Your purchase is restored.", comment: "Restore delivered an unfinished purchase")
+                    : ExportPaywallCopy.nothingToRestore
+            }
+        } catch StoreKitError.userCancelled {
+            // The user closed Apple's sign-in: nothing to say.
+        } catch {
+            restoreMessage = ExportPaywallCopy.restoreFailed
         }
     }
 

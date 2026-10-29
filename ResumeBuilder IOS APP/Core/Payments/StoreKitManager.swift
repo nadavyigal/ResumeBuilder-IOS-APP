@@ -419,10 +419,23 @@ final class StoreKitManager {
     /// Packs live on the Resumely account, so signing in brings them back;
     /// only an unfinished pack or Pro needs Apple. Throws when the user cancels
     /// the Apple sign-in.
-    func restorePurchases() async throws -> EntitlementRefresh {
+    func restorePurchases() async throws -> RestoreResult {
         try await AppStore.sync()
-        _ = await deliverPendingPurchases()
-        return await refreshEntitlements()
+        let pack = await deliverPendingPurchases()
+        return RestoreResult(deliveredGrant: pack != nil, plan: await refreshEntitlements())
+    }
+
+    struct RestoreResult: Equatable {
+        /// An unfinished pack or Pro purchase was granted.
+        let deliveredGrant: Bool
+        let plan: EntitlementRefresh
+
+        /// True when the export the user tapped can now go ahead.
+        var unlocksExport: Bool {
+            if deliveredGrant { return true }
+            if case .recorded(let entitlement) = plan { return entitlement.active }
+            return false
+        }
     }
 
     /// Delivers every unfinished pack or Pro transaction and returns the first

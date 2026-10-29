@@ -368,8 +368,8 @@ final class ExportCreditProductsTests: XCTestCase {
     }
 
     func testPackRowsNameTheExportsInThePack() {
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored exports")
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored exports")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")
     }
 
     func testOnlyARealAccountCanBuy() {
@@ -498,25 +498,36 @@ final class ExportActionGateTests: XCTestCase {
         XCTAssertFalse(transport.events.contains { $0.name == "export_success" })
     }
 
-    /// A real guest (no session from the start) still gets the local export.
-    func testAGuestExportStillSkipsTheUnlock() async throws {
+    /// No session at all asks for a free account and makes no file (pricing v2,
+    /// D5): a result left on screen after a sign-out cannot export for free.
+    func testAnExportWithNoSessionAsksForAnAccountAndMakesNoFile() async throws {
         let box = RequestBox()
         let appState = AppState()
         appState.session = nil
+        let exportsDirectory = FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ResumeBuilderExports", isDirectory: true)
+        let before = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
 
-        let result = try await ResumeExportAction.exportPDF(
-            viewModel: OptimizedResumeViewModel(optimizationId: "guest-\(UUID().uuidString)"),
-            appState: appState,
-            renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
-            beganSignedIn: false,
-            analytics: AnalyticsService(transport: NoopTransport()),
-            unlockService: ExportUnlockService(
-                apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+        do {
+            _ = try await ResumeExportAction.exportPDF(
+                viewModel: OptimizedResumeViewModel(optimizationId: "guest-\(UUID().uuidString)"),
+                appState: appState,
+                renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
+                beganSignedIn: false,
+                analytics: AnalyticsService(transport: NoopTransport()),
+                unlockService: ExportUnlockService(
+                    apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+                )
             )
-        )
+            XCTFail("expected accountRequired")
+        } catch {
+            XCTAssertEqual(error as? ExportCreditsError, .accountRequired)
+        }
 
         XCTAssertEqual(box.requests.count, 0)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: result.fileURL.path))
+        let after = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+        XCTAssertEqual(after.subtracting(before), [], "no export file may be written")
     }
 
     /// Before the preview finishes, export fetches the styled HTML and renders it on

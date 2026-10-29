@@ -120,6 +120,7 @@ struct OptimizedResumeView: View {
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
                         .padding(.horizontal, AppSpacing.lg)
+                        .onAppear { appState.markMatchScoreSeen() }
                 }
 
                 // Diagnosis used to sit in front of this screen as a checkpoint;
@@ -1204,9 +1205,9 @@ struct OptimizedResumeView: View {
             showPDFShare = true
             showExportSuccess = true
         } catch ExportCreditsError.creditsRequired {
-            paywallOptimizationId = optimizationId
+            openPaywallIfEligible(optimizationId)
         } catch APIClientError.paymentRequired {
-            paywallOptimizationId = optimizationId
+            openPaywallIfEligible(optimizationId)
         } catch ExportCreditsError.accountRequired {
             // Exports need a real account once the gate is on (spec 6.3).
             showSaveAccount = true
@@ -1216,6 +1217,19 @@ struct OptimizedResumeView: View {
             } else {
                 viewModel.errorMessage = String(format: NSLocalizedString("PDF export failed: %@", comment: ""), error.localizedDescription)
             }
+        }
+    }
+
+    /// The paywall opens only after this account saw its own score and the
+    /// preview (plan 3.1). With no score on this screen the rule cannot be met
+    /// here, so the paywall opens rather than leaving the 402 with no way on.
+    @MainActor
+    private func openPaywallIfEligible(_ optimizationId: String) {
+        let eligibility = appState.paywallEligibility(requiresScore: shouldShowATSInsightPanel)
+        if let notice = eligibility.notice {
+            viewModel.errorMessage = notice
+        } else {
+            paywallOptimizationId = optimizationId
         }
     }
 

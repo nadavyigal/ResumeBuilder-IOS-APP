@@ -131,6 +131,289 @@
         }
       }
     },
+    "Download more tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורידו עוד קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צ'אטבוט חינמי נותן לכם טקסט. Resumely נותן PDF מוכן, מימין לשמאל בעברית, בתבנית נקייה, עם הערכת ציון התאמה לפני ואחרי."
+          }
+        }
+      }
+    },
+    "Match Scores stay free and unlimited." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציוני ההתאמה נשארים בחינם וללא הגבלה."
+          }
+        }
+      }
+    },
+    "Best value" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשתלם ביותר"
+          }
+        }
+      }
+    },
+    "Pro, unlimited PDF downloads (fair use)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro: הורדות PDF ללא הגבלה (שימוש הוגן)"
+          }
+        }
+      }
+    },
+    "Renews monthly until cancelled." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתחדש מדי חודש עד לביטול."
+          }
+        }
+      }
+    },
+    "Your Pro plan reached its fair-use limit for this billing period. A pack lets you keep downloading until it resets." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro הגיע למגבלת השימוש ההוגן לתקופת החיוב הזו. חבילה תאפשר לכם להמשיך להוריד עד שהמגבלה תתאפס."
+          }
+        }
+      }
+    },
+    "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה הוא הערכה של התאמת קורות החיים למשרה, לא תחזית לקבלה לעבודה."
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך"
+          }
+        }
+      }
+    },
+    "Restore Purchases" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שחזור רכישות"
+          }
+        }
+      }
+    },
+    "14 tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "5 tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "%@ / month" : {
+      "comment" : "Pro price per month, from StoreKit",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ לחודש"
+          }
+        }
+      }
+    },
+    "Nothing to restore for this Apple ID. Your PDF downloads stay on your Resumely account." : {
+      "comment" : "Restore found no purchase",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין מה לשחזר עבור ה-Apple ID הזה. הורדות ה-PDF שלכם שמורות בחשבון Resumely."
+          }
+        }
+      }
+    },
+    "We couldn't restore right now. Check your connection and try again." : {
+      "comment" : "Restore failed",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לשחזר כרגע. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
+    "Check your Match Score on this screen first, then tap Export again." : {
+      "comment" : "Export refused before the user saw their own Match Score",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו קודם את ציון ההתאמה במסך הזה, ואז הקישו שוב על ייצוא."
+          }
+        }
+      }
+    },
+    "Your preview is still loading. Look it over, then tap Export again." : {
+      "comment" : "Export refused before the user saw the PDF preview",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התצוגה המקדימה עדיין נטענת. עברו עליה, ואז הקישו שוב על ייצוא."
+          }
+        }
+      }
+    },
+    "Plan" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מסלול"
+          }
+        }
+      }
+    },
+    "1 PDF download left" : {
+      "comment" : "Profile plan row, one export credit",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נותרה הורדת PDF אחת"
+          }
+        }
+      }
+    },
+    "%d PDF downloads left" : {
+      "comment" : "Profile plan row, export credits",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נותרו %d הורדות PDF"
+          }
+        }
+      }
+    },
+    "Pro until %@" : {
+      "comment" : "Profile plan row, Pro cancelled, ends on date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro עד %@"
+          }
+        }
+      }
+    },
+    "Pro, renews %@" : {
+      "comment" : "Profile plan row, Pro renews on date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro, מתחדש ב-%@"
+          }
+        }
+      }
+    },
+    "Pro" : {
+      "comment" : "Profile plan row, Pro with no date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro"
+          }
+        }
+      }
+    },
+    "%1$d of %2$d PDF downloads used this period (fair use)" : {
+      "comment" : "Profile plan row, Pro fair-use count",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נוצלו %1$d מתוך %2$d הורדות PDF בתקופה הזו (שימוש הוגן)"
+          }
+        }
+      }
+    },
+    "Manage subscription" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול מנוי"
+          }
+        }
+      }
+    },
+    "Your Pro plan is restored." : {
+      "comment" : "Restore found an active Pro plan",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro שוחזר."
+          }
+        }
+      }
+    },
+    "Your purchase is restored." : {
+      "comment" : "Restore delivered an unfinished purchase",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה שוחזרה."
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {

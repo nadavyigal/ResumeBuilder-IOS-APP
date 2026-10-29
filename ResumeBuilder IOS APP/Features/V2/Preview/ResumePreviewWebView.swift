@@ -59,7 +59,10 @@ struct ResumePreviewWebView: View {
                 WebKitHTMLView(
                     html: html,
                     baseURL: BackendConfig.apiBaseURL,
-                    onLoadSuccess: { onVisibleRender(html) }
+                    onLoadSuccess: {
+                        appState.markPDFPreviewSeen()
+                        onVisibleRender(html)
+                    }
                 ) { message in
                     previewLogger.error("Preview WebKit load failed for optimization \(optimizationId, privacy: .public): \(message, privacy: .public)")
                     errorMessage = NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
@@ -249,7 +252,12 @@ struct ResumePreviewWebView: View {
         } catch {
             AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error)))
             if case ExportCreditsError.creditsRequired = error {
-                paywallOptimizationId = optimizationId
+                // This screen has no score to show; the preview is the rule here.
+                if let notice = appState.paywallEligibility(requiresScore: false).notice {
+                    downloadError = notice
+                } else {
+                    paywallOptimizationId = optimizationId
+                }
             } else if case ExportCreditsError.accountRequired = error {
                 showAccountOnboarding = true
             } else {

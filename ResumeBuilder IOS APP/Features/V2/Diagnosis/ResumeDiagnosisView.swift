@@ -45,6 +45,7 @@ struct ResumeDiagnosisView: View {
         .task {
             await viewModel.load(appState: appState)
             AnalyticsService.shared.track(.diagnosisViewed(matchScore: viewModel.diagnosis?.matchScore ?? 0))
+            if viewModel.diagnosis != nil { appState.markMatchScoreSeen() }
         }
         // Reload whenever the underlying resume changes.
         //
