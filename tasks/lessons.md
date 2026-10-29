@@ -1,3 +1,12 @@
+## 2026-10-29: A Hebrew smoke harness run leaves the simulator in Hebrew for tests
+
+`--smoke-paywall --smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which is
+saved in the app's defaults (`app_selected_language`). The next `xcodebuild test` on the
+same simulator ran with Hebrew strings and 30 English-string tests failed. The code was
+fine. Rule: after any `--smoke-he` screenshot, run
+`xcrun simctl spawn <device> defaults delete Resumebuilder-IOS.ResumeBuilder-IOS-APP app_selected_language`
+before running tests.
+
 ## 2026-10-22: Per-identity state must say what happens at each identity change
 
 Two bugs in two days had one shape. #202: the upload cache had no identity, so a

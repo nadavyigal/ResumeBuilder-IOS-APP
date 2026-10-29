@@ -39,6 +39,13 @@ enum ExportPaywallCopy {
         )
     }
 
+    static var planAlreadyActive: String {
+        NSLocalizedString(
+            "Your Pro plan is already active on this account.",
+            comment: "Restore found the Pro plan the account already has"
+        )
+    }
+
     static var restoreFailed: String {
         NSLocalizedString(
             "We couldn't restore right now. Check your connection and try again.",
@@ -136,6 +143,10 @@ final class ExportPaywallModel {
         guard hide else { return }
         offers.removeAll { $0.isSubscription }
         if selectedOffer == nil { selectedID = offers.first?.id }
+        if offers.isEmpty, phase == .ready {
+            phase = .unavailable
+            message = StoreKitManagerError.productUnavailable.localizedDescription
+        }
     }
 
     private func setOffers(_ newOffers: [PackOffer]) {
@@ -187,6 +198,9 @@ final class ExportPaywallModel {
         do {
             try await loadStoreProducts()
             setOffers(store.products.compactMap { PackOffer.make(id: $0.id, displayPrice: $0.displayPrice) })
+            // Nothing this sheet can sell (for example only Pro loaded and Pro
+            // is hidden): show Try again, never an empty "ready" sheet (Codex on #226).
+            if offers.isEmpty { throw StoreKitManagerError.productUnavailable }
             // Every result is derived from the store's lock, so a failed load
             // and a retry can never unlock a waiting purchase (Codex P1). A grant
             // that landed during the load keeps the sheet waiting, so
@@ -267,8 +281,10 @@ final class ExportPaywallModel {
 
     /// Restore Purchases (App Store review 3.1.1). Returns true when the export
     /// the user tapped can now go ahead (Pro restored, or an unfinished
-    /// purchase granted).
-    func restore(account: PurchaseAccount?) async -> Bool {
+    /// purchase granted). `planAlreadyActive`: Pro was active before, so this
+    /// 402 is its fair-use cap and finding the same plan again unlocks nothing
+    /// (second-model on #226).
+    func restore(account: PurchaseAccount?, planAlreadyActive: Bool = false) async -> Bool {
         guard !isFixture, phase == .ready || phase == .unavailable else { return false }
         guard account != nil else {
             message = StoreKitManagerError.accountRequired.localizedDescription
@@ -280,8 +296,10 @@ final class ExportPaywallModel {
         defer { if phase == .restoring { phase = previous } }
         do {
             let result = try await restoreStorePurchases()
-            if result.unlocksExport { return true }
+            if result.deliveredGrant || (result.unlocksExport && !planAlreadyActive) { return true }
             switch result.plan {
+            case .recorded(let entitlement) where entitlement.active:
+                message = ExportPaywallCopy.planAlreadyActive
             case .ownedByAnotherAccount:
                 message = StoreKitManagerError.ownedByAnotherAccount.localizedDescription
             case .failed:
@@ -526,31 +544,38 @@ struct ExportPaywallSheet: View {
                 .font(.appCaption)
                 .foregroundStyle(AppColors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: AppSpacing.md) {
-                Button {
-                    Task {
-                        if await model.restore(account: appState.purchaseAccount) {
-                            onUnlocked()
-                        }
-                    }
-                } label: {
-                    if model.phase == .restoring {
-                        ProgressView()
-                    } else {
-                        Text(ExportPaywallCopy.restore)
-                    }
-                }
-                .disabled(!(model.phase == .ready || model.phase == .unavailable))
-                .accessibilityIdentifier("paywall.restore")
-                Link(destination: LegalLinks.termsURL(language: localization.language)) {
-                    Text(ExportPaywallCopy.terms)
-                }
-                Link(destination: LegalLinks.privacyURL(language: localization.language)) {
-                    Text(ExportPaywallCopy.privacy)
-                }
+            // Wraps to a column at large text sizes instead of truncating.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: AppSpacing.md) { footerLinks }
+                VStack(alignment: .leading, spacing: AppSpacing.sm) { footerLinks }
             }
             .font(.appCaption.weight(.semibold))
             .tint(AppColors.accentTeal)
+        }
+    }
+
+    @ViewBuilder
+    private var footerLinks: some View {
+        Button {
+            Task {
+                if await model.restore(account: appState.purchaseAccount, planAlreadyActive: hasActivePlan) {
+                    onUnlocked()
+                }
+            }
+        } label: {
+            if model.phase == .restoring {
+                ProgressView()
+            } else {
+                Text(ExportPaywallCopy.restore)
+            }
+        }
+        .disabled(!(model.phase == .ready || model.phase == .unavailable))
+        .accessibilityIdentifier("paywall.restore")
+        Link(destination: LegalLinks.termsURL(language: localization.language)) {
+            Text(ExportPaywallCopy.terms)
+        }
+        Link(destination: LegalLinks.privacyURL(language: localization.language)) {
+            Text(ExportPaywallCopy.privacy)
         }
     }
 }

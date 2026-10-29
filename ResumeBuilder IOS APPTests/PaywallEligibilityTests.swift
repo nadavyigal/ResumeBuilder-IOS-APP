@@ -95,6 +95,14 @@ final class PaywallOffersTests: XCTestCase {
         XCTAssertEqual(model.selectedID, "resumely.exports.14")
     }
 
+    func testHidingProWithNoPackLeftShowsTryAgain() {
+        let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: [offers[2]])
+        model.hidePlan(true)
+        XCTAssertTrue(model.offers.isEmpty)
+        XCTAssertEqual(model.phase, .unavailable)
+        XCTAssertEqual(model.message, StoreKitManagerError.productUnavailable.localizedDescription)
+    }
+
     func testCopyNamesTheEstimateAndMakesNoClaim() {
         XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
         XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")
@@ -138,6 +146,13 @@ final class PaywallRestoreTests: XCTestCase {
         XCTAssertNil(model.message)
     }
 
+    func testRestoringThePlanThatHitItsCapDoesNotReopenThePaywall() async {
+        let model = await model { .init(deliveredGrant: false, plan: .recorded(self.active)) }
+        let unlocked = await model.restore(account: account, planAlreadyActive: true)
+        XCTAssertFalse(unlocked)
+        XCTAssertEqual(model.message, ExportPaywallCopy.planAlreadyActive)
+    }
+
     func testARestoredUnfinishedPackResumesTheExport() async {
         let model = await model { .init(deliveredGrant: true, plan: .noPlan) }
         let unlocked = await model.restore(account: account)
@@ -149,7 +164,7 @@ final class PaywallRestoreTests: XCTestCase {
         let unlocked = await model.restore(account: account)
         XCTAssertFalse(unlocked)
         XCTAssertEqual(model.message, ExportPaywallCopy.nothingToRestore)
-        XCTAssertEqual(model.phase, .ready, "the sheet is usable again after a restore")
+        XCTAssertEqual(model.phase, .unavailable, "restore returns the sheet to where it was")
     }
 
     func testAnotherAccountsPlanNamesTheOwner() async {

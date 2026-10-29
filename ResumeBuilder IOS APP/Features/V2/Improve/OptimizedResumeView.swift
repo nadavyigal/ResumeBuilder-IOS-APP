@@ -269,6 +269,12 @@ struct OptimizedResumeView: View {
             guard isActive else { return }
             trackOptimizedAndExportVisibilityIfNeeded()
         }
+        // Signing in on this screen changes the account; what is on screen
+        // was seen by the new account too (second-model on #226).
+        .onChange(of: appState.session?.userId) { _, _ in
+            if shouldShowATSInsightPanel { appState.markMatchScoreSeen() }
+            if renderedPreviewHTML != nil { appState.markPDFPreviewSeen() }
+        }
         .onChange(of: isActive) { _, active in
             guard active else { return }
             trackOptimizedAndExportVisibilityIfNeeded()

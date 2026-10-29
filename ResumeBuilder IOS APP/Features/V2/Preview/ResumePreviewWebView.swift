@@ -124,6 +124,9 @@ struct ResumePreviewWebView: View {
             }
             await renderPreview(key: previewRequestKey)
         }
+        .onChange(of: appState.session?.userId) { _, _ in
+            if html != nil { appState.markPDFPreviewSeen() }
+        }
         .onChange(of: isActive) { _, active in
             guard active else { return }
             Task { await renderPreview(key: previewRequestKey) }

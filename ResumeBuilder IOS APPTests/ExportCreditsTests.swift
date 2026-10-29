@@ -801,6 +801,7 @@ final class PendingPaywallRecoveryTests: XCTestCase {
         await model.load(for: buyer)
         XCTAssertEqual(retries, 0)
         XCTAssertEqual(priceLoads, 1)
-        XCTAssertEqual(model.phase, .ready)
+        // The stub loads no product, so there is nothing to sell: Try again.
+        XCTAssertEqual(model.phase, .unavailable)
     }
 }

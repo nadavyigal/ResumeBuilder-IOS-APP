@@ -547,6 +547,10 @@ struct ProfileView: View {
         do {
             let result = try await StoreKitManager.shared.restorePurchases()
             await appState.refreshCredits()
+            if result.deliveredGrant {
+                restoreMessage = NSLocalizedString("Your purchase is restored.", comment: "Restore delivered an unfinished purchase")
+                return
+            }
             switch result.plan {
             case .ownedByAnotherAccount:
                 restoreMessage = StoreKitManagerError.ownedByAnotherAccount.localizedDescription
@@ -554,10 +558,10 @@ struct ProfileView: View {
                 restoreMessage = ExportPaywallCopy.restoreFailed
             case .recorded(let entitlement) where entitlement.active:
                 restoreMessage = NSLocalizedString("Your Pro plan is restored.", comment: "Restore found an active Pro plan")
-            case .noAccount, .noPlan, .recorded:
-                restoreMessage = result.deliveredGrant
-                    ? NSLocalizedString("Your purchase is restored.", comment: "Restore delivered an unfinished purchase")
-                    : ExportPaywallCopy.nothingToRestore
+            case .noAccount:
+                restoreMessage = StoreKitManagerError.accountRequired.localizedDescription
+            case .noPlan, .recorded:
+                restoreMessage = ExportPaywallCopy.nothingToRestore
             }
         } catch StoreKitError.userCancelled {
             // The user closed Apple's sign-in: nothing to say.

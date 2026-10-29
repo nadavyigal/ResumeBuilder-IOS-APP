@@ -414,6 +414,17 @@
         }
       }
     },
+    "Your Pro plan is already active on this account." : {
+      "comment" : "Restore found the Pro plan the account already has",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro כבר פעיל בחשבון הזה."
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {
