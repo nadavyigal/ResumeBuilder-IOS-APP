@@ -1,9 +1,9 @@
-# 2026-10-29: Pricing v2 plan (waiting for approval)
+# 2026-10-29: Pricing v2 plan, revised (waiting for approval)
 
 Status: plan only, no code. Branch `claude/resumely-pricing-v2`, file `plans/resumely-pricing-v2.md`.
-Current Phase: Payments v2 (welcome grant 5 exports + 5 Match Scores, packs `resumely.exports.5.v2` $3.99 and `resumely.exports.14` $7.99, `resumely.pro.monthly` $9.99, paywall after score + PDF preview, paste and sample starts, PostHog funnel contract).
-Active Story: none until the founder approves the plan and decisions D1 to D7.
-Last Completed Story: plan written from the code (web `src/lib/iap.ts`, `export-credits.ts`, verify/notifications routes, iOS `StoreKitManager.swift`, `ExportPaywallSheet.swift`).
+Current Phase: Payments v2. Founder changes 2026-10-29: Match Score stays free and unlimited (only PDF exports are paid); upload stays file-only (no paste, no `/api/upload-resume` change). Model: welcome grant 5 PDF exports per account, `resumely.exports.5.v2` $3.99, `resumely.exports.14` $7.99, `resumely.pro.monthly` $9.99 (fair use 40 exports / 30 days proposed), paywall after own score + PDF preview, sample-CV start, PostHog funnel contract.
+Active Story: none until the founder approves decisions D1 to D5.
+Last Completed Story: plan v2 written; advice A1 to A5 added (A1: consider 3 free exports).
 Next Recommended Story: S1 server pricing v2 in the web repo, behind `PRICING_V2_ENABLED` (off).
 Blockers: founder approval; ASC products needed before real Sandbox (S6).
 Last Validation: none (docs only).
