@@ -24,8 +24,8 @@ background. Vision alone dropped the right hand; the flood fill alone ate the wh
 
 ## App Preview (motion, plays before the screenshots)
 
-File: `app-preview/resumely-app-preview-886x1920.mov`. 21 s, 886x1920 portrait, H.264 High 4.0 at about
-11 Mbps, 30 fps, silent stereo AAC 256 kbps / 48 kHz (Apple requires a stereo track). Apple's accepted
+File: `app-preview/resumely-app-preview-886x1920.mov`. 21 s, 886x1920 portrait, H.264 High 4.0 at
+3.3 Mbps (8.7 MB, so it fits a 10 MB browser upload; stills checked sharp), 30 fps, silent stereo AAC 256 kbps / 48 kHz (Apple requires a stereo track). Apple's accepted
 iPhone preview size is 886x1920 for every 19.5:9 iPhone section (spec read 2026-10-28), so one file covers
 6.3", 6.5" and 6.9". Upload it to the first slot of the iPhone 6.5" (or 6.9") **App Previews** well.
 Set the poster frame at 5 s (phone, job post card and avatar all on screen).
@@ -39,9 +39,13 @@ overlays allowed. The phone screens are the app's own `MarketingScreenshotView` 
 and text are overlays, but the opening 3 s and the end card show no app screen. If Apple rejects the
 preview, shorten those two parts first.
 
-Checked 2026-10-28 with `probe.swift`: 21.0 s; video avc1 886x1920, 30 fps, about 8.4 Mbps average
-(static frames compress below the 10-12 Mbps target, which is a target, not a limit); audio AAC, 2 channels,
-48 kHz, both tracks enabled. The silent track encodes far below 256 kbps because it is silence.
+Checked 2026-10-29 with `probe.swift`: 21.0 s; video avc1 886x1920, 30 fps, 3.3 Mbps (below Apple's
+10-12 Mbps target, which is a target, not a limit); audio AAC, 2 channels, 48 kHz, both tracks enabled.
+The silent track encodes far below 256 kbps because it is silence. `encode.swift` writes 11 Mbps (22 MB);
+the uploaded copy used `AVVideoAverageBitRateKey: 3_300_000`.
+
+Uploaded 2026-10-29 to version 1.5.7: first App Previews slot of iPhone 6.3" and 6.5". Poster frame left at
+Apple's default (5 s).
 
 Regenerate: serve `scripts/aso-v3/` over http, run `capture-frames.js` as a Playwright snippet, then compile
 and run the encoder (the `swift` interpreter stalls on it; compile with `swiftc` first):
