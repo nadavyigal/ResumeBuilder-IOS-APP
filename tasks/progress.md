@@ -2,11 +2,11 @@
 
 Status: S2 on branch `claude/resumely-pricing-v2` (worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2`), code commit 3f39b0a. Draft PR, not merged. Server half is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (migration not applied).
 Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, "S2 as built" note).
-Active Story: S2 review. Second-model review on 3f39b0a: a failed Pro delivery locked pack sales (new in S2), and a permanent 4xx re-locked the paywall every 48h (P1, from #207); both fixed in 9c1b3cc (only a retryable pack failure locks). Older P2s (stale lock after concurrent deliveries, declined Ask to Buy lock, sheet waits on slow delivery) left as follow-ups. Codex requested on cb58a6f.
+Active Story: S2 review. Second-model review on 3f39b0a: a failed Pro delivery locked pack sales (new in S2), and a permanent 4xx re-locked the paywall every 48h (P1, from #207); both fixed in 9c1b3cc (only a retryable pack failure locks). Older P2s (stale lock after concurrent deliveries, declined Ask to Buy lock, sheet waits on slow delivery) left as follow-ups. Codex on cb58a6f: 2 P2 (Pro locks never cleared after a refresh recovery or an other-account answer), fixed in 94a9e99: Pro never sets a lock, and a plan the refresh records resumes a waiting paywall.
 Last Completed Story: S2: `ResumelyProducts` (14-pack, 5.v2, Pro; v1 never loaded but still delivered when paid), Pro purchase, `refreshEntitlements()` at launch and sign-in, `restorePurchases()`, renewals and refunds re-read the plan, `AppState.subscription` from `/api/v1/credits`, "belongs to another Resumely account" message, `Resumely.storekit` in the test folder (not in the Run scheme, so S6 Sandbox stays real).
 Next Recommended Story: S3 paywall placement and copy (Pro row, Restore button, eligibility, guest gap D5, Profile plan row).
 Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests, which skip under `xcodebuild` on iOS 26.5 (Apple forums thread 826971).
-Last Validation: at 9c1b3cc: full suite 653 tests, 0 failures, 11 skipped (10 new StoreKit session tests + 1 existing), iPhone 17 Pro, iOS 26.5. A first full run hit 2 WebKit PDF timeouts while a second simulator was booted; they pass alone and in the clean rerun, and on main.
+Last Validation: at 94a9e99: full suite 654 tests, 0 failures, 11 skipped (10 new StoreKit session tests + 1 existing), iPhone 17 Pro, iOS 26.5. A first full run hit 2 WebKit PDF timeouts while a second simulator was booted; they pass alone, in every clean rerun, and on main.
 Last Updated: 2026-10-29
 
 # 2026-10-29: Pricing v2, S1 server (draft PR open, review fixes pushed)
