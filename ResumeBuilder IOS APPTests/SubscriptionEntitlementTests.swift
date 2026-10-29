@@ -128,6 +128,17 @@ final class SubscriptionEntitlementTests: XCTestCase {
         XCTAssertNil(store.pendingProductID(for: account.userId))
     }
 
+    /// Covers a Pro purchase that is charged but not granted, and Ask to Buy
+    /// for Pro: neither may leave a lock with nothing to clear it.
+    func testProNeverSetsALockButAPackStillDoes() {
+        let store = StoreKitManager(defaults: UserDefaults(suiteName: "plan-set-\(UUID().uuidString)")!)
+        store.setPendingLock(userId: account.userId, productID: ResumelyProducts.proMonthly)
+        XCTAssertNil(store.pendingProductID(for: account.userId))
+
+        store.setPendingLock(userId: account.userId, productID: ResumelyProducts.exports5)
+        XCTAssertEqual(store.pendingProductID(for: account.userId), ResumelyProducts.exports5)
+    }
+
     func testOnlyARetryablePackFailureLocks() {
         for reason in ["network", "no_account", "401_token_expired", "429_rate_limited", "500_failed_to_grant_credits", "503_iap_verification_unavailable"] {
             let store = StoreKitManager(defaults: UserDefaults(suiteName: "pack-keep-\(UUID().uuidString)")!)

@@ -214,7 +214,10 @@ final class StoreKitManager {
         return lock.productID
     }
 
+    /// Pro never locks: Apple cannot sell the same plan twice, and a Pro lock
+    /// would block pack sales with nothing left to clear it (Codex on #226).
     func setPendingLock(userId: UUID, productID: String, now: Date = Date()) {
+        guard !ResumelyProducts.isSubscription(productID) else { return }
         let lock = PendingPurchaseLock(userId: userId, productID: productID, since: now)
         pendingLocks[userId] = lock
         savePendingLocks(now: now)
@@ -244,17 +247,16 @@ final class StoreKitManager {
     /// (second-model P1 on #207). A lock already waiting is kept. A grant or a
     /// refund clears the lock for that pack.
     ///
-    /// Only a pack locks, and only on a failure a retry can fix (offline, 5xx,
-    /// an expired token, signed out). Pro cannot be bought twice, so a failed
-    /// renewal must not stop pack sales; a permanent refusal (400, 403) would
-    /// otherwise lock the paywall again every 48 hours (second-model on #226).
+    /// Only a failure a retry can fix locks (offline, 5xx, an expired token,
+    /// signed out); a permanent refusal (400, 403) would otherwise lock the
+    /// paywall again every 48 hours (second-model on #226). Pro never locks
+    /// (`setPendingLock`).
     func recordDelivery(_ decision: PurchaseDelivery.Decision, buyer: UUID?, productID: String) {
         switch decision {
         case .finish, .finishRevoked:
             clearPendingLock(for: buyer, productID: productID)
         case .keep(let reason):
             guard let buyer, pendingProductID(for: buyer) == nil,
-                  !ResumelyProducts.isSubscription(productID),
                   PurchaseDelivery.isRetryable(reason) else { return }
             setPendingLock(userId: buyer, productID: productID)
         case .otherAccount:
@@ -394,6 +396,9 @@ final class StoreKitManager {
             switch decision {
             case .finish(let verification):
                 if let entitlement = verification.entitlement { outcome = .recorded(entitlement) }
+                // A plan recovered here (its first delivery failed) resumes a
+                // paywall that is waiting for it (Codex on #226).
+                await publishBackgroundGrant(verification, for: account.userId)
             case .otherAccount:
                 if case .recorded = outcome { break }
                 outcome = .ownedByAnotherAccount
