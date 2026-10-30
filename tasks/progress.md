@@ -2,11 +2,11 @@
 
 Status: S4 on branch `claude/resumely-pricing-v2`, code commit 351a507, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3 + S4). Not merged.
 Current Phase: Payments v2 (plan "S4 as built" note).
-Active Story: S4 review. Codex on d22750a: P1 (Plan UI belongs in Features/V2) and P2 (late credits reply could land on the next account), fixed in 547b86e. Second-model review on 351a507: P0 (S4 state inside #if DEBUG broke Release builds), fixed in 547b86e and verified with a Release build; VoiceOver label for the sample score; empty test replaced.
+Active Story: S4 review. Codex on d22750a: P1 (Plan UI belongs in Features/V2) and P2 (late credits reply could land on the next account), fixed in 547b86e. Second-model review on 351a507: P0 (S4 state inside #if DEBUG broke Release builds), fixed in 547b86e and verified with a Release build; VoiceOver label for the sample score; empty test replaced. Codex on aadca56: P2 (Pro stayed on sale if active Pro was reported after the sheet loaded), fixed in 3d36920.
 Last Completed Story: S4: Home leads with "Check any job, free, as often as you like." and "Your Match Score is an estimate."; "Try a sample CV" sheet (made-up CV, job and score 64, labelled as an example, bundled, no network, then opens the file picker); LinkedIn "Save to PDF" hint with a 3-step How sheet; upload unchanged; EN/HE screenshots in `audit/pricing-v2-s4/`.
 Next Recommended Story: S5 analytics contract and the saved PostHog funnel.
 Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run for the 10 StoreKitSessionTests; LinkedIn steps not checked on a real iPhone.
-Last Validation: at 547b86e: Release build (generic iOS Simulator) succeeds; full suite 678 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
+Last Validation: at 3d36920: Release build (generic iOS Simulator) succeeds; full suite 678 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
 Last Updated: 2026-10-30
 
 # 2026-10-29: Pricing v2, S3 paywall placement and copy (same draft PR)
