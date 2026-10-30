@@ -289,6 +289,7 @@ struct HomeTabView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
+                OnboardingStartedOnce.trackIfFirst(entry: appState.pendingSharedJobURL == nil ? "home" : "shared_job")
                 viewModel.useSharedJobURLIfNeeded(from: appState)
                 if viewModel.jobDescriptionURL.isEmpty, !viewModel.jobDescription.isEmpty {
                     jobInputMode = .description
@@ -611,6 +612,10 @@ struct HomeTabView: View {
                     scoreBucket: AnalyticsEvent.scoreBucket(for: score),
                     hasURL: evaluation.hasURLInput,
                     hasPaste: evaluation.hasDescriptionInput
+                ))
+                AnalyticsService.shared.track(.matchScoreViewed(
+                    source: "own",
+                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
                 ))
             }
         }

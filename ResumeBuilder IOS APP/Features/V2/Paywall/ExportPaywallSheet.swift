@@ -323,14 +323,18 @@ struct ExportPaywallSheet: View {
     /// Called after a successful grant, with the sheet still up; the caller closes it.
     let onUnlocked: () -> Void
     let onClose: () -> Void
+    /// `optimized` or `preview`, for `paywall_viewed`.
+    let entryPoint: String
 
     init(
         optimizationId: String,
         model: ExportPaywallModel? = nil,
+        entryPoint: String = "optimized",
         onUnlocked: @escaping () -> Void,
         onClose: @escaping () -> Void
     ) {
         _model = State(initialValue: model ?? ExportPaywallModel(optimizationId: optimizationId))
+        self.entryPoint = entryPoint
         self.onUnlocked = onUnlocked
         self.onClose = onClose
     }
@@ -411,6 +415,7 @@ struct ExportPaywallSheet: View {
         }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
+            AnalyticsService.shared.track(.paywallViewed(entryPoint: entryPoint, balance: appState.creditsBalance))
             await model.load(for: appState.purchaseAccount?.userId)
             model.hidePlan(hasActivePlan)
         }
@@ -589,6 +594,7 @@ struct ExportPaywallSheet: View {
 struct ExportPaywallPresenter: ViewModifier {
     @Environment(AppState.self) private var appState
     @Binding var optimizationId: String?
+    let entryPoint: String
     let onUnlocked: () -> Void
 
     /// Set on a grant; the export runs from `onDismiss`, once the sheet is gone,
@@ -613,6 +619,7 @@ struct ExportPaywallPresenter: ViewModifier {
         }) { item in
             ExportPaywallSheet(
                 optimizationId: item.id,
+                entryPoint: entryPoint,
                 onUnlocked: {
                     unlockedPending = true
                     optimizationId = nil
@@ -631,7 +638,11 @@ struct ExportPaywallPresenter: ViewModifier {
 }
 
 extension View {
-    func exportPaywall(optimizationId: Binding<String?>, onUnlocked: @escaping () -> Void) -> some View {
-        modifier(ExportPaywallPresenter(optimizationId: optimizationId, onUnlocked: onUnlocked))
+    func exportPaywall(
+        optimizationId: Binding<String?>,
+        entryPoint: String,
+        onUnlocked: @escaping () -> Void
+    ) -> some View {
+        modifier(ExportPaywallPresenter(optimizationId: optimizationId, entryPoint: entryPoint, onUnlocked: onUnlocked))
     }
 }

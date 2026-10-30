@@ -34,7 +34,7 @@ enum ResumeExportAction {
             // The server decides first (StoreKit spec 6.4): no file is made, styled
             // or local, for an export it refused. A 402 reaches the caller as
             // ExportCreditsError.creditsRequired and opens the paywall.
-            try await appState.authorizeExport(optimizationId: optimizationId, beganSignedIn: beganSignedIn, service: unlockService)
+            let unlock = try await appState.authorizeExport(optimizationId: optimizationId, beganSignedIn: beganSignedIn, service: unlockService)
             // The styled PDF matches the design the user picked; the server download
             // can come back as a plain layout, so it is only the last fallback.
             var styledURL: URL?
@@ -83,6 +83,7 @@ enum ResumeExportAction {
                 hasScreeningAnswers: package.includedScreeningAnswers,
                 pdfPath: pdfPath.rawValue
             ))
+            analytics.track(.exportCompleted(optimizationId: optimizationId, source: unlock.analyticsSource))
             return Result(
                 fileURL: url,
                 optimizationId: optimizationId,

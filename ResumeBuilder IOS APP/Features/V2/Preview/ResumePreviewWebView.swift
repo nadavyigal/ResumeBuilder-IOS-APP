@@ -136,7 +136,7 @@ struct ResumePreviewWebView: View {
                 ShareSheet(items: [url]).ignoresSafeArea()
             }
         }
-        .exportPaywall(optimizationId: $paywallOptimizationId) {
+        .exportPaywall(optimizationId: $paywallOptimizationId, entryPoint: "preview") {
             Task { await downloadAndShare() }
         }
         .sheet(isPresented: $showAccountOnboarding) {
@@ -250,8 +250,9 @@ struct ResumePreviewWebView: View {
         defer { isDownloadingPDF = false }
         // The server decides first (StoreKit spec 6.4): no file, styled or not,
         // for an export it refused.
+        let unlock: ExportUnlockService.Response
         do {
-            try await appState.authorizeExport(optimizationId: optimizationId)
+            unlock = try await appState.authorizeExport(optimizationId: optimizationId)
         } catch {
             AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error)))
             if case ExportCreditsError.creditsRequired = error {
@@ -277,6 +278,7 @@ struct ResumePreviewWebView: View {
                 pdfURL = dest
                 showSharePDF = true
                 AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
+                AnalyticsService.shared.track(.exportCompleted(optimizationId: optimizationId, source: unlock.analyticsSource))
                 return
             } catch {
                 styledHTMLFailureCode = ExportFailureCode.code(for: error)
@@ -292,6 +294,7 @@ struct ResumePreviewWebView: View {
             pdfURL = dest
             showSharePDF = true
             AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
+            AnalyticsService.shared.track(.exportCompleted(optimizationId: optimizationId, source: unlock.analyticsSource))
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode

@@ -27,6 +27,8 @@ struct OptimizedResumeView: View {
     @State private var isDownloadingPDF = false
     /// Set when the server answers 402 for this export; opens the paywall sheet.
     @State private var paywallOptimizationId: String?
+    /// `match_score_viewed` once per screen, not on every re-appear.
+    @State private var didTrackScoreViewed = false
     @State private var pdfTempURL: URL? = nil
     /// Everything the last export produced, résumé first. Drives the share sheet.
     @State private var packageFileURLs: [URL] = []
@@ -99,6 +101,10 @@ struct OptimizedResumeView: View {
                                 AnalyticsService.shared.track(
                                     .optimizedPreviewRendered(optimizationId: optimizationId)
                                 )
+                                AnalyticsService.shared.track(.pdfPreviewViewed(
+                                    optimizationId: optimizationId,
+                                    template: designVM?.selectedTemplateId ?? "default"
+                                ))
                             }
                         }
                     )
@@ -120,7 +126,17 @@ struct OptimizedResumeView: View {
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
                         .padding(.horizontal, AppSpacing.lg)
-                        .onAppear { appState.markMatchScoreSeen() }
+                        .onAppear {
+                            appState.markMatchScoreSeen()
+                            if !didTrackScoreViewed,
+                               let score = viewModel.atsScoreAfter ?? viewModel.atsScoreBefore {
+                                didTrackScoreViewed = true
+                                AnalyticsService.shared.track(.matchScoreViewed(
+                                    source: "own",
+                                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
+                                ))
+                            }
+                        }
                 }
 
                 // Diagnosis used to sit in front of this screen as a checkpoint;
@@ -229,7 +245,7 @@ struct OptimizedResumeView: View {
                 OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
-        .exportPaywall(optimizationId: $paywallOptimizationId) {
+        .exportPaywall(optimizationId: $paywallOptimizationId, entryPoint: "optimized") {
             // Credits granted: run the export the user tapped, no second tap.
             Task { await performExport() }
         }

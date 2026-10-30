@@ -88,11 +88,12 @@ extension AppState {
     /// now (a rejected token refresh signs out), stop as unauthorized
     /// (Codex P1 on #214).
     @MainActor
+    @discardableResult
     func authorizeExport(
         optimizationId: String,
         beganSignedIn: Bool = false,
         service: ExportUnlockService = ExportUnlockService()
-    ) async throws {
+    ) async throws -> ExportUnlockService.Response {
         guard session != nil else {
             throw beganSignedIn ? APIClientError.unauthorized : ExportCreditsError.accountRequired
         }
@@ -101,6 +102,21 @@ extension AppState {
         }
         if let balance = response.balance {
             creditsBalance = balance
+        }
+        return response
+    }
+}
+
+extension ExportUnlockService.Response {
+    /// The `export_completed` source (pricing v2, plan section 6): one of the 3
+    /// free exports, a paid pack credit, Pro, or the server gate off.
+    var analyticsSource: String {
+        switch source {
+        case "welcome_grant": return "grant"
+        case "subscription": return "subscription"
+        case "ungated": return "ungated"
+        case "credit": return "pack"
+        default: return status == "ungated" ? "ungated" : "pack"
         }
     }
 }

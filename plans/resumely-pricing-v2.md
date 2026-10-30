@@ -70,6 +70,22 @@ Two changes from section 4, both simpler and both safe:
 
 ---
 
+## S5 as built (2026-10-30), iOS PR nadavyigal/ResumeBuilder-IOS-APP#226 and web PR nadavyigal/new-ResumeBuilder-ai-#204
+
+- **App events (section 6):**
+  - `onboarding_started` (once per install, `entry` home or shared_job).
+  - `cv_uploaded` (`method` file after the server upload succeeds; sample when the sample opens).
+  - `match_score_viewed` (`source` own or sample, `score_bucket`): Home free check, fit check, diagnosis, Optimized score panel once per screen, and the sample.
+  - `pdf_preview_viewed` (with `template`).
+  - `paywall_viewed` (`entry_point` optimized or preview).
+  - `export_completed` (`source` grant, pack, subscription or ungated).
+- **Old names** (`paywall_shown`, `export_success`, `resume_uploaded`, `free_ats_completed`) keep firing in 1.6.0. `purchase_*` events already existed.
+- **Server change for `export_completed`:** `unlock_export` now reports `source: welcome_grant` for an export paid by the free exports, and stores it on the unlock so a re-download says the same. Pack credits stay `credit`. The app maps welcome_grant to grant and credit to pack. A subscriber or lapsed subscriber who never used the 3 free exports spends those first.
+- **Server events** (`free_grant_used`, `subscription_*`) were done in S1.
+- **Same person in PostHog:** by code, yes. The app identifies with the Supabase user id (aliasing the earlier install id), and the server captures under the same user id. **Not seen live:** one test account end to end needs a real sign-in and a build against production, which is part of S6.
+
+---
+
 ## 1. What exists today (read from the code, 2026-10-29)
 
 | Area | Fact | Where |

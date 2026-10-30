@@ -240,6 +240,19 @@ enum AnalyticsEvent: Sendable {
     /// Fired only after the server granted the credits, not when StoreKit returned.
     case purchaseCompleted(productId: String, price: String, currency: String, creditsGranted: Int)
     case purchaseFailed(productId: String, reason: String)
+    // Pricing v2 funnel (plan section 6). The older names above keep firing
+    // through 1.6.0 so current dashboards do not break.
+    /// First Home appearance per install. `entry`: `home` or `shared_job`.
+    case onboardingStarted(entry: String)
+    /// A résumé reached the server, or the sample was opened. `method`: `file` or `sample`.
+    case cvUploaded(method: String)
+    /// A Match Score on screen. `source`: `own` or `sample`.
+    case matchScoreViewed(source: String, scoreBucket: String)
+    case pdfPreviewViewed(optimizationId: String, template: String)
+    /// The export paywall appeared. `entryPoint`: `optimized` or `preview`.
+    case paywallViewed(entryPoint: String, balance: Int)
+    /// A file reached the share sheet. `source`: `grant`, `pack`, `subscription` or `ungated`.
+    case exportCompleted(optimizationId: String, source: String)
 
     nonisolated var name: String {
         switch self {
@@ -312,6 +325,12 @@ enum AnalyticsEvent: Sendable {
         case .purchasePending: return "purchase_pending"
         case .purchaseCompleted: return "purchase_completed"
         case .purchaseFailed: return "purchase_failed"
+        case .onboardingStarted: return "onboarding_started"
+        case .cvUploaded: return "cv_uploaded"
+        case .matchScoreViewed: return "match_score_viewed"
+        case .pdfPreviewViewed: return "pdf_preview_viewed"
+        case .paywallViewed: return "paywall_viewed"
+        case .exportCompleted: return "export_completed"
         }
     }
 
@@ -410,6 +429,18 @@ enum AnalyticsEvent: Sendable {
             ]
         case .purchaseFailed(let productId, let reason):
             return ["product_id": productId, "reason": reason]
+        case .onboardingStarted(let entry):
+            return ["entry": entry]
+        case .cvUploaded(let method):
+            return ["method": method]
+        case .matchScoreViewed(let source, let scoreBucket):
+            return ["source": source, "score_bucket": scoreBucket]
+        case .pdfPreviewViewed(let optimizationId, let template):
+            return ["optimization_id": optimizationId, "template": template]
+        case .paywallViewed(let entryPoint, let balance):
+            return ["entry_point": entryPoint, "balance": "\(balance)"]
+        case .exportCompleted(let optimizationId, let source):
+            return ["optimization_id": optimizationId, "source": source]
         case .appStoreReviewRequested(let source):
             return ["source": source]
         case .saveFailed(let optimizationId, let reason, let errorCode):
@@ -940,4 +971,20 @@ final class AnalyticsService {
     nonisolated static let forbiddenPropertyKeys: Set<String> = [
         "email", "name", "resume", "job", "job_description", "resume_text", "file_name",
     ]
+}
+
+/// `onboarding_started` once per install (pricing v2 funnel, step 1).
+enum OnboardingStartedOnce {
+    static let key = "analytics_onboarding_started"
+
+    @MainActor
+    static func trackIfFirst(
+        entry: String,
+        defaults: UserDefaults = .standard,
+        analytics: AnalyticsService = .shared
+    ) {
+        guard !defaults.bool(forKey: key) else { return }
+        defaults.set(true, forKey: key)
+        analytics.track(.onboardingStarted(entry: entry))
+    }
 }

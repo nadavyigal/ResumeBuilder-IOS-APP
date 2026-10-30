@@ -131,6 +131,15 @@ struct SampleCVSheet: View {
         // A sheet does not inherit the app root's direction (lessons 2026-10-19).
         .environment(\.layoutDirection, localization.layoutDirection)
         .preferredColorScheme(.dark)
+        .onAppear {
+            // The sample's events say `sample`, so the funnel never counts it as
+            // the user's own CV or score.
+            AnalyticsService.shared.track(.cvUploaded(method: "sample"))
+            AnalyticsService.shared.track(.matchScoreViewed(
+                source: "sample",
+                scoreBucket: AnalyticsEvent.scoreBucket(for: SampleCV.score)
+            ))
+        }
     }
 
     private func section<Content: View>(
