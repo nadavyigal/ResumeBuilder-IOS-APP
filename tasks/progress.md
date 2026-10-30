@@ -2,11 +2,11 @@
 
 Status: S5 iOS commit 778fb89 on draft PR nadavyigal/ResumeBuilder-IOS-APP#226; web commit 5cc86cb on draft PR nadavyigal/new-ResumeBuilder-ai-#204. Not merged; migration not applied.
 Current Phase: Payments v2 (plan "S5 as built" note).
-Active Story: S5 pre-check. Funnel insight saved in PostHog 270848: Y9EUhHmW (https://us.posthog.com/project/270848/insights/Y9EUhHmW), empty until 1.6.0 ships. Second-model review: no P0/P1; P2 (onboarding_started would fire for existing users after the update) fixed in c660808. Web: Codex P2 (duplicate cancellation events on Apple retries) fixed in web a904f2e.
+Active Story: S5 pre-check. Funnel insight saved in PostHog 270848: Y9EUhHmW (https://us.posthog.com/project/270848/insights/Y9EUhHmW), empty until 1.6.0 ships. Second-model review: no P0/P1; P2 (onboarding_started would fire for existing users after the update) fixed in c660808. Web: Codex P2 (duplicate cancellation events on Apple retries) fixed in web a904f2e. iOS Codex on 6253985: P2 (a failed preview blocked the paywall and so the server PDF) fixed in aec3a1e.
 Last Completed Story: S5 events: onboarding_started, cv_uploaded (file/sample), match_score_viewed (own/sample), pdf_preview_viewed, paywall_viewed, export_completed (grant/pack/subscription/ungated, from the server's new welcome_grant source). Old names keep firing.
 Next Recommended Story: S6 QA and Sandbox on the founder's phone.
 Blockers: founder yes to apply the S1 migration; ASC products before Sandbox; one Xcode run for the 10 StoreKitSessionTests; one real test account end to end in PostHog (needs a real sign-in, S6).
-Last Validation: at c660808: Release build succeeds; full suite 684 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
+Last Validation: at aec3a1e: Release build succeeds; full suite 685 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
 Last Updated: 2026-10-30
 
 # 2026-10-30: Pricing v2, S4 Home headline, sample CV, LinkedIn hint (same draft PR)
