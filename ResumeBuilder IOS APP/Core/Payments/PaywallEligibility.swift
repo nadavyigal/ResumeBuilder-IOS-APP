@@ -26,11 +26,13 @@ struct PaywallMilestones {
     }
 
     /// `requiresScore: false` on a screen that has no score to show (the
-    /// design preview), so the rule can never leave a 402 with nothing to do.
-    func eligibility(userId: String?, requiresScore: Bool = true) -> PaywallEligibility {
-        guard let userId else { return .needsPreview }
+    /// design preview), and `requiresPreview: false` when the preview failed
+    /// to render, so the rule can never leave a 402 with nothing to do: the
+    /// server PDF is still there to buy (Codex on #226).
+    func eligibility(userId: String?, requiresScore: Bool = true, requiresPreview: Bool = true) -> PaywallEligibility {
+        guard let userId else { return requiresPreview ? .needsPreview : .eligible }
         if requiresScore, !ids(Self.scoreKey).contains(userId) { return .needsScore }
-        if !ids(Self.previewKey).contains(userId) { return .needsPreview }
+        if requiresPreview, !ids(Self.previewKey).contains(userId) { return .needsPreview }
         return .eligible
     }
 
@@ -81,8 +83,9 @@ extension AppState {
     @MainActor
     func paywallEligibility(
         requiresScore: Bool = true,
+        requiresPreview: Bool = true,
         _ milestones: PaywallMilestones = PaywallMilestones()
     ) -> PaywallEligibility {
-        milestones.eligibility(userId: session?.userId, requiresScore: requiresScore)
+        milestones.eligibility(userId: session?.userId, requiresScore: requiresScore, requiresPreview: requiresPreview)
     }
 }

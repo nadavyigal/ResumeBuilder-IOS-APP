@@ -38,6 +38,16 @@ final class PaywallEligibilityTests: XCTestCase {
         XCTAssertEqual(store.eligibility(userId: "u1", requiresScore: false), .eligible)
     }
 
+    /// A preview that failed to render must not block buying the server PDF
+    /// (Codex on #226).
+    func testAFailedPreviewDoesNotBlockThePaywall() {
+        let store = milestones()
+        store.markScoreSeen(userId: "u1")
+        XCTAssertEqual(store.eligibility(userId: "u1", requiresPreview: false), .eligible)
+        XCTAssertEqual(store.eligibility(userId: "u1", requiresScore: false, requiresPreview: false), .eligible)
+        XCTAssertEqual(store.eligibility(userId: "u2", requiresPreview: false), .needsScore, "the score rule still applies")
+    }
+
     func testANoticeOnlyWhenThePaywallMustWait() {
         XCTAssertNil(PaywallEligibility.eligible.notice)
         XCTAssertNotNil(PaywallEligibility.needsScore.notice)

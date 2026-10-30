@@ -16,6 +16,9 @@ struct ResumePreviewWebView: View {
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
     var renderedHTML: Binding<String?> = .constant(nil)
+    /// The preview could not be shown; the caller then lets the paywall open
+    /// without it, since the server PDF can still be bought.
+    var onRenderFailed: @MainActor () -> Void = {}
     /// Fires only after WKWebView confirms the HTML navigation finished, carrying the
     /// markup that was actually displayed so the caller can judge what the user saw.
     var onVisibleRender: @MainActor (String) -> Void = { _ in }
@@ -126,6 +129,9 @@ struct ResumePreviewWebView: View {
         }
         .onChange(of: appState.session?.userId) { _, _ in
             if html != nil { appState.markPDFPreviewSeen() }
+        }
+        .onChange(of: errorMessage) { _, message in
+            if message != nil { onRenderFailed() }
         }
         .onChange(of: isActive) { _, active in
             guard active else { return }
@@ -257,7 +263,7 @@ struct ResumePreviewWebView: View {
             AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error)))
             if case ExportCreditsError.creditsRequired = error {
                 // This screen has no score to show; the preview is the rule here.
-                if let notice = appState.paywallEligibility(requiresScore: false).notice {
+                if let notice = appState.paywallEligibility(requiresScore: false, requiresPreview: errorMessage == nil).notice {
                     downloadError = notice
                 } else {
                     paywallOptimizationId = optimizationId

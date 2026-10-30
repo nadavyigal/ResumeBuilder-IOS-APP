@@ -29,6 +29,8 @@ struct OptimizedResumeView: View {
     @State private var paywallOptimizationId: String?
     /// `match_score_viewed` once per screen, not on every re-appear.
     @State private var didTrackScoreViewed = false
+    /// The embedded preview failed to render; the paywall then opens without it.
+    @State private var previewFailed = false
     @State private var pdfTempURL: URL? = nil
     /// Everything the last export produced, résumé first. Drives the share sheet.
     @State private var packageFileURLs: [URL] = []
@@ -92,7 +94,9 @@ struct OptimizedResumeView: View {
                         customization: designVM?.customization,
                         isActive: isActive,
                         renderedHTML: $renderedPreviewHTML,
+                        onRenderFailed: { previewFailed = true },
                         onVisibleRender: { displayedHTML in
+                            previewFailed = false
                             if let optimizationId = previewActivationPolicy.consumeVisibleRender(
                                 optimizationId: viewModel.optimizationIdentifier,
                                 renderedHTML: displayedHTML,
@@ -1247,7 +1251,10 @@ struct OptimizedResumeView: View {
     /// here, so the paywall opens rather than leaving the 402 with no way on.
     @MainActor
     private func openPaywallIfEligible(_ optimizationId: String) {
-        let eligibility = appState.paywallEligibility(requiresScore: shouldShowATSInsightPanel)
+        let eligibility = appState.paywallEligibility(
+            requiresScore: shouldShowATSInsightPanel,
+            requiresPreview: !previewFailed
+        )
         if let notice = eligibility.notice {
             viewModel.errorMessage = notice
         } else {
