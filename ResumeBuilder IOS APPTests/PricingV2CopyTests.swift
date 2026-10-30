@@ -14,11 +14,11 @@ final class PricingV2CopyTests: XCTestCase {
         XCTAssertEqual(SampleCVCopy.note, "A made-up example, so you can see what you get. Your own Match Score is an estimate.")
     }
 
-    func testTheSampleNeverCountsAsTheUsersOwnScore() {
-        // The sample sheet has no AppState: it cannot mark the paywall milestone.
-        let milestones = PaywallMilestones(defaults: UserDefaults(suiteName: "sample-\(UUID().uuidString)")!)
-        _ = SampleCVSheet(onTryYours: {})
-        XCTAssertEqual(milestones.eligibility(userId: "u1"), .needsScore)
+    /// The sample sheet takes no AppState, so it has no way to mark the paywall's
+    /// "seen own score" milestone or send a real-score event.
+    func testTheSampleSheetHasNoAppState() {
+        let children = Mirror(reflecting: SampleCVSheet(onTryYours: {})).children
+        XCTAssertFalse(children.contains { "\(type(of: $0.value))".contains("AppState") })
     }
 
     func testTheLinkedInStepsAreThreeShortSteps() {

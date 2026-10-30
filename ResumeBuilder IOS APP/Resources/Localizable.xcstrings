@@ -715,6 +715,16 @@
         }
       }
     },
+    "Example Match Score: 64 out of 100. A made-up example, so you can see what you get. Your own Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה לדוגמה: 64 מתוך 100. דוגמה מומצאת, כדי שתראו מה מקבלים. ציון ההתאמה שלכם הוא הערכה."
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {

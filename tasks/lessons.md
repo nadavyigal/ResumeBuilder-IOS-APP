@@ -1,3 +1,12 @@
+## 2026-10-30: State placed inside `#if DEBUG` passes every test and breaks Archive
+
+S4 added three `@State` lines next to a DEBUG-only smoke flag, inside its `#if DEBUG`
+block, while the buttons and sheets that use them are in normal code. Debug builds and
+all 678 tests passed; a Release or Archive build would have failed with "cannot find in
+scope". Found by the second-model review, not by tests. Rule: any change that touches a
+`#if DEBUG` block gets a Release build before done:
+`xcodebuild build -configuration Release -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO`.
+
 ## 2026-10-29: A Hebrew smoke harness run leaves the simulator in Hebrew for tests
 
 `--smoke-paywall --smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which is

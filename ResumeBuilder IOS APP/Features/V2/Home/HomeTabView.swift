@@ -42,11 +42,11 @@ struct HomeTabView: View {
     @State private var checkStartLatch = CheckStartLatch()
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
+    #endif
     @State private var showSampleCV = false
     /// "Now try with your CV" opens the picker once the sample sheet is gone.
     @State private var openPickerAfterSample = false
     @State private var showLinkedInHow = false
-    #endif
     @FocusState private var focusedJobField: JobField?
 
     /// Extracted from `body` purely for the Swift type-checker, which stopped

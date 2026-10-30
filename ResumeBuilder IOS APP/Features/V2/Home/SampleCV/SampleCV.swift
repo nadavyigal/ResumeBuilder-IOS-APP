@@ -38,6 +38,8 @@ enum SampleCVCopy {
     static let gapsHeading: LocalizedStringKey = "What's missing for this job"
     static let tryYours: LocalizedStringKey = "Now try with your CV"
     static let close: LocalizedStringKey = "Close"
+    static let scoreAccessibility: LocalizedStringKey =
+        "Example Match Score: 64 out of 100. A made-up example, so you can see what you get. Your own Match Score is an estimate."
 }
 
 struct SampleCVSheet: View {
@@ -81,6 +83,7 @@ struct SampleCVSheet: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text(SampleCVCopy.scoreAccessibility))
                 .accessibilityIdentifier("sample.score")
 
                 section(SampleCVCopy.cvHeading, icon: "doc.text") {
