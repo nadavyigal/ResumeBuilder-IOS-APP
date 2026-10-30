@@ -101,7 +101,7 @@ Launch page (private Artifact): https://claude.ai/artifact/YavCxgtJ3fTtUsPUxLq3E
   7. On approval, remove the old packs from sale.
   8. `EXPORT_CREDITS_ENABLED=true` only once most active users run 1.6.0, because 1.5.6 cannot buy the new products.
   9. Day-30 funnel read and day-60 Pro rule.
-- **Blocker found in S6:** the live Terms page (resumelybuilderai.com/terms, last updated 2025-12-23) describes a Stripe $9/month Premium plan, cancelling in account settings and a 7-day Resumely refund. The paywall links to it. Recommended: point the paywall's Terms link at Apple's standard EULA, and update the website Terms later. Waiting for the founder.
+- **Blocker found in S6:** the live Terms page (resumelybuilderai.com/terms, last updated 2025-12-23) describes a Stripe $9/month Premium plan, cancelling in account settings and a 7-day Resumely refund. The paywall links to it. Founder decision 2026-10-30: the paywall's Terms link opens Apple's standard EULA (6bf8b20); the website Terms get an App Store section later. Onboarding still links the website Terms.
 - **Checklist changes from section 10:**
   - The notifications URL is the live route (`https://www.resumelybuilderai.com/api/v1/iap/notifications` answered 405 to GET on 2026-10-30). App Store Connect setting not seen.
   - The review demo account gets 3 free downloads after the migration (D1). It needs 3 exports, or a founder yes to set it to 0, before submission.
