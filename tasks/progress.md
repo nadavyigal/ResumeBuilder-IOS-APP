@@ -1,3 +1,14 @@
+# 2026-10-30: Pricing v2, S4 Home headline, sample CV, LinkedIn hint (same draft PR)
+
+Status: S4 on branch `claude/resumely-pricing-v2`, code commit 351a507, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3 + S4). Not merged.
+Current Phase: Payments v2 (plan "S4 as built" note).
+Active Story: S4 review (Codex + second-model pre-check).
+Last Completed Story: S4: Home leads with "Check any job, free, as often as you like." and "Your Match Score is an estimate."; "Try a sample CV" sheet (made-up CV, job and score 64, labelled as an example, bundled, no network, then opens the file picker); LinkedIn "Save to PDF" hint with a 3-step How sheet; upload unchanged; EN/HE screenshots in `audit/pricing-v2-s4/`.
+Next Recommended Story: S5 analytics contract and the saved PostHog funnel.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run for the 10 StoreKitSessionTests; LinkedIn steps not checked on a real iPhone.
+Last Validation: at 351a507: full suite 678 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
+Last Updated: 2026-10-30
+
 # 2026-10-29: Pricing v2, S3 paywall placement and copy (same draft PR)
 
 Status: S3 on branch `claude/resumely-pricing-v2`, code commit 94aa208, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3). Not merged.
