@@ -113,6 +113,13 @@ final class PaywallOffersTests: XCTestCase {
         XCTAssertEqual(model.message, StoreKitManagerError.productUnavailable.localizedDescription)
     }
 
+    /// App Store purchases are covered by Apple's standard EULA; the website
+    /// Terms describe the web plan (founder decision 2026-10-30).
+    func testThePaywallTermsLinkIsApplesStandardEULA() {
+        XCTAssertEqual(LegalLinks.appleStandardEULA.absoluteString, "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+        XCTAssertNotEqual(LegalLinks.appleStandardEULA, LegalLinks.termsURL(language: .english))
+    }
+
     func testCopyNamesTheEstimateAndMakesNoClaim() {
         XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
         XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")

@@ -580,7 +580,7 @@ struct ExportPaywallSheet: View {
         }
         .disabled(!(model.phase == .ready || model.phase == .unavailable))
         .accessibilityIdentifier("paywall.restore")
-        Link(destination: LegalLinks.termsURL(language: localization.language)) {
+        Link(destination: LegalLinks.appleStandardEULA) {
             Text(ExportPaywallCopy.terms)
         }
         Link(destination: LegalLinks.privacyURL(language: localization.language)) {
