@@ -1,3 +1,14 @@
+# 2026-10-30: Pricing v2, S6 QA and launch checklist (no code)
+
+Status: S2 to S6 done on draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (head d69a67c code); server on draft PR nadavyigal/new-ResumeBuilder-ai-#204 (ab8c8ee, Codex clean). Not merged; migration not applied.
+Current Phase: Payments v2, launch preparation. Launch page: https://claude.ai/artifact/YavCxgtJ3fTtUsPUxLq3ED (plan "S6 as built").
+Active Story: none in code. Waiting on the founder: Terms link decision (live Terms page describes the old Stripe plan), migration yes, App Store Connect products, phone test.
+Last Completed Story: S6: re-ran every automated check on both heads, wrote the final App Store Connect checklist and launch order, and wrote the phone test (14 rows + C1 to C7).
+Next Recommended Story: Terms link fix (one line, if approved), then the 1.6.0 version bump and TestFlight archive once App Store Connect products exist.
+Blockers: founder decisions above; real purchases need the App Store Connect products and the founder's phone.
+Last Validation: iOS d69a67c: 685 tests, 0 failures, 11 skipped, Release build passes. Web ab8c8ee: lint 0 errors, tsc 24 old errors, jest 1,165 pass, build passes, 4 local Postgres tests pass.
+Last Updated: 2026-10-30
+
 # 2026-10-30: Pricing v2, S5 analytics funnel (same draft PRs)
 
 Status: S5 iOS commit 778fb89 on draft PR nadavyigal/ResumeBuilder-IOS-APP#226; web commit 5cc86cb on draft PR nadavyigal/new-ResumeBuilder-ai-#204. Not merged; migration not applied.

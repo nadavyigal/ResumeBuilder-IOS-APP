@@ -87,6 +87,31 @@ Two changes from section 4, both simpler and both safe:
 
 ---
 
+## S6 as built (2026-10-30): launch page, checklist final
+
+Launch page (private Artifact): https://claude.ai/artifact/YavCxgtJ3fTtUsPUxLq3ED. It holds the launch order, the final App Store Connect checklist, the 14-row phone test plus 7 device-only checks (C1 to C7), and what is not verified. It supersedes section 10 and section 4.4 where they differ.
+
+- **Launch order:**
+  1. Apply the migration (founder yes).
+  2. Merge web #204.
+  3. Set up App Store Connect.
+  4. TestFlight 1.6.0 from #226 (version bump not done yet).
+  5. Phone test.
+  6. Merge #226 and submit.
+  7. On approval, remove the old packs from sale.
+  8. `EXPORT_CREDITS_ENABLED=true` only once most active users run 1.6.0, because 1.5.6 cannot buy the new products.
+  9. Day-30 funnel read and day-60 Pro rule.
+- **Blocker found in S6:** the live Terms page (resumelybuilderai.com/terms, last updated 2025-12-23) describes a Stripe $9/month Premium plan, cancelling in account settings and a 7-day Resumely refund. The paywall links to it. Recommended: point the paywall's Terms link at Apple's standard EULA, and update the website Terms later. Waiting for the founder.
+- **Checklist changes from section 10:**
+  - The notifications URL is the live route (`https://www.resumelybuilderai.com/api/v1/iap/notifications` answered 405 to GET on 2026-10-30). App Store Connect setting not seen.
+  - The review demo account gets 3 free downloads after the migration (D1). It needs 3 exports, or a founder yes to set it to 0, before submission.
+  - The App Store copy drops "in under a minute" until C7 times it.
+- **Automated checks at S6:**
+  - iOS d69a67c: 685 tests, 0 failures, 11 skipped; Release build passes.
+  - Web ab8c8ee: lint 0 errors (11 old warnings); tsc 24 old test-file errors; jest 1,165 pass / 84 skipped; build passes; local Postgres pricing-v2 23, export-credits 13, apple-iap 18, security-definer-grants 11.
+
+---
+
 ## 1. What exists today (read from the code, 2026-10-29)
 
 | Area | Fact | Where |
