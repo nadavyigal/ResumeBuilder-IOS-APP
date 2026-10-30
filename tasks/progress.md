@@ -2,7 +2,7 @@
 
 Status: S5 iOS commit 778fb89 on draft PR nadavyigal/ResumeBuilder-IOS-APP#226; web commit 5cc86cb on draft PR nadavyigal/new-ResumeBuilder-ai-#204. Not merged; migration not applied.
 Current Phase: Payments v2 (plan "S5 as built" note).
-Active Story: S5. Next step: save the PostHog funnel insight (A5), then the pre-check on both PRs.
+Active Story: S5 pre-check. Funnel insight saved in PostHog 270848: Y9EUhHmW (https://us.posthog.com/project/270848/insights/Y9EUhHmW), empty until 1.6.0 ships.
 Last Completed Story: S5 events: onboarding_started, cv_uploaded (file/sample), match_score_viewed (own/sample), pdf_preview_viewed, paywall_viewed, export_completed (grant/pack/subscription/ungated, from the server's new welcome_grant source). Old names keep firing.
 Next Recommended Story: S6 QA and Sandbox on the founder's phone.
 Blockers: founder yes to apply the S1 migration; ASC products before Sandbox; one Xcode run for the 10 StoreKitSessionTests; one real test account end to end in PostHog (needs a real sign-in, S6).
