@@ -405,6 +405,10 @@ struct ExportPaywallSheet: View {
         .onChange(of: model.offers) { _, _ in
             model.hidePlan(hasActivePlan)
         }
+        // A credits reply that reports Pro after the sheet loaded (Codex on #226).
+        .onChange(of: hasActivePlan) { _, active in
+            model.hidePlan(active)
+        }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
             await model.load(for: appState.purchaseAccount?.userId)
