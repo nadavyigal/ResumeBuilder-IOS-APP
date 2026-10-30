@@ -42,6 +42,10 @@ struct HomeTabView: View {
     @State private var checkStartLatch = CheckStartLatch()
     #if DEBUG
     @State private var isSmokeCheckScreenShown = false
+    @State private var showSampleCV = false
+    /// "Now try with your CV" opens the picker once the sample sheet is gone.
+    @State private var openPickerAfterSample = false
+    @State private var showLinkedInHow = false
     #endif
     @FocusState private var focusedJobField: JobField?
 
@@ -224,6 +228,10 @@ struct HomeTabView: View {
 
                             uploadHero
 
+                            if !hasSelectedResume {
+                                otherStarts
+                            }
+
                             if viewModel.selectedResumeName?.isEmpty != false,
                                appState.isAuthenticated,
                                RuntimeFeatures.isResumeLibraryEnabled {
@@ -287,6 +295,7 @@ struct HomeTabView: View {
                 }
                 #if DEBUG
                 applySmokeJobInputIfRequested()
+                applySmokeSheetsIfRequested()
                 #endif
                 if reduceMotion {
                     appeared = true
@@ -298,6 +307,17 @@ struct HomeTabView: View {
                 NavigationStack {
                     OnboardingView(viewModel: OnboardingViewModel(appState: appState))
                 }
+            }
+            .sheet(isPresented: $showSampleCV, onDismiss: {
+                if openPickerAfterSample {
+                    openPickerAfterSample = false
+                    openUploadPicker()
+                }
+            }) {
+                SampleCVSheet(onTryYours: { openPickerAfterSample = true })
+            }
+            .sheet(isPresented: $showLinkedInHow) {
+                LinkedInHowSheet()
             }
             .sheet(isPresented: $showFitCheck) {
                 NavigationStack {
@@ -809,12 +829,13 @@ struct HomeTabView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppColors.textTertiary)
 
-            Text("See your résumé like a recruiter does")
+            // The free, unlimited check leads (pricing v2, A3).
+            Text("Check any job, free, as often as you like.")
                 .font(.system(size: 34, weight: .black, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Upload, match to a job, and get your first diagnosis in under 2 minutes.")
+            Text("Your Match Score is an estimate.")
                 .font(.subheadline)
                 .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(2)
@@ -1074,6 +1095,37 @@ struct HomeTabView: View {
                 : UploadCardCopy.uploadAccessibilityLabel
         )
         .onAppear(perform: trackUploadCTASeenIfNeeded)
+    }
+
+    /// The other ways in, under Upload (pricing v2, S4): a sample CV with a
+    /// made-up score, and how to get a PDF from LinkedIn. Upload itself is
+    /// unchanged and stays file-only.
+    private var otherStarts: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Button { showSampleCV = true } label: {
+                Label(SampleCVCopy.start, systemImage: "sparkles")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 46)
+                    .glassCard(cornerRadius: AppRadii.md)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("home.sampleCV")
+
+            HStack(alignment: .firstTextBaseline, spacing: AppSpacing.xs) {
+                Text(LinkedInHintCopy.hint)
+                    .font(.footnote)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button { showLinkedInHow = true } label: {
+                    Text(LinkedInHintCopy.how)
+                        .font(.footnote.weight(.bold))
+                        .foregroundStyle(AppColors.accentSky)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("home.linkedinHow")
+            }
+        }
     }
 
     private var motivationStrip: some View {
@@ -1505,6 +1557,16 @@ struct HomeTabView: View {
         if arguments.contains("--smoke-check-screen") {
             isSmokeCheckScreenShown = true
         }
+    }
+
+    /// `--smoke-sample-cv` and `--smoke-linkedin-how` open those sheets on
+    /// Home so they can be screenshotted (add `--smoke-he` for Hebrew).
+    private func applySmokeSheetsIfRequested() {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--smoke-he") { localization.setLanguage(.hebrew) }
+        if arguments.contains("--smoke-en") { localization.setLanguage(.english) }
+        if arguments.contains("--smoke-sample-cv") { showSampleCV = true }
+        if arguments.contains("--smoke-linkedin-how") { showLinkedInHow = true }
     }
     #endif
 

@@ -59,6 +59,17 @@ Two changes from section 4, both simpler and both safe:
 
 ---
 
+## S4 as built (2026-10-30), same branch, PR nadavyigal/ResumeBuilder-IOS-APP#226
+
+- **Home headline (A3):** "Check any job, free, as often as you like." with the subline "Your Match Score is an estimate." It replaces "See your résumé like a recruiter does" and the "under 2 minutes" line (an unmeasured claim, like "under a minute" on the paywall).
+- **Sample CV:** "Try a sample CV" under Upload opens a sheet with a made-up CV, a job and a score of 64, labelled "Example" and "A made-up example, so you can see what you get. Your own Match Score is an estimate." No upload, no server call, no AI cost; it is bundled text, so it shows at once. "Now try with your CV" opens the file picker after the sheet closes. The sample never marks the paywall's "seen own score" milestone.
+- **Changes from section 5:** the sample is bundled as Swift strings in `Features/V2/Home/SampleCV/SampleCV.swift` (EN + HE in the strings catalog), not as files. The score is illustrative, not computed by the server scorer; the sheet says so.
+- **LinkedIn hint (A4):** "No CV file? Save your LinkedIn profile as PDF." with a "How?" sheet of 3 steps. LinkedIn's menu labels (More, Save to PDF) stay in English in the Hebrew steps because LinkedIn shows them in English. **Not checked on a real iPhone**: whether linkedin.com in mobile Safari shows "Save to PDF" without "Request Desktop Website".
+- **Upload unchanged:** still file-only, same picker, same `/api/upload-resume`.
+- **Harness:** `--smoke-sample-cv` and `--smoke-linkedin-how` open those sheets on Home; `--smoke-en` / `--smoke-he` set the language. Screenshots in `audit/pricing-v2-s4/`.
+
+---
+
 ## 1. What exists today (read from the code, 2026-10-29)
 
 | Area | Fact | Where |

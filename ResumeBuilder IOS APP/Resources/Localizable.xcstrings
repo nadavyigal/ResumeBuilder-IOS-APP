@@ -425,6 +425,296 @@
         }
       }
     },
+    "Check any job, free, as often as you like." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה לכל משרה, בחינם, כמה שתרצו."
+          }
+        }
+      }
+    },
+    "Your Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה הוא הערכה."
+          }
+        }
+      }
+    },
+    "Try a sample CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסו קורות חיים לדוגמה"
+          }
+        }
+      }
+    },
+    "EXAMPLE" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוגמה"
+          }
+        }
+      }
+    },
+    "Sample Match Score" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה לדוגמה"
+          }
+        }
+      }
+    },
+    "A made-up example, so you can see what you get. Your own Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוגמה מומצאת, כדי שתראו מה מקבלים. ציון ההתאמה שלכם הוא הערכה."
+          }
+        }
+      }
+    },
+    "The CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים"
+          }
+        }
+      }
+    },
+    "The job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשרה"
+          }
+        }
+      }
+    },
+    "What already matches" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה כבר מתאים"
+          }
+        }
+      }
+    },
+    "What's missing for this job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה חסר למשרה הזו"
+          }
+        }
+      }
+    },
+    "Now try with your CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עכשיו נסו עם קורות החיים שלכם"
+          }
+        }
+      }
+    },
+    "Dana Cohen · Marketing Coordinator · 3 years" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דנה כהן · רכזת שיווק · 3 שנים"
+          }
+        }
+      }
+    },
+    "Ran monthly email campaigns for 12,000 subscribers" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהלה קמפיינים חודשיים במייל ל-12,000 מנויים"
+          }
+        }
+      }
+    },
+    "Grew Instagram followers from 2,000 to 9,000 in a year" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדילה את העוקבים באינסטגרם מ-2,000 ל-9,000 בשנה"
+          }
+        }
+      }
+    },
+    "Wrote product pages and blog posts with the sales team" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתבה דפי מוצר ופוסטים לבלוג יחד עם צוות המכירות"
+          }
+        }
+      }
+    },
+    "Digital Marketing Manager · Tel Aviv" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנהל/ת שיווק דיגיטלי · תל אביב"
+          }
+        }
+      }
+    },
+    "Email campaigns" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קמפיינים במייל"
+          }
+        }
+      }
+    },
+    "Social media growth" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צמיחה ברשתות החברתיות"
+          }
+        }
+      }
+    },
+    "Content writing" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתיבת תוכן"
+          }
+        }
+      }
+    },
+    "Paid ads budget (Google, Meta)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול תקציב פרסום ממומן (Google, Meta)"
+          }
+        }
+      }
+    },
+    "Leading a team" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול צוות"
+          }
+        }
+      }
+    },
+    "Reports from analytics tools" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוחות מכלי אנליטיקה"
+          }
+        }
+      }
+    },
+    "No CV file? Save your LinkedIn profile as PDF." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין לכם קובץ קורות חיים? שמרו את פרופיל הלינקדאין כ-PDF."
+          }
+        }
+      }
+    },
+    "How?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איך?"
+          }
+        }
+      }
+    },
+    "Save your LinkedIn profile as a PDF" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמירת פרופיל הלינקדאין כ-PDF"
+          }
+        }
+      }
+    },
+    "Open linkedin.com in Safari (not the LinkedIn app) and go to your profile." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתחו את linkedin.com ב-Safari (לא באפליקציית לינקדאין) ועברו לפרופיל שלכם."
+          }
+        }
+      }
+    },
+    "Tap More, then Save to PDF." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקישו על More ואז על Save to PDF."
+          }
+        }
+      }
+    },
+    "Save the file to Files, then come back and tap Choose a file." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמרו את הקובץ ב'קבצים', חזרו לכאן והקישו על 'בחר קובץ'."
+          }
+        }
+      }
+    },
+    "Got it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הבנתי"
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {
