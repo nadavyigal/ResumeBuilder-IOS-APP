@@ -60,6 +60,24 @@ final class PricingFunnelEventsTests: XCTestCase {
         XCTAssertEqual(R(status: "unlocked", balance: 3).analyticsSource, "pack")
     }
 
+    func testAnInstallUsedBeforeThisBuildIsNotANewUser() async {
+        let defaults = UserDefaults(suiteName: "onboarding-existing-\(UUID().uuidString)")!
+        defaults.set("anon-123", forKey: AnalyticsService.anonymousSessionIdKey)
+        let transport = FunnelTransport()
+
+        OnboardingStartedOnce.markExistingInstall(defaults: defaults)
+        OnboardingStartedOnce.trackIfFirst(entry: "home", defaults: defaults, analytics: AnalyticsService(transport: transport))
+
+        let count = await transport.count(of: "onboarding_started")
+        XCTAssertEqual(count, 0)
+    }
+
+    func testAFreshInstallIsNotMarkedAtStart() {
+        let defaults = UserDefaults(suiteName: "onboarding-fresh-\(UUID().uuidString)")!
+        OnboardingStartedOnce.markExistingInstall(defaults: defaults)
+        XCTAssertFalse(defaults.bool(forKey: OnboardingStartedOnce.key))
+    }
+
     func testOnboardingStartedFiresOncePerInstall() async {
         let defaults = UserDefaults(suiteName: "onboarding-\(UUID().uuidString)")!
         let transport = FunnelTransport()

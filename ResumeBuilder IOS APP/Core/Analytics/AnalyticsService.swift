@@ -977,6 +977,19 @@ final class AnalyticsService {
 enum OnboardingStartedOnce {
     static let key = "analytics_onboarding_started"
 
+    /// Runs at app start, before any event of this launch. An install that
+    /// already has an analytics id was used before this build, so it is not a
+    /// new user and never sends `onboarding_started` (second-model on #226).
+    static func markExistingInstall(defaults: UserDefaults = .standard) {
+        guard !defaults.bool(forKey: key) else { return }
+        let priorIdentity = [
+            AnalyticsService.distinctIdKey,
+            AnalyticsService.anonymousSessionIdKey,
+            AnalyticsService.authenticatedUserIdKey,
+        ].contains { !(defaults.string(forKey: $0) ?? "").isEmpty }
+        if priorIdentity { defaults.set(true, forKey: key) }
+    }
+
     @MainActor
     static func trackIfFirst(
         entry: String,
