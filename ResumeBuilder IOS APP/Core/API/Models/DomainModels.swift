@@ -1204,6 +1204,41 @@ struct CreditTransaction: Codable, Identifiable, Sendable {
 struct CreditsResponse: Codable, Sendable {
     let balance: Int
     let transactions: [CreditTransaction]
+    /// Pro, from pricing v2 on. Nil from an older server.
+    let subscription: SubscriptionStatus?
+}
+
+/// `subscription` in `GET /api/v1/credits`. The server decides every export;
+/// the app only shows this.
+struct SubscriptionStatus: Codable, Equatable, Sendable {
+    let active: Bool
+    let productId: String?
+    let expiresAt: String?
+    let graceUntil: String?
+    let autoRenew: Bool?
+    /// Exports used in this billing period, against the fair-use cap.
+    let periodExports: Int?
+    let periodCap: Int?
+
+    init(
+        active: Bool,
+        productId: String? = nil,
+        expiresAt: String? = nil,
+        graceUntil: String? = nil,
+        autoRenew: Bool? = nil,
+        periodExports: Int? = nil,
+        periodCap: Int? = nil
+    ) {
+        self.active = active
+        self.productId = productId
+        self.expiresAt = expiresAt
+        self.graceUntil = graceUntil
+        self.autoRenew = autoRenew
+        self.periodExports = periodExports
+        self.periodCap = periodCap
+    }
+
+    var expiryDate: Date? { ServerDate.parse(expiresAt) }
 }
 
 struct ResumeUploadResponse: Codable, Sendable {

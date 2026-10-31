@@ -16,6 +16,9 @@ struct ResumePreviewWebView: View {
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
     var renderedHTML: Binding<String?> = .constant(nil)
+    /// The preview could not be shown; the caller then lets the paywall open
+    /// without it, since the server PDF can still be bought.
+    var onRenderFailed: @MainActor () -> Void = {}
     /// Fires only after WKWebView confirms the HTML navigation finished, carrying the
     /// markup that was actually displayed so the caller can judge what the user saw.
     var onVisibleRender: @MainActor (String) -> Void = { _ in }
@@ -59,7 +62,10 @@ struct ResumePreviewWebView: View {
                 WebKitHTMLView(
                     html: html,
                     baseURL: BackendConfig.apiBaseURL,
-                    onLoadSuccess: { onVisibleRender(html) }
+                    onLoadSuccess: {
+                        appState.markPDFPreviewSeen()
+                        onVisibleRender(html)
+                    }
                 ) { message in
                     previewLogger.error("Preview WebKit load failed for optimization \(optimizationId, privacy: .public): \(message, privacy: .public)")
                     errorMessage = NSLocalizedString("Preview unavailable. Try downloading the PDF instead.", comment: "")
@@ -121,6 +127,12 @@ struct ResumePreviewWebView: View {
             }
             await renderPreview(key: previewRequestKey)
         }
+        .onChange(of: appState.session?.userId) { _, _ in
+            if html != nil { appState.markPDFPreviewSeen() }
+        }
+        .onChange(of: errorMessage) { _, message in
+            if message != nil { onRenderFailed() }
+        }
         .onChange(of: isActive) { _, active in
             guard active else { return }
             Task { await renderPreview(key: previewRequestKey) }
@@ -130,7 +142,7 @@ struct ResumePreviewWebView: View {
                 ShareSheet(items: [url]).ignoresSafeArea()
             }
         }
-        .exportPaywall(optimizationId: $paywallOptimizationId) {
+        .exportPaywall(optimizationId: $paywallOptimizationId, entryPoint: "preview") {
             Task { await downloadAndShare() }
         }
         .sheet(isPresented: $showAccountOnboarding) {
@@ -244,12 +256,18 @@ struct ResumePreviewWebView: View {
         defer { isDownloadingPDF = false }
         // The server decides first (StoreKit spec 6.4): no file, styled or not,
         // for an export it refused.
+        let unlock: ExportUnlockService.Response
         do {
-            try await appState.authorizeExport(optimizationId: optimizationId)
+            unlock = try await appState.authorizeExport(optimizationId: optimizationId)
         } catch {
             AnalyticsService.shared.track(.exportFailed(optimizationId: optimizationId, errorCode: ExportFailureCode.code(for: error)))
             if case ExportCreditsError.creditsRequired = error {
-                paywallOptimizationId = optimizationId
+                // This screen has no score to show; the preview is the rule here.
+                if let notice = appState.paywallEligibility(requiresScore: false, requiresPreview: errorMessage == nil).notice {
+                    downloadError = notice
+                } else {
+                    paywallOptimizationId = optimizationId
+                }
             } else if case ExportCreditsError.accountRequired = error {
                 showAccountOnboarding = true
             } else {
@@ -266,6 +284,7 @@ struct ResumePreviewWebView: View {
                 pdfURL = dest
                 showSharePDF = true
                 AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
+                AnalyticsService.shared.track(.exportCompleted(optimizationId: optimizationId, source: unlock.analyticsSource))
                 return
             } catch {
                 styledHTMLFailureCode = ExportFailureCode.code(for: error)
@@ -281,6 +300,7 @@ struct ResumePreviewWebView: View {
             pdfURL = dest
             showSharePDF = true
             AnalyticsService.shared.track(.exportSuccess(optimizationId: optimizationId, hasCoverLetter: false, hasScreeningAnswers: false))
+            AnalyticsService.shared.track(.exportCompleted(optimizationId: optimizationId, source: unlock.analyticsSource))
         } catch {
             let fallbackCode = ExportFailureCode.code(for: error)
             let code = styledHTMLFailureCode.map { "styled_\($0)_fallback_\(fallbackCode)" } ?? fallbackCode
@@ -396,6 +416,29 @@ struct PreviewActivationPolicy: Sendable {
             .replacingOccurrences(of: "&nbsp;", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return visibleText.count >= Self.minimumVisibleCharacters
+    }
+}
+
+/// What an on-screen score panel records. `MainTabViewV2` keeps the Optimized tab
+/// mounted at zero opacity, so a panel can appear while the user is on Home:
+/// that must not count as seen for the paywall rule or for `match_score_viewed`
+/// (Codex on #226). The caller asks again when the tab becomes active.
+struct ScoreViewPolicy: Sendable {
+    struct Outcome: Equatable, Sendable {
+        var markSeen = false
+        var trackedScore: Int?
+    }
+
+    private var didTrackScore = false
+
+    mutating func consume(panelShown: Bool, isActive: Bool, score: Int?) -> Outcome {
+        guard panelShown, isActive else { return Outcome() }
+        var outcome = Outcome(markSeen: true)
+        if !didTrackScore, let score {
+            didTrackScore = true
+            outcome.trackedScore = score
+        }
+        return outcome
     }
 }
 

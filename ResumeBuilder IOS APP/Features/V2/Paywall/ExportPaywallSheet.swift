@@ -2,22 +2,55 @@ import StoreKit
 import SwiftUI
 
 enum ExportPaywallCopy {
-    static let title: LocalizedStringKey = "Export your tailored résumé"
-    static let whatACreditBuys: LocalizedStringKey =
-        "One credit exports one tailored résumé, in any format, as often as you need."
-    static let neverExpire: LocalizedStringKey = "Credits never expire."
-    static let restore: LocalizedStringKey =
-        "Credits stay on your account. Sign in to the same account on another device to use them."
+    static let title: LocalizedStringKey = "Download more tailored CVs"
+    static let body: LocalizedStringKey =
+        "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate."
+    static let scoresStayFree: LocalizedStringKey = "Match Scores stay free and unlimited."
+    static let bestValue: LocalizedStringKey = "Best value"
+    static let planTitle: LocalizedStringKey = "Pro, unlimited PDF downloads (fair use)"
+    static let renews: LocalizedStringKey = "Renews monthly until cancelled."
+    static let planCapReached: LocalizedStringKey =
+        "Your Pro plan reached its fair-use limit for this billing period. A pack lets you keep downloading until it resets."
+    static let estimateFooter: LocalizedStringKey =
+        "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction."
+    static let continueLabel: LocalizedStringKey = "Continue"
+    static let restore: LocalizedStringKey = "Restore Purchases"
+    static let terms: LocalizedStringKey = "Terms of Use"
+    static let privacy: LocalizedStringKey = "Privacy Policy"
     static let close: LocalizedStringKey = "Close"
     static let loading: LocalizedStringKey = "Loading prices…"
     static let retry: LocalizedStringKey = "Try again"
 
     static func packTitle(credits: Int) -> LocalizedStringKey {
         switch credits {
-        case 1: return "1 tailored export"
-        case 5: return "5 tailored exports"
-        default: return "10 tailored exports"
+        case 14: return "14 tailored CVs"
+        default: return "5 tailored CVs"
         }
+    }
+
+    static func monthlyPrice(_ displayPrice: String) -> String {
+        String(format: NSLocalizedString("%@ / month", comment: "Pro price per month, from StoreKit"), displayPrice)
+    }
+
+    static var nothingToRestore: String {
+        NSLocalizedString(
+            "Nothing to restore for this Apple ID. Your PDF downloads stay on your Resumely account.",
+            comment: "Restore found no purchase"
+        )
+    }
+
+    static var planAlreadyActive: String {
+        NSLocalizedString(
+            "Your Pro plan is already active on this account.",
+            comment: "Restore found the Pro plan the account already has"
+        )
+    }
+
+    static var restoreFailed: String {
+        NSLocalizedString(
+            "We couldn't restore right now. Check your connection and try again.",
+            comment: "Restore failed"
+        )
     }
 }
 
@@ -25,14 +58,29 @@ enum ExportPaywallCopy {
 /// so the app never shows a typed price.
 struct PackOffer: Identifiable, Equatable {
     let id: String
+    /// Exports in a pack; 0 for Pro.
     let credits: Int
     let displayPrice: String
+    var isSubscription = false
+
+    /// The offer on sale for a StoreKit product ID, or nil.
+    static func make(id: String, displayPrice: String) -> PackOffer? {
+        if let credits = ResumelyProducts.exports(for: id) {
+            return PackOffer(id: id, credits: credits, displayPrice: displayPrice)
+        }
+        if ResumelyProducts.isSubscription(id) {
+            return PackOffer(id: id, credits: 0, displayPrice: displayPrice, isSubscription: true)
+        }
+        return nil
+    }
 }
 
-/// Opens only after the server answered 402 `export_credits_required` for an
-/// export the user tapped (StoreKit spec 10.1): never at launch, never as a
-/// banner, no "Premium" wording (EXD-018). After a grant it calls `onUnlocked`,
-/// and the caller runs the export the user tapped without a second tap.
+/// Opens only after the server answered 402 for an export the user tapped, and
+/// only once this account saw its own Match Score and a preview (pricing v2,
+/// plan 3.1): never at launch, never as a banner. The 14-pack is listed first
+/// and preselected, then the 5-pack, then Pro (plan A2). After a grant or a
+/// restore it calls `onUnlocked`, and the caller runs the export the user
+/// tapped without a second tap.
 @Observable
 @MainActor
 final class ExportPaywallModel {
@@ -46,6 +94,8 @@ final class ExportPaywallModel {
         /// Nothing more can be bought from this sheet; the grant arrives in the
         /// background and resumes the export (Codex P1s on #207).
         case awaitingApproval(productID: String)
+        /// Restore Purchases is running.
+        case restoring
     }
 
     /// The store's background grant count when the wait began.
@@ -55,22 +105,76 @@ final class ExportPaywallModel {
     private(set) var phase: Phase = .loading
     private(set) var message: String?
     private(set) var offers: [PackOffer] = []
+    /// The offer the Continue button buys. Starts on the first pack (the 14).
+    private(set) var selectedID: String?
     private let store: StoreKitManager
     private let isFixture: Bool
     private let retryPendingPurchases: @MainActor () async -> Void
     private let loadStoreProducts: @MainActor () async throws -> Void
+    private let restoreStorePurchases: @MainActor () async throws -> StoreKitManager.RestoreResult
+    private let storeOffers: @MainActor () -> [PackOffer]
+    /// What the store has on sale, Pro included; `offers` is what the sheet shows.
+    private var offersOnSale: [PackOffer] = []
+    /// True once a server read says this account has Pro, so the 402 means its
+    /// fair-use cap. If that read failed, the last known plan stands.
+    private(set) var isPlanHidden = false
+    /// Hiding Pro left nothing to sell, so bringing it back reopens the sheet.
+    private var hidingEmptiedSheet = false
 
     init(
         optimizationId: String,
         store: StoreKitManager = .shared,
         retryPendingPurchases: (@MainActor () async -> Void)? = nil,
-        loadStoreProducts: (@MainActor () async throws -> Void)? = nil
+        loadStoreProducts: (@MainActor () async throws -> Void)? = nil,
+        restoreStorePurchases: (@MainActor () async throws -> StoreKitManager.RestoreResult)? = nil,
+        storeOffers: (@MainActor () -> [PackOffer])? = nil
     ) {
         self.optimizationId = optimizationId
         self.store = store
         self.isFixture = false
         self.retryPendingPurchases = retryPendingPurchases ?? { _ = await store.deliverPendingPurchases() }
         self.loadStoreProducts = loadStoreProducts ?? { try await store.loadProducts() }
+        self.restoreStorePurchases = restoreStorePurchases ?? { try await store.restorePurchases() }
+        self.storeOffers = storeOffers ?? {
+            store.products.compactMap { PackOffer.make(id: $0.id, displayPrice: $0.displayPrice) }
+        }
+    }
+
+    var selectedOffer: PackOffer? {
+        offers.first { $0.id == selectedID }
+    }
+
+    func select(_ offer: PackOffer) {
+        guard phase == .ready else { return }
+        selectedID = offer.id
+    }
+
+    /// Hides Pro while this account has it (the 402 then means the fair-use
+    /// cap), and brings it back when the plan ended, keeping the selection on
+    /// an offer that is shown.
+    func hidePlan(_ hide: Bool) {
+        isPlanHidden = hide
+        showOffers()
+        if offers.isEmpty, phase == .ready {
+            phase = .unavailable
+            message = StoreKitManagerError.productUnavailable.localizedDescription
+            hidingEmptiedSheet = true
+        } else if !offers.isEmpty, hidingEmptiedSheet, phase == .unavailable {
+            // Only this state: a waiting purchase must stay locked.
+            hidingEmptiedSheet = false
+            phase = .ready
+            message = nil
+        }
+    }
+
+    private func setOffers(_ newOffers: [PackOffer]) {
+        offersOnSale = newOffers
+        showOffers()
+    }
+
+    private func showOffers() {
+        offers = isPlanHidden ? offersOnSale.filter { !$0.isSubscription } : offersOnSale
+        if selectedOffer == nil { selectedID = offers.first?.id }
     }
 
     /// The buyer, set by `load(for:)`; the waiting lock is per account.
@@ -96,14 +200,23 @@ final class ExportPaywallModel {
         self.isFixture = true
         self.retryPendingPurchases = {}
         self.loadStoreProducts = {}
-        self.offers = fixtureOffers
+        self.restoreStorePurchases = { StoreKitManager.RestoreResult(deliveredGrant: false, plan: .noPlan) }
+        self.storeOffers = { fixtureOffers }
         self.phase = .ready
+        setOffers(fixtureOffers)
     }
     #endif
 
-    func load(for userId: UUID?) async {
-        guard !isFixture else { return }
+    /// `refreshPlan` reads the plan from the server and answers whether it is
+    /// active. It runs before Pro is hidden: a plan cached as active may have
+    /// expired while the app stayed alive (Codex on #226).
+    func load(for userId: UUID?, refreshPlan: @MainActor () async -> Bool = { false }) async {
+        guard !isFixture else {
+            hidePlan(await refreshPlan())
+            return
+        }
         self.userId = userId
+        hidingEmptiedSheet = false
         if applyPendingLock(for: userId) {
             // Launch delivery may have failed offline. Retry the existing
             // transaction on every reopen, keeping the lock against repurchase.
@@ -113,12 +226,15 @@ final class ExportPaywallModel {
             phase = .loading
             message = nil
         }
+        hidePlan(await refreshPlan())
         do {
             try await loadStoreProducts()
-            offers = store.products.compactMap { product in
-                ExportCreditProducts.credits(for: product.id).map {
-                    PackOffer(id: product.id, credits: $0, displayPrice: product.displayPrice)
-                }
+            setOffers(storeOffers())
+            // Nothing this sheet can sell (for example only Pro loaded and Pro
+            // is hidden): show Try again, never an empty "ready" sheet (Codex on #226).
+            if offers.isEmpty {
+                hidingEmptiedSheet = !offersOnSale.isEmpty
+                throw StoreKitManagerError.productUnavailable
             }
             // Every result is derived from the store's lock, so a failed load
             // and a retry can never unlock a waiting purchase (Codex P1). A grant
@@ -197,6 +313,42 @@ final class ExportPaywallModel {
         }
         return false
     }
+
+    /// Restore Purchases (App Store review 3.1.1). Returns true when the export
+    /// the user tapped can now go ahead (Pro restored, or an unfinished
+    /// purchase granted). `planAlreadyActive`: Pro was active before, so this
+    /// 402 is its fair-use cap and finding the same plan again unlocks nothing
+    /// (second-model on #226).
+    func restore(account: PurchaseAccount?, planAlreadyActive: Bool = false) async -> Bool {
+        guard !isFixture, phase == .ready || phase == .unavailable else { return false }
+        guard account != nil else {
+            message = StoreKitManagerError.accountRequired.localizedDescription
+            return false
+        }
+        let previous = phase
+        phase = .restoring
+        message = nil
+        defer { if phase == .restoring { phase = previous } }
+        do {
+            let result = try await restoreStorePurchases()
+            if result.deliveredGrant || (result.unlocksExport && !planAlreadyActive) { return true }
+            switch result.plan {
+            case .recorded(let entitlement) where entitlement.active:
+                message = ExportPaywallCopy.planAlreadyActive
+            case .ownedByAnotherAccount:
+                message = StoreKitManagerError.ownedByAnotherAccount.localizedDescription
+            case .failed:
+                message = ExportPaywallCopy.restoreFailed
+            case .noAccount, .noPlan, .recorded:
+                message = ExportPaywallCopy.nothingToRestore
+            }
+        } catch StoreKitError.userCancelled {
+            // The user closed Apple's sign-in: nothing to say.
+        } catch {
+            message = ExportPaywallCopy.restoreFailed
+        }
+        return false
+    }
 }
 
 struct ExportPaywallSheet: View {
@@ -206,14 +358,18 @@ struct ExportPaywallSheet: View {
     /// Called after a successful grant, with the sheet still up; the caller closes it.
     let onUnlocked: () -> Void
     let onClose: () -> Void
+    /// `optimized` or `preview`, for `paywall_viewed`.
+    let entryPoint: String
 
     init(
         optimizationId: String,
         model: ExportPaywallModel? = nil,
+        entryPoint: String = "optimized",
         onUnlocked: @escaping () -> Void,
         onClose: @escaping () -> Void
     ) {
         _model = State(initialValue: model ?? ExportPaywallModel(optimizationId: optimizationId))
+        self.entryPoint = entryPoint
         self.onUnlocked = onUnlocked
         self.onClose = onClose
     }
@@ -233,7 +389,7 @@ struct ExportPaywallSheet: View {
                             .foregroundStyle(AppColors.textSecondary)
                             .frame(width: 44, height: 44)
                     }
-                    .disabled(isPurchasing)
+                    .disabled(isBusy)
                     .accessibilityLabel(Text(ExportPaywallCopy.close))
                     .accessibilityIdentifier("paywall.close")
                 }
@@ -245,14 +401,23 @@ struct ExportPaywallSheet: View {
                     .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text(ExportPaywallCopy.whatACreditBuys)
-                    Text(ExportPaywallCopy.neverExpire)
+                    Text(ExportPaywallCopy.body)
+                        .foregroundStyle(AppColors.textSecondary)
+                    Label(ExportPaywallCopy.scoresStayFree, systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(AppColors.textPrimary)
                 }
                 .font(.appSubheadline)
-                .foregroundStyle(AppColors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-                packs
+                if model.isPlanHidden {
+                    Text(ExportPaywallCopy.planCapReached)
+                        .font(.appCaption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("paywall.capReached")
+                }
+
+                offersList
 
                 if let message = model.message {
                     Text(message)
@@ -262,36 +427,53 @@ struct ExportPaywallSheet: View {
                         .accessibilityIdentifier("paywall.message")
                 }
 
-                Text(ExportPaywallCopy.restore)
-                    .font(.appCaption)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                footer
             }
             .padding(AppSpacing.lg)
         }
         .screenBackground()
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         // A sheet does not inherit the app root's direction (lessons 2026-10-19).
         .environment(\.layoutDirection, localization.layoutDirection)
         .preferredColorScheme(.dark)
-        .interactiveDismissDisabled(isPurchasing)
+        .interactiveDismissDisabled(isBusy)
         .onChange(of: model.approvalGranted) { _, granted in
             if granted { onUnlocked() }
         }
+        // A credits reply after the sheet loaded: Pro reported (Codex on #226),
+        // or a plan that ended, for example after a Restore that found nothing.
+        .onChange(of: hasActivePlan) { _, active in
+            model.hidePlan(active)
+        }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
-            await model.load(for: appState.purchaseAccount?.userId)
+            AnalyticsService.shared.track(.paywallViewed(entryPoint: entryPoint, balance: appState.creditsBalance))
+            await reloadOffers()
         }
     }
 
-    private var isPurchasing: Bool {
-        if case .purchasing = model.phase { return true }
-        return false
+    /// The plan as the server last reported it. It can be stale until
+    /// `reloadOffers()` has read it again.
+    private var hasActivePlan: Bool {
+        appState.subscription?.active == true
+    }
+
+    private func reloadOffers() async {
+        await model.load(for: appState.purchaseAccount?.userId) {
+            await appState.refreshPlanStatus()
+        }
+    }
+
+    private var isBusy: Bool {
+        switch model.phase {
+        case .purchasing, .restoring: return true
+        default: return false
+        }
     }
 
     @ViewBuilder
-    private var packs: some View {
+    private var offersList: some View {
         switch model.phase {
         case .loading:
             HStack(spacing: AppSpacing.sm) {
@@ -303,7 +485,7 @@ struct ExportPaywallSheet: View {
             .frame(maxWidth: .infinity, minHeight: 120)
         case .unavailable:
             Button {
-                Task { await model.load(for: appState.purchaseAccount?.userId) }
+                Task { await reloadOffers() }
             } label: {
                 Text(ExportPaywallCopy.retry)
                     .font(.appSubheadline.weight(.semibold))
@@ -311,45 +493,138 @@ struct ExportPaywallSheet: View {
             }
             .buttonStyle(.bordered)
             .accessibilityIdentifier("paywall.retry")
-        case .ready, .purchasing, .awaitingApproval:
+        case .ready, .purchasing, .awaitingApproval, .restoring:
             VStack(spacing: AppSpacing.sm) {
                 ForEach(model.offers) { offer in
-                    packRow(offer)
+                    offerRow(offer)
                 }
+                continueButton
             }
         }
     }
 
-    private func packRow(_ offer: PackOffer) -> some View {
-        let isBuyingThis = model.phase == .purchasing(productID: offer.id)
+    private func offerRow(_ offer: PackOffer) -> some View {
+        let isSelected = model.selectedID == offer.id
         return Button {
+            model.select(offer)
+        } label: {
+            HStack(alignment: .center, spacing: AppSpacing.sm) {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                    .foregroundStyle(isSelected ? AppColors.accentTeal : AppColors.textTertiary)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    if offer.isSubscription {
+                        Text(ExportPaywallCopy.planTitle)
+                            .font(.appSubheadline.weight(.semibold))
+                            .foregroundStyle(AppColors.textPrimary)
+                        Text(ExportPaywallCopy.renews)
+                            .font(.appCaption)
+                            .foregroundStyle(AppColors.textSecondary)
+                    } else {
+                        Text(ExportPaywallCopy.packTitle(credits: offer.credits))
+                            .font(.appSubheadline.weight(.semibold))
+                            .foregroundStyle(AppColors.textPrimary)
+                        if offer.id == ResumelyProducts.exports14 {
+                            Text(ExportPaywallCopy.bestValue)
+                                .font(.appCaption.weight(.bold))
+                                .foregroundStyle(.black)
+                                .padding(.horizontal, AppSpacing.xs)
+                                .padding(.vertical, 2)
+                                .background(AppColors.accentTeal, in: Capsule())
+                        }
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: AppSpacing.sm)
+                Text(offer.isSubscription ? ExportPaywallCopy.monthlyPrice(offer.displayPrice) : offer.displayPrice)
+                    .font(.appSubheadline.weight(.semibold))
+                    .foregroundStyle(AppColors.accentTeal)
+                    .monospacedDigit()
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .frame(minHeight: 56)
+            .glassCard(cornerRadius: AppRadii.md)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadii.md)
+                    .stroke(isSelected ? AppColors.accentTeal : .clear, lineWidth: 1.5)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(model.phase != .ready)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier(offer.isSubscription ? "paywall.pro" : "paywall.pack.\(offer.credits)")
+    }
+
+    private var continueButton: some View {
+        let isBuying: Bool = {
+            if case .purchasing = model.phase { return true }
+            return false
+        }()
+        return Button {
+            guard let offer = model.selectedOffer else { return }
             Task {
                 if await model.buy(offer, account: appState.purchaseAccount) {
                     onUnlocked()
                 }
             }
         } label: {
-            HStack {
-                Text(ExportPaywallCopy.packTitle(credits: offer.credits))
-                    .font(.appSubheadline.weight(.semibold))
-                    .foregroundStyle(AppColors.textPrimary)
-                Spacer()
-                if isBuyingThis {
+            Group {
+                if isBuying {
                     ProgressView()
                 } else {
-                    Text(offer.displayPrice)
-                        .font(.appSubheadline.weight(.semibold))
-                        .foregroundStyle(AppColors.accentTeal)
-                        .monospacedDigit()
+                    Text(ExportPaywallCopy.continueLabel)
                 }
             }
-            .padding(.horizontal, AppSpacing.md)
-            .frame(minHeight: 56)
-            .glassCard(cornerRadius: AppRadii.md)
+            .font(.appSubheadline.weight(.semibold))
+            .frame(maxWidth: .infinity, minHeight: 50)
         }
-        .buttonStyle(.plain)
-        .disabled(model.phase != .ready)
-        .accessibilityIdentifier("paywall.pack.\(offer.credits)")
+        .buttonStyle(.borderedProminent)
+        .tint(AppColors.accentTeal)
+        .foregroundStyle(.black)
+        .disabled(model.phase != .ready || model.selectedOffer == nil)
+        .accessibilityIdentifier("paywall.continue")
+    }
+
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text(ExportPaywallCopy.estimateFooter)
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            // Wraps to a column at large text sizes instead of truncating.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: AppSpacing.md) { footerLinks }
+                VStack(alignment: .leading, spacing: AppSpacing.sm) { footerLinks }
+            }
+            .font(.appCaption.weight(.semibold))
+            .tint(AppColors.accentTeal)
+        }
+    }
+
+    @ViewBuilder
+    private var footerLinks: some View {
+        Button {
+            Task {
+                if await model.restore(account: appState.purchaseAccount, planAlreadyActive: hasActivePlan) {
+                    onUnlocked()
+                }
+            }
+        } label: {
+            if model.phase == .restoring {
+                ProgressView()
+            } else {
+                Text(ExportPaywallCopy.restore)
+            }
+        }
+        .disabled(!(model.phase == .ready || model.phase == .unavailable))
+        .accessibilityIdentifier("paywall.restore")
+        Link(destination: LegalLinks.appleStandardEULA) {
+            Text(ExportPaywallCopy.terms)
+        }
+        Link(destination: LegalLinks.privacyURL(language: localization.language)) {
+            Text(ExportPaywallCopy.privacy)
+        }
     }
 }
 
@@ -358,6 +633,7 @@ struct ExportPaywallSheet: View {
 struct ExportPaywallPresenter: ViewModifier {
     @Environment(AppState.self) private var appState
     @Binding var optimizationId: String?
+    let entryPoint: String
     let onUnlocked: () -> Void
 
     /// Set on a grant; the export runs from `onDismiss`, once the sheet is gone,
@@ -382,6 +658,7 @@ struct ExportPaywallPresenter: ViewModifier {
         }) { item in
             ExportPaywallSheet(
                 optimizationId: item.id,
+                entryPoint: entryPoint,
                 onUnlocked: {
                     unlockedPending = true
                     optimizationId = nil
@@ -400,7 +677,11 @@ struct ExportPaywallPresenter: ViewModifier {
 }
 
 extension View {
-    func exportPaywall(optimizationId: Binding<String?>, onUnlocked: @escaping () -> Void) -> some View {
-        modifier(ExportPaywallPresenter(optimizationId: optimizationId, onUnlocked: onUnlocked))
+    func exportPaywall(
+        optimizationId: Binding<String?>,
+        entryPoint: String,
+        onUnlocked: @escaping () -> Void
+    ) -> some View {
+        modifier(ExportPaywallPresenter(optimizationId: optimizationId, entryPoint: entryPoint, onUnlocked: onUnlocked))
     }
 }

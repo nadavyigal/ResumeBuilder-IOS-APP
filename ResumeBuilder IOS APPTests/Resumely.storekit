@@ -1,0 +1,101 @@
+{
+  "identifier" : "5C1E7A42",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6776800099",
+      "localizations" : [
+        {
+          "description" : "Test probe, never on sale. Proves this file loaded.",
+          "displayName" : "Local test probe",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "resumely.test.local-only",
+      "referenceName" : "Local test probe",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "7.99",
+      "familyShareable" : false,
+      "internalID" : "6776800014",
+      "localizations" : [
+        {
+          "description" : "14 tailored résumé PDF exports.",
+          "displayName" : "14 tailored exports",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "resumely.exports.14",
+      "referenceName" : "Exports 14",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "3.99",
+      "familyShareable" : false,
+      "internalID" : "6776800005",
+      "localizations" : [
+        {
+          "description" : "5 tailored résumé PDF exports.",
+          "displayName" : "5 tailored exports",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "resumely.exports.5.v2",
+      "referenceName" : "Exports 5 v2",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21776800",
+      "localizations" : [
+
+      ],
+      "name" : "Resumely Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6776800099",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Tailored résumé PDF exports, fair use.",
+              "displayName" : "Resumely Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "resumely.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Pro monthly",
+          "subscriptionGroupID" : "21776800",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

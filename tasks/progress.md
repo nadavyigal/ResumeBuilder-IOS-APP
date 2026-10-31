@@ -1,3 +1,91 @@
+# 2026-10-31: Track T1, iOS payment blockers on #226
+
+Status: three open review findings fixed test-first, commit d1d0f98. 1.6.0 (36) bump, commit c4c4b52. Pushed to draft PR nadavyigal/ResumeBuilder-IOS-APP#226 on the founder's yes. Not merged. No archive.
+Current Phase: Payments v2, launch preparation. Go or no-go: `docs/qa/2026-10-31-ios-go-no-go.md`, verdict NO-GO for App Review.
+Active Story: T1, waiting on the founder for the StoreKit run on a real iPhone, the App Store Connect version decision and the demo account yes. The PR pre-check (rule 17) is not done: the founder's yes covered commit and push only, and the track's brief forbids sending messages.
+Last Completed Story: cached Pro state (paywall reads the server before hiding Pro, Pro comes back, `.noPlan` re-reads), hidden-tab score view (`ScoreViewPolicy`), required StoreKit run (`REQUIRE_STOREKIT_TESTS=1` fails, `StoreKit Tests` scheme, `StoreKitRequired.xctestplan`, local-only probe product).
+Next Recommended Story: PR pre-check on a yes, founder StoreKit run on a real iPhone, then TestFlight 1.6.0 and the sandbox matrix.
+Blockers: 10 StoreKit tests cannot pass on the iOS 26.5 simulator, need a real iPhone or an older simulator; phone test not run; demo account likely at 9, not 0; ASC version decision; T2 marked all 15 v3 screenshots REGENERATE.
+Last Validation: 2026-10-31 on the final tree: 708 XCTest, 0 failures, 11 skipped, 5 Swift Testing pass, Release build succeeded, 1.6.0 (36), iPhone 17 Pro, iOS 26.5. StoreKit Tests scheme through the Xcode app: 10 failed, 0 skipped (iOS 26.5 simulator bug, storekitd "not installed for development"). Phone test not run.
+Last Updated: 2026-10-31
+
+# 2026-10-30: Pricing v2, S6 QA and launch checklist (no code)
+
+Status: S2 to S6 done on draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (head d69a67c code); server on draft PR nadavyigal/new-ResumeBuilder-ai-#204 (ab8c8ee, Codex clean). Not merged; migration not applied.
+Current Phase: Payments v2, launch preparation. Launch page: https://claude.ai/artifact/YavCxgtJ3fTtUsPUxLq3ED (plan "S6 as built").
+Active Story: none in code. Paywall Terms link now opens Apple's standard EULA (6bf8b20, founder decision 2026-10-30). Waiting on the founder: migration yes, App Store Connect products, phone test; website Terms still describe the old Stripe plan (update later).
+Last Completed Story: S6: re-ran every automated check on both heads, wrote the final App Store Connect checklist and launch order, and wrote the phone test (14 rows + C1 to C7).
+Next Recommended Story: the 1.6.0 version bump and TestFlight archive once App Store Connect products exist; later, an App Store section on the website Terms.
+Blockers: founder decisions above; real purchases need the App Store Connect products and the founder's phone.
+Last Validation: iOS 6bf8b20: 686 tests, 0 failures, 11 skipped, Release build passes. Web ab8c8ee: lint 0 errors, tsc 24 old errors, jest 1,165 pass, build passes, 4 local Postgres tests pass.
+Last Updated: 2026-10-30
+
+# 2026-10-30: Pricing v2, S5 analytics funnel (same draft PRs)
+
+Status: S5 iOS commit 778fb89 on draft PR nadavyigal/ResumeBuilder-IOS-APP#226; web commit 5cc86cb on draft PR nadavyigal/new-ResumeBuilder-ai-#204. Not merged; migration not applied.
+Current Phase: Payments v2 (plan "S5 as built" note).
+Active Story: S5 pre-check. Funnel insight saved in PostHog 270848: Y9EUhHmW (https://us.posthog.com/project/270848/insights/Y9EUhHmW), empty until 1.6.0 ships. Second-model review: no P0/P1; P2 (onboarding_started would fire for existing users after the update) fixed in c660808. Web: Codex P2 (duplicate cancellation events on Apple retries) fixed in web a904f2e. iOS Codex on 6253985: P2 (a failed preview blocked the paywall and so the server PDF) fixed in aec3a1e.
+Last Completed Story: S5 events: onboarding_started, cv_uploaded (file/sample), match_score_viewed (own/sample), pdf_preview_viewed, paywall_viewed, export_completed (grant/pack/subscription/ungated, from the server's new welcome_grant source). Old names keep firing.
+Next Recommended Story: S6 QA and Sandbox on the founder's phone.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox; one Xcode run for the 10 StoreKitSessionTests; one real test account end to end in PostHog (needs a real sign-in, S6).
+Last Validation: at aec3a1e: Release build succeeds; full suite 685 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
+Last Updated: 2026-10-30
+
+# 2026-10-30: Pricing v2, S4 Home headline, sample CV, LinkedIn hint (same draft PR)
+
+Status: S4 on branch `claude/resumely-pricing-v2`, code commit 351a507, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3 + S4). Not merged.
+Current Phase: Payments v2 (plan "S4 as built" note).
+Active Story: S4 review. Codex on d22750a: P1 (Plan UI belongs in Features/V2) and P2 (late credits reply could land on the next account), fixed in 547b86e. Second-model review on 351a507: P0 (S4 state inside #if DEBUG broke Release builds), fixed in 547b86e and verified with a Release build; VoiceOver label for the sample score; empty test replaced. Codex on aadca56: P2 (Pro stayed on sale if active Pro was reported after the sheet loaded), fixed in 3d36920.
+Last Completed Story: S4: Home leads with "Check any job, free, as often as you like." and "Your Match Score is an estimate."; "Try a sample CV" sheet (made-up CV, job and score 64, labelled as an example, bundled, no network, then opens the file picker); LinkedIn "Save to PDF" hint with a 3-step How sheet; upload unchanged; EN/HE screenshots in `audit/pricing-v2-s4/`.
+Next Recommended Story: S5 analytics contract and the saved PostHog funnel.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run for the 10 StoreKitSessionTests; LinkedIn steps not checked on a real iPhone.
+Last Validation: at 3d36920: Release build (generic iOS Simulator) succeeds; full suite 678 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5.
+Last Updated: 2026-10-30
+
+# 2026-10-29: Pricing v2, S3 paywall placement and copy (same draft PR)
+
+Status: S3 on branch `claude/resumely-pricing-v2`, code commit 94aa208, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3). Not merged.
+Current Phase: Payments v2 (plan "S3 as built" note).
+Active Story: S3 review. Codex on d56ca0d: 1 P2 (empty offers left a "ready" sheet with nothing to buy), fixed in 4152160. Second-model review on 94aa208: no P0/P1; P2s fixed in 4152160 (account switch on the same screen re-marks score and preview; Restore at the Pro cap no longer reopens a refusing paywall; Profile Restore names a restored purchase first; footer wraps). Founder decision 2026-10-29: keep "unlimited PDF downloads (fair use)" on the Pro row.
+Last Completed Story: S3: redesigned sheet (14-pack preselected "Best value", 5-pack, Pro with "/ month" and renewal line, Continue, Restore, Terms, Privacy, estimate footer); paywall only after own score + preview, notice otherwise; no-session export asks for an account (D5, code fix, not reproduced on the simulator); Profile Plan section with Manage subscription and Restore; PaywallView and CreditsView deleted; harness `--smoke-paywall-sub`; EN/HE screenshots in `audit/pricing-v2-s3/`. Copy drops "in under a minute" until S6 times it.
+Next Recommended Story: S4 sample CV start, Home headline, LinkedIn hint.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests.
+Last Validation: at 4152160: full suite 674 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5. Clear `app_selected_language` after a `--smoke-he` run (lesson 2026-10-29).
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2, S2 StoreKit v2 + Pro in the app (draft PR)
+
+Status: S2 on branch `claude/resumely-pricing-v2` (worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2`), code commit 3f39b0a. Draft PR, not merged. Server half is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (migration not applied).
+Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, "S2 as built" note).
+Active Story: S2 review. Second-model review on 3f39b0a: a failed Pro delivery locked pack sales (new in S2), and a permanent 4xx re-locked the paywall every 48h (P1, from #207); both fixed in 9c1b3cc (only a retryable pack failure locks). Older P2s (stale lock after concurrent deliveries, declined Ask to Buy lock, sheet waits on slow delivery) left as follow-ups. Codex on cb58a6f: 2 P2 (Pro locks never cleared after a refresh recovery or an other-account answer), fixed in 94a9e99: Pro never sets a lock, and a plan the refresh records resumes a waiting paywall.
+Last Completed Story: S2: `ResumelyProducts` (14-pack, 5.v2, Pro; v1 never loaded but still delivered when paid), Pro purchase, `refreshEntitlements()` at launch and sign-in, `restorePurchases()`, renewals and refunds re-read the plan, `AppState.subscription` from `/api/v1/credits`, "belongs to another Resumely account" message, `Resumely.storekit` in the test folder (not in the Run scheme, so S6 Sandbox stays real).
+Next Recommended Story: S3 paywall placement and copy (Pro row, Restore button, eligibility, guest gap D5, Profile plan row).
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests, which skip under `xcodebuild` on iOS 26.5 (Apple forums thread 826971).
+Last Validation: at 94a9e99: full suite 654 tests, 0 failures, 11 skipped (10 new StoreKit session tests + 1 existing), iPhone 17 Pro, iOS 26.5. A first full run hit 2 WebKit PDF timeouts while a second simulator was booted; they pass alone, in every clean rerun, and on main.
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2, S1 server (draft PR open, review fixes pushed)
+
+Status: S1 is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (branch `claude/pricing-v2-server`, head abc36d4, worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/web-pricing-v2`). Not merged. Migration `20261029120000_pricing_v2.sql` written, not applied.
+Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, approved 2026-10-29 with D1 to D5 as recommended).
+Active Story: S1 review. Codex on c3892ae: 1 P1 + 2 P2, all fixed in bc9951a (a pre-refund replay can no longer clear a revocation; renewal info ordered by signedDate; subscription_renewed sent by whichever path records the renewal). Second-model review: same P1, plus older-period refund documented as intended, GRACE_PERIOD_EXPIRED event, unused credit functions start at 0. Codex on 82d2de4: 2 P2, fixed in abc36d4 (fair-use usage counted in `subscription_export_usage`, so deleting CVs cannot reset it; REFUND_REVERSED restores the plan through `set_subscription_revocation`, ordered by notification signedDate). Codex re-requested on abc36d4, not finished yet.
+Last Completed Story: S1 server pricing v2 (welcome grant 3, packs 5.v2 and 14, retired v1 still honored, Pro subscription with fair use 40, notifications, server funnel events, credits route plan state).
+Next Recommended Story: S2 StoreKit v2 + entitlements in this repo, after the founder reviews #204.
+Blockers: founder yes to apply the migration; ASC products before real Sandbox (S6).
+Last Validation: at abc36d4: web lint 0 errors; tsc 24 pre-existing test-file errors, none new; jest 1161 passed / 84 skipped; build passes; local Postgres pricing-v2 22, export-credits 13, apple-iap 18, security-definer-grants 11 checks.
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2 plan v3 (waiting for approval)
+
+Status: plan only, no code. Branch `claude/resumely-pricing-v2`, file `plans/resumely-pricing-v2.md`.
+Current Phase: Payments v2. Founder decisions 2026-10-29: Match Score free and unlimited (only PDF exports paid); upload stays file-only; advice A1 to A5 accepted: 3 free PDF exports per account, 14-pack first as "Best value" then 5-pack then Pro (60-day rule: under 10 paying subscribers removes Pro), free-scores headline on Home and App Store page, LinkedIn "Save to PDF" hint under Upload (Safari steps, re-check on a real iPhone in S4), saved PostHog funnel read 30 days after launch.
+Active Story: none until the founder approves decisions D1 to D5.
+Last Completed Story: plan v3 written.
+Next Recommended Story: S1 server pricing v2 in the web repo, behind `PRICING_V2_ENABLED` (off).
+Blockers: founder approval of D1 to D5; ASC products needed before real Sandbox (S6).
+Last Validation: none (docs only).
+Last Updated: 2026-10-29
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.

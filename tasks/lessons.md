@@ -1,3 +1,21 @@
+## 2026-10-30: State placed inside `#if DEBUG` passes every test and breaks Archive
+
+S4 added three `@State` lines next to a DEBUG-only smoke flag, inside its `#if DEBUG`
+block, while the buttons and sheets that use them are in normal code. Debug builds and
+all 678 tests passed; a Release or Archive build would have failed with "cannot find in
+scope". Found by the second-model review, not by tests. Rule: any change that touches a
+`#if DEBUG` block gets a Release build before done:
+`xcodebuild build -configuration Release -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO`.
+
+## 2026-10-29: A Hebrew smoke harness run leaves the simulator in Hebrew for tests
+
+`--smoke-paywall --smoke-he` calls `LocalizationManager.setLanguage(.hebrew)`, which is
+saved in the app's defaults (`app_selected_language`). The next `xcodebuild test` on the
+same simulator ran with Hebrew strings and 30 English-string tests failed. The code was
+fine. Rule: after any `--smoke-he` screenshot, run
+`xcrun simctl spawn <device> defaults delete Resumebuilder-IOS.ResumeBuilder-IOS-APP app_selected_language`
+before running tests.
+
 ## 2026-10-22: Per-identity state must say what happens at each identity change
 
 Two bugs in two days had one shape. #202: the upload cache had no identity, so a
@@ -952,3 +970,18 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** Reopening a locked paywall must retry its unfinished transaction without enabling a new purchase. Preserve the waiting phase and resume the export after a successful grant.
 **Why:** A failed offline launch wrote the lock, but the lock then prevented entering buy(), the only place a user-triggered retry existed. Two failing model regressions drive the correction. Also reapply the existing 2026-10-16 smoke-language reset before every subsequent full suite: this session's Hebrew smoke preference caused 27 English-copy assertions to fail until the actual app-container preference was reset.
+
+### 2026-10-31: A real product ID cannot prove the local StoreKit file loaded
+
+**Rule:** A `.storekit` test probe must ask for a product that exists only in that file (`StoreKitTestGate.localOnlyProductID`). `SKTestSession` logging `SKInternalErrorDomain Code=3` means the file is not active, whatever `Product.products` returned.
+**Why:** the old probe asked for `resumely.pro.monthly` and skipped when it came back empty. Once the product existed in App Store Connect, the App Store answered, the probe passed with the file not loaded, and `product.purchase` hung on a real purchase. The suite would have gone from 10 skips to a hang. The same read gave a free fact: listing products on a simulator shows what App Store Connect really holds.
+
+### 2026-10-31: Read production before repeating a plan's assumption
+
+**Rule:** Before writing a launch step about existing accounts or the demo account, read the totals. Aggregates only, no emails.
+**Why:** the plan said most accounts hold 0 or 1, and the launch page said the demo account needs 3 exports. Production showed 38 of 39 real accounts at 3 (old column default), and the one account with a ledger at 9.
+
+### 2026-10-31: "Run it from Xcode" was never true on the iOS 26.5 simulator
+
+**Rule:** StoreKit Testing does not work on the iOS 26.5 simulator from Xcode either. Run the `StoreKit Tests` scheme on a real device or an iOS 26.0 to 26.2 simulator. Read the daemon's own log before believing a workaround: `xcrun simctl spawn <udid> log show --last 25m --predicate 'process == "storekitd"'`.
+**Why:** S2 to S6 told the founder one Xcode run would clear the 10 skips. Nobody had tried it. A run through the Xcode app gave 10 failures and 0 skips, and storekitd logged "is not installed for development". The strict gate is what caught this: the old skip would have hidden it again.

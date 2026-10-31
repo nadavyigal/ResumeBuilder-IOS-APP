@@ -3,19 +3,37 @@ import Observation
 import OSLog
 import StoreKit
 
-/// The three consumable packs (StoreKit spec section 4, F4). Prices live in App
-/// Store Connect only: the app shows `product.displayPrice`, never a typed price.
-enum ExportCreditProducts {
-    /// Display order: 1, 5, 10.
-    static let orderedIDs = ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"]
+/// What the app sells (pricing v2, plan section 2). Prices live in App Store
+/// Connect only: the app shows `product.displayPrice`, never a typed price.
+enum ResumelyProducts {
+    static let exports14 = "resumely.exports.14"
+    static let exports5 = "resumely.exports.5.v2"
+    static let proMonthly = "resumely.pro.monthly"
 
-    static func credits(for productID: String) -> Int? {
+    /// Sale order (plan A2): the 14-pack first, then the 5-pack, then Pro.
+    static let orderedIDs = [exports14, exports5, proMonthly]
+
+    /// The v1 packs. Never loaded or sold again, but a paid transaction for one
+    /// that is still unfinished is delivered: the server still grants it.
+    static let retiredPackIDs = ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"]
+
+    /// Exports in a pack on sale, or nil (retired packs, Pro, anything else).
+    static func exports(for productID: String) -> Int? {
         switch productID {
-        case "resumely.exports.1": return 1
-        case "resumely.exports.5": return 5
-        case "resumely.exports.10": return 10
+        case exports14: return 14
+        case exports5: return 5
         default: return nil
         }
+    }
+
+    static func isSubscription(_ productID: String) -> Bool {
+        productID == proMonthly
+    }
+
+    /// A transaction the server can still act on: a pack on sale, a retired
+    /// pack someone already paid for, or Pro (purchase, renewal, refund).
+    static func isDeliverable(_ productID: String) -> Bool {
+        exports(for: productID) != nil || retiredPackIDs.contains(productID) || isSubscription(productID)
     }
 }
 
@@ -37,6 +55,16 @@ enum PurchaseDelivery {
         /// Not granted yet (offline, server error, another account signed in).
         /// Leave it unfinished; it is re-sent at launch and on `Transaction.updates`.
         case keep(reason: String)
+        /// Pro that belongs to another Resumely account. Left unfinished for
+        /// that account, and never locks or retries for this one.
+        case otherAccount
+    }
+
+    /// A `.keep` reason that a later retry can turn into a grant: no account
+    /// yet, offline, an expired token, rate limiting or a server error.
+    static func isRetryable(_ reason: String) -> Bool {
+        reason == "no_account" || reason == "network"
+            || reason.hasPrefix("401_") || reason.hasPrefix("429_") || reason.hasPrefix("5")
     }
 
     /// Sends the signed transaction to the server and decides, before anything
@@ -76,6 +104,8 @@ enum PurchaseDelivery {
             decision = .finish(verification)
         } catch ReceiptVerifierError.revoked {
             decision = .finishRevoked
+        } catch ReceiptVerifierError.ownedByAnotherAccount {
+            decision = .otherAccount
         } catch ReceiptVerifierError.notGranted(let status, let code) {
             decision = .keep(reason: status == 0 ? code : "\(status)_\(code)")
         } catch {
@@ -84,7 +114,7 @@ enum PurchaseDelivery {
         switch decision {
         case .finish, .finishRevoked:
             await finish()
-        case .keep:
+        case .keep, .otherAccount:
             break
         }
         return decision
@@ -109,9 +139,16 @@ enum StoreKitManagerError: LocalizedError, Equatable {
     /// Apple refunded the purchase before the server granted it (spec 8).
     case purchaseRefunded
     case purchaseFailed
+    /// Pro on this Apple ID was bought under another Resumely account.
+    case ownedByAnotherAccount
 
     var errorDescription: String? {
         switch self {
+        case .ownedByAnotherAccount:
+            return NSLocalizedString(
+                "This subscription belongs to another Resumely account. Sign in with that account.",
+                comment: "Restore or purchase of Pro under a different account"
+            )
         case .accountRequired:
             return NSLocalizedString("Create a free account to buy export credits.", comment: "Purchase needs a real account")
         case .productUnavailable:
@@ -128,9 +165,9 @@ enum StoreKitManagerError: LocalizedError, Equatable {
     }
 }
 
-/// StoreKit 2 for export credits (StoreKit spec 7.1 and 10.1). The server decides
-/// when the paywall shows (a 402); this class only loads products, buys, and
-/// delivers transactions to the server.
+/// StoreKit 2 for export packs and Pro (StoreKit spec 7.1 and 10.1, pricing v2).
+/// The server decides when the paywall shows (a 402) and every export; this
+/// class only loads products, buys, and delivers transactions to the server.
 @Observable
 @MainActor
 final class StoreKitManager {
@@ -177,7 +214,10 @@ final class StoreKitManager {
         return lock.productID
     }
 
+    /// Pro never locks: Apple cannot sell the same plan twice, and a Pro lock
+    /// would block pack sales with nothing left to clear it (Codex on #226).
     func setPendingLock(userId: UUID, productID: String, now: Date = Date()) {
+        guard !ResumelyProducts.isSubscription(productID) else { return }
         let lock = PendingPurchaseLock(userId: userId, productID: productID, since: now)
         pendingLocks[userId] = lock
         savePendingLocks(now: now)
@@ -206,13 +246,22 @@ final class StoreKitManager {
     /// buyer, so the paywall cannot sell again before it is delivered
     /// (second-model P1 on #207). A lock already waiting is kept. A grant or a
     /// refund clears the lock for that pack.
+    ///
+    /// Only a failure a retry can fix locks (offline, 5xx, an expired token,
+    /// signed out); a permanent refusal (400, 403) would otherwise lock the
+    /// paywall again every 48 hours (second-model on #226). Pro never locks
+    /// (`setPendingLock`).
     func recordDelivery(_ decision: PurchaseDelivery.Decision, buyer: UUID?, productID: String) {
         switch decision {
         case .finish, .finishRevoked:
             clearPendingLock(for: buyer, productID: productID)
-        case .keep:
-            guard let buyer, pendingProductID(for: buyer) == nil else { return }
+        case .keep(let reason):
+            guard let buyer, pendingProductID(for: buyer) == nil,
+                  PurchaseDelivery.isRetryable(reason) else { return }
             setPendingLock(userId: buyer, productID: productID)
+        case .otherAccount:
+            // The buyer's own account delivers it at sign-in; nothing to lock here.
+            break
         }
     }
     var verifier: PurchaseVerifying = ReceiptVerifier()
@@ -223,19 +272,28 @@ final class StoreKitManager {
     @ObservationIgnored var accountProvider: (@MainActor (_ refresh: Bool) async -> PurchaseAccount?)?
     /// Called after a background delivery grants credits (new balance).
     @ObservationIgnored var onCreditsGranted: (@MainActor (Int?) -> Void)?
+    /// Called when the server may hold a new Pro state (bought, renewed,
+    /// refunded, restored). `AppState` re-reads `/api/v1/credits`.
+    @ObservationIgnored var onPlanChanged: (@MainActor () -> Void)?
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
     @ObservationIgnored private var retryTask: Task<Void, Never>?
     @ObservationIgnored private var unfinishedTask: Task<Void, Never>?
     private static let logger = Logger(subsystem: "ResumeBuilder", category: "StoreKit")
 
+    /// Loads the two packs and Pro, in sale order. Retired packs are never
+    /// requested, so they cannot be sold even while App Store Connect has them.
     func loadProducts() async throws {
-        let loaded = try await Product.products(for: ExportCreditProducts.orderedIDs)
+        let loaded = try await Product.products(for: ResumelyProducts.orderedIDs)
         products = loaded
-            .filter { ExportCreditProducts.credits(for: $0.id) != nil && $0.type == .consumable }
+            .filter {
+                ResumelyProducts.exports(for: $0.id) != nil
+                    ? $0.type == .consumable
+                    : ResumelyProducts.isSubscription($0.id) && $0.type == .autoRenewable
+            }
             .sorted {
-                (ExportCreditProducts.orderedIDs.firstIndex(of: $0.id) ?? .max)
-                    < (ExportCreditProducts.orderedIDs.firstIndex(of: $1.id) ?? .max)
+                (ResumelyProducts.orderedIDs.firstIndex(of: $0.id) ?? .max)
+                    < (ResumelyProducts.orderedIDs.firstIndex(of: $1.id) ?? .max)
             }
         if products.isEmpty { throw StoreKitManagerError.productUnavailable }
     }
@@ -254,9 +312,12 @@ final class StoreKitManager {
             )
             switch decision {
             case .finish(let verification):
+                if verification.entitlement != nil { onPlanChanged?() }
                 return .granted(verification)
             case .finishRevoked:
                 throw StoreKitManagerError.purchaseRefunded
+            case .otherAccount:
+                throw StoreKitManagerError.ownedByAnotherAccount
             case .keep(let reason):
                 // Paid, not granted. Retry in this session too, not only at the
                 // next launch, and the sheet delivers it before selling again.
@@ -288,22 +349,113 @@ final class StoreKitManager {
         }
         unfinishedTask = Task { [weak self] in
             _ = await self?.deliverPendingPurchases()
+            await self?.refreshEntitlements()
         }
     }
 
-    /// Re-sends unfinished transactions, for example right after sign-in.
+    /// Re-sends unfinished transactions and the current Pro plan, for example
+    /// right after sign-in.
     func retryUnfinishedTransactions() async {
         _ = await deliverPendingPurchases()
+        await refreshEntitlements()
     }
 
-    /// Delivers every unfinished export-credit transaction and returns the first
+    /// What `refreshEntitlements()` found for the signed-in account.
+    enum EntitlementRefresh: Equatable {
+        /// Guest or anonymous session: nothing was sent.
+        case noAccount
+        /// This Apple ID has no current Pro transaction.
+        case noPlan
+        /// The server recorded this account's plan.
+        case recorded(SubscriptionEntitlement)
+        /// The plan belongs to another Resumely account.
+        case ownedByAnotherAccount
+        /// Offline or a server error; tried again at the next launch or sign-in.
+        case failed
+    }
+
+    /// Sends the Pro transactions Apple holds as current to the server, at
+    /// launch and after sign-in, so a purchase or renewal the server missed
+    /// (notifications late, app killed, offline) still reaches it. Replays are
+    /// safe: the server orders by Apple's signed dates (S1).
+    @discardableResult
+    func refreshEntitlements() async -> EntitlementRefresh {
+        guard let account = await accountProvider?(false) else { return .noAccount }
+        var outcome = EntitlementRefresh.noPlan
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result,
+                  ResumelyProducts.isSubscription(transaction.productID) else { continue }
+            let decision = await PurchaseDelivery.deliver(
+                signedTransaction: result.jwsRepresentation,
+                productID: transaction.productID,
+                account: account,
+                verifier: verifier,
+                refreshAccount: { [weak self] in await self?.accountProvider?(true) },
+                finish: { await transaction.finish() }
+            )
+            switch decision {
+            case .finish(let verification):
+                if let entitlement = verification.entitlement { outcome = .recorded(entitlement) }
+                // A plan recovered here (its first delivery failed) resumes a
+                // paywall that is waiting for it (Codex on #226).
+                await publishBackgroundGrant(verification, for: account.userId)
+            case .otherAccount:
+                if case .recorded = outcome { break }
+                outcome = .ownedByAnotherAccount
+            case .keep:
+                // A plan already recorded in this pass stays the answer.
+                if case .recorded = outcome { break }
+                outcome = .failed
+            case .finishRevoked:
+                break
+            }
+        }
+        // `.noPlan` too: Apple holds no plan, so one the app cached as active
+        // has ended and the server must be read again (CodeRabbit on #226).
+        switch outcome {
+        case .recorded, .noPlan:
+            onPlanChanged?()
+        case .noAccount, .ownedByAnotherAccount, .failed:
+            break
+        }
+        return outcome
+    }
+
+    /// Restore (App Store review 3.1.1): asks Apple for this Apple ID's
+    /// purchases, then delivers unfinished packs and the current Pro plan.
+    /// Packs live on the Resumely account, so signing in brings them back;
+    /// only an unfinished pack or Pro needs Apple. Throws when the user cancels
+    /// the Apple sign-in.
+    func restorePurchases() async throws -> RestoreResult {
+        try await AppStore.sync()
+        let pack = await deliverPendingPurchases()
+        return RestoreResult(deliveredGrant: pack != nil, plan: await refreshEntitlements())
+    }
+
+    struct RestoreResult: Equatable {
+        /// An unfinished pack or Pro purchase was granted.
+        let deliveredGrant: Bool
+        let plan: EntitlementRefresh
+
+        /// True when the export the user tapped can now go ahead.
+        var unlocksExport: Bool {
+            if deliveredGrant { return true }
+            if case .recorded(let entitlement) = plan { return entitlement.active }
+            return false
+        }
+    }
+
+    /// Delivers every unfinished pack or Pro transaction and returns the first
     /// grant, if any. The paywall calls this before it sells a pack, so a user
     /// whose earlier grant failed gets those credits instead of paying twice.
     @discardableResult
     func deliverPendingPurchases() async -> PurchaseVerification? {
         var firstGrant: PurchaseVerification?
         for await result in Transaction.unfinished {
-            if let granted = await deliverInBackground(result), firstGrant == nil {
+            // A Pro transaction the server says is no longer active (expired,
+            // refunded) unlocks nothing, so it is not a grant for the paywall.
+            if let granted = await deliverInBackground(result), firstGrant == nil,
+               granted.entitlement?.active != false {
                 firstGrant = granted
             }
         }
@@ -328,15 +480,16 @@ final class StoreKitManager {
     func publishBackgroundGrant(_ verification: PurchaseVerification, for userId: UUID) async -> Bool {
         guard let current = await accountProvider?(false), current.userId == userId else { return false }
         onCreditsGranted?(verification.balance)
-        backgroundGrantCount += 1
+        // Resumes a waiting paywall, except for a Pro plan that is not active.
+        if verification.entitlement?.active != false { backgroundGrantCount += 1 }
         return true
     }
 
     @discardableResult
     private func deliverInBackground(_ result: VerificationResult<Transaction>) async -> PurchaseVerification? {
         guard case .verified(let transaction) = result,
-              ExportCreditProducts.credits(for: transaction.productID) != nil else {
-            // Unverified, or a product this app no longer sells: never grant.
+              ResumelyProducts.isDeliverable(transaction.productID) else {
+            // Unverified, or a product this app never sold: never grant.
             return nil
         }
         let account = await accountProvider?(false)
@@ -349,6 +502,15 @@ final class StoreKitManager {
             finish: { await transaction.finish() }
         )
         recordDelivery(decision, buyer: transaction.appAccountToken, productID: transaction.productID)
+        if ResumelyProducts.isSubscription(transaction.productID) {
+            switch decision {
+            case .finish, .finishRevoked:
+                // A renewal, a refund or an Ask to Buy approval of Pro.
+                onPlanChanged?()
+            case .keep, .otherAccount:
+                break
+            }
+        }
         guard case .finish(let verification) = decision, let account,
               await publishBackgroundGrant(verification, for: account.userId) else { return nil }
         if verification.status == "granted" {

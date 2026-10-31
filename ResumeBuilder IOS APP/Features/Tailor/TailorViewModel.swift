@@ -266,6 +266,7 @@ final class TailorViewModel {
         uploadContextSignature = currentUploadSignature
         uploadIdentity = currentIdentity
         track(.resumeUploadSucceeded(fileType: uploadFileType))
+        track(.cvUploaded(method: "file"))
         #if DEBUG
         print("🔧 [TAILOR] upload → resumeId=\(upload.resumeId ?? "nil") jdId=\(upload.jobDescriptionId ?? "nil")")
         #endif

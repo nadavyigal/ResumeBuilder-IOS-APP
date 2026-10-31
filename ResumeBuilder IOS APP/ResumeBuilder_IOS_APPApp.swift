@@ -5,6 +5,11 @@ struct ResumeBuilder_IOS_APPApp: App {
     @State private var appState = AppState()
     @State private var localization = LocalizationManager.shared
 
+    init() {
+        // Before any event of this launch creates an analytics id.
+        OnboardingStartedOnce.markExistingInstall()
+    }
+
     var body: some Scene {
         WindowGroup {
 #if DEBUG

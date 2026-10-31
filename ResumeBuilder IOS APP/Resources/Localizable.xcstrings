@@ -110,6 +110,621 @@
         }
       }
     },
+    "14 tailored exports" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 ייצואים מותאמים"
+          }
+        }
+      }
+    },
+    "This subscription belongs to another Resumely account. Sign in with that account." : {
+      "comment" : "Restore or purchase of Pro under a different account",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המנוי הזה שייך לחשבון Resumely אחר. התחברו לחשבון שבו נרכש המנוי."
+          }
+        }
+      }
+    },
+    "Download more tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורידו עוד קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צ'אטבוט חינמי נותן לכם טקסט. Resumely נותן PDF מוכן, מימין לשמאל בעברית, בתבנית נקייה, עם הערכת ציון התאמה לפני ואחרי."
+          }
+        }
+      }
+    },
+    "Match Scores stay free and unlimited." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציוני ההתאמה נשארים בחינם וללא הגבלה."
+          }
+        }
+      }
+    },
+    "Best value" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשתלם ביותר"
+          }
+        }
+      }
+    },
+    "Pro, unlimited PDF downloads (fair use)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro: הורדות PDF ללא הגבלה (שימוש הוגן)"
+          }
+        }
+      }
+    },
+    "Renews monthly until cancelled." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מתחדש מדי חודש עד לביטול."
+          }
+        }
+      }
+    },
+    "Your Pro plan reached its fair-use limit for this billing period. A pack lets you keep downloading until it resets." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro הגיע למגבלת השימוש ההוגן לתקופת החיוב הזו. חבילה תאפשר לכם להמשיך להוריד עד שהמגבלה תתאפס."
+          }
+        }
+      }
+    },
+    "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה הוא הערכה של התאמת קורות החיים למשרה, לא תחזית לקבלה לעבודה."
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשך"
+          }
+        }
+      }
+    },
+    "Restore Purchases" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שחזור רכישות"
+          }
+        }
+      }
+    },
+    "14 tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "5 tailored CVs" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 קורות חיים מותאמים"
+          }
+        }
+      }
+    },
+    "%@ / month" : {
+      "comment" : "Pro price per month, from StoreKit",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ לחודש"
+          }
+        }
+      }
+    },
+    "Nothing to restore for this Apple ID. Your PDF downloads stay on your Resumely account." : {
+      "comment" : "Restore found no purchase",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין מה לשחזר עבור ה-Apple ID הזה. הורדות ה-PDF שלכם שמורות בחשבון Resumely."
+          }
+        }
+      }
+    },
+    "We couldn't restore right now. Check your connection and try again." : {
+      "comment" : "Restore failed",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו לשחזר כרגע. בדקו את החיבור ונסו שוב."
+          }
+        }
+      }
+    },
+    "Check your Match Score on this screen first, then tap Export again." : {
+      "comment" : "Export refused before the user saw their own Match Score",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו קודם את ציון ההתאמה במסך הזה, ואז הקישו שוב על ייצוא."
+          }
+        }
+      }
+    },
+    "Your preview is still loading. Look it over, then tap Export again." : {
+      "comment" : "Export refused before the user saw the PDF preview",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התצוגה המקדימה עדיין נטענת. עברו עליה, ואז הקישו שוב על ייצוא."
+          }
+        }
+      }
+    },
+    "Plan" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מסלול"
+          }
+        }
+      }
+    },
+    "1 PDF download left" : {
+      "comment" : "Profile plan row, one export credit",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נותרה הורדת PDF אחת"
+          }
+        }
+      }
+    },
+    "%d PDF downloads left" : {
+      "comment" : "Profile plan row, export credits",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נותרו %d הורדות PDF"
+          }
+        }
+      }
+    },
+    "Pro until %@" : {
+      "comment" : "Profile plan row, Pro cancelled, ends on date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro עד %@"
+          }
+        }
+      }
+    },
+    "Pro, renews %@" : {
+      "comment" : "Profile plan row, Pro renews on date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro, מתחדש ב-%@"
+          }
+        }
+      }
+    },
+    "Pro" : {
+      "comment" : "Profile plan row, Pro with no date",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי Pro"
+          }
+        }
+      }
+    },
+    "%1$d of %2$d PDF downloads used this period (fair use)" : {
+      "comment" : "Profile plan row, Pro fair-use count",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נוצלו %1$d מתוך %2$d הורדות PDF בתקופה הזו (שימוש הוגן)"
+          }
+        }
+      }
+    },
+    "Manage subscription" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול מנוי"
+          }
+        }
+      }
+    },
+    "Your Pro plan is restored." : {
+      "comment" : "Restore found an active Pro plan",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro שוחזר."
+          }
+        }
+      }
+    },
+    "Your purchase is restored." : {
+      "comment" : "Restore delivered an unfinished purchase",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה שוחזרה."
+          }
+        }
+      }
+    },
+    "Your Pro plan is already active on this account." : {
+      "comment" : "Restore found the Pro plan the account already has",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנוי ה-Pro כבר פעיל בחשבון הזה."
+          }
+        }
+      }
+    },
+    "Check any job, free, as often as you like." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדקו התאמה לכל משרה, בחינם, כמה שתרצו."
+          }
+        }
+      }
+    },
+    "Your Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה הוא הערכה."
+          }
+        }
+      }
+    },
+    "Try a sample CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נסו קורות חיים לדוגמה"
+          }
+        }
+      }
+    },
+    "EXAMPLE" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוגמה"
+          }
+        }
+      }
+    },
+    "Sample Match Score" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה לדוגמה"
+          }
+        }
+      }
+    },
+    "A made-up example, so you can see what you get. Your own Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוגמה מומצאת, כדי שתראו מה מקבלים. ציון ההתאמה שלכם הוא הערכה."
+          }
+        }
+      }
+    },
+    "The CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים"
+          }
+        }
+      }
+    },
+    "The job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המשרה"
+          }
+        }
+      }
+    },
+    "What already matches" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה כבר מתאים"
+          }
+        }
+      }
+    },
+    "What's missing for this job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה חסר למשרה הזו"
+          }
+        }
+      }
+    },
+    "Now try with your CV" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עכשיו נסו עם קורות החיים שלכם"
+          }
+        }
+      }
+    },
+    "Dana Cohen · Marketing Coordinator · 3 years" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דנה כהן · רכזת שיווק · 3 שנים"
+          }
+        }
+      }
+    },
+    "Ran monthly email campaigns for 12,000 subscribers" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהלה קמפיינים חודשיים במייל ל-12,000 מנויים"
+          }
+        }
+      }
+    },
+    "Grew Instagram followers from 2,000 to 9,000 in a year" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדילה את העוקבים באינסטגרם מ-2,000 ל-9,000 בשנה"
+          }
+        }
+      }
+    },
+    "Wrote product pages and blog posts with the sales team" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתבה דפי מוצר ופוסטים לבלוג יחד עם צוות המכירות"
+          }
+        }
+      }
+    },
+    "Digital Marketing Manager · Tel Aviv" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מנהל/ת שיווק דיגיטלי · תל אביב"
+          }
+        }
+      }
+    },
+    "Email campaigns" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קמפיינים במייל"
+          }
+        }
+      }
+    },
+    "Social media growth" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צמיחה ברשתות החברתיות"
+          }
+        }
+      }
+    },
+    "Content writing" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כתיבת תוכן"
+          }
+        }
+      }
+    },
+    "Paid ads budget (Google, Meta)" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול תקציב פרסום ממומן (Google, Meta)"
+          }
+        }
+      }
+    },
+    "Leading a team" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניהול צוות"
+          }
+        }
+      }
+    },
+    "Reports from analytics tools" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דוחות מכלי אנליטיקה"
+          }
+        }
+      }
+    },
+    "No CV file? Save your LinkedIn profile as PDF." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אין לכם קובץ קורות חיים? שמרו את פרופיל הלינקדאין כ-PDF."
+          }
+        }
+      }
+    },
+    "How?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איך?"
+          }
+        }
+      }
+    },
+    "Save your LinkedIn profile as a PDF" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמירת פרופיל הלינקדאין כ-PDF"
+          }
+        }
+      }
+    },
+    "Open linkedin.com in Safari (not the LinkedIn app) and go to your profile." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פתחו את linkedin.com ב-Safari (לא באפליקציית לינקדאין) ועברו לפרופיל שלכם."
+          }
+        }
+      }
+    },
+    "Tap More, then Save to PDF." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקישו על More ואז על Save to PDF."
+          }
+        }
+      }
+    },
+    "Save the file to Files, then come back and tap Choose a file." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמרו את הקובץ ב'קבצים', חזרו לכאן והקישו על 'בחר קובץ'."
+          }
+        }
+      }
+    },
+    "Got it" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הבנתי"
+          }
+        }
+      }
+    },
+    "Example Match Score: 64 out of 100. A made-up example, so you can see what you get. Your own Match Score is an estimate." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה לדוגמה: 64 מתוך 100. דוגמה מומצאת, כדי שתראו מה מקבלים. ציון ההתאמה שלכם הוא הערכה."
+          }
+        }
+      }
+    },
     "1 tailored export" : {
       "localizations" : {
         "he" : {

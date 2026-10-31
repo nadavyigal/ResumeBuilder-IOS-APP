@@ -34,6 +34,15 @@ struct ExportUnlockService: Sendable {
     struct Response: Decodable, Equatable, Sendable {
         let status: String
         let balance: Int?
+        /// `credit`, `subscription` (Pro paid for it) or `ungated`. Nil from a
+        /// server before pricing v2.
+        let source: String?
+
+        init(status: String, balance: Int?, source: String? = nil) {
+            self.status = status
+            self.balance = balance
+            self.source = source
+        }
     }
 
     var apiClient: APIClient = RuntimeServices.sharedAPIClient
@@ -68,28 +77,46 @@ struct ExportUnlockService: Sendable {
 
 extension AppState {
     /// Asks the server for permission to export `optimizationId`, spending a credit
-    /// only when the server's gate applies. Guests with no session skip it: the
-    /// server cannot identify them, so it has nothing to charge, and their export
-    /// path is the local copy of what is already on screen (spec section 3, E6).
+    /// only when the server's gate applies.
+    ///
+    /// No session means no export (pricing v2, D5). Exports are the only paid
+    /// thing, so a result still on screen after a sign-out must not export the
+    /// local copy for free. The caller asks for a free account, which also
+    /// brings the 3 free exports.
     ///
     /// `beganSignedIn`: the export started with a session. If that session is gone
-    /// now (a rejected token refresh signs out), this is not a guest export: stop
-    /// instead of skipping the unlock (Codex P1 on #214).
+    /// now (a rejected token refresh signs out), stop as unauthorized
+    /// (Codex P1 on #214).
     @MainActor
+    @discardableResult
     func authorizeExport(
         optimizationId: String,
         beganSignedIn: Bool = false,
         service: ExportUnlockService = ExportUnlockService()
-    ) async throws {
+    ) async throws -> ExportUnlockService.Response {
         guard session != nil else {
-            if beganSignedIn { throw APIClientError.unauthorized }
-            return
+            throw beganSignedIn ? APIClientError.unauthorized : ExportCreditsError.accountRequired
         }
         let response = try await callWithFreshToken { token in
             try await service.unlock(optimizationId: optimizationId, token: token)
         }
         if let balance = response.balance {
             creditsBalance = balance
+        }
+        return response
+    }
+}
+
+extension ExportUnlockService.Response {
+    /// The `export_completed` source (pricing v2, plan section 6): one of the 3
+    /// free exports, a paid pack credit, Pro, or the server gate off.
+    var analyticsSource: String {
+        switch source {
+        case "welcome_grant": return "grant"
+        case "subscription": return "subscription"
+        case "ungated": return "ungated"
+        case "credit": return "pack"
+        default: return status == "ungated" ? "ungated" : "pack"
         }
     }
 }
@@ -113,6 +140,9 @@ extension AppState {
         }
         store.onCreditsGranted = { [weak self] balance in
             if let balance { self?.creditsBalance = balance }
+        }
+        store.onPlanChanged = { [weak self] in
+            Task { await self?.refreshCredits() }
         }
         store.startObservingTransactions()
     }

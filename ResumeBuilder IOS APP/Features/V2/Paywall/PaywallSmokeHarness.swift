@@ -7,13 +7,19 @@ import SwiftUI
 /// `product.displayPrice` from the App Store.
 ///
 /// DEBUG only, reached via `--smoke-paywall` (add `--smoke-he` for Hebrew),
-/// the same convention as `--smoke-diagnosis`. It ships in no Release build.
+/// the same convention as `--smoke-diagnosis`. `--smoke-paywall-sub` shows the
+/// sheet for an account whose Pro plan hit its fair-use cap. It ships in no
+/// Release build.
 struct PaywallSmokeHarness: View {
     @State private var appState = AppState()
     @State private var optimizationId: String? = "smoke-optimization"
 
     private var wantsHebrew: Bool {
         ProcessInfo.processInfo.arguments.contains("--smoke-he")
+    }
+
+    private var wantsActivePlan: Bool {
+        ProcessInfo.processInfo.arguments.contains("--smoke-paywall-sub")
     }
 
     var body: some View {
@@ -26,9 +32,9 @@ struct PaywallSmokeHarness: View {
                 ExportPaywallSheet(
                     optimizationId: item.id,
                     model: ExportPaywallModel(optimizationId: item.id, fixtureOffers: [
-                        PackOffer(id: "resumely.exports.1", credits: 1, displayPrice: "$3.99"),
-                        PackOffer(id: "resumely.exports.5", credits: 5, displayPrice: "$12.99"),
-                        PackOffer(id: "resumely.exports.10", credits: 10, displayPrice: "$19.99"),
+                        PackOffer(id: "resumely.exports.14", credits: 14, displayPrice: "$7.99"),
+                        PackOffer(id: "resumely.exports.5.v2", credits: 5, displayPrice: "$3.99"),
+                        PackOffer(id: "resumely.pro.monthly", credits: 0, displayPrice: "$9.99", isSubscription: true),
                     ]),
                     onUnlocked: {},
                     onClose: { optimizationId = nil }
@@ -37,6 +43,9 @@ struct PaywallSmokeHarness: View {
             .environment(appState)
             .onAppear {
                 if wantsHebrew { LocalizationManager.shared.setLanguage(.hebrew) }
+                if wantsActivePlan {
+                    appState.subscription = SubscriptionStatus(active: true, productId: "resumely.pro.monthly", periodExports: 40, periodCap: 40)
+                }
             }
     }
 

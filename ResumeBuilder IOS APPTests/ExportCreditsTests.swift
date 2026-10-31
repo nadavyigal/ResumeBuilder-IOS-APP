@@ -336,15 +336,40 @@ final class PurchaseDeliveryTests: XCTestCase {
 
 @MainActor
 final class ExportCreditProductsTests: XCTestCase {
-    func testThreePacksInDisplayOrder() {
-        XCTAssertEqual(ExportCreditProducts.orderedIDs, ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"])
-        XCTAssertEqual(ExportCreditProducts.orderedIDs.map { ExportCreditProducts.credits(for: $0) }, [1, 5, 10])
+    private let retiredIDs = [
+        "credits_basic", "credits_saver", "credits_super",
+        "resumely.exports.1", "resumely.exports.5", "resumely.exports.10",
+    ]
+
+    func testTwoPacksThenProInSaleOrder() {
+        XCTAssertEqual(ResumelyProducts.orderedIDs, ["resumely.exports.14", "resumely.exports.5.v2", "resumely.pro.monthly"])
+        XCTAssertEqual(ResumelyProducts.orderedIDs.map { ResumelyProducts.exports(for: $0) }, [14, 5, nil])
+        XCTAssertEqual(ResumelyProducts.orderedIDs.map { ResumelyProducts.isSubscription($0) }, [false, false, true])
     }
 
     func testOldProductIdsAreNeverSold() {
-        for id in ["credits_basic", "credits_saver", "credits_super"] {
-            XCTAssertNil(ExportCreditProducts.credits(for: id))
+        for id in retiredIDs {
+            XCTAssertNil(ResumelyProducts.exports(for: id), id)
+            XCTAssertFalse(ResumelyProducts.isSubscription(id), id)
+            XCTAssertFalse(ResumelyProducts.orderedIDs.contains(id), id)
         }
+    }
+
+    /// A v1 pack someone already paid for, still unfinished, is still sent to
+    /// the server, which still grants it. The prototype IDs never were sold.
+    func testPaidV1PacksAreStillDeliveredButPrototypeIdsAreNot() {
+        XCTAssertEqual(ResumelyProducts.retiredPackIDs, ["resumely.exports.1", "resumely.exports.5", "resumely.exports.10"])
+        for id in ResumelyProducts.retiredPackIDs + ResumelyProducts.orderedIDs {
+            XCTAssertTrue(ResumelyProducts.isDeliverable(id), id)
+        }
+        for id in ["credits_basic", "credits_saver", "credits_super", "resumely.pro.yearly", ""] {
+            XCTAssertFalse(ResumelyProducts.isDeliverable(id), id)
+        }
+    }
+
+    func testPackRowsNameTheExportsInThePack() {
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")
     }
 
     func testOnlyARealAccountCanBuy() {
@@ -473,25 +498,36 @@ final class ExportActionGateTests: XCTestCase {
         XCTAssertFalse(transport.events.contains { $0.name == "export_success" })
     }
 
-    /// A real guest (no session from the start) still gets the local export.
-    func testAGuestExportStillSkipsTheUnlock() async throws {
+    /// No session at all asks for a free account and makes no file (pricing v2,
+    /// D5): a result left on screen after a sign-out cannot export for free.
+    func testAnExportWithNoSessionAsksForAnAccountAndMakesNoFile() async throws {
         let box = RequestBox()
         let appState = AppState()
         appState.session = nil
+        let exportsDirectory = FileManager.default
+            .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ResumeBuilderExports", isDirectory: true)
+        let before = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
 
-        let result = try await ResumeExportAction.exportPDF(
-            viewModel: OptimizedResumeViewModel(optimizationId: "guest-\(UUID().uuidString)"),
-            appState: appState,
-            renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
-            beganSignedIn: false,
-            analytics: AnalyticsService(transport: NoopTransport()),
-            unlockService: ExportUnlockService(
-                apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+        do {
+            _ = try await ResumeExportAction.exportPDF(
+                viewModel: OptimizedResumeViewModel(optimizationId: "guest-\(UUID().uuidString)"),
+                appState: appState,
+                renderedHTML: "<html><body><h1>Dana Levi</h1><p>Senior iOS engineer, Swift and SwiftUI.</p></body></html>",
+                beganSignedIn: false,
+                analytics: AnalyticsService(transport: NoopTransport()),
+                unlockService: ExportUnlockService(
+                    apiClient: mockClient(status: 200, json: #"{"status":"unlocked","balance":4}"#, box: box)
+                )
             )
-        )
+            XCTFail("expected accountRequired")
+        } catch {
+            XCTAssertEqual(error as? ExportCreditsError, .accountRequired)
+        }
 
         XCTAssertEqual(box.requests.count, 0)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: result.fileURL.path))
+        let after = Set((try? FileManager.default.contentsOfDirectory(atPath: exportsDirectory.path)) ?? [])
+        XCTAssertEqual(after.subtracting(before), [], "no export file may be written")
     }
 
     /// Before the preview finishes, export fetches the styled HTML and renders it on
@@ -765,6 +801,7 @@ final class PendingPaywallRecoveryTests: XCTestCase {
         await model.load(for: buyer)
         XCTAssertEqual(retries, 0)
         XCTAssertEqual(priceLoads, 1)
-        XCTAssertEqual(model.phase, .ready)
+        // The stub loads no product, so there is nothing to sell: Try again.
+        XCTAssertEqual(model.phase, .unavailable)
     }
 }

@@ -68,6 +68,9 @@ final class AppState {
     var pendingSharedJobURL: URL?
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    /// Pro as the server last reported it; nil before the first read or
+    /// signed out.
+    var subscription: SubscriptionStatus?
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
     var applicationsRefreshToken: Int = 0
@@ -273,6 +276,7 @@ final class AppState {
         optimizationRecoveryGeneration &+= 1
         session = nil
         creditsBalance = 0
+        subscription = nil
         latestOptimizationId = nil
         latestOptimization = nil
         optimizationRecoveryState = .idle
@@ -764,13 +768,26 @@ final class AppState {
         // Export credits are read whatever `isMonetizationEnabled` says: the server
         // decides the gate (StoreKit spec 11), and the paywall reports the balance.
         guard let token = session?.accessToken else { return }
+        let requestedFor = session?.userId
 
         do {
             let response: CreditsResponse = try await apiClient.get(endpoint: .credits, token: token)
+            // A reply for an account that signed out (or was replaced) while
+            // the request was in flight must not land on the next one
+            // (Codex on #226).
+            guard session?.userId == requestedFor else { return }
             creditsBalance = response.balance
+            subscription = response.subscription
         } catch {
             // Keep prior balance on transient failures.
         }
+    }
+
+    /// Reads the plan from the server and answers whether it is active. On a
+    /// failed read the last known plan stands.
+    func refreshPlanStatus() async -> Bool {
+        await refreshCredits()
+        return subscription?.active == true
     }
 
     private func shouldSignOutAfterRefreshFailure(_ error: Error) -> Bool {

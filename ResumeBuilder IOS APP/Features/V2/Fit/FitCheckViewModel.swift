@@ -121,6 +121,10 @@ final class FitCheckViewModel {
                     matchScore: checkResult.verdict.score
                 )
             )
+            AnalyticsService.shared.track(.matchScoreViewed(
+                source: "own",
+                scoreBucket: AnalyticsEvent.scoreBucket(for: checkResult.verdict.score)
+            ))
         } catch let apiError as APIClientError {
             if case .serverError(let status, _) = apiError, status == 400 {
                 errorMessage = JobInputPolicy.friendlyInputError()

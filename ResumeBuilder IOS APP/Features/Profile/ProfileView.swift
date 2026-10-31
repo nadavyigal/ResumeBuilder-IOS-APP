@@ -12,7 +12,6 @@ struct ProfileView: View {
 
     @Environment(AppState.self) private var appState
     @Environment(LocalizationManager.self) private var localization
-    @State private var showPaywall = false
     @State private var showOnboarding = false
     @State private var onboardingStartsInSignUp = false
     @State private var appeared = false
@@ -74,8 +73,8 @@ struct ProfileView: View {
                         VStack(spacing: 14) {
                             latestResumeSection
                             applicationsSection
-                            if BackendConfig.isMonetizationEnabled {
-                                creditsSection
+                            if appState.isAuthenticated {
+                                planSection
                             }
                             trustCard
                             accountSection
@@ -115,11 +114,6 @@ struct ProfileView: View {
                 if !appeared {
                     withAnimation(.easeOut(duration: 0.5)) { appeared = true }
                 }
-            }
-            .sheet(isPresented: $showPaywall) {
-                NavigationStack { PaywallView() }
-                    .preferredColorScheme(.dark)
-                    .tint(Theme.accent)
             }
             .sheet(isPresented: $showOnboarding) {
                 NavigationStack {
@@ -481,23 +475,10 @@ struct ProfileView: View {
 
     // MARK: - Section: Credits
 
-    private var creditsSection: some View {
-        ProfileSection(title: "Credits", icon: "creditcard.fill", iconColor: Theme.accentBlue) {
-            VStack(spacing: 0) {
-                NavigationLink { CreditsView() } label: {
-                    profileRow(icon: "list.bullet.rectangle", label: "View Credits", color: Theme.accentBlue)
-                }
-                .buttonStyle(.plain)
-
-                Divider()
-                    .background(Color.white.opacity(0.06))
-                    .padding(.horizontal, 14)
-
-                Button { showPaywall = true } label: {
-                    profileRow(icon: "plus.circle.fill", label: "Buy Credits", color: Theme.accent, isAction: true)
-                }
-                .buttonStyle(.plain)
-            }
+    /// Pricing v2 plan row; the content lives in `Features/V2/Profile`.
+    private var planSection: some View {
+        ProfileSection(title: "Plan", icon: "doc.badge.arrow.up", iconColor: Theme.accentBlue) {
+            ProfilePlanSection()
         }
     }
 
