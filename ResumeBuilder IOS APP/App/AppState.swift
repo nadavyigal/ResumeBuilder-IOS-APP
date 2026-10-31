@@ -783,6 +783,13 @@ final class AppState {
         }
     }
 
+    /// Reads the plan from the server and answers whether it is active. On a
+    /// failed read the last known plan stands.
+    func refreshPlanStatus() async -> Bool {
+        await refreshCredits()
+        return subscription?.active == true
+    }
+
     private func shouldSignOutAfterRefreshFailure(_ error: Error) -> Bool {
         if error is URLError {
             return false

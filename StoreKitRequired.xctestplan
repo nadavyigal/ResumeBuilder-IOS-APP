@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "id": "8F2B6C1E-3D54-4A7E-9C10-6A1F2E7B4D31",
+      "name": "StoreKit required",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "environmentVariableEntries": [
+      {
+        "key": "REQUIRE_STOREKIT_TESTS",
+        "value": "1"
+      }
+    ],
+    "storeKitConfigurationFileReference": {
+      "identifier": "ResumeBuilder IOS APPTests/Resumely.storekit"
+    },
+    "targetForVariableExpansion": {
+      "containerPath": "container:ResumeBuilder IOS APP.xcodeproj",
+      "identifier": "335AA7622FA77AB800FD6628",
+      "name": "ResumeBuilder IOS APP"
+    }
+  },
+  "testTargets": [
+    {
+      "selectedTests": [
+        "StoreKitSessionTests"
+      ],
+      "target": {
+        "containerPath": "container:ResumeBuilder IOS APP.xcodeproj",
+        "identifier": "EB8A61F52DFE5AE8A5FC5900",
+        "name": "ResumeBuilder IOS APPTests"
+      }
+    }
+  ],
+  "version": 1
+}

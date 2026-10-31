@@ -7,6 +7,66 @@ import XCTest
 // (buy, renew, expire, refund, restore). The server is a stub: these tests
 // check what the app sends and when it finishes, not what the server grants.
 
+/// Whether `StoreKitSessionTests` may run. On the iOS 26.5 simulator runtime
+/// storekitd refuses StoreKit Testing ("is not installed for development"),
+/// from `xcodebuild` and from Xcode alike (Apple forums threads 826364, 826971),
+/// so an ordinary run skips them. The `StoreKitRequired` test plan sets
+/// `REQUIRE_STOREKIT_TESTS=1`, and there a file that did not load is a failure:
+/// a skip would read as evidence. Run that plan on a real device or an older
+/// simulator runtime.
+enum StoreKitTestGate: Equatable {
+    case run, skip, fail
+
+    /// Exists only in `Resumely.storekit`. The real products cannot prove the
+    /// file loaded: once they exist in App Store Connect the App Store answers
+    /// for them, and a test that goes on to buy one hangs on a real purchase
+    /// (seen 2026-10-31).
+    static let localOnlyProductID = "resumely.test.local-only"
+
+    static var isRequired: Bool {
+        ProcessInfo.processInfo.environment["REQUIRE_STOREKIT_TESTS"] == "1"
+    }
+
+    static func decide(productsLoaded: Bool, required: Bool) -> StoreKitTestGate {
+        if productsLoaded { return .run }
+        return required ? .fail : .skip
+    }
+}
+
+private struct StoreKitProductsNotLoaded: LocalizedError {
+    var errorDescription: String? {
+        "REQUIRE_STOREKIT_TESTS=1 but Resumely.storekit did not load, so this case did not run."
+    }
+}
+
+@MainActor
+final class StoreKitTestGateTests: XCTestCase {
+    func testLoadedProductsAlwaysRun() {
+        XCTAssertEqual(StoreKitTestGate.decide(productsLoaded: true, required: false), .run)
+        XCTAssertEqual(StoreKitTestGate.decide(productsLoaded: true, required: true), .run)
+    }
+
+    func testAnOrdinaryRunSkipsWithoutProducts() {
+        XCTAssertEqual(StoreKitTestGate.decide(productsLoaded: false, required: false), .skip)
+    }
+
+    func testARequiredRunFailsWithoutProducts() {
+        XCTAssertEqual(StoreKitTestGate.decide(productsLoaded: false, required: true), .fail)
+    }
+
+    func testOnlyTheLocalFileSellsTheProbeProduct() throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Resumely", withExtension: "storekit"))
+        let file = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(file.contains(StoreKitTestGate.localOnlyProductID))
+        XCTAssertFalse(ResumelyProducts.isDeliverable(StoreKitTestGate.localOnlyProductID))
+    }
+
+    /// The founder's run proves 10 cases. A new case must update that count.
+    func testTheRequiredRunCoversTenCases() {
+        XCTAssertEqual(StoreKitSessionTests.defaultTestSuite.testCaseCount, 10)
+    }
+}
+
 private actor VerifyLog {
     var productIDs: [String] = []
     func add(_ id: String) { productIDs.append(id) }
@@ -37,13 +97,14 @@ final class StoreKitSessionTests: XCTestCase {
         session.resetToDefaultState()
         session.disableDialogs = true
         session.clearTransactions()
-        // `xcodebuild test` on iOS 26.5 does not hand the .storekit file to the
-        // simulator's storekitd (Apple forums thread 826971), so no product
-        // loads. These tests run from Xcode (Product > Test); from the command
-        // line they skip instead of failing.
-        let probe = try await Product.products(for: [ResumelyProducts.proMonthly])
-        if probe.isEmpty {
-            throw XCTSkip("StoreKit test file not loaded (xcodebuild on iOS 26.5). Run from Xcode.")
+        let probe = try await Product.products(for: [StoreKitTestGate.localOnlyProductID])
+        switch StoreKitTestGate.decide(productsLoaded: !probe.isEmpty, required: StoreKitTestGate.isRequired) {
+        case .run:
+            break
+        case .skip:
+            throw XCTSkip("StoreKit test file not loaded (iOS 26.5 simulator). Run the StoreKit Tests scheme on a device.")
+        case .fail:
+            throw StoreKitProductsNotLoaded()
         }
     }
 
@@ -164,12 +225,15 @@ final class StoreKitSessionTests: XCTestCase {
         try session.expireSubscription(productIdentifier: ResumelyProducts.proMonthly)
         let log = VerifyLog()
         let store = makeStore(log: log, outcome: .success(proGranted))
+        var planChanges = 0
+        store.onPlanChanged = { planChanges += 1 }
 
         let outcome = await store.refreshEntitlements()
 
         XCTAssertEqual(outcome, .noPlan)
         let sent = await log.productIDs
         XCTAssertEqual(sent, [])
+        XCTAssertEqual(planChanges, 1, "a plan that ended re-reads the server")
     }
 
     func testARefundedPlanIsNotSent() async throws {

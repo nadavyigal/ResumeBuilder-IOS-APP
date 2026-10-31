@@ -112,13 +112,22 @@ final class ExportPaywallModel {
     private let retryPendingPurchases: @MainActor () async -> Void
     private let loadStoreProducts: @MainActor () async throws -> Void
     private let restoreStorePurchases: @MainActor () async throws -> StoreKitManager.RestoreResult
+    private let storeOffers: @MainActor () -> [PackOffer]
+    /// What the store has on sale, Pro included; `offers` is what the sheet shows.
+    private var offersOnSale: [PackOffer] = []
+    /// True once a server read says this account has Pro, so the 402 means its
+    /// fair-use cap. If that read failed, the last known plan stands.
+    private(set) var isPlanHidden = false
+    /// Hiding Pro left nothing to sell, so bringing it back reopens the sheet.
+    private var hidingEmptiedSheet = false
 
     init(
         optimizationId: String,
         store: StoreKitManager = .shared,
         retryPendingPurchases: (@MainActor () async -> Void)? = nil,
         loadStoreProducts: (@MainActor () async throws -> Void)? = nil,
-        restoreStorePurchases: (@MainActor () async throws -> StoreKitManager.RestoreResult)? = nil
+        restoreStorePurchases: (@MainActor () async throws -> StoreKitManager.RestoreResult)? = nil,
+        storeOffers: (@MainActor () -> [PackOffer])? = nil
     ) {
         self.optimizationId = optimizationId
         self.store = store
@@ -126,6 +135,9 @@ final class ExportPaywallModel {
         self.retryPendingPurchases = retryPendingPurchases ?? { _ = await store.deliverPendingPurchases() }
         self.loadStoreProducts = loadStoreProducts ?? { try await store.loadProducts() }
         self.restoreStorePurchases = restoreStorePurchases ?? { try await store.restorePurchases() }
+        self.storeOffers = storeOffers ?? {
+            store.products.compactMap { PackOffer.make(id: $0.id, displayPrice: $0.displayPrice) }
+        }
     }
 
     var selectedOffer: PackOffer? {
@@ -137,20 +149,31 @@ final class ExportPaywallModel {
         selectedID = offer.id
     }
 
-    /// Hides Pro while this account already has it (the 402 then means the
-    /// fair-use cap), keeping the selection on an offer that is shown.
+    /// Hides Pro while this account has it (the 402 then means the fair-use
+    /// cap), and brings it back when the plan ended, keeping the selection on
+    /// an offer that is shown.
     func hidePlan(_ hide: Bool) {
-        guard hide else { return }
-        offers.removeAll { $0.isSubscription }
-        if selectedOffer == nil { selectedID = offers.first?.id }
+        isPlanHidden = hide
+        showOffers()
         if offers.isEmpty, phase == .ready {
             phase = .unavailable
             message = StoreKitManagerError.productUnavailable.localizedDescription
+            hidingEmptiedSheet = true
+        } else if !offers.isEmpty, hidingEmptiedSheet, phase == .unavailable {
+            // Only this state: a waiting purchase must stay locked.
+            hidingEmptiedSheet = false
+            phase = .ready
+            message = nil
         }
     }
 
     private func setOffers(_ newOffers: [PackOffer]) {
-        offers = newOffers
+        offersOnSale = newOffers
+        showOffers()
+    }
+
+    private func showOffers() {
+        offers = isPlanHidden ? offersOnSale.filter { !$0.isSubscription } : offersOnSale
         if selectedOffer == nil { selectedID = offers.first?.id }
     }
 
@@ -178,14 +201,22 @@ final class ExportPaywallModel {
         self.retryPendingPurchases = {}
         self.loadStoreProducts = {}
         self.restoreStorePurchases = { StoreKitManager.RestoreResult(deliveredGrant: false, plan: .noPlan) }
+        self.storeOffers = { fixtureOffers }
         self.phase = .ready
         setOffers(fixtureOffers)
     }
     #endif
 
-    func load(for userId: UUID?) async {
-        guard !isFixture else { return }
+    /// `refreshPlan` reads the plan from the server and answers whether it is
+    /// active. It runs before Pro is hidden: a plan cached as active may have
+    /// expired while the app stayed alive (Codex on #226).
+    func load(for userId: UUID?, refreshPlan: @MainActor () async -> Bool = { false }) async {
+        guard !isFixture else {
+            hidePlan(await refreshPlan())
+            return
+        }
         self.userId = userId
+        hidingEmptiedSheet = false
         if applyPendingLock(for: userId) {
             // Launch delivery may have failed offline. Retry the existing
             // transaction on every reopen, keeping the lock against repurchase.
@@ -195,12 +226,16 @@ final class ExportPaywallModel {
             phase = .loading
             message = nil
         }
+        hidePlan(await refreshPlan())
         do {
             try await loadStoreProducts()
-            setOffers(store.products.compactMap { PackOffer.make(id: $0.id, displayPrice: $0.displayPrice) })
+            setOffers(storeOffers())
             // Nothing this sheet can sell (for example only Pro loaded and Pro
             // is hidden): show Try again, never an empty "ready" sheet (Codex on #226).
-            if offers.isEmpty { throw StoreKitManagerError.productUnavailable }
+            if offers.isEmpty {
+                hidingEmptiedSheet = !offersOnSale.isEmpty
+                throw StoreKitManagerError.productUnavailable
+            }
             // Every result is derived from the store's lock, so a failed load
             // and a retry can never unlock a waiting purchase (Codex P1). A grant
             // that landed during the load keeps the sheet waiting, so
@@ -374,7 +409,7 @@ struct ExportPaywallSheet: View {
                 .font(.appSubheadline)
                 .fixedSize(horizontal: false, vertical: true)
 
-                if hasActivePlan {
+                if model.isPlanHidden {
                     Text(ExportPaywallCopy.planCapReached)
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
@@ -406,24 +441,28 @@ struct ExportPaywallSheet: View {
         .onChange(of: model.approvalGranted) { _, granted in
             if granted { onUnlocked() }
         }
-        .onChange(of: model.offers) { _, _ in
-            model.hidePlan(hasActivePlan)
-        }
-        // A credits reply that reports Pro after the sheet loaded (Codex on #226).
+        // A credits reply after the sheet loaded: Pro reported (Codex on #226),
+        // or a plan that ended, for example after a Restore that found nothing.
         .onChange(of: hasActivePlan) { _, active in
             model.hidePlan(active)
         }
         .task {
             AnalyticsService.shared.track(.paywallShown(optimizationId: model.optimizationId, balance: appState.creditsBalance))
             AnalyticsService.shared.track(.paywallViewed(entryPoint: entryPoint, balance: appState.creditsBalance))
-            await model.load(for: appState.purchaseAccount?.userId)
-            model.hidePlan(hasActivePlan)
+            await reloadOffers()
         }
     }
 
-    /// Pro is already active, so this 402 means its fair-use cap.
+    /// The plan as the server last reported it. It can be stale until
+    /// `reloadOffers()` has read it again.
     private var hasActivePlan: Bool {
         appState.subscription?.active == true
+    }
+
+    private func reloadOffers() async {
+        await model.load(for: appState.purchaseAccount?.userId) {
+            await appState.refreshPlanStatus()
+        }
     }
 
     private var isBusy: Bool {
@@ -446,7 +485,7 @@ struct ExportPaywallSheet: View {
             .frame(maxWidth: .infinity, minHeight: 120)
         case .unavailable:
             Button {
-                Task { await model.load(for: appState.purchaseAccount?.userId) }
+                Task { await reloadOffers() }
             } label: {
                 Text(ExportPaywallCopy.retry)
                     .font(.appSubheadline.weight(.semibold))

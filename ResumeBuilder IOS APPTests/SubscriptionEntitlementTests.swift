@@ -236,6 +236,50 @@ final class SubscriptionEntitlementTests: XCTestCase {
         XCTAssertNil(appState.subscription)
     }
 
+    /// A paywall Restore that finds no plan must re-read the server, or an
+    /// expired plan stays cached as active (CodeRabbit on #226).
+    func testARefreshThatFindsNoPlanReReadsTheServer() async {
+        let store = StoreKitManager(defaults: UserDefaults(suiteName: "no-plan-\(UUID().uuidString)")!)
+        let account = account
+        store.accountProvider = { _ in account }
+        var planChanges = 0
+        store.onPlanChanged = { planChanges += 1 }
+
+        let outcome = await store.refreshEntitlements()
+
+        XCTAssertEqual(outcome, .noPlan)
+        XCTAssertEqual(planChanges, 1)
+    }
+
+    func testAGuestRefreshDoesNotReReadTheServer() async {
+        let store = StoreKitManager(defaults: UserDefaults(suiteName: "no-plan-\(UUID().uuidString)")!)
+        store.accountProvider = { _ in nil }
+        var planChanges = 0
+        store.onPlanChanged = { planChanges += 1 }
+
+        let outcome = await store.refreshEntitlements()
+
+        XCTAssertEqual(outcome, .noAccount)
+        XCTAssertEqual(planChanges, 0)
+    }
+
+    func testRefreshPlanStatusReadsTheServerNotTheCache() async {
+        let box = PlanRequestBox()
+        let appState = AppState(apiClient: planClient(
+            status: 200,
+            json: #"{"balance":0,"transactions":[],"subscription":{"active":false,"productId":"resumely.pro.monthly"}}"#,
+            box: box
+        ))
+        appState.session = AuthSession(accessToken: "tok", refreshToken: "r", userId: account.userId.uuidString, email: "a@example.com")
+        appState.subscription = SubscriptionStatus(active: true, productId: ResumelyProducts.proMonthly)
+
+        let active = await appState.refreshPlanStatus()
+
+        XCTAssertFalse(active)
+        XCTAssertEqual(box.paths, ["/api/v1/credits"])
+        XCTAssertEqual(appState.subscription?.active, false)
+    }
+
     func testServerDatesWithAndWithoutFractionsParse() {
         XCTAssertNotNil(ServerDate.parse("2026-11-29T10:00:00+00:00"))
         XCTAssertNotNil(ServerDate.parse("2026-11-29T10:00:00.123Z"))

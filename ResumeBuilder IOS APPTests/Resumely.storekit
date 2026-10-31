@@ -5,6 +5,21 @@
   ],
   "products" : [
     {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6776800099",
+      "localizations" : [
+        {
+          "description" : "Test probe, never on sale. Proves this file loaded.",
+          "displayName" : "Local test probe",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "resumely.test.local-only",
+      "referenceName" : "Local test probe",
+      "type" : "Consumable"
+    },
+    {
       "displayPrice" : "7.99",
       "familyShareable" : false,
       "internalID" : "6776800014",

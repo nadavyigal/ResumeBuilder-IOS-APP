@@ -419,6 +419,29 @@ struct PreviewActivationPolicy: Sendable {
     }
 }
 
+/// What an on-screen score panel records. `MainTabViewV2` keeps the Optimized tab
+/// mounted at zero opacity, so a panel can appear while the user is on Home:
+/// that must not count as seen for the paywall rule or for `match_score_viewed`
+/// (Codex on #226). The caller asks again when the tab becomes active.
+struct ScoreViewPolicy: Sendable {
+    struct Outcome: Equatable, Sendable {
+        var markSeen = false
+        var trackedScore: Int?
+    }
+
+    private var didTrackScore = false
+
+    mutating func consume(panelShown: Bool, isActive: Bool, score: Int?) -> Outcome {
+        guard panelShown, isActive else { return Outcome() }
+        var outcome = Outcome(markSeen: true)
+        if !didTrackScore, let score {
+            didTrackScore = true
+            outcome.trackedScore = score
+        }
+        return outcome
+    }
+}
+
 // MARK: - WKWebView wrapper
 
 private struct WebKitHTMLView: UIViewRepresentable {

@@ -69,6 +69,45 @@ final class PaywallEligibilityTests: XCTestCase {
     }
 }
 
+/// `MainTabViewV2` keeps the Optimized tab mounted at zero opacity, so a score
+/// panel can appear while the user is on Home (Codex on #226).
+@MainActor
+final class ScoreViewPolicyTests: XCTestCase {
+    func testAHiddenTabRecordsNothing() {
+        var policy = ScoreViewPolicy()
+        XCTAssertEqual(policy.consume(panelShown: true, isActive: false, score: 70), .init())
+    }
+
+    func testBecomingActiveRecordsWhatTheHiddenTabHeldBack() {
+        var policy = ScoreViewPolicy()
+        _ = policy.consume(panelShown: true, isActive: false, score: 70)
+
+        let outcome = policy.consume(panelShown: true, isActive: true, score: 70)
+
+        XCTAssertEqual(outcome, .init(markSeen: true, trackedScore: 70))
+    }
+
+    func testTheScoreIsTrackedOncePerScreen() {
+        var policy = ScoreViewPolicy()
+        _ = policy.consume(panelShown: true, isActive: true, score: 70)
+
+        let again = policy.consume(panelShown: true, isActive: true, score: 70)
+
+        XCTAssertEqual(again, .init(markSeen: true, trackedScore: nil))
+    }
+
+    func testNoPanelRecordsNothing() {
+        var policy = ScoreViewPolicy()
+        XCTAssertEqual(policy.consume(panelShown: false, isActive: true, score: 70), .init())
+    }
+
+    func testAPanelWithNoNumberMarksSeenAndTracksTheScoreWhenItArrives() {
+        var policy = ScoreViewPolicy()
+        XCTAssertEqual(policy.consume(panelShown: true, isActive: true, score: nil), .init(markSeen: true))
+        XCTAssertEqual(policy.consume(panelShown: true, isActive: true, score: 64), .init(markSeen: true, trackedScore: 64))
+    }
+}
+
 @MainActor
 final class PaywallOffersTests: XCTestCase {
     private let offers = [
@@ -113,6 +152,29 @@ final class PaywallOffersTests: XCTestCase {
         XCTAssertEqual(model.message, StoreKitManagerError.productUnavailable.localizedDescription)
     }
 
+    /// A plan that ended while the sheet was hiding Pro (a credits reply, or a
+    /// Restore that found nothing) must put the offer back (Codex on #226).
+    func testAPlanThatEndedBringsProBack() {
+        let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: offers)
+        model.hidePlan(true)
+
+        model.hidePlan(false)
+
+        XCTAssertEqual(model.offers.map(\.id), ["resumely.exports.14", "resumely.exports.5.v2", "resumely.pro.monthly"])
+        XCTAssertEqual(model.selectedID, "resumely.exports.14")
+    }
+
+    func testProComingBackLeavesTryAgain() {
+        let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: [offers[2]])
+        model.hidePlan(true)
+
+        model.hidePlan(false)
+
+        XCTAssertEqual(model.offers, [offers[2]])
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertNil(model.message)
+    }
+
     /// App Store purchases are covered by Apple's standard EULA; the website
     /// Terms describe the web plan (founder decision 2026-10-30).
     func testThePaywallTermsLinkIsApplesStandardEULA() {
@@ -134,6 +196,120 @@ final class PaywallOffersTests: XCTestCase {
             XCTAssertFalse(english.localizedCaseInsensitiveContains(banned), banned)
         }
         XCTAssertTrue(english.contains("estimate"))
+    }
+}
+
+/// A cancelled or expired Pro user must see the Pro offer again, so the sheet
+/// asks the server before it trusts a cached plan (Codex on #226).
+@MainActor
+final class PaywallPlanFreshnessTests: XCTestCase {
+    private let buyer = UUID(uuidString: "11111111-1111-4111-8111-111111111111")!
+    private let onSale = [
+        PackOffer(id: "resumely.exports.14", credits: 14, displayPrice: "$7.99"),
+        PackOffer(id: "resumely.exports.5.v2", credits: 5, displayPrice: "$3.99"),
+        PackOffer(id: "resumely.pro.monthly", credits: 0, displayPrice: "$9.99", isSubscription: true),
+    ]
+
+    private func model(onPriceLoad: @escaping @MainActor () -> Void = {}) -> ExportPaywallModel {
+        let onSale = onSale
+        return ExportPaywallModel(
+            optimizationId: "o",
+            store: StoreKitManager(defaults: UserDefaults(suiteName: "plan-fresh-\(UUID().uuidString)")!),
+            retryPendingPurchases: {},
+            loadStoreProducts: { onPriceLoad() },
+            storeOffers: { onSale }
+        )
+    }
+
+    func testAnEndedPlanKeepsProOnSale() async {
+        let model = model()
+
+        await model.load(for: buyer, refreshPlan: { false })
+
+        XCTAssertEqual(model.offers, onSale)
+        XCTAssertEqual(model.phase, .ready)
+    }
+
+    func testAPlanTheServerConfirmsHidesPro() async {
+        let model = model()
+
+        await model.load(for: buyer, refreshPlan: { true })
+
+        XCTAssertEqual(model.offers.map(\.id), ["resumely.exports.14", "resumely.exports.5.v2"])
+        XCTAssertEqual(model.phase, .ready)
+    }
+
+    func testTheServerAnswersBeforeThePricesShow() async {
+        var steps: [String] = []
+        let model = model(onPriceLoad: { steps.append("prices") })
+
+        await model.load(for: buyer, refreshPlan: { steps.append("plan"); return false })
+
+        XCTAssertEqual(steps, ["plan", "prices"])
+    }
+
+    func testTryAgainAsksTheServerAgain() async {
+        let model = model()
+        var asked = 0
+        let refresh: @MainActor () async -> Bool = { asked += 1; return asked == 1 }
+
+        await model.load(for: buyer, refreshPlan: refresh)
+        await model.load(for: buyer, refreshPlan: refresh)
+
+        XCTAssertEqual(asked, 2)
+        XCTAssertEqual(model.offers, onSale, "the second answer says the plan ended")
+    }
+
+    /// Only Pro loaded and Pro is hidden: Try again, then a plan that ended
+    /// must not leave the stale empty state.
+    func testAPlanThatEndsAfterAnEmptySheetSellsProAgain() async {
+        let onlyPro = [onSale[2]]
+        let model = ExportPaywallModel(
+            optimizationId: "o",
+            store: StoreKitManager(defaults: UserDefaults(suiteName: "plan-fresh-\(UUID().uuidString)")!),
+            retryPendingPurchases: {},
+            loadStoreProducts: {},
+            storeOffers: { onlyPro }
+        )
+        await model.load(for: buyer, refreshPlan: { true })
+        XCTAssertEqual(model.phase, .unavailable)
+
+        model.hidePlan(false)
+
+        XCTAssertEqual(model.offers, onlyPro)
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertNil(model.message)
+    }
+
+    /// Bringing Pro back must never unlock a purchase still waiting for its grant.
+    func testProComingBackKeepsAWaitingPurchaseLocked() async {
+        let store = StoreKitManager(defaults: UserDefaults(suiteName: "plan-fresh-\(UUID().uuidString)")!)
+        store.setPendingLock(userId: buyer, productID: ResumelyProducts.exports5)
+        let onlyPro = [onSale[2]]
+        let model = ExportPaywallModel(
+            optimizationId: "o",
+            store: store,
+            retryPendingPurchases: {},
+            loadStoreProducts: {},
+            storeOffers: { onlyPro }
+        )
+        await model.load(for: buyer, refreshPlan: { true })
+
+        model.hidePlan(false)
+
+        XCTAssertEqual(model.phase, .awaitingApproval(productID: ResumelyProducts.exports5))
+    }
+
+    /// The sheet's cap note follows the model, not the cached plan.
+    func testTheCapNoteWaitsForTheServer() async {
+        let model = model()
+        XCTAssertFalse(model.isPlanHidden, "nothing is hidden until the server answers")
+
+        await model.load(for: buyer, refreshPlan: { true })
+        XCTAssertTrue(model.isPlanHidden)
+
+        model.hidePlan(false)
+        XCTAssertFalse(model.isPlanHidden)
     }
 }
 

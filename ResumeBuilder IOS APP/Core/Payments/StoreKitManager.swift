@@ -410,7 +410,14 @@ final class StoreKitManager {
                 break
             }
         }
-        if case .recorded = outcome { onPlanChanged?() }
+        // `.noPlan` too: Apple holds no plan, so one the app cached as active
+        // has ended and the server must be read again (CodeRabbit on #226).
+        switch outcome {
+        case .recorded, .noPlan:
+            onPlanChanged?()
+        case .noAccount, .ownedByAnotherAccount, .failed:
+            break
+        }
         return outcome
     }
 

@@ -27,8 +27,8 @@ struct OptimizedResumeView: View {
     @State private var isDownloadingPDF = false
     /// Set when the server answers 402 for this export; opens the paywall sheet.
     @State private var paywallOptimizationId: String?
-    /// `match_score_viewed` once per screen, not on every re-appear.
-    @State private var didTrackScoreViewed = false
+    /// `match_score_viewed` once per screen, and only with this tab active.
+    @State private var scoreViewPolicy = ScoreViewPolicy()
     /// The embedded preview failed to render; the paywall then opens without it.
     @State private var previewFailed = false
     @State private var pdfTempURL: URL? = nil
@@ -130,17 +130,7 @@ struct OptimizedResumeView: View {
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
                         .padding(.horizontal, AppSpacing.lg)
-                        .onAppear {
-                            appState.markMatchScoreSeen()
-                            if !didTrackScoreViewed,
-                               let score = viewModel.atsScoreAfter ?? viewModel.atsScoreBefore {
-                                didTrackScoreViewed = true
-                                AnalyticsService.shared.track(.matchScoreViewed(
-                                    source: "own",
-                                    scoreBucket: AnalyticsEvent.scoreBucket(for: score)
-                                ))
-                            }
-                        }
+                        .onAppear { recordScoreViewIfActive() }
                 }
 
                 // Diagnosis used to sit in front of this screen as a checkpoint;
@@ -292,12 +282,13 @@ struct OptimizedResumeView: View {
         // Signing in on this screen changes the account; what is on screen
         // was seen by the new account too (second-model on #226).
         .onChange(of: appState.session?.userId) { _, _ in
-            if shouldShowATSInsightPanel { appState.markMatchScoreSeen() }
+            recordScoreViewIfActive()
             if renderedPreviewHTML != nil { appState.markPDFPreviewSeen() }
         }
         .onChange(of: isActive) { _, active in
             guard active else { return }
             trackOptimizedAndExportVisibilityIfNeeded()
+            recordScoreViewIfActive()
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, _ in
             trackOptimizedAndExportVisibilityIfNeeded()
@@ -1259,6 +1250,23 @@ struct OptimizedResumeView: View {
             viewModel.errorMessage = notice
         } else {
             paywallOptimizationId = optimizationId
+        }
+    }
+
+    /// Called when the panel appears and when the tab becomes active, because
+    /// a panel mounted in the hidden tab has no second `onAppear`.
+    private func recordScoreViewIfActive() {
+        let outcome = scoreViewPolicy.consume(
+            panelShown: shouldShowATSInsightPanel,
+            isActive: isActive,
+            score: viewModel.atsScoreAfter ?? viewModel.atsScoreBefore
+        )
+        if outcome.markSeen { appState.markMatchScoreSeen() }
+        if let score = outcome.trackedScore {
+            AnalyticsService.shared.track(.matchScoreViewed(
+                source: "own",
+                scoreBucket: AnalyticsEvent.scoreBucket(for: score)
+            ))
         }
     }
 
