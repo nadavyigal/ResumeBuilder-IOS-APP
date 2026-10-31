@@ -1,3 +1,14 @@
+# 2026-10-31: Track T1, iOS payment blockers on #226
+
+Status: three open review findings fixed test-first, commit d1d0f98. 1.6.0 (36) bump, commit c4c4b52. Pushed to draft PR nadavyigal/ResumeBuilder-IOS-APP#226 on the founder's yes. Not merged. No archive.
+Current Phase: Payments v2, launch preparation. Go or no-go: `docs/qa/2026-10-31-ios-go-no-go.md`, verdict NO-GO for App Review.
+Active Story: T1, waiting on the founder for the StoreKit run on a real iPhone, the App Store Connect version decision and the demo account yes. The PR pre-check (rule 17) is not done: the founder's yes covered commit and push only, and the track's brief forbids sending messages.
+Last Completed Story: cached Pro state (paywall reads the server before hiding Pro, Pro comes back, `.noPlan` re-reads), hidden-tab score view (`ScoreViewPolicy`), required StoreKit run (`REQUIRE_STOREKIT_TESTS=1` fails, `StoreKit Tests` scheme, `StoreKitRequired.xctestplan`, local-only probe product).
+Next Recommended Story: PR pre-check on a yes, founder StoreKit run on a real iPhone, then TestFlight 1.6.0 and the sandbox matrix.
+Blockers: 10 StoreKit tests cannot pass on the iOS 26.5 simulator, need a real iPhone or an older simulator; phone test not run; demo account likely at 9, not 0; ASC version decision; T2 marked all 15 v3 screenshots REGENERATE.
+Last Validation: 2026-10-31 on the final tree: 708 XCTest, 0 failures, 11 skipped, 5 Swift Testing pass, Release build succeeded, 1.6.0 (36), iPhone 17 Pro, iOS 26.5. StoreKit Tests scheme through the Xcode app: 10 failed, 0 skipped (iOS 26.5 simulator bug, storekitd "not installed for development"). Phone test not run.
+Last Updated: 2026-10-31
+
 # 2026-10-30: Pricing v2, S6 QA and launch checklist (no code)
 
 Status: S2 to S6 done on draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (head d69a67c code); server on draft PR nadavyigal/new-ResumeBuilder-ai-#204 (ab8c8ee, Codex clean). Not merged; migration not applied.
