@@ -61,6 +61,18 @@ final class StoreKitTestGateTests: XCTestCase {
         XCTAssertFalse(ResumelyProducts.isDeliverable(StoreKitTestGate.localOnlyProductID))
     }
 
+    /// StoreKit Testing can identify a product by `internalID`, so the probe
+    /// must not share one with a real product (CodeRabbit on #226).
+    func testEveryProductInTheFileHasItsOwnInternalID() throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Resumely", withExtension: "storekit"))
+        let file = try String(contentsOf: url, encoding: .utf8)
+        let ids = try NSRegularExpression(pattern: #""internalID"\s*:\s*"(\d+)""#)
+            .matches(in: file, range: NSRange(file.startIndex..., in: file))
+            .compactMap { Range($0.range(at: 1), in: file).map { String(file[$0]) } }
+        XCTAssertEqual(ids.count, 4, "2 packs, Pro and the probe")
+        XCTAssertEqual(Set(ids).count, ids.count)
+    }
+
     /// The founder's run proves 10 cases. A new case must update that count.
     func testTheRequiredRunCoversTenCases() {
         XCTAssertEqual(StoreKitSessionTests.defaultTestSuite.testCaseCount, 10)

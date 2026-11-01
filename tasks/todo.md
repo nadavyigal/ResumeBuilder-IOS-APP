@@ -4,7 +4,7 @@ Plan: fix the three open review findings with a failing test first, then prepare
 
 - [x] Finding 1: a cancelled or expired Pro user sees the Pro offer again. Paywall reads the server before it hides Pro; `refreshEntitlements` re-reads the plan on `.noPlan`.
 - [x] Finding 2: the score-seen mark and `match_score_viewed` wait for the active tab and fire when it becomes active.
-- [x] Finding 3: with `REQUIRE_STOREKIT_TESTS=1` a missing product fails. A dedicated test plan proves all 10 StoreKit cases ran.
+- [x] Finding 3: with `REQUIRE_STOREKIT_TESTS=1` a missing product fails, and the dedicated test plan makes a skip impossible. A passing run of all 10 cases is still needed.
 - [x] `docs/qa/2026-10-31-pricing-map.md`, `founder-xcode-run.md`, `sandbox-matrix.md`, `ios-go-no-go.md`.
 - [x] 1.6.0 version bump, local only, no archive.
 - [x] Full test suite and Release build, skipped tests named.

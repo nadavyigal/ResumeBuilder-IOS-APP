@@ -75,7 +75,17 @@ Good output has `"result" : "Passed"`, `"totalTestCount" : 10`, `"passedTests" :
 
 Cmd+U on the normal "ResumeBuilder IOS APP" scheme does not count. That scheme is allowed to skip.
 
-Opening the project in Xcode rewrites `Resources/Localizable.xcstrings`: metadata and order only, no translations. It did this in my run. Do not commit that change. Discard it after the run:
+Opening the project in Xcode rewrites `Resources/Localizable.xcstrings`: metadata and order only, no translations. It did this in my run. Do not commit that change.
+
+Run this before step 3. It must print nothing:
+
+```bash
+git -C "/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2" status --short -- "ResumeBuilder IOS APP/Resources/Localizable.xcstrings"
+```
+
+If it prints a line, that file holds someone's work. Tell me, and do not use the discard below.
+
+If it printed nothing, discard Xcode's rewrite after the run:
 
 ```bash
 git -C "/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2" checkout -- "ResumeBuilder IOS APP/Resources/Localizable.xcstrings"

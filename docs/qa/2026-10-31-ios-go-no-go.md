@@ -100,7 +100,9 @@ Also found: an app that sees real products while the local file is off would han
 | # | Step | Needs |
 |---|---|---|
 | 1 | Commit and push T1 to #226 | Done |
-| 2 | Refresh the PR body, ask for `@codex review`, run a second-model review, post the pre-check comment | Named yes: these send messages on the PR |
+| 2 | Pre-check at `9e367c5`: Codex clean, `code-reviewer` approved, comment updated | Done |
+| 2b | Push the 5 CodeRabbit fixes, then pre-check that new head | Pushed on your yes. Pre-check is in the PR comment |
+| 2c | Refresh the PR body | Named yes: this sends a message on the PR |
 | 3 | Reply to the 3 review threads | Named yes, same reason |
 | 4 | Prepare the demo account | Named yes, below |
 | 5 | Read ledgers after each matrix block | Test account ids |
@@ -154,7 +156,6 @@ Exact legal wording is yours to approve.
 
 Paste any of these:
 
-- `yes, run the pre-check on #226`
 - `yes, set the review demo account to 0`
 - `yes, add 39 test usage rows to account B`
 

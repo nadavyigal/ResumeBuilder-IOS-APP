@@ -26,7 +26,7 @@ Stop and send me the row number if money moves twice, credits are lost, or a pai
 | 1 | A | New account, open Profile | "3 PDF downloads left". Match Scores work. | S, L | [ ] |
 | 2 | A | Export 3 CVs, then a 4th | Paywall opens only on the 4th, after score and preview. 14-pack preselected. | S | [ ] |
 | 3 | A | Buy the 5-pack | Export finishes with no second tap. Balance 4. One ledger row +5. | S, L | [ ] |
-| 4 | A | Buy the 14-pack | Balance goes up 14. Israel price shown is ₪, from Apple. | S, L | [ ] |
+| 4 | A | Spend the 4 downloads, tap Export again, buy the 14-pack | Paywall opens at 0. Export finishes with no second tap. Ledger +14, balance 13. Israel price shown is ₪, from Apple. | S, L | [ ] |
 | 14 | A | Spend to 0, check a job | Score works, no paywall. | S | [ ] |
 | 15 | A | Tap Continue on a pack, then Cancel in Apple's sheet | No charge. Sheet stays usable. `purchase_cancelled` once. Balance unchanged. | S, L, P | [ ] |
 | 16 | A | Sandbox settings: make the purchase fail (Interrupted Purchase on the tester), then buy | Plain message, no credits, no double charge. A retry works. | S, L | [ ] |
@@ -37,7 +37,7 @@ Stop and send me the row number if money moves twice, credits are lost, or a pai
 
 | # | Account | Do this | Pass means | Proof | Done |
 |---|---|---|---|---|---|
-| 5 | B | Subscribe | Exports spend nothing. Profile shows "Pro, renews" and a date and the fair-use count. | S, L | [ ] |
+| 5 | B | Spend the 3 free downloads, tap Export again, choose Pro, subscribe | Export finishes with no second tap. Later exports spend nothing. Profile shows "Pro, renews" and a date and the fair-use count. | S, L | [ ] |
 | 6 | B | Wait about 5 minutes | Still Pro, new date. `subscription_renewed` once. | S, P | [ ] |
 | 7 | B | Cancel in Settings, wait for expiry | "Pro until" first, then downloads count, then the paywall. `subscription_cancelled` once. | S, P | [ ] |
 | 18 | B | **New.** Keep the app in the background while Pro expires. At 0 downloads, export. | Paywall shows the **Pro row** and no fair-use note. This is finding 1 on a real phone. | S | [ ] |
@@ -45,6 +45,8 @@ Stop and send me the row number if money moves twice, credits are lost, or a pai
 | 20 | B | Fair use: at 40 of 40 with 0 packs, export | Paywall shows packs, the fair-use note, no Pro row. Profile shows 40 of 40. | S, L | [ ] |
 | 21 | B | Fair use: at 40 of 40 with pack credits | Export spends a pack credit, no paywall. | L | [ ] |
 | 22 | B | Fair use: re-download a CV already unlocked at 40 of 40 | Free, nothing counted. | L | [ ] |
+
+Rows 20 to 22 need active Pro, and rows 7 to 19 end it. Subscribe account B again first, on the paywall. Row 21 also needs pack credits: buy a 5-pack in row 20.
 
 Rows 20 to 22 need 40 used exports. Exporting 40 by hand is not practical. **Needs a named yes:** "yes, add 39 test usage rows to account B". I then insert rows for that one account in `subscription_export_usage` and delete them after the row passes.
 
