@@ -965,3 +965,21 @@ Canonical strings:
 ## Flagged (generated artifacts, not source) — screenshot manifests still say "Templates that pass ATS":
 - dist/app-store-screenshots/rb-aso-002/upload-manifest.md
 - dist/app-store-screenshots/app-store-v1/upload-manifest.md
+
+## T2 screenshots audit 2026-10-31
+- Fix fail-open capture, encode and probe paths.
+- Inspect all v3 PNGs against pricing release UI and adaptive iPad capture.
+- Record Apple requirements, per-file verdicts and separate preview removal approval.
+- Run generators and probes. Keep all changes local for founder approval.
+
+## T2 approved continuation 2026-10-31
+- Capture release Home, diagnosis, factual edit confirmation and export paywall from real iPhone 17 and iPad layouts.
+- Keep blue/yellow visual direction. Replace stale marketing fixtures with uncropped app captures and truthful copy.
+- Render individual PNGs, inspect each, update exact manifest and upload handoff. Keep video HOLD and ASC unchanged.
+
+### T2 continuation verification
+- [x] Fresh 1.6.0 (36) installs on iPhone 17 and iPad. All eight source captures checked.
+- [x] Four panels rendered in three sizes. All 12 PNGs opaque RGB, exact dimensions and visually reviewed.
+- [x] Manifest, per-file verdicts, hashes and version-gated upload handoff updated. Preview HOLD separate.
+- [ ] Founder confirms receiving ASC version. Original request says 1.5.7; current pricing build is 1.6.0 (36).
+- [ ] Any external upload, preview removal or submission. Not performed by this track.

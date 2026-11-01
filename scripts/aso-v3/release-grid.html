@@ -1,0 +1,12 @@
+<!doctype html><html><meta charset="utf-8"><title>Resumely capture grid</title>
+<style>html,body{margin:0;background:#1328c9}iframe{display:block;border:0}</style>
+<script>
+const q=new URLSearchParams(location.search),w=Number(q.get('w')),h=Number(q.get('h'));
+if(!w||!h)throw new Error('Missing canvas dimensions');
+window.ready=new Promise(resolve=>addEventListener('DOMContentLoaded',resolve)).then(()=>Promise.all([1,2,3,4].map(slot=>new Promise((resolve,reject)=>{
+ const frame=document.createElement('iframe');frame.width=w;frame.height=h;
+ frame.onload=async()=>{try{if(!frame.contentWindow.ready)throw new Error('Panel failed to initialize');await frame.contentWindow.ready;resolve(true)}catch(e){reject(e)}};
+ frame.onerror=()=>reject(new Error(`Panel ${slot} failed to load`));
+ frame.src=`release-panel.html?slot=${slot}&w=${w}&h=${h}`;document.body.append(frame);
+}))));
+</script></html>

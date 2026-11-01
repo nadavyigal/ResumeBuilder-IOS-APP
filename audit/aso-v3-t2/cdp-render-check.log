@@ -1,0 +1,7 @@
+Swift/ErrorType.swift:254: Fatal error: Error raised at top level: Error Domain=NSPOSIXErrorDomain Code=40 "Message too long" UserInfo={NSDescription=Message too long}
+Traceback (most recent call last):
+  File "/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/scripts/aso-v3/render-release.py", line 26, in <module>
+    subprocess.run([str(renderer),port,str(ROOT/'scripts/aso-v3'),str(stage)],check=True,timeout=240)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/release-renderer', '49611', '/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/scripts/aso-v3', '/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/release-render-480prwyv']' died with <Signals.SIGILL: 4>.

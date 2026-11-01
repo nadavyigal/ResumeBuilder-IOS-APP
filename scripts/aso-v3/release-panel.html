@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Resumely release screenshots</title>
+<style>
+*{box-sizing:border-box;margin:0}html,body{width:100%;height:100%;overflow:hidden}body{background:radial-gradient(ellipse at 85% 8%,#3a55ff,transparent 65%),linear-gradient(#1f3bff,#1328c9);font-family:-apple-system,BlinkMacSystemFont,"Arial",sans-serif;color:#f7f8ff}.copy{position:absolute;text-align:center;left:6%;right:6%;top:5%}h1{font-size:calc(110 * var(--s));font-weight:900;line-height:1.16;letter-spacing:-.045em}h1 span{background:#ffe34d;color:#0a0f2c;padding:0 .13em;white-space:nowrap}.sub{font-size:calc(46 * var(--s));line-height:1.3;max-width:95%;margin:calc(46 * var(--s)) auto 0;font-weight:500}.brand{position:absolute;left:8%;top:23%;font-size:calc(32 * var(--s));font-weight:700;letter-spacing:.02em}.bot{position:absolute;right:6%;top:20%;width:calc(200 * var(--s))}.capture{position:absolute;left:50%;transform:translateX(-50%);top:27.5%;width:70.5%;border:calc(9 * var(--s)) solid #080d22;border-radius:calc(56 * var(--s));overflow:hidden;box-shadow:0 calc(28 * var(--s)) calc(80 * var(--s)) #06115e88;background:#080d22}.capture img{display:block;width:100%}.home .capture{top:31%;width:76%;height:calc(1450 * var(--s))}.note{position:absolute;bottom:1.2%;width:100%;text-align:center;font-size:calc(24 * var(--s));color:#e6eaff}.tablet h1{font-size:calc(148 * var(--s))}.tablet .sub{font-size:calc(60 * var(--s))}.tablet .brand{font-size:calc(42 * var(--s));top:26%}.tablet .bot{width:calc(250 * var(--s));top:22%}.tablet .capture{top:33%;width:87%;border-radius:calc(35 * var(--s));height:calc(1660 * var(--s))}.tablet.home .capture{height:calc(1120 * var(--s));top:38%}.tablet .note{font-size:calc(34 * var(--s))}
+</style>
+<div class="copy"><h1 id="headline"></h1><p class="sub" id="sub"></p></div>
+<div class="brand">Resumely</div><img class="bot" src="src/robot.png" alt="Resumely avatar">
+<div class="capture"><img id="screen" alt="Captured release app screen"></div><div class="note" id="note"></div>
+<script>
+const slots=[
+ ['01-tailor','Check your resume','against this job','Upload your CV. Add a job post. Start with a free Match Score.'],
+ ['02-missing',"See what’s missing",'before you apply','Review the gaps behind your estimated match.'],
+ ['03-edits','Add a claim','only if it’s true','Review suggested phrases. Choose what reflects your experience.'],
+ ['04-review','Review the changes','in your resume','See your before-and-after match and suggested improvements.']
+];
+const q=new URLSearchParams(location.search),n=Number(q.get('slot')||1),slot=slots[n-1],tablet=innerWidth/innerHeight>.6;
+if(!slot)throw new Error('Unknown slot');
+// Pin the artwork canvas, independent of headless Chrome window chrome.
+for(const element of [document.documentElement,document.body]) {
+ element.style.width=Number(q.get('w')||innerWidth)+'px';
+ element.style.height=Number(q.get('h')||innerHeight)+'px';
+}
+document.documentElement.style.setProperty('--s',(innerWidth/(tablet?2064:1206))+'px');
+document.body.classList.toggle('tablet',tablet);document.body.classList.toggle('home',n===1);
+document.getElementById('headline').innerHTML=`<span>${slot[1]}</span><br><span>${slot[2]}</span>`;
+document.getElementById('sub').textContent=slot[3];
+document.getElementById('screen').src=`release-captures/${tablet?'ipad':'iphone'}/${slot[0]}.png`;
+document.getElementById('note').textContent=n===1?'Captured in Resumely': 'Example data shown. Match Scores are estimates.';
+window.ready=Promise.all([document.fonts.ready,...Array.from(document.images,i=>i.decode().catch(e=>{throw new Error(`Image decode failed: ${i.src}: ${e}`)}))]).then(()=>{document.body.dataset.ready='true'});
+</script></html>

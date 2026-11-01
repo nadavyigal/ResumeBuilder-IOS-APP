@@ -1,0 +1,74 @@
+[
+  {
+    "device": "iphone",
+    "udid": "9E2E82B6-DC56-4162-846F-B96AE74867E7",
+    "file": "scripts/aso-v3/release-captures/iphone/01-tailor.png",
+    "launch_args": [],
+    "text_check": "Upload your"
+  },
+  {
+    "device": "iphone",
+    "udid": "9E2E82B6-DC56-4162-846F-B96AE74867E7",
+    "file": "scripts/aso-v3/release-captures/iphone/02-missing.png",
+    "launch_args": [
+      "--smoke-diagnosis",
+      "--smoke-fit"
+    ],
+    "text_check": "What is holding"
+  },
+  {
+    "device": "iphone",
+    "udid": "9E2E82B6-DC56-4162-846F-B96AE74867E7",
+    "file": "scripts/aso-v3/release-captures/iphone/03-edits.png",
+    "launch_args": [
+      "--smoke-diagnosis",
+      "--smoke-confirm"
+    ],
+    "text_check": "Add only if true"
+  },
+  {
+    "device": "iphone",
+    "udid": "9E2E82B6-DC56-4162-846F-B96AE74867E7",
+    "file": "scripts/aso-v3/release-captures/iphone/04-review.png",
+    "launch_args": [
+      "--smoke-diagnosis"
+    ],
+    "text_check": "What changed"
+  },
+  {
+    "device": "ipad",
+    "udid": "414996FA-6056-46FC-B08C-9CA1723C0857",
+    "file": "scripts/aso-v3/release-captures/ipad/01-tailor.png",
+    "launch_args": [],
+    "text_check": "Upload your"
+  },
+  {
+    "device": "ipad",
+    "udid": "414996FA-6056-46FC-B08C-9CA1723C0857",
+    "file": "scripts/aso-v3/release-captures/ipad/02-missing.png",
+    "launch_args": [
+      "--smoke-diagnosis",
+      "--smoke-fit"
+    ],
+    "text_check": "What is holding"
+  },
+  {
+    "device": "ipad",
+    "udid": "414996FA-6056-46FC-B08C-9CA1723C0857",
+    "file": "scripts/aso-v3/release-captures/ipad/03-edits.png",
+    "launch_args": [
+      "--smoke-diagnosis",
+      "--smoke-confirm"
+    ],
+    "text_check": "Add only if true"
+  },
+  {
+    "device": "ipad",
+    "udid": "414996FA-6056-46FC-B08C-9CA1723C0857",
+    "file": "scripts/aso-v3/release-captures/ipad/04-review.png",
+    "launch_args": [
+      "--smoke-diagnosis"
+    ],
+    "text_check": "What changed"
+  }
+]

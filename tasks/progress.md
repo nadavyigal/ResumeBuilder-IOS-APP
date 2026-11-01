@@ -1,3 +1,15 @@
+# 2026-10-28: App Store screenshots v3 (rb-aso-004)
+
+Status: PR open, not merged. Branch `aso/screenshots-v3` from main 96e89aa. Uploaded to App Store Connect version 1.5.7 on 2026-10-29 (not submitted).
+Current Phase: ASO. Active Story: v3 screenshot set. Last Completed Story: v3 render for iPhone 6.3, 6.5 and iPad 13.
+Change: the live v2 set (1.5.6, checked on apps.apple.com 2026-10-28) is near-black with a small headline and reads as dark slabs in search. v3: cobalt background, two-line highlighter headline at one shared size, app screen in a phone filling the lower frame. Generator in `scripts/aso-v3/`, files and copy in `dist/app-store-screenshots/app-store-v3/upload-manifest.md`. New subtitle "Tailor Your Resume to Any Job" and promotional text proposed there.
+Last Validation: 15 PNGs at exact sizes, all opaque (sips hasAlpha: no); every frame viewed after render; no ATS or guarantee claims. No app code changed, so no XCTest run.
+2026-10-28 later: added the Resumely avatar to all five frames (a different placement on each, never mirrored) and a 21 s App Preview video (886x1920, H.264 30 fps, silent stereo AAC) that plays before the screenshots. Generator: `preview.html`, `capture-frames.js`, `encode.swift`. Last Validation: probe shows 21.0 s, 886x1920 avc1 30 fps, AAC 2 ch 48 kHz; stills extracted from the encoded file at 7 times viewed; 15 PNGs opaque.
+2026-10-29: created version 1.5.7 (Prepare for Submission) in App Store Connect and uploaded the v3 set: 5 screenshots each for iPhone 6.3", 6.5" and iPad 13" (v2 removed from 1.5.7 only, still in the Asset Library), the App Preview in the first slot of 6.3" and 6.5", subtitle "Tailor Your Resume to Any Job", and the new Promotional Text. The preview was re-encoded at 3.3 Mbps (8.7 MB) because the browser upload takes 10 MB at most; stills checked sharp. Last Validation: Media Manager shows 5 of 10 screenshots in order in all three sections and 1 of 3 previews in both iPhone sections; Apple was still processing the previews.
+Next Recommended Story: attach a 1.5.7 build, write What's New, submit 1.5.7 for review, then log rb-aso-004 with the publish date. Then a brighter app icon with the avatar.
+Blockers: 1.5.7 needs a build before it can be submitted.
+Last Updated: 2026-10-29
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
@@ -1726,3 +1738,9 @@ Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 - `Features/Track/ApplicationsListView.swift`
 
 Notes: App is v1.2 build 7 in App Store review. V2 folder is active target for all new screens. Dark mode only.
+
+## T2 screenshot audit, 2026-10-31
+Local uncommitted corrections on aso/screenshots-v3. All 15 original v3 PNGs visually reviewed and marked REGENERATE against pricing release references. Only en-US exists. Preview HOLD is separate from screenshots. Approval packet proposes removing the reported 1.5.7 draft previews only, with no submission. Live ASC state remains unverified. See audit/aso-v3-t2 and upload-manifest.md for current evidence and unresolved capture work.
+
+### T2 approved continuation complete for local review, 31 Oct
+Twelve final PNGs are ready for approval: four panels in each of the 1206x2622, 1242x2688 and 2064x2752 slots. Actual iPhone 17 and adaptive iPad captures replace the marketing fixtures. Both capture apps were refreshed and verified as pricing build 1.6.0 (36). Eight fresh capture text checks, the source build, final pixel checks and visual review passed. All 15 old images are marked REMOVE from the upload set, with files retained. The preview remains HOLD. ASC is unchanged. Confirm the original 1.5.7 target versus the current 1.6.0 UI before upload. See audit/aso-v3-t2/approval-packet.md and the upload manifest. No commit or push.

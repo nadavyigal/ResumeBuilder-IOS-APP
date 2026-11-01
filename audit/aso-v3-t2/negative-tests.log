@@ -1,0 +1,6 @@
+probe failed: Error Domain=AVFoundationErrorDomain Code=-11800 "The operation could not be completed" UserInfo={NSUnderlyingError=0x7fc4e8607bf0 {Error Domain=NSOSStatusErrorDomain Code=-17913 "(null)"}, NSLocalizedFailureReason=An unknown error occurred (-17913), AVErrorFailedDependenciesKey=(
+    Duration
+), NSURL=missing.mov -- file:///Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/, NSLocalizedDescription=The operation could not be completed}
+Exit: 1
+Expected exactly 630 contiguous frames f0000.png through f0629.png
+Exit: 1

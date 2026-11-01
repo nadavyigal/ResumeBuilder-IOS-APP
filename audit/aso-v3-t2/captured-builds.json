@@ -1,0 +1,14 @@
+[
+  {
+    "device": "iphone",
+    "version": "1.6.0",
+    "build": "36",
+    "executable_sha256": "08bd02bb352feaca17de2856c27bac1746d236a538a0d6a25af02032a388ff42"
+  },
+  {
+    "device": "ipad",
+    "version": "1.6.0",
+    "build": "36",
+    "executable_sha256": "08bd02bb352feaca17de2856c27bac1746d236a538a0d6a25af02032a388ff42"
+  }
+]

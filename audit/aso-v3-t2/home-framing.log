@@ -1,0 +1,8 @@
+[68811:12004935:1031/190149.418442:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190149.425323:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190149.425909:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190149.426398:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190150.627655:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190150.628381:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68811:12004935:1031/190150.628910:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+1060085 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/home-framing/01-tailor.png

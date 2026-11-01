@@ -952,3 +952,18 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** Reopening a locked paywall must retry its unfinished transaction without enabling a new purchase. Preserve the waiting phase and resume the export after a successful grant.
 **Why:** A failed offline launch wrote the lock, but the lock then prevented entering buy(), the only place a user-triggered retry existed. Two failing model regressions drive the correction. Also reapply the existing 2026-10-16 smoke-language reset before every subsequent full suite: this session's Hebrew smoke preference caused 27 English-copy assertions to fail until the actual app-container preference was reset.
+
+**Date:** 2026-10-31
+**Category:** Build
+**Rule:** Treat screenshot and preview generators as failed until expected fresh outputs and final writer state are verified; bound callback waits.
+**Why:** PR 225 generators could report success with stale images, incomplete frames, or a failed writer. A 630-frame diagnostic encode also timed out during this audit.
+
+**Date:** 2026-10-31
+**Category:** Build
+**Rule:** Record the installed simulator build separately from the latest built source, and verify each captured screen before accepting it.
+**Why:** The simulator retained the earlier pricing build while the read-only pricing worktree advanced to 1.6.0 (36). Startup screenshots also returned blank content before the view finished rendering. Fresh installs and text checks prevent stale or blank upload candidates.
+
+**Date:** 2026-10-31
+**Category:** Build
+**Rule:** Set a sufficient WebSocket message limit when receiving base64 browser screenshots.
+**Why:** The default URLSession WebSocket limit rejected a full-resolution screenshot with Message too long. The isolated browser renderer now permits up to 32 MB per message and still fails on protocol or decode errors.
