@@ -225,7 +225,7 @@
     const fits = s => Object.values(SLOTS).every(o => {
       h1.innerHTML = o.h.map(l => `<span>${l}</span>`).join("<br>");
       h1.style.fontSize = s + "px";
-      return h1.scrollWidth <= maxW;
+      return h1.scrollWidth <= h1.clientWidth;
     });
     while (!fits(size) && size > 60) size -= 2;
     h1.style.fontSize = size + "px";
@@ -250,7 +250,7 @@
     const post = document.getElementById("post");
     if (!post.hidden) post.style.top = Math.min(phoneTop + 860 * u, H - post.offsetHeight - 140 * u) + "px";
   };
-  Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(() => {}))]).then(layout);
+  Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(e => { throw new Error(`Image decode failed: ${i.src}: ${e}`); }))]).then(layout);
 </script>
 </body>
 </html>

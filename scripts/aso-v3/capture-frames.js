@@ -4,6 +4,9 @@
 // Then encode:  swift encode.swift <framesDir> <out.mov> 886 1920
 async (page) => {
   const dir = process.env.FRAMES_DIR || '/tmp/resumely-preview-frames';
+  const fs = require('node:fs/promises');
+  // Refuse reuse, including a partial capture from an earlier run.
+  await fs.mkdir(dir, { recursive: false });
   await page.setViewportSize({ width: 886, height: 1920 });
   await page.goto('http://127.0.0.1:8791/preview.html');
   await page.evaluate(() => window.ready);

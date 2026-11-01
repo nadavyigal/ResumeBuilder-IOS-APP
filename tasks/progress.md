@@ -1738,3 +1738,9 @@ Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
 - `Features/Track/ApplicationsListView.swift`
 
 Notes: App is v1.2 build 7 in App Store review. V2 folder is active target for all new screens. Dark mode only.
+
+## T2 screenshot audit, 2026-10-31
+Local uncommitted corrections on aso/screenshots-v3. All 15 original v3 PNGs visually reviewed and marked REGENERATE against pricing release references. Only en-US exists. Preview HOLD is separate from screenshots. Approval packet proposes removing the reported 1.5.7 draft previews only, with no submission. Live ASC state remains unverified. See audit/aso-v3-t2 and upload-manifest.md for current evidence and unresolved capture work.
+
+### T2 approved continuation complete for local review, 31 Oct
+Twelve final PNGs are ready for approval: four panels in each of the 1206x2622, 1242x2688 and 2064x2752 slots. Actual iPhone 17 and adaptive iPad captures replace the marketing fixtures. Both capture apps were refreshed and verified as pricing build 1.6.0 (36). Eight fresh capture text checks, the source build, final pixel checks and visual review passed. All 15 old images are marked REMOVE from the upload set, with files retained. The preview remains HOLD. ASC is unchanged. Confirm the original 1.5.7 target versus the current 1.6.0 UI before upload. See audit/aso-v3-t2/approval-packet.md and the upload manifest. No commit or push.

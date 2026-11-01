@@ -1,0 +1,33 @@
+[68669:12003690:1031/190138.896815:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.942564:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.943255:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.943897:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.944427:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.944896:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68669:12003690:1031/190138.945613:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Trying to load the allocator multiple times. This is *not* supported.
+1158142 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/render-ghnh6pnf/01-tailor.png
+Trying to load the allocator multiple times. This is *not* supported.
+[68796:12004714:1031/190148.800153:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68796:12004714:1031/190148.845255:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68796:12004714:1031/190148.846004:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68796:12004714:1031/190148.846501:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68796:12004714:1031/190148.847001:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68796:12004714:1031/190148.847655:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+1342713 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/render-ghnh6pnf/02-missing.png
+[68932:12005922:1031/190158.726790:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68932:12005922:1031/190158.728958:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68932:12005922:1031/190158.729530:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68932:12005922:1031/190158.730075:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68932:12005922:1031/190158.730644:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[68932:12005922:1031/190158.731403:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Trying to load the allocator multiple times. This is *not* supported.
+1390012 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/render-ghnh6pnf/03-edits.png
+[69039:12006734:1031/190208.583913:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[69039:12006734:1031/190208.628751:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[69039:12006734:1031/190208.629436:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[69039:12006734:1031/190208.629973:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[69039:12006734:1031/190208.630523:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[69039:12006734:1031/190208.631303:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Trying to load the allocator multiple times. This is *not* supported.
+1561569 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/render-ghnh6pnf/04-review.png

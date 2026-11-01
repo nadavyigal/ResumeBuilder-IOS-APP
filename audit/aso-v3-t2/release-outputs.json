@@ -1,0 +1,122 @@
+[
+  {
+    "slot": "release-iphone-6.3-1206x2622",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.3-1206x2622/01-tailor.png",
+    "size": [
+      1206,
+      2622
+    ],
+    "mode": "RGB",
+    "sha256": "cf71d12b31b968f9e9f1ec443ed480db925346e8bc60f85479a7645a075bcee0"
+  },
+  {
+    "slot": "release-iphone-6.3-1206x2622",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.3-1206x2622/02-missing.png",
+    "size": [
+      1206,
+      2622
+    ],
+    "mode": "RGB",
+    "sha256": "d79026682daefca9693666c16952794eaf63d6975b9017f1528399784ca2cae6"
+  },
+  {
+    "slot": "release-iphone-6.3-1206x2622",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.3-1206x2622/03-edits.png",
+    "size": [
+      1206,
+      2622
+    ],
+    "mode": "RGB",
+    "sha256": "26aade20f5433c801322c4d4641a589efaa19cdd376069f3a996e490d85c5b54"
+  },
+  {
+    "slot": "release-iphone-6.3-1206x2622",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.3-1206x2622/04-review.png",
+    "size": [
+      1206,
+      2622
+    ],
+    "mode": "RGB",
+    "sha256": "06ba2e935e3610566493cc5af5a1c0056f159ddd5a1a4ef66f473c732b8af709"
+  },
+  {
+    "slot": "release-iphone-6.5-1242x2688",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.5-1242x2688/01-tailor.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "mode": "RGB",
+    "sha256": "2783e5e913a12a9032caccadd9cb3bae42e3f682b059c9029da28a8c00e6b3c6"
+  },
+  {
+    "slot": "release-iphone-6.5-1242x2688",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.5-1242x2688/02-missing.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "mode": "RGB",
+    "sha256": "c59d772f834e1a55341b709733fc8ce2a44887624ab889d90e1a150f18a407ce"
+  },
+  {
+    "slot": "release-iphone-6.5-1242x2688",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.5-1242x2688/03-edits.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "mode": "RGB",
+    "sha256": "8fa24bb03e51d73610ca122a4a4814fe0336ff2b9f81d6b949eb82173c49d395"
+  },
+  {
+    "slot": "release-iphone-6.5-1242x2688",
+    "file": "dist/app-store-screenshots/app-store-v3/release-iphone-6.5-1242x2688/04-review.png",
+    "size": [
+      1242,
+      2688
+    ],
+    "mode": "RGB",
+    "sha256": "d767e598dafa508af7b6b37a26e8c58ce47a4d850eba91592f70ab2501b20d1a"
+  },
+  {
+    "slot": "release-ipad-13-2064x2752",
+    "file": "dist/app-store-screenshots/app-store-v3/release-ipad-13-2064x2752/01-tailor.png",
+    "size": [
+      2064,
+      2752
+    ],
+    "mode": "RGB",
+    "sha256": "d83f77d37a9568a976965893d07bc6253ffcee8f879861bb121a1c93c29e42ff"
+  },
+  {
+    "slot": "release-ipad-13-2064x2752",
+    "file": "dist/app-store-screenshots/app-store-v3/release-ipad-13-2064x2752/02-missing.png",
+    "size": [
+      2064,
+      2752
+    ],
+    "mode": "RGB",
+    "sha256": "d0e73816617da6da5f081266e56c9d619d9f0ceae2e5ab78fba44b66585e2da1"
+  },
+  {
+    "slot": "release-ipad-13-2064x2752",
+    "file": "dist/app-store-screenshots/app-store-v3/release-ipad-13-2064x2752/03-edits.png",
+    "size": [
+      2064,
+      2752
+    ],
+    "mode": "RGB",
+    "sha256": "0c06b80e0c45cdf234f10e2421b3ccc61546c391f92922fab7ea0d8e1cb1ef23"
+  },
+  {
+    "slot": "release-ipad-13-2064x2752",
+    "file": "dist/app-store-screenshots/app-store-v3/release-ipad-13-2064x2752/04-review.png",
+    "size": [
+      2064,
+      2752
+    ],
+    "mode": "RGB",
+    "sha256": "abffb94f80a7a69eb1b911feb0c6d05c4ec16ea8b3ff2fff8c75d6e144476c5d"
+  }
+]

@@ -5,10 +5,15 @@ import AVFoundation
 import AppKit
 
 let a = CommandLine.arguments
+guard a.count == 5 else { print("usage: encode frames out width height"); exit(1) }
 let dir = URL(fileURLWithPath: a[1]), out = URL(fileURLWithPath: a[2])
 let W = Int(a[3])!, H = Int(a[4])!, fps: Int32 = 30
 try? FileManager.default.removeItem(at: out)
 let files = try FileManager.default.contentsOfDirectory(atPath: dir.path).filter { $0.hasSuffix(".png") }.sorted()
+
+guard files == (0..<630).map({ String(format: "f%04d.png", $0) }) else {
+  print("Expected exactly 630 contiguous frames f0000.png through f0629.png"); exit(1)
+}
 
 let writer = try AVAssetWriter(outputURL: out, fileType: .mov)
 let video = AVAssetWriterInput(mediaType: .video, outputSettings: [
@@ -33,7 +38,7 @@ let audio = AVAssetWriterInput(mediaType: .audio, outputSettings: [
 ])
 audio.expectsMediaDataInRealTime = false
 writer.add(video); writer.add(audio)
-writer.startWriting(); writer.startSession(atSourceTime: .zero)
+guard writer.startWriting() else { print(writer.error as Any); exit(1) }; writer.startSession(atSourceTime: .zero)
 func check() {
   if writer.status == .failed { print("writer failed:", writer.error as Any); exit(1) }
 }
@@ -56,8 +61,9 @@ video.requestMediaDataWhenReady(on: DispatchQueue(label: "video")) {
   while video.isReadyForMoreMediaData {
     if frame >= files.count { video.markAsFinished(); group.leave(); return }
     autoreleasepool {
-      let img = NSImage(contentsOf: dir.appendingPathComponent(files[frame]))!
-      let cg = img.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+      guard let img = NSImage(contentsOf: dir.appendingPathComponent(files[frame])),
+            let cg = img.cgImage(forProposedRect: nil, context: nil, hints: nil),
+            cg.width == W, cg.height == H else { print("Invalid image:", files[frame]); exit(1) }
       var pb: CVPixelBuffer?
       CVPixelBufferPoolCreatePixelBuffer(nil, adaptor.pixelBufferPool!, &pb)
       let buf = pb!
@@ -67,7 +73,7 @@ video.requestMediaDataWhenReady(on: DispatchQueue(label: "video")) {
                           bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)!
       ctx.draw(cg, in: CGRect(x: 0, y: 0, width: W, height: H))
       CVPixelBufferUnlockBaseAddress(buf, [])
-      adaptor.append(buf, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: fps))
+      guard adaptor.append(buf, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: fps)) else { print(writer.error as Any); exit(1) }
     }
     frame += 1
   }
@@ -87,15 +93,19 @@ audio.requestMediaDataWhenReady(on: DispatchQueue(label: "audio")) {
     CMAudioSampleBufferCreateReadyWithPacketDescriptions(allocator: nil, dataBuffer: block!, formatDescription: fmt!,
       sampleCount: n, presentationTimeStamp: CMTime(value: CMTimeValue(done), timescale: CMTimeScale(rate)),
       packetDescriptions: nil, sampleBufferOut: &sb)
-    audio.append(sb!)
+    guard audio.append(sb!) else { print(writer.error as Any); exit(1) }
     done += n
   }
   check()
 }
 
-group.wait()
+guard group.wait(timeout: .now() + 120) == .success else {
+  print("Timed out feeding writer:", writer.status.rawValue, writer.error as Any); exit(1)
+}
 let sem = DispatchSemaphore(value: 0)
 writer.endSession(atSourceTime: CMTime(value: CMTimeValue(files.count), timescale: fps))
 writer.finishWriting { sem.signal() }
-sem.wait()
+guard sem.wait(timeout: .now() + 60) == .success else { print("Timed out finishing writer"); exit(1) }
 print(writer.status == .completed ? "ok \(files.count) frames" : "failed \(String(describing: writer.error))")
+
+guard writer.status == .completed else { exit(1) }

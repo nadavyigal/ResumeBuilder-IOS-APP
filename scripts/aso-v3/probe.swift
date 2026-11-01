@@ -3,9 +3,12 @@
 import AVFoundation
 import AppKit
 let args = CommandLine.arguments
+guard args.count >= 3 else { print("usage: probe movie outDir [seconds...]"); exit(1) }
 let asset = AVURLAsset(url: URL(fileURLWithPath: args[1]))
 let sem = DispatchSemaphore(value: 0)
 Task {
+  do {
+  try FileManager.default.createDirectory(atPath: args[2], withIntermediateDirectories: true)
   let d = try await asset.load(.duration)
   print("duration", CMTimeGetSeconds(d))
   for t in try await asset.load(.tracks) {
@@ -27,5 +30,9 @@ Task {
     try rep.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: "\(args[2])/v\(s).png"))
   }
   sem.signal()
+  } catch {
+    print("probe failed:", error)
+    exit(1)
+  }
 }
-sem.wait()
+guard sem.wait(timeout: .now() + 60) == .success else { print("probe timed out"); exit(1) }

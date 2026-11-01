@@ -1199,3 +1199,9 @@ Verified current backend merge/migration truth, reproduced and fixed #207 review
 ## 2026-10-24 — Sandbox succeeds, recovery P2 addressed
 
 User confirmed the real Sandbox five-pack purchase opened the export flow. Production ledger independently confirms +5 apple_iap Sandbox / -1 export_unlock / balance 4. No duplicate grant. Corrected #207's new locked-paywall delivery-retry P2 with red-green model coverage; 582 XCTest cases (one skipped) and five Swift Testing cases pass. PostHog connector requires reauthentication; events are not claimed verified. Signed build/review and remaining physical checks pending at this record.
+
+## 2026-10-31 T2
+Read all unresolved PR 225 threads and latest Steward. Fixed render failure, incomplete frames, image decode swallowing, final writer exit and probe error wait. Manifest now gates upload on release fidelity. Preview removal packet is separate. No commit, push, ASC change, or message sent. Release simulator capture verification remains in progress.
+
+### T2 approved continuation, 31 Oct
+Prepared 12 individual screenshot PNGs from actual iPhone 17 and adaptive iPad UI. Kept blue/yellow Resumely branding. Removed old PDF/expert panels from the candidate set. Fresh capture build is 1.6.0 (36) on both simulators. Current source hashes stayed stable during capture. Source build, eight text checks, renderer, 12 pixel/visual checks and syntax checks passed. Changed script/artwork/capture files, 12 output PNGs, manifest and audit handoff are listed in audit/aso-v3-t2/results.md. No commit, push or ASC change. Next action: confirm 1.5.7 versus 1.6.0 target and approve the exact upload set. Taste Check: readable headlines with real app layouts and consistent avatar.

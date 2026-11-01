@@ -1,0 +1,7 @@
+[70096:12015347:1031/190413.288693:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[70096:12015347:1031/190413.329385:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[70096:12015347:1031/190413.330710:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[70096:12015347:1031/190413.331490:ERROR:ui/display/mac/cv_display_link_mac.mm:165] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+1068680 bytes written to file /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-aso-screenshots-v3/audit/aso-v3-t2/render-jduwhi1f/01-tailor.png
+[70021:12015010:1031/190824.863266:ERROR:content/browser/gpu/gpu_process_host.cc:964] GPU process exited unexpectedly: exit_code=15
+[70021:12015010:1031/190824.876372:ERROR:content/browser/network_service_instance_impl.cc:595] Network service crashed, restarting service.

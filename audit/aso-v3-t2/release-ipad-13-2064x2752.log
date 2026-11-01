@@ -1,0 +1,5 @@
+[69281:12008805:1031/190241.185320:ERROR:content/browser/gpu/gpu_process_host.cc:1044] GPU process exited unexpectedly: exit_code=15
+[69377:12009490:1031/190241.277946:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.Chrome.MachPortRendezvousServer.69281: Unknown service name (1102)
+[69377:12009490:1031/190241.279102:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+[69382:12009508:1031/190241.528178:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.Chrome.MachPortRendezvousServer.1: Permission denied (1100)
+[69382:12009508:1031/190241.529515:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)

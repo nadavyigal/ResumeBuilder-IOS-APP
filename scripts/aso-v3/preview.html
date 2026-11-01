@@ -316,7 +316,7 @@
     $("end").querySelector(".cta").style.opacity = prog(t, 19.2, 19.7);
   };
 
-  window.ready = Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(() => {}))])
+  window.ready = Promise.all([document.fonts.ready, ...[...document.images].map(i => i.decode().catch(e => { throw new Error(`Image decode failed: ${i.src}: ${e}`); }))])
     .then(() => {
       fitHeadline(); setScene(0);
       render(parseFloat(new URLSearchParams(location.search).get("t") || "0"));
