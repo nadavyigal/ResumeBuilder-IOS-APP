@@ -6,7 +6,7 @@ Active Story: T1, waiting on the founder for the StoreKit run on a real iPhone, 
 Last Completed Story: cached Pro state (paywall reads the server before hiding Pro, Pro comes back, `.noPlan` re-reads), hidden-tab score view (`ScoreViewPolicy`), required StoreKit run (`REQUIRE_STOREKIT_TESTS=1` fails, `StoreKit Tests` scheme, `StoreKitRequired.xctestplan`, local-only probe product).
 Next Recommended Story: pre-check result on the new head, founder StoreKit run on a real iPhone, then TestFlight 1.6.0 and the sandbox matrix.
 Blockers: 10 StoreKit tests cannot pass on the iOS 26.5 simulator, need a real iPhone or an older simulator; phone test not run; demo account likely at 9, not 0; ASC version decision; T2 marked all 15 v3 screenshots REGENERATE.
-Last Validation: 2026-10-31 on the final tree: 708 XCTest, 0 failures, 11 skipped, 5 Swift Testing pass, Release build succeeded, 1.6.0 (36), iPhone 17 Pro, iOS 26.5. StoreKit Tests scheme through the Xcode app: 10 failed, 0 skipped (iOS 26.5 simulator bug, storekitd "not installed for development"). Phone test not run.
+Last Validation: 2026-11-01 on a clean tree at 2ea9eae: result bundle Passed, 714 total (709 XCTest plus 5 Swift Testing), 703 passed, 0 failed, 11 skipped, iPhone 17 Pro, iOS 26.5. Release build succeeded at 9e367c5, no app source changed since. StoreKit Tests scheme through the Xcode app: 10 failed, 0 skipped (iOS 26.5 simulator bug, storekitd "not installed for development"). Phone test not run.
 Last Updated: 2026-11-01
 
 # 2026-10-30: Pricing v2, S6 QA and launch checklist (no code)

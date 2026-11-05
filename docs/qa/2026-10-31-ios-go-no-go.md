@@ -25,11 +25,11 @@ Payments are not complete. The 10 StoreKit tests have not passed, and the phone 
 
 ## Final results
 
-All on the final working tree, simulator iPhone 17 Pro, iOS 26.5, Xcode 26.5, 1.6.0 (36):
+Simulator iPhone 17 Pro, iOS 26.5, Xcode 26.5, 1.6.0 (36). Full suite on a clean tree at `2ea9eae`, Release build at `9e367c5`, no app source changed since:
 
 | Check | Result |
 |---|---|
-| Full suite | 708 XCTest, 0 failures, 11 skipped. 5 Swift Testing pass |
+| Full suite | Result bundle `Passed`: 714 total (709 XCTest plus 5 Swift Testing), 703 passed, 0 failed, 11 skipped |
 | Release build, generic iOS Simulator | Succeeded |
 | `test_measurement_contract.py` | 7 pass |
 | Paywall smoke, EN, sample offers | Both states correct: Pro offered, and Pro hidden with the fair-use note. Screenshots in `audit/pricing-v2-t1/`. Hebrew not re-shot, no copy changed |
@@ -101,7 +101,7 @@ Also found: an app that sees real products while the local file is off would han
 |---|---|---|
 | 1 | Commit and push T1 to #226 | Done |
 | 2 | Pre-check at `9e367c5`: Codex clean, `code-reviewer` approved, comment updated | Done |
-| 2b | Push the 5 CodeRabbit fixes, then pre-check that new head | Pushed on your yes. Pre-check is in the PR comment |
+| 2b | Push the 5 CodeRabbit fixes, then pre-check that new head | Done at `2ea9eae`: Codex clean, fixes verified. One record line is local, for the next commit |
 | 2c | Refresh the PR body | Named yes: this sends a message on the PR |
 | 3 | Reply to the 3 review threads | Named yes, same reason |
 | 4 | Prepare the demo account | Named yes, below |
