@@ -1,3 +1,8 @@
+## 2026-11-05: Read the ledger before trusting a reported number
+
+A phone report of "4 left" after an interrupted purchase was wrong: the app had been closed inside Apple's sheet, Apple dropped the purchase, and the server balance was 0. PostHog (`paywall_viewed`, then `app_launched`, no `purchase_started`) and the empty `/api/v1/iap/verify` log proved it in minutes.
+**How to apply:** for any payment row, read `credit_transactions` for that user and the verify log before recording a pass or chasing a bug. Ask for a screenshot, not a typed number.
+
 ## 2026-10-30: State placed inside `#if DEBUG` passes every test and breaks Archive
 
 S4 added three `@State` lines next to a DEBUG-only smoke flag, inside its `#if DEBUG`

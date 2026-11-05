@@ -1,12 +1,12 @@
-# 2026-11-05: 1.6.0 (37) to TestFlight, phone retest (WP-79 S4, PR #226)
+# 2026-11-05: 1.6.0 (37) on TestFlight, phone run (WP-79 S4, PR #226)
 
-Status: build bumped to 37 at the head that holds the usage refresh fix (80f36fc). Release archive verified (1.6.0, 37, production API, no StoreKit file or test bundle). Upload to internal TestFlight on the founder's yes, 2026-11-05. Not merged, not submitted.
+Status: 1.6.0 (37) uploaded 09:45 on the founder's yes, in the internal Founder QA group only. Phone run done: `docs/qa/2026-11-05-testflight-37-phone-run.md`. Not merged, not submitted.
 Current Phase: Payments v2, launch preparation.
-Active Story: WP-79 S4, phone retest of the usage fix on TestFlight 37, then interrupted delivery rows 12, 26, 27.
-Last Completed Story: Pro renewal on a real phone (matrix row 6): qa-pro resubscribed 3 Nov 11:35, renewed by itself, Profile shows "renews Nov 5" (founder report, 2026-11-05). Codex T2 results for build 36 (1 to 3 Nov) are in `audit/release-1.6.0/phone-testing-live.md` on the `aso/screenshots-v3` worktree, uncommitted.
-Next Recommended Story: install 37 from TestFlight, export with qa-pro, open Me, count goes up by 1 without relaunch.
-Blockers: StoreKit unit tests on a real phone: 1 passed, 9 failed on 1 Nov (Sandbox denied the purchase steps); not repeated. Demo account credits; screenshots (#225).
-Last Validation: 2026-11-05: Release archive 1.6.0 (37) succeeded. Full suite last run at 80f36fc: 712 XCTest, 0 failures, 11 skipped.
+Active Story: none in code. WP-79 S4 phone run complete for the must-pass money rows.
+Last Completed Story: on TestFlight 37: row 6 Pro renewal PASS, S3 usage refresh PASS (count +1 without relaunch), row 12 PASS (one +5 grant, one debit, balance 4; grant lands before a person can close the app), row 27 PASS (re-sent transaction added no row, Restore kept 4). First row 12 attempt closed the app inside Apple's sheet: no purchase, no charge, correct.
+Next Recommended Story: WP-79 S6 demo account to 0 (named yes), then S8 screenshots (#225) and submit 1.6.0 with build 37.
+Blockers: StoreKit unit tests on a real phone 1 pass / 9 fail on 1 Nov (Sandbox refuses local-file purchases), not repeated; rows 10, 11, 17, 20 to 22, 25, 26, 28 to 31 not run; S6 demo account; S7 accountant; S8 screenshots.
+Last Validation: 2026-11-05: Release archive 1.6.0 (37) succeeded and was verified; ledger, PostHog and Vercel logs read for every row above. No app source change since 80f36fc (712 XCTest, 0 failures, 11 skipped).
 Last Updated: 2026-11-05
 
 # 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
