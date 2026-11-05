@@ -1,3 +1,14 @@
+# 2026-11-05: 1.6.0 (37) to TestFlight, phone retest (WP-79 S4, PR #226)
+
+Status: build bumped to 37 at the head that holds the usage refresh fix (80f36fc). Release archive verified (1.6.0, 37, production API, no StoreKit file or test bundle). Upload to internal TestFlight on the founder's yes, 2026-11-05. Not merged, not submitted.
+Current Phase: Payments v2, launch preparation.
+Active Story: WP-79 S4, phone retest of the usage fix on TestFlight 37, then interrupted delivery rows 12, 26, 27.
+Last Completed Story: Pro renewal on a real phone (matrix row 6): qa-pro resubscribed 3 Nov 11:35, renewed by itself, Profile shows "renews Nov 5" (founder report, 2026-11-05). Codex T2 results for build 36 (1 to 3 Nov) are in `audit/release-1.6.0/phone-testing-live.md` on the `aso/screenshots-v3` worktree, uncommitted.
+Next Recommended Story: install 37 from TestFlight, export with qa-pro, open Me, count goes up by 1 without relaunch.
+Blockers: StoreKit unit tests on a real phone: 1 passed, 9 failed on 1 Nov (Sandbox denied the purchase steps); not repeated. Demo account credits; screenshots (#225).
+Last Validation: 2026-11-05: Release archive 1.6.0 (37) succeeded. Full suite last run at 80f36fc: 712 XCTest, 0 failures, 11 skipped.
+Last Updated: 2026-11-05
+
 # 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
 
 Status: fixed test-first and pushed to draft PR nadavyigal/ResumeBuilder-IOS-APP#226. Not merged.
