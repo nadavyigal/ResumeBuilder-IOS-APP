@@ -7,6 +7,8 @@ import SwiftUI
 struct ProfilePlanSection: View {
     @Environment(AppState.self) private var appState
     @Environment(LocalizationManager.self) private var localization
+    /// The Me tab is the one on screen.
+    var isActive = true
     @State private var showManageSubscription = false
     @State private var isRestoring = false
     @State private var restoreMessage: String?
@@ -64,7 +66,12 @@ struct ProfilePlanSection: View {
             }
         }
         .manageSubscriptionsSheet(isPresented: $showManageSubscription)
-        .task { await appState.refreshCredits() }
+        // Every tab stays alive, so a plain `.task` read the server once per
+        // launch. Read again each time the Me tab is shown.
+        .task(id: isActive) {
+            guard isActive else { return }
+            await appState.refreshCredits()
+        }
     }
 
     private var divider: some View {

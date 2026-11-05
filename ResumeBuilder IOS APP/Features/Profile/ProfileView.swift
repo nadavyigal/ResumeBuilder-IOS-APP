@@ -478,7 +478,7 @@ struct ProfileView: View {
     /// Pricing v2 plan row; the content lives in `Features/V2/Profile`.
     private var planSection: some View {
         ProfileSection(title: "Plan", icon: "doc.badge.arrow.up", iconColor: Theme.accentBlue) {
-            ProfilePlanSection()
+            ProfilePlanSection(isActive: isActive)
         }
     }
 

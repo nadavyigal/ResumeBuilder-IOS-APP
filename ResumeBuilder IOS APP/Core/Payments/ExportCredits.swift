@@ -103,6 +103,15 @@ extension AppState {
         if let balance = response.balance {
             creditsBalance = balance
         }
+        // A new unlock changed what the server holds. The reply has the credit
+        // balance but not Pro's fair-use count, so read the plan again, in the
+        // background: the file does not wait for it (founder phone test,
+        // 2026-11-03). A repeat or ungated export spends nothing.
+        if response.status == "unlocked" {
+            creditsRefreshAfterExport = Task { [weak self] in
+                await self?.refreshCredits()
+            }
+        }
         return response
     }
 }

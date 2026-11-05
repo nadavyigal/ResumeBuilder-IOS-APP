@@ -985,3 +985,8 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** StoreKit Testing does not work on the iOS 26.5 simulator from Xcode either. Run the `StoreKit Tests` scheme on a real device or an iOS 26.0 to 26.2 simulator. Read the daemon's own log before believing a workaround: `xcrun simctl spawn <udid> log show --last 25m --predicate 'process == "storekitd"'`.
 **Why:** S2 to S6 told the founder one Xcode run would clear the 10 skips. Nobody had tried it. A run through the Xcode app gave 10 failures and 0 skips, and storekitd logged "is not installed for development". The strict gate is what caught this: the old skip would have hidden it again.
+
+### 2026-11-05: A tab view kept alive never re-runs a plain `.task`
+
+**Rule:** In `MainTabViewV2` every tab stays mounted (ZStack plus opacity), so a plain `.task` or `.onAppear` inside a tab runs once per launch. Tie any server read a tab shows to `.task(id: isActive)`. And when a server reply leaves out a number the UI shows (the unlock reply has no Pro fair-use count), read it again after the write.
+**Why:** founder Sandbox test on a real iPhone, 2026-11-03: after a Pro export the Profile plan row kept "0 of N used" until relaunch. `ProfilePlanSection` read credits once at launch, and `authorizeExport` only set the balance. `ExportUsageRefreshTests` reproduces it.

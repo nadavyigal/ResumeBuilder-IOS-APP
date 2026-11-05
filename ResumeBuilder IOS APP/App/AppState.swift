@@ -71,6 +71,10 @@ final class AppState {
     /// Pro as the server last reported it; nil before the first read or
     /// signed out.
     var subscription: SubscriptionStatus?
+    /// The credits read started by the last export that spent something. The
+    /// unlock reply has no Pro fair-use count, so the plan is read again
+    /// without holding up the file. Kept so tests can wait for it.
+    @ObservationIgnored var creditsRefreshAfterExport: Task<Void, Never>?
     var resumeSectionsNeedRefresh: Bool = false
     var resumePreviewRefreshToken: Int = 0
     var applicationsRefreshToken: Int = 0

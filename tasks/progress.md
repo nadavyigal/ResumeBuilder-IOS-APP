@@ -1,3 +1,14 @@
+# 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
+
+Status: fixed test-first and pushed to draft PR nadavyigal/ResumeBuilder-IOS-APP#226. Not merged.
+Current Phase: Payments v2, launch preparation. Go or no-go: `docs/qa/2026-10-31-ios-go-no-go.md`.
+Active Story: WP-79 S4, founder StoreKit run on a real iPhone, plus the retest below.
+Last Completed Story: S3 usage refresh. Root cause: the unlock reply has no Pro fair-use count, and the kept-alive Me tab read credits once per launch. `authorizeExport` now re-reads credits in the background after a new unlock; the plan row re-reads each time the Me tab is shown.
+Next Recommended Story: founder retest on the phone: export with Pro, open Me, see the used count go up by 1 without a relaunch; same with a pack (downloads left goes down by 1). Then the StoreKit run, then merge on the founder's yes.
+Blockers: 10 StoreKit tests cannot pass on the iOS 26.5 simulator, need a real iPhone or an older simulator; demo account likely at 9, not 0; ASC version decision; T2 marked all 15 v3 screenshots REGENERATE.
+Last Validation: 2026-11-05: `ExportUsageRefreshTests` red first (Pro row stayed "0 of 40"), now 3 pass. Full suite, iPhone 17 Pro, iOS 26.5: 712 XCTest, 0 failures, 11 skipped (10 `StoreKitSessionTests`, 1 live FitCheck), 5 Swift Testing pass. Release build, generic iOS Simulator, succeeded. `code-reviewer` APPROVED. Simulator smoke of the Me tab not run: it needs a signed-in account.
+Last Updated: 2026-11-05
+
 # 2026-10-31: Track T1, iOS payment blockers on #226
 
 Status: three open review findings fixed test-first, commit d1d0f98. 1.6.0 (36) bump, commit c4c4b52. Pushed to draft PR nadavyigal/ResumeBuilder-IOS-APP#226 on the founder's yes. Not merged. No archive.

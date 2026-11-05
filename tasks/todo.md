@@ -1,3 +1,12 @@
+# 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
+
+Plan: a failing test first, then re-read the plan after a new unlock and on each Me-tab show.
+
+- [x] Root cause: the unlock reply has no Pro fair-use count, and the kept-alive Profile tab read credits once per launch.
+- [x] `ExportUsageRefreshTests`: red on "0 of 40" after a Pro export, now green.
+- [x] `authorizeExport` re-reads credits in the background after a new unlock; the plan row re-reads on each Me-tab show.
+- [ ] Founder retest on the phone: export with Pro and with a pack, then open Me without a relaunch.
+
 # 2026-10-31: Track T1, iOS payment blockers on PR #226 (no commit, no push, founder brief)
 
 Plan: fix the three open review findings with a failing test first, then prepare the launch documents and the local 1.6.0 bump.
