@@ -1,3 +1,14 @@
+# 2026-11-05: 1.6.0 (39) uploaded for App Store submission (PR #226)
+
+Status: 1.6.0 (39) archived and uploaded at 15:04 Asia/Jerusalem on the founder's yes, commit 953fb12, `testFlightInternalTestingOnly` false so it can attach to the App Store version. Apple is processing it. Not merged, not submitted.
+Current Phase: Payments v2, launch preparation.
+Active Story: none in code.
+Last Completed Story: copy fixes 1 to 5 (3cd83c1) and the build 39 bump (953fb12). Archive checked: 1.6.0 / 39, `API_BASE_URL` https://www.resumelybuilderai.com, no `.storekit` file, no test bundle, Hebrew strings carry "הורדות PDF".
+Next Recommended Story: when 39 shows as processed in App Store Connect, attach it to 1.6.0 (replacing 38), paste the store texts from `docs/qa/2026-11-05-asc-1.6.0-texts.md` (copy-checked version in the founder's chat), check the two pack IAP display names say PDF downloads. Then S7 accountant, S8 screenshots (#225), submit.
+Blockers: S7 accountant; S8 screenshots.
+Last Validation: 2026-11-05: 712 XCTest, 0 failures, 11 skipped on 3cd83c1 (iPhone 17 Pro, iOS 26.5); Release archive 39 succeeded; `xcodebuild -exportArchive` "Upload succeeded".
+Last Updated: 2026-11-05
+
 # 2026-11-05: 1.6.0 copy fixes before submission (PR #226)
 
 Status: five copy fixes from the /clean-copy audit committed and pushed to PR #226 on the founder's yes. Not merged. Build 38 is now stale: it does not contain these strings.
