@@ -4,8 +4,8 @@ Status: 1.6.0 (37) uploaded 09:45 on the founder's yes, in the internal Founder 
 Current Phase: Payments v2, launch preparation.
 Active Story: none in code. WP-79 S4 phone run closed: must-pass rows 3, 5, 7, 12, 18, 27 passed; rows 11 and 25 not run on the founder's named yes (2026-11-05).
 Last Completed Story: on TestFlight 37: row 6 Pro renewal PASS, S3 usage refresh PASS (count +1 without relaunch), row 12 PASS (one +5 grant, one debit, balance 4; grant lands before a person can close the app), row 27 PASS (re-sent transaction added no row, Restore kept 4). First row 12 attempt closed the app inside Apple's sheet: no purchase, no charge, correct.
-Next Recommended Story: review account plan (founder said do not set the existing demo account to 0; recommended a new review account at 0), App Store Connect 1.6.0 setup with build 37, S7 accountant, S8 screenshots (#225), submit. After release: EXPORT_CREDITS_ENABLED on, old packs off sale.
-Blockers: review account plan; S7 accountant; S8 screenshots. Not run by design: StoreKit unit tests on a phone (1 pass / 9 fail on 1 Nov), rows 10, 11, 17, 20 to 22, 25, 26, 28 to 31.
+Next Recommended Story: review account (new, `+review`, created 11:40, added to EXPORT_CREDITS_USER_IDS 11:41, live via the 11:52 auto-deploy of web #207; my own redeploy of the older deployment failed at build, nothing rolled back): spend its 3 downloads to 0, then App Store Connect 1.6.0 setup with build 37, S7 accountant, S8 screenshots (#225), submit. After release: EXPORT_CREDITS_ENABLED on, old packs off sale.
+Blockers: review account not yet at 0; S7 accountant; S8 screenshots. Not run by design: StoreKit unit tests on a phone (1 pass / 9 fail on 1 Nov), rows 10, 11, 17, 20 to 22, 25, 26, 28 to 31.
 Last Validation: 2026-11-05: Release archive 1.6.0 (37) succeeded and was verified; ledger, PostHog and Vercel logs read for every row above. No app source change since 80f36fc (712 XCTest, 0 failures, 11 skipped).
 Last Updated: 2026-11-05
 
