@@ -58,3 +58,7 @@ The password stays with the founder and goes only into App Store Connect.
 
 - WP-79 S7 accountant, S8 screenshots from #225, App Store Connect 1.6.0 setup with build 37, submit.
 - After release: `EXPORT_CREDITS_ENABLED` on in Vercel, old packs off sale.
+
+## Submission, 2026-11-05 16:57
+
+Submitted to App Review on the founder's yes: iOS 1.6.0 (39), 14 pack, 5 pack, Pro monthly, Resumely Pro group. Review login `nadav.yigal+review2@gmail.com` at 0 PDF downloads (ledger checked). The first review account (`+review`) stays on the test list but is not used: its password did not fit App Store Connect and the website reset link opens a 404 page.

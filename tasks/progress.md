@@ -1,3 +1,14 @@
+# 2026-11-05: 1.6.0 (39) submitted to App Review with 3 products (PR #226)
+
+Status: submitted 16:57 Asia/Jerusalem on the founder's yes. Submission holds 5 items: iOS 1.6.0 (39), `resumely.exports.14`, `resumely.exports.5.v2`, `resumely.pro.monthly`, subscription group Resumely Pro. Release setting: automatic after approval. PR #226 is still a draft, not merged.
+Current Phase: Payments v2, in App Review.
+Active Story: wait for Apple (up to 48 hours).
+Last Completed Story: ASC setup and submit. Review login is `nadav.yigal+review2@gmail.com` (created 15:46, added to `EXPORT_CREDITS_USER_IDS`, live via redeploy 69keojuuq at 15:50, ledger +3 then 3 exports, balance 0). Pack display names now "14 PDF downloads" / "5 PDF downloads" (Hebrew "14/5 הורדות PDF"), prices unchanged. Subtitle "Tailor Your Resume to Any Job" approved by the founder. Age rating questions: new Social Media = No, Social Media under 13 = No; rating stays 4+.
+Next Recommended Story: after approval and release, the founder decides when to set `EXPORT_CREDITS_ENABLED` on (Vercel + redeploy, his yes), then remove the old 1.5.6 packs from sale. Before that: S7 accountant, WP-35 legal entity. Separate web task: the password reset link goes to a missing `/auth/update-password` page (404), and `SMTP-PASSWORD-FIX.md` on web `main` holds a Resend API key in plain text (rotate it).
+Blockers: Apple review.
+Last Validation: 2026-11-05: ASC "5 Items Submitted"; review2 ledger balance 0; live site 200, credits 401, no errors after the 15:50 redeploy.
+Last Updated: 2026-11-05
+
 # 2026-11-05: 1.6.0 (39) set up in App Store Connect, not submitted (PR #226)
 
 Status: ASC version renamed 1.5.7 to 1.6.0 and saved with build 39 (38 removed; 36 and 37 are internal-only and cannot attach). Founder's What's New and PRICING description text, new review notes, review login `nadav.yigal+review@gmail.com` saved and read back. Store screenshots replaced with the T2 release set (iPhone 6.3" and iPad 13", 4 each, from #225); old v3 screenshots and the App Preview video removed from every iPhone size (still in the Asset Library). Review screenshot for the 14 pack, 5 pack and Pro replaced with `audit/release-1.6.0-39/paywall-review-en.png` (build 39 code, "PDF downloads"). Not submitted.
