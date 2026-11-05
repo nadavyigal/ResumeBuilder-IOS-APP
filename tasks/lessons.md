@@ -1,3 +1,8 @@
+## 2026-11-05: Re-read the live deployment right before a redeploy
+
+I read the live Vercel deployment id at 11:3x, then redeployed that id at 12:4x to pick up an env change. In between, web PR #207 merged and auto-deployed at 11:52. My redeploy rebuilt the older 09:39 source; it only failed at build, so production was not rolled back. The 11:52 auto-deploy had already picked up the env change.
+**How to apply:** right before `vercel redeploy`, run `vercel inspect https://www.resumelybuilderai.com` again and compare its created time with the env change time. If the live deploy is newer than the env change, no redeploy is needed.
+
 ## 2026-11-05: Read the ledger before trusting a reported number
 
 A phone report of "4 left" after an interrupted purchase was wrong: the app had been closed inside Apple's sheet, Apple dropped the purchase, and the server balance was 0. PostHog (`paywall_viewed`, then `app_launched`, no `purchase_started`) and the empty `/api/v1/iap/verify` log proved it in minutes.
