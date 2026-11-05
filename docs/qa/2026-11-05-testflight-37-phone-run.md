@@ -34,5 +34,10 @@ The founder closed the app at about 10:13 while Apple's sheet was still open. Po
 ## Still open before submitting 1.6.0
 
 - StoreKit unit tests on a real phone: 1 passed, 9 failed on 1 Nov (Sandbox refused the local-file purchases). Not repeated today. The Sandbox rows above cover the same paths with Apple's real Sandbox.
-- Rows 10, 17 (Ask to Buy), 11, 25 (refund, revoke), 20 to 22 (fair use at 40), 26, 28, 29 (airplane mode, network loss), 30, 31 (old packs): not run.
+- Rows 11 and 25 (refund, revoke): **not run, founder's named yes 2026-11-05.** No Sandbox path sends a real `REFUND` or `REVOKE` for this app. What stands in their place: the web tests with signed payloads (`applies a verified REFUND once`, `applies REFUND_REVERSED as a re-grant`). The first real refund after launch is the true test.
+- Rows 10, 17 (Ask to Buy), 20 to 22 (fair use at 40), 26, 28, 29 (airplane mode, network loss), 30, 31 (old packs): not run.
+
+## Testing verdict
+
+The six must-pass money rows (3, 5, 7, 12, 18, 27) passed across builds 36 and 37. Row 18 is covered by the 3 Nov resubscribe: after expiry the paywall offered Pro and the founder bought it there. Testing is closed for submission.
 - WP-79 S6 demo account to 0, S7 accountant, S8 screenshots from #225 and submit.
