@@ -1,3 +1,14 @@
+# 2026-11-05: 1.6.0 (39) set up in App Store Connect, not submitted (PR #226)
+
+Status: ASC version renamed 1.5.7 to 1.6.0 and saved with build 39 (38 removed; 36 and 37 are internal-only and cannot attach). Founder's What's New and PRICING description text, new review notes, review login `nadav.yigal+review@gmail.com` saved and read back. Store screenshots replaced with the T2 release set (iPhone 6.3" and iPad 13", 4 each, from #225); old v3 screenshots and the App Preview video removed from every iPhone size (still in the Asset Library). Review screenshot for the 14 pack, 5 pack and Pro replaced with `audit/release-1.6.0-39/paywall-review-en.png` (build 39 code, "PDF downloads"). Not submitted.
+Current Phase: Payments v2, App Review submission.
+Active Story: submit 1.6.0 with the 3 products (founder approved "submit 1.6.0").
+Last Completed Story: ASC setup above.
+Next Recommended Story: founder resets the review account password (website reset, mail arrives at his main Gmail) and saves it in ASC; founder yes on renaming the two pack display names from "tailored CVs" to "PDF downloads"; then Add for Review and Submit.
+Blockers: review password (founder only); pack display names (founder yes).
+Last Validation: 2026-11-05: ASC fields read back after reload; build 39 attached; paywall screenshot from a Debug build of 953fb12 on iPhone 17 Pro simulator (1206x2622).
+Last Updated: 2026-11-05
+
 # 2026-11-05: 1.6.0 (39) uploaded for App Store submission (PR #226)
 
 Status: 1.6.0 (39) archived and uploaded at 15:04 Asia/Jerusalem on the founder's yes, commit 953fb12, `testFlightInternalTestingOnly` false so it can attach to the App Store version. Apple is processing it. Not merged, not submitted.
