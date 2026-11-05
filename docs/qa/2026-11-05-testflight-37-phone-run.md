@@ -41,8 +41,20 @@ The founder closed the app at about 10:13 while Apple's sheet was still open. Po
 
 The six must-pass money rows (3, 5, 7, 12, 18, 27) passed across builds 36 and 37. Row 18 is covered by the 3 Nov resubscribe: after expiry the paywall offered Pro and the founder bought it there. Testing is closed for submission.
 
+## App Review account
+
+The founder chose a new review account over resetting the old demo account (2026-11-05).
+
+| Step | Result |
+|---|---|
+| Account | `nadav.yigal+review@gmail.com`, created 11:40, email confirmed, not anonymous |
+| Export test list | Added to `EXPORT_CREDITS_USER_IDS` (Production) 11:41. Saved value read back: the 4 earlier test ids plus this one, nothing else |
+| Live | The 11:52 production deploy (web #207 merge) built after the change. My redeploy of the older 09:39 deployment failed at build; nothing rolled back |
+| Balance | Ledger: +3 welcome grant, three -1 export unlocks (13:13, 13:14, 13:16), balance 0, no subscription. Founder: Me shows 0 |
+
+The password stays with the founder and goes only into App Store Connect.
+
 ## Left before 1.6.0 is live
 
-- Review account plan. The founder said do not set the existing demo account to 0.
 - WP-79 S7 accountant, S8 screenshots from #225, App Store Connect 1.6.0 setup with build 37, submit.
 - After release: `EXPORT_CREDITS_ENABLED` on in Vercel, old packs off sale.
