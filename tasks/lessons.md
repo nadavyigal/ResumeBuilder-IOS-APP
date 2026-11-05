@@ -1000,3 +1000,8 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** In `MainTabViewV2` every tab stays mounted (ZStack plus opacity), so a plain `.task` or `.onAppear` inside a tab runs once per launch. Tie any server read a tab shows to `.task(id: isActive)`. And when a server reply leaves out a number the UI shows (the unlock reply has no Pro fair-use count), read it again after the write.
 **Why:** founder Sandbox test on a real iPhone, 2026-11-03: after a Pro export the Profile plan row kept "0 of N used" until relaunch. `ProfilePlanSection` read credits once at launch, and `authorizeExport` only set the balance. `ExportUsageRefreshTests` reproduces it.
+
+### 2026-11-05: The 402 message may not name a plan (EXD-018)
+
+**Rule:** `APIClientError.paymentRequired` copy names what ran out (PDF downloads), never a plan, "upgrade" or "Premium". Before rewording any payment error, grep the tests for the message and read the decision it cites.
+**Why:** the 1.6.0 copy fix first changed it to "Your plan does not include this. See your plan on the Me tab." `testPaymentRequiredCopyNamesTheExportCreditNotAPlan` failed on "plan" and caught it before commit. Shipped text: "You have no PDF downloads left."

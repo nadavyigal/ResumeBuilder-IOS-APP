@@ -150,15 +150,15 @@ enum StoreKitManagerError: LocalizedError, Equatable {
                 comment: "Restore or purchase of Pro under a different account"
             )
         case .accountRequired:
-            return NSLocalizedString("Create a free account to buy export credits.", comment: "Purchase needs a real account")
+            return NSLocalizedString("Create a free account to buy PDF downloads.", comment: "Purchase needs a real account")
         case .productUnavailable:
-            return NSLocalizedString("Export credits are not available right now. Try again later.", comment: "StoreKit products did not load")
+            return NSLocalizedString("PDF downloads are not available right now. Try again later.", comment: "StoreKit products did not load")
         case .unverifiedTransaction:
             return NSLocalizedString("Apple could not confirm this purchase.", comment: "StoreKit unverified transaction")
         case .grantPending:
-            return NSLocalizedString("Your purchase went through. Your credits will appear shortly.", comment: "Paid but server grant not confirmed yet")
+            return NSLocalizedString("Your purchase went through. Your PDF downloads will appear shortly.", comment: "Paid but server grant not confirmed yet")
         case .purchaseRefunded:
-            return NSLocalizedString("Apple refunded this purchase, so no credits were added.", comment: "Purchase refunded before the grant")
+            return NSLocalizedString("Apple refunded this purchase, so no PDF downloads were added.", comment: "Purchase refunded before the grant")
         case .purchaseFailed:
             return NSLocalizedString("The purchase did not complete. You were not charged.", comment: "StoreKit purchase failed")
         }

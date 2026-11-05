@@ -32,7 +32,7 @@ final class PricingV2CopyTests: XCTestCase {
             // S2
             "This subscription belongs to another Resumely account. Sign in with that account.",
             // S3
-            "Download more tailored CVs",
+            "Get more PDF downloads",
             "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate.",
             "Match Scores stay free and unlimited.",
             "Best value",
@@ -42,8 +42,8 @@ final class PricingV2CopyTests: XCTestCase {
             "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction.",
             "Continue",
             "Restore Purchases",
-            "14 tailored CVs",
-            "5 tailored CVs",
+            "14 PDF downloads",
+            "5 PDF downloads",
             "%@ / month",
             "Nothing to restore for this Apple ID. Your PDF downloads stay on your Resumely account.",
             "We couldn't restore right now. Check your connection and try again.",

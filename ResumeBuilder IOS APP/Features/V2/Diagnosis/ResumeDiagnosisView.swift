@@ -157,7 +157,7 @@ struct ResumeDiagnosisView: View {
                     Text("Resume Match Score")
                         .font(.appCaption.weight(.bold))
                         .foregroundStyle(AppColors.textTertiary)
-                    Text("Your resume matches about \(diagnosis.matchScore)% of this job")
+                    Text("Estimated match for this job: \(diagnosis.matchScore)%")
                         .font(.appHeadline)
                         .foregroundStyle(AppColors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -18,7 +18,7 @@ enum ExportCreditsError: Error, Equatable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .creditsRequired:
-            return NSLocalizedString("You need an export credit to download this résumé.", comment: "Export refused for lack of a credit")
+            return NSLocalizedString("You need a PDF download to save this CV.", comment: "Export refused for lack of a credit")
         case .accountRequired:
             return NSLocalizedString("Create a free account to export your résumé.", comment: "Export refused for an anonymous session")
         }

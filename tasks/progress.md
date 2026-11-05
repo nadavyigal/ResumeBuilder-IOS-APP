@@ -1,3 +1,14 @@
+# 2026-11-05: 1.6.0 copy fixes before submission (PR #226)
+
+Status: five copy fixes from the /clean-copy audit committed and pushed to PR #226 on the founder's yes. Not merged. Build 38 is now stale: it does not contain these strings.
+Current Phase: Payments v2, launch preparation.
+Active Story: none in code.
+Last Completed Story: copy fixes 1 to 5. (1) Share text says "estimated" Match Score. (2) Diagnosis headline "Estimated match for this job: N%". (3) One name for what is sold: "PDF downloads" on the purchase sheet, purchase messages and errors, matching the App Store text. (4) Hebrew for 21 strings that showed English. (5) Removed "free checks remaining this week" and the "Checks left" tile, which contradicted free unlimited Match Scores.
+Next Recommended Story: new build 39 (archive and upload on the founder's yes), attach it to 1.6.0 instead of 38. Check that the IAP display names in App Store Connect say PDF downloads too. Then the Risk items from the audit (ATS wording, 7-second stat, 60-second promise, Premium, Apple ID) in 1.6.1, and the Hebrew gender pass as its own story.
+Blockers: S7 accountant; S8 screenshots; build 39 upload needs the founder's yes.
+Last Validation: 2026-11-05: full suite on iPhone 17 Pro, iOS 26.5: 712 XCTest, 0 failures, 11 skipped; 5 Swift Testing pass. First run had 1 failure (EXD-018 test caught plan wording in the 402 message), fixed, rerun green. Simulator smoke: purchase sheet in English and Hebrew shows "Get more PDF downloads", "14 PDF downloads", "5 PDF downloads".
+Last Updated: 2026-11-05
+
 # 2026-11-05: 1.6.0 (37) on TestFlight, phone run (WP-79 S4, PR #226)
 
 Status: 1.6.0 (37) uploaded 09:45 on the founder's yes, in the internal Founder QA group only. Phone run done: `docs/qa/2026-11-05-testflight-37-phone-run.md`. Not merged, not submitted.

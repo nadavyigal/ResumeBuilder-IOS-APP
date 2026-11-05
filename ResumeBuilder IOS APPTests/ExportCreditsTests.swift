@@ -368,8 +368,8 @@ final class ExportCreditProductsTests: XCTestCase {
     }
 
     func testPackRowsNameTheExportsInThePack() {
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 PDF downloads")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 PDF downloads")
     }
 
     func testOnlyARealAccountCanBuy() {

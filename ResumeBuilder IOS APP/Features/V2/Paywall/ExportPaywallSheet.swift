@@ -2,7 +2,7 @@ import StoreKit
 import SwiftUI
 
 enum ExportPaywallCopy {
-    static let title: LocalizedStringKey = "Download more tailored CVs"
+    static let title: LocalizedStringKey = "Get more PDF downloads"
     static let body: LocalizedStringKey =
         "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate."
     static let scoresStayFree: LocalizedStringKey = "Match Scores stay free and unlimited."
@@ -23,8 +23,8 @@ enum ExportPaywallCopy {
 
     static func packTitle(credits: Int) -> LocalizedStringKey {
         switch credits {
-        case 14: return "14 tailored CVs"
-        default: return "5 tailored CVs"
+        case 14: return "14 PDF downloads"
+        default: return "5 PDF downloads"
         }
     }
 
@@ -295,7 +295,7 @@ final class ExportPaywallModel {
                 analytics.track(.purchasePending(productId: product.id))
                 phase = .awaitingApproval(productID: product.id)
                 message = NSLocalizedString(
-                    "Your purchase is waiting for approval. Your credits are added once it is approved.",
+                    "Your purchase is waiting for approval. Your PDF downloads are added once it is approved.",
                     comment: "Ask to Buy pending"
                 )
             }

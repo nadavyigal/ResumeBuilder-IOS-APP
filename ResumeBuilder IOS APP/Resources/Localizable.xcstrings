@@ -30,26 +30,6 @@
         }
       }
     },
-    "You don't have enough credits for this." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אין מספיק קרדיטים לפעולה הזו."
-          }
-        }
-      }
-    },
-    "Apple refunded this purchase, so no credits were added." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apple החזירה את הכסף על הרכישה הזו, ולכן לא נוספו קרדיטים."
-          }
-        }
-      }
-    },
     "Export your tailored résumé" : {
       "localizations" : {
         "he" : {
@@ -127,16 +107,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "המנוי הזה שייך לחשבון Resumely אחר. התחברו לחשבון שבו נרכש המנוי."
-          }
-        }
-      }
-    },
-    "Download more tailored CVs" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הורידו עוד קורות חיים מותאמים"
           }
         }
       }
@@ -227,26 +197,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "שחזור רכישות"
-          }
-        }
-      }
-    },
-    "14 tailored CVs" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "14 קורות חיים מותאמים"
-          }
-        }
-      }
-    },
-    "5 tailored CVs" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 קורות חיים מותאמים"
           }
         }
       }
@@ -755,42 +705,12 @@
         }
       }
     },
-    "You need an export credit to download this résumé." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "צריך קרדיט ייצוא כדי להוריד את קורות החיים האלה."
-          }
-        }
-      }
-    },
     "Create a free account to export your résumé." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "כדי לייצא את קורות החיים, פותחים חשבון בחינם."
-          }
-        }
-      }
-    },
-    "Create a free account to buy export credits." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "כדי לקנות קרדיטים לייצוא, פותחים חשבון בחינם."
-          }
-        }
-      }
-    },
-    "Export credits are not available right now. Try again later." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קרדיטים לייצוא לא זמינים כרגע. אפשר לנסות שוב מאוחר יותר."
           }
         }
       }
@@ -805,32 +725,12 @@
         }
       }
     },
-    "Your purchase went through. Your credits will appear shortly." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הרכישה בוצעה. הקרדיטים יופיעו בעוד רגע."
-          }
-        }
-      }
-    },
     "The purchase did not complete. You were not charged." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "הרכישה לא הושלמה, ולא בוצע חיוב."
-          }
-        }
-      }
-    },
-    "Your purchase is waiting for approval. Your credits are added once it is approved." : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "הרכישה ממתינה לאישור. הקרדיטים יתווספו אחרי שהיא תאושר."
           }
         }
       }
@@ -1152,7 +1052,8 @@
             "value" : "נותרו %1$lld בדיקות חינם"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "%lld free checks remaining this week." : {
       "localizations" : {
@@ -1162,7 +1063,8 @@
             "value" : "נותרו %1$lld בדיקות חינם השבוע."
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "%lld more recommendations unlock with full optimization." : {
       "localizations" : {
@@ -2734,7 +2636,8 @@
             "value" : "בדיקות שנותרו"
           }
         }
-      }
+      },
+      "extractionState" : "stale"
     },
     "Choose a design template first." : {
       "localizations" : {
@@ -4116,7 +4019,14 @@
       }
     },
     "Export application package" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא חבילת המועמדות"
+          }
+        }
+      }
     },
     "export_download_pdf" : {
       "extractionState" : "stale",
@@ -4226,13 +4136,34 @@
       }
     },
     "Fit improvement applied once. The score above and resume preview are now current." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שיפור ההתאמה הוחל פעם אחת. הציון למעלה והתצוגה המקדימה של קורות החיים מעודכנים עכשיו."
+          }
+        }
+      }
     },
     "Fit improvement applied once. The score above is current for this resume." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שיפור ההתאמה הוחל פעם אחת. הציון למעלה מעודכן לקורות החיים האלה."
+          }
+        }
+      }
     },
     "Fit improvement was applied, but the resume preview could not refresh. Reopen Optimized to load the saved result." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שיפור ההתאמה הוחל, אבל התצוגה המקדימה של קורות החיים לא התרעננה. פתחו שוב את הלשונית מוטב כדי לטעון את התוצאה השמורה."
+          }
+        }
+      }
     },
     "Five summary angles with recommendations." : {
       "localizations" : {
@@ -4429,7 +4360,14 @@
       }
     },
     "Grew qualified applications by 23% by rebuilding the hiring workflow around role-specific keywords and measurable outcomes." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגדלה של 23% במועמדויות המתאימות, בזכות בנייה מחדש של תהליך הגיוס סביב מילות מפתח לתפקיד ותוצאות מדידות."
+          }
+        }
+      }
     },
     "Guest" : {
       "comment" : "Guest account display name",
@@ -4719,7 +4657,14 @@
       }
     },
     "Impact first" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ההשפעה בראש"
+          }
+        }
+      }
     },
     "Impact metrics" : {
       "extractionState" : "stale",
@@ -4894,13 +4839,34 @@
       }
     },
     "Includes your résumé and cover letter." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כולל את קורות החיים והמכתב המלווה."
+          }
+        }
+      }
     },
     "Includes your résumé and screening answers." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כולל את קורות החיים והתשובות לשאלות הסינון."
+          }
+        }
+      }
     },
     "Includes your résumé, cover letter, and screening answers." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כולל את קורות החיים, המכתב המלווה והתשובות לשאלות הסינון."
+          }
+        }
+      }
     },
     "Increased qualified applications by 23% by rebuilding the resume workflow around role-specific keywords, recruiter language, and measurable outcomes." : {
       "extractionState" : "stale",
@@ -5323,7 +5289,14 @@
       }
     },
     "Led the mobile dashboard redesign with engineering, cutting onboarding drop-off by 18%." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הובלת העיצוב מחדש של דשבורד המובייל עם צוות הפיתוח, שהוריד ב-18% את הנטישה בתהליך ההצטרפות."
+          }
+        }
+      }
     },
     "Let's fix the basics" : {
       "localizations" : {
@@ -5928,16 +5901,6 @@
         }
       }
     },
-    "My Resumely Match Score was %lld%% for this job — try Resumely: %@" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ציון ההתאמה שלי ב-Resumely היה %1$lld%% למשרה הזו — נסו את Resumely: %2$@"
-          }
-        }
-      }
-    },
     "Needs another try" : {
       "localizations" : {
         "he" : {
@@ -5949,7 +5912,14 @@
       }
     },
     "Needs keyword alignment" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דורש התאמת מילות מפתח"
+          }
+        }
+      }
     },
     "Needs keyword and skills alignment" : {
       "extractionState" : "stale",
@@ -6035,7 +6005,14 @@
       }
     },
     "No cover letter yet — write one in Expert" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עדיין אין מכתב מלווה. אפשר לכתוב אחד במומחה."
+          }
+        }
+      }
     },
     "No expert analysis yet" : {
       "extractionState" : "stale",
@@ -6282,7 +6259,15 @@
       }
     },
     "Note: %@" : {
-      "comment" : "export file line"
+      "comment" : "export file line",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הערה: %@"
+          }
+        }
+      }
     },
     "Nothing was sent. To check your résumé, Resumely needs your OK to send it to OpenAI." : {
       "comment" : "Shown when the user declines the AI consent sheet",
@@ -7728,7 +7713,14 @@
       }
     },
     "Résumé only. Write a cover letter in Expert to include one." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות חיים בלבד. כדי לצרף מכתב מלווה, כתבו אחד במומחה."
+          }
+        }
+      }
     },
     "Resume PDF" : {
       "localizations" : {
@@ -8257,7 +8249,14 @@
       }
     },
     "Save this application to Me" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמירת המועמדות באזור האישי"
+          }
+        }
+      }
     },
     "Save this resume?" : {
       "localizations" : {
@@ -8670,7 +8669,14 @@
       }
     },
     "See your Match estimate now. Sign in later to keep your work." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפשר לראות עכשיו את הערכת ההתאמה. כדי לשמור את העבודה, מתחברים אחר כך."
+          }
+        }
+      }
     },
     "See your Match Score before signing in" : {
       "extractionState" : "stale",
@@ -8756,7 +8762,14 @@
       }
     },
     "Senior Product Designer, mobile flows" : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מעצב/ת מוצר בכיר/ה, תהליכי מובייל"
+          }
+        }
+      }
     },
     "Server error (%lld): %@" : {
       "localizations" : {
@@ -9039,7 +9052,14 @@
       }
     },
     "Sign in to optimize this résumé and export it as a PDF." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לשפר את קורות החיים האלה ולייצא אותם כ-PDF, צריך להתחבר."
+          }
+        }
+      }
     },
     "Sign in to preview your resume." : {
       "localizations" : {
@@ -9853,7 +9873,15 @@
       }
     },
     "The list of changes is not available for this résumé." : {
-      "comment" : "Shown when no review is associated with the optimization"
+      "comment" : "Shown when no review is associated with the optimization",
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "רשימת השינויים לא זמינה לקורות החיים האלה."
+          }
+        }
+      }
     },
     "The optimizer took too long to read the job post. LinkedIn pages can block or delay scraping.\n\nPaste the job description text into Step 2 and run Optimize again." : {
       "localizations" : {
@@ -10943,7 +10971,14 @@
       }
     },
     "Worked on the dashboard redesign with engineers. Onboarding drop-off fell 18% after launch." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עבודה על העיצוב מחדש של הדשבורד יחד עם המפתחים. הנטישה בתהליך ההצטרפות ירדה ב-18% אחרי ההשקה."
+          }
+        }
+      }
     },
     "Yes, add it" : {
       "localizations" : {
@@ -11071,7 +11106,14 @@
       }
     },
     "Your first bullet hides the outcome. Add a number you can stand behind." : {
-
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השורה הראשונה מסתירה את התוצאה. הוסיפו מספר שאתם יכולים לעמוד מאחוריו."
+          }
+        }
+      }
     },
     "YOUR FIRST MATCH CHECK" : {
       "localizations" : {
@@ -11280,16 +11322,6 @@
         }
       }
     },
-    "Your resume matches about %lld%% of this job" : {
-      "localizations" : {
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "קורות החיים שלכם תואמים כ-%1$lld%% מהמשרה הזו"
-          }
-        }
-      }
-    },
     "Your resume signals align well with this role. A few tweaks could make it even stronger." : {
       "comment" : "FitVerdictView strong band description",
       "localizations" : {
@@ -11307,6 +11339,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "קורות החיים שלך מתאימים היטב למשרה הזו. הניסוח המותאם יחדד אותם עוד יותר."
+          }
+        }
+      }
+    },
+    "My estimated Resumely Match Score for this job: %lld%%. Try Resumely: %@" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון ההתאמה המשוער שלי ב-Resumely למשרה הזו: %1$lld%%. נסו את Resumely: %2$@"
+          }
+        }
+      }
+    },
+    "Estimated match for this job: %lld%%" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התאמה משוערת למשרה הזו: %1$lld%%"
+          }
+        }
+      }
+    },
+    "Get more PDF downloads" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קבלו עוד הורדות PDF"
+          }
+        }
+      }
+    },
+    "14 PDF downloads" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 הורדות PDF"
+          }
+        }
+      }
+    },
+    "5 PDF downloads" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 הורדות PDF"
+          }
+        }
+      }
+    },
+    "You need a PDF download to save this CV." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צריך הורדת PDF כדי לשמור את קורות החיים האלה."
+          }
+        }
+      }
+    },
+    "Create a free account to buy PDF downloads." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כדי לקנות הורדות PDF, פותחים חשבון בחינם."
+          }
+        }
+      }
+    },
+    "PDF downloads are not available right now. Try again later." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורדות PDF לא זמינות כרגע. אפשר לנסות שוב מאוחר יותר."
+          }
+        }
+      }
+    },
+    "Your purchase went through. Your PDF downloads will appear shortly." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה בוצעה. הורדות ה-PDF יופיעו בעוד רגע."
+          }
+        }
+      }
+    },
+    "Apple refunded this purchase, so no PDF downloads were added." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple החזירה את הכסף על הרכישה הזו, ולכן לא נוספו הורדות PDF."
+          }
+        }
+      }
+    },
+    "Your purchase is waiting for approval. Your PDF downloads are added once it is approved." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרכישה ממתינה לאישור. הורדות ה-PDF יתווספו אחרי שהיא תאושר."
+          }
+        }
+      }
+    },
+    "You have no PDF downloads left." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא נותרו לכם הורדות PDF."
           }
         }
       }

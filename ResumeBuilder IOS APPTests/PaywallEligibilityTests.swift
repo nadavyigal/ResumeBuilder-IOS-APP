@@ -183,11 +183,11 @@ final class PaywallOffersTests: XCTestCase {
     }
 
     func testCopyNamesTheEstimateAndMakesNoClaim() {
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 tailored CVs")
-        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 tailored CVs")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 14), "14 PDF downloads")
+        XCTAssertEqual(ExportPaywallCopy.packTitle(credits: 5), "5 PDF downloads")
         XCTAssertEqual(ExportPaywallCopy.monthlyPrice("$9.99"), "$9.99 / month")
         let english = [
-            "Download more tailored CVs",
+            "Get more PDF downloads",
             "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate.",
             "Match Scores stay free and unlimited.",
             "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction.",
