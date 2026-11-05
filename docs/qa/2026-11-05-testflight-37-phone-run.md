@@ -40,4 +40,9 @@ The founder closed the app at about 10:13 while Apple's sheet was still open. Po
 ## Testing verdict
 
 The six must-pass money rows (3, 5, 7, 12, 18, 27) passed across builds 36 and 37. Row 18 is covered by the 3 Nov resubscribe: after expiry the paywall offered Pro and the founder bought it there. Testing is closed for submission.
-- WP-79 S6 demo account to 0, S7 accountant, S8 screenshots from #225 and submit.
+
+## Left before 1.6.0 is live
+
+- Review account plan. The founder said do not set the existing demo account to 0.
+- WP-79 S7 accountant, S8 screenshots from #225, App Store Connect 1.6.0 setup with build 37, submit.
+- After release: `EXPORT_CREDITS_ENABLED` on in Vercel, old packs off sale.
