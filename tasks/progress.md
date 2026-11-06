@@ -4,10 +4,10 @@ Status: submitted 16:57 Asia/Jerusalem on the founder's yes. Submission holds 5 
 Current Phase: Payments v2, in App Review.
 Active Story: wait for Apple (up to 48 hours).
 Last Completed Story: ASC setup and submit. Review login is `nadav.yigal+review2@gmail.com` (created 15:46, added to `EXPORT_CREDITS_USER_IDS`, live via redeploy 69keojuuq at 15:50, ledger +3 then 3 exports, balance 0). Pack display names now "14 PDF downloads" / "5 PDF downloads" (Hebrew "14/5 הורדות PDF"), prices unchanged. Subtitle "Tailor Your Resume to Any Job" approved by the founder. Age rating questions: new Social Media = No, Social Media under 13 = No; rating stays 4+.
-Next Recommended Story: after approval and release, the founder decides when to set `EXPORT_CREDITS_ENABLED` on (Vercel + redeploy, his yes), then remove the old 1.5.6 packs from sale. Before that: S7 accountant, WP-35 legal entity. Separate web task: the password reset link goes to a missing `/auth/update-password` page (404), and `SMTP-PASSWORD-FIX.md` on web `main` holds a Resend API key in plain text (rotate it).
+Next Recommended Story: after approval and release, the founder decides when to set `EXPORT_CREDITS_ENABLED` on (Vercel + redeploy, his yes), then remove the old 1.5.6 packs from sale. Before that: S7 accountant, WP-35 legal entity. Web password reset is fixed and live (web PR #208 merged 2026-11-05, Supabase template on `/auth/confirm`, Resend key rotated in the `resumebuilderaiteam` Resend account, leaked key deleted). Left on web: 11 old docs still hold the dead key.
 Blockers: Apple review.
-Last Validation: 2026-11-05: ASC "5 Items Submitted"; review2 ledger balance 0; live site 200, credits 401, no errors after the 15:50 redeploy.
-Last Updated: 2026-11-05
+Last Validation: 2026-11-06: reset email for +review sent with the new Resend key, Delivered; its link opened in a clean browser lands on "Choose a new password". 2026-11-05: ASC "5 Items Submitted"; review2 ledger balance 0.
+Last Updated: 2026-11-06
 
 # 2026-11-05: 1.6.0 (39) set up in App Store Connect, not submitted (PR #226)
 
