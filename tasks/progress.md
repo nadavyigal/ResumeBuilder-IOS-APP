@@ -1,3 +1,14 @@
+# 2026-11-06: Forgot and change password in the app (1.6.1 plan A)
+
+Status: branch `claude/ios-password-reset` (stacked on `claude/resumely-pricing-v2`, PR #226), PR open, not merged, no build uploaded. Ships as 1.6.1 after Apple approves 1.6.0.
+Current Phase: Payments v2; 1.6.0 (39) in App Review.
+Active Story: sign-in has "Forgot password?" (Supabase `/auth/v1/recover`); Me has "Change Password" for accounts with an email identity (PUT `/auth/v1/user`); the app registers `resumebuilder://`, and `resumebuilder://signin` opens Me and its sign-in sheet. Web draft PR nadavyigal/new-ResumeBuilder-ai-#209 adds "Open the Resumely app" on the reset success screen; merge it only after 1.6.1 is live.
+Last Completed Story: 1.6.0 (39) submitted; web reset page live (#208).
+Next Recommended Story: founder runs the flow once on a real iPhone, then bump to 1.6.1 and upload after 1.6.0 is approved.
+Blockers: Apple review of 1.6.0.
+Last Validation: 2026-11-06 full suite 728 tests, 0 failures, 11 skipped (16 new in `PasswordFlowsTests`). Simulator: `resumebuilder://signin` opens sign-in from foreground, background and a cold launch; Forgot password sent a reset to +review, Resend "Delivered".
+Last Updated: 2026-11-06
+
 # 2026-11-05: 1.6.0 (39) submitted to App Review with 3 products (PR #226)
 
 Status: submitted 16:57 Asia/Jerusalem on the founder's yes. Submission holds 5 items: iOS 1.6.0 (39), `resumely.exports.14`, `resumely.exports.5.v2`, `resumely.pro.monthly`, subscription group Resumely Pro. Release setting: automatic after approval. PR #226 is still a draft, not merged.
