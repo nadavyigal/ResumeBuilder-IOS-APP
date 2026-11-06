@@ -231,11 +231,6 @@ struct ScanResumeView: View {
                     Text(appState.isAuthenticated ? "Ready for full optimization." : "Sign in to unlock full optimization.")
                         .font(.appCaption)
                         .foregroundStyle(AppColors.textSecondary)
-                    if let remaining = result.checksRemaining {
-                        Text("\(remaining) free checks remaining")
-                            .font(.appCaption)
-                            .foregroundStyle(AppColors.accentTeal)
-                    }
                 }
             }
 

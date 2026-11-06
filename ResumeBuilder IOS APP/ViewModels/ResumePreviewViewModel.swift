@@ -33,7 +33,7 @@ final class ResumePreviewViewModel {
     /// Plain-text blurb for `ShareLink` message and copy button.
     var shareScoreLine: String? {
         guard let s = atsScorePercent else { return nil }
-        return String(format: NSLocalizedString("My Resumely Match Score was %lld%% for this job — try Resumely: %@", comment: ""), s, Self.shareAppURL)
+        return String(format: NSLocalizedString("My estimated Resumely Match Score for this job: %lld%%. Try Resumely: %@", comment: ""), s, Self.shareAppURL)
     }
 
     var shareScoreMessage: String {

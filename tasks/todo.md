@@ -1,3 +1,23 @@
+# 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
+
+Plan: a failing test first, then re-read the plan after a new unlock and on each Me-tab show.
+
+- [x] Root cause: the unlock reply has no Pro fair-use count, and the kept-alive Profile tab read credits once per launch.
+- [x] `ExportUsageRefreshTests`: red on "0 of 40" after a Pro export, now green.
+- [x] `authorizeExport` re-reads credits in the background after a new unlock; the plan row re-reads on each Me-tab show.
+- [ ] Founder retest on the phone: export with Pro and with a pack, then open Me without a relaunch.
+
+# 2026-10-31: Track T1, iOS payment blockers on PR #226 (no commit, no push, founder brief)
+
+Plan: fix the three open review findings with a failing test first, then prepare the launch documents and the local 1.6.0 bump.
+
+- [x] Finding 1: a cancelled or expired Pro user sees the Pro offer again. Paywall reads the server before it hides Pro; `refreshEntitlements` re-reads the plan on `.noPlan`.
+- [x] Finding 2: the score-seen mark and `match_score_viewed` wait for the active tab and fire when it becomes active.
+- [x] Finding 3: with `REQUIRE_STOREKIT_TESTS=1` a missing product fails, and the dedicated test plan makes a skip impossible. A passing run of all 10 cases is still needed.
+- [x] `docs/qa/2026-10-31-pricing-map.md`, `founder-xcode-run.md`, `sandbox-matrix.md`, `ios-go-no-go.md`.
+- [x] 1.6.0 version bump, local only, no archive.
+- [x] Full test suite and Release build, skipped tests named.
+
 # 2026-10-26: Record AI consent on the server, and declare collected data
 
 As a user who agrees that Resumely may send a résumé and job text to OpenAI, I want that yes kept on the server for my account, not only on this phone.
