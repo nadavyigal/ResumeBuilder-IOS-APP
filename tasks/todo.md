@@ -1,3 +1,19 @@
+# 2026-11-06: Forgot password and change password in the app (1.6.1, plan A)
+
+As a Resumely user who signed up with email, I want to reset a forgotten password from the app's sign-in screen and change my password from Me, and after a reset on the web page get back into the app.
+
+Plan A, approved 2026-11-06. No Apple portal change, no app links.
+
+- [x] `AuthService`: `sendPasswordReset(email:)` (POST `/auth/v1/recover`) and `updatePassword(accessToken:newPassword:)` (PUT `/auth/v1/user`).
+- [x] `AppState`: `changePassword(_:)` with a fresh token; `resumebuilder://signin` sets `pendingSignInRequest`.
+- [x] `Features/V2/Auth/PasswordSheets.swift`: Forgot password sheet and Change password sheet, each with an `@Observable` view model.
+- [x] Sign-in screen: "Forgot password?" in sign-in mode. Me tab: "Change Password" for email accounts only (not Apple, not guests).
+- [x] `Config/Info.plist`: register the `resumebuilder` URL scheme. The tab view opens Me and the sign-in sheet on that link.
+- [x] Hebrew strings in `Localizable.xcstrings`.
+- [x] Web (separate PR): the update-password success screen shows "Open the Resumely app" on iPhone, linking to `resumebuilder://signin`.
+- [x] Tests: view model validation, link parsing, AppState routing, request shape. Build, full suite, simulator smoke test.
+- [ ] Founder: one run on a real iPhone (forgot password from the app, open the email, save, tap "Open the Resumely app", sign in; then Me > Change Password).
+
 # 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
 
 Plan: a failing test first, then re-read the plan after a new unlock and on each Me-tab show.

@@ -13,6 +13,16 @@ enum JWTDecoder: Sendable {
         payload(from: jwt)?["is_anonymous"] as? Bool
     }
 
+    /// Whether the account has an email-and-password identity. Supabase puts
+    /// the first sign-in provider in `app_metadata.provider` and every linked
+    /// one in `app_metadata.providers`, so an Apple account that later added a
+    /// password still counts. Only decides whether Me offers "Change Password".
+    static func hasEmailPasswordIdentity(from jwt: String) -> Bool {
+        guard let metadata = payload(from: jwt)?["app_metadata"] as? [String: Any] else { return false }
+        if metadata["provider"] as? String == "email" { return true }
+        return (metadata["providers"] as? [String])?.contains("email") == true
+    }
+
     private static func payload(from jwt: String) -> [String: Any]? {
         let parts = jwt.split(separator: ".")
         guard parts.count >= 2,

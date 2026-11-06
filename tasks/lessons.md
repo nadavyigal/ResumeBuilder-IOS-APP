@@ -1005,3 +1005,6 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** `APIClientError.paymentRequired` copy names what ran out (PDF downloads), never a plan, "upgrade" or "Premium". Before rewording any payment error, grep the tests for the message and read the decision it cites.
 **Why:** the 1.6.0 copy fix first changed it to "Your plan does not include this. See your plan on the Me tab." `testPaymentRequiredCopyNamesTheExportCreditNotAPlan` failed on "plan" and caught it before commit. Shipped text: "You have no PDF downloads left."
+
+### 2026-11-06: Edit Info.plist and Localizable.xcstrings as text, not through a parser
+Rewriting `Config/Info.plist` with `plistlib` or `Localizable.xcstrings` with `json.dump` reformats or reorders the whole file (a 13-line change became 152 lines; 140 lines became 5,450). Insert the new block as text at a known anchor, then check it still parses (`plutil -lint`, `json.loads`).

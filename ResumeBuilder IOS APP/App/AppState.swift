@@ -66,6 +66,11 @@ enum OptimizationRecoveryState: Sendable, Equatable {
 final class AppState {
     var session: AuthSession?
     var pendingSharedJobURL: URL?
+    /// Bumped by `resumebuilder://signin` (the web reset page's "Open the
+    /// Resumely app" button) while signed out. The tab view switches to Me and
+    /// Me opens its sign-in sheet. A counter, not a flag, so neither view has to
+    /// clear it before the other has seen it.
+    private(set) var signInRequestCount = 0
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
     /// Pro as the server last reported it; nil before the first read or
@@ -270,8 +275,27 @@ final class AppState {
     }
 
     func handleIncomingURL(_ url: URL) {
+        if DeepLinkRouter.isSignInLink(url) {
+            // Already signed in: nothing to open.
+            if !isAuthenticated { signInRequestCount &+= 1 }
+            return
+        }
         if let sharedURL = DeepLinkRouter.parseSharedJobURL(from: url) {
             pendingSharedJobURL = sharedURL
+        }
+    }
+
+    /// Only a real email account has a password to change. Apple sign-in and
+    /// guests do not, so the Me tab hides the row for them.
+    var canChangePassword: Bool {
+        guard isAuthenticated, let token = session?.accessToken else { return false }
+        return JWTDecoder.hasEmailPasswordIdentity(from: token)
+    }
+
+    /// Sets a new password for the signed-in account. The session stays valid.
+    func changePassword(_ newPassword: String) async throws {
+        try await callWithFreshToken { token in
+            try await self.authClient.updatePassword(accessToken: token, newPassword: newPassword)
         }
     }
 

@@ -1,6 +1,11 @@
 import Foundation
 
 enum DeepLinkRouter {
+    /// `resumebuilder://signin`, opened by the website after a password reset.
+    static func isSignInLink(_ url: URL) -> Bool {
+        url.scheme?.lowercased() == "resumebuilder" && url.host?.lowercased() == "signin"
+    }
+
     static func parseSharedJobURL(from url: URL) -> URL? {
         guard url.scheme == "resumebuilder" || url.host == "share" else { return nil }
 

@@ -47,6 +47,7 @@ protocol AuthClient: Sendable {
     func refreshSession(refreshToken: String) async throws -> AuthSession
     func deleteAccount(accessToken: String) async throws
     func signInAnonymously() async throws -> AuthSession
+    func updatePassword(accessToken: String, newPassword: String) async throws
 }
 
 extension AuthClient {
@@ -54,6 +55,11 @@ extension AuthClient {
     /// with the provider off: the app stays an unauthenticated guest.
     func signInAnonymously() async throws -> AuthSession {
         throw AuthServiceError.anonymousSignInDisabled
+    }
+
+    /// Test doubles that do not exercise password changes fail loudly.
+    func updatePassword(accessToken: String, newPassword: String) async throws {
+        throw AuthServiceError.invalidResponse
     }
 }
 
@@ -171,6 +177,66 @@ final class AuthService: @unchecked Sendable {
         )
         persist(session)
         return session
+    }
+
+    // MARK: - Password reset and change
+
+    /// Asks Supabase to email a reset link. The email's link is set by the
+    /// Supabase "Reset password" template: it opens the website's
+    /// `/auth/confirm`, then `/auth/update-password`, which works on any device.
+    /// Supabase answers 200 for an unknown address too, so this never reveals
+    /// whether an account exists.
+    func sendPasswordReset(email: String) async throws {
+        let request = try Self.makeRecoverRequest(email: email)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+        if !(200...299).contains(httpResponse.statusCode) {
+            let text = String(data: data, encoding: .utf8) ?? "Could not send the reset email"
+            throw AuthServiceError.serverError(parseGoTrueError(text))
+        }
+    }
+
+    /// Sets a new password for the signed-in account. A 401 is thrown as
+    /// `APIClientError.unauthorized` so `AppState.callWithFreshToken` retries
+    /// once with a refreshed token.
+    func updatePassword(accessToken: String, newPassword: String) async throws {
+        let request = try Self.makeUpdatePasswordRequest(accessToken: accessToken, newPassword: newPassword)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+        if httpResponse.statusCode == 401 {
+            throw APIClientError.unauthorized
+        }
+        if !(200...299).contains(httpResponse.statusCode) {
+            let text = String(data: data, encoding: .utf8) ?? "Could not change the password"
+            throw AuthServiceError.serverError(parseGoTrueError(text))
+        }
+    }
+
+    static func makeRecoverRequest(email: String) throws -> URLRequest {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("auth/v1/recover")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["email": email])
+        request.timeoutInterval = 20
+        return request
+    }
+
+    static func makeUpdatePasswordRequest(accessToken: String, newPassword: String) throws -> URLRequest {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("auth/v1/user")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["password": newPassword])
+        request.timeoutInterval = 20
+        return request
     }
 
     // MARK: - Anonymous sign-in

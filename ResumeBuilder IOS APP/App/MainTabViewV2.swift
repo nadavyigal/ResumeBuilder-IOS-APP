@@ -67,6 +67,11 @@ struct MainTabViewV2: View {
         .onChange(of: appState.latestOptimizationId) { _, newId in
             syncDesignViewModel(to: newId)
         }
+        // `resumebuilder://signin`: Me holds the sign-in sheet. `initial` covers
+        // a cold launch by the link, which lands before the tabs exist.
+        .onChange(of: appState.signInRequestCount, initial: true) { _, count in
+            if count > 0 { selectedTab = .me }
+        }
         // Sign-in, sign-out and account deletion change whose résumé the server
         // can see. Drop the cached upload so the next check uploads as the new
         // identity (an anonymous guest keeps its id when it becomes an account,
