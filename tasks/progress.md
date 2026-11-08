@@ -1,3 +1,15 @@
+# 2026-11-08: 1.6.0 (39) live
+
+Status: 1.6.0 live on the App Store since 2026-11-07T03:07:05Z. Submitted 2026-11-05 16:57 Asia/Jerusalem with build 39 and 3 products (`resumely.exports.14`, `resumely.exports.5.v2`, `resumely.pro.monthly`), release setting automatic after approval. The public lookup does not show the build number; 39 was the only build attached at submission, so the live build is most likely 39. Not checked in App Store Connect.
+Release source: commit `953fb12` on branch `claude/resumely-pricing-v2` (PR #226, still a draft). `main` does not contain the 1.6.0 code, so `main` is older than the live app until #226 merges. The full 1.6.0 history (upload, ASC setup, submission) is in #226's `tasks/progress.md`.
+Current Phase: Post-release of 1.6.0 (39). Payments v2 live in the binary; server billing flag off.
+Active Story: 1.6.1 on PR #227 (password reset and change, stacked on #226). The PR Steward's 2026-11-08 sweep found a blocking account-switch risk in its password retry; `b9a4c43` addresses it and awaits current-head review.
+Last Completed Story: 1.6.0 (39) released.
+Next Recommended Story: current-head review and merge of #226 so `main` matches the live app, then #227 (1.6.1). Founder decides separately when to set `EXPORT_CREDITS_ENABLED` on (Vercel + redeploy, his yes), then remove the old 1.5.6 packs from sale. Check the 3 products' state in App Store Connect (not checked this session).
+Blockers: public billing stays off until the founder's named yes. Hosted Codex review is out of credits.
+Last Validation: 2026-11-08: App Store lookup (id 6776752349) returned 1.6.0, released 2026-11-07T03:07:05Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-11-08
+
 # 2026-10-28: Consent record retry stays with the consenting account
 
 Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
