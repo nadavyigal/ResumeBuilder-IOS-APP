@@ -293,8 +293,17 @@ final class AppState {
     }
 
     /// Sets a new password for the signed-in account. The session stays valid.
+    ///
+    /// Bound to the account that started it: a sign-out and sign-in to another
+    /// account while the first request is out must not let the 401 retry
+    /// change the new account's password (CodeRabbit on 083ef5c, same rule as
+    /// `recordAIConsentGrant`).
     func changePassword(_ newPassword: String) async throws {
+        guard let accountId = session?.userId else { throw APIClientError.unauthorized }
         try await callWithFreshToken { token in
+            guard self.session?.userId == accountId, self.session?.accessToken == token else {
+                throw APIClientError.unauthorized
+            }
             try await self.authClient.updatePassword(accessToken: token, newPassword: newPassword)
         }
     }

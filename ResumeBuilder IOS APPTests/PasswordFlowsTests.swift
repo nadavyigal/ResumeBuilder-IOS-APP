@@ -108,6 +108,36 @@ final class PasswordFlowsTests: XCTestCase {
         XCTAssertEqual(client.updates.first?.token, appState.session?.accessToken)
     }
 
+    func testRetryDoesNotChangeAnotherAccountsPassword() async {
+        let other = Self.session(provider: "email", userId: "user-2")
+        var appState: AppState!
+        let client = PasswordAuthClient(firstUpdate: { appState.session = other }, refreshed: other)
+        appState = AppState(authClient: client)
+        appState.session = Self.session(provider: "email")
+
+        do {
+            try await appState.changePassword(Self.validValue)
+            XCTFail("A changed account must stop the retry.")
+        } catch APIClientError.unauthorized {
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+
+        XCTAssertEqual(client.updates.count, 1, "Only the first account's request may go out.")
+        XCTAssertNotEqual(client.updates.first?.token, other.accessToken)
+    }
+
+    func testExpiredSessionResponsesAreRecognised() {
+        let badJWT = Data(#"{"code":403,"error_code":"bad_jwt","msg":"invalid JWT"}"#.utf8)
+        let reauth = Data(#"{"code":403,"error_code":"reauthentication_needed","msg":"Password update requires reauthentication"}"#.utf8)
+
+        XCTAssertTrue(AuthService.isExpiredSession(statusCode: 401, body: Data()))
+        XCTAssertTrue(AuthService.isExpiredSession(statusCode: 403, body: badJWT))
+        XCTAssertFalse(AuthService.isExpiredSession(statusCode: 403, body: reauth))
+        XCTAssertFalse(AuthService.isExpiredSession(statusCode: 403, body: Data("not json".utf8)))
+        XCTAssertFalse(AuthService.isExpiredSession(statusCode: 422, body: badJWT))
+    }
+
     func testOnlyEmailAccountsCanChangePassword() {
         let appState = AppState(authClient: PasswordAuthClient())
 
@@ -205,13 +235,13 @@ final class PasswordFlowsTests: XCTestCase {
     private static let validValue = String(repeating: "q", count: minimumPasswordLength + 4)
     private static let shortValue = String(repeating: "q", count: minimumPasswordLength - 3)
 
-    private static func session(provider: String, providers: [String]? = nil, isAnonymous: Bool = false) -> AuthSession {
+    private static func session(provider: String, providers: [String]? = nil, isAnonymous: Bool = false, userId: String = "user-1") -> AuthSession {
         let list = (providers ?? [provider]).map { "\"\($0)\"" }.joined(separator: ",")
-        let payload = #"{"sub":"user-1","exp":4102444800,"is_anonymous":\#(isAnonymous),"app_metadata":{"provider":"\#(provider)","providers":[\#(list)]}}"#
+        let payload = #"{"sub":"\#(userId)","exp":4102444800,"is_anonymous":\#(isAnonymous),"app_metadata":{"provider":"\#(provider)","providers":[\#(list)]}}"#
         return AuthSession(
             accessToken: "\(base64URL("{\"alg\":\"none\"}")).\(base64URL(payload)).sig",
             refreshToken: "refresh-1",
-            userId: "user-1",
+            userId: userId,
             email: "user@example.com",
             isAnonymous: isAnonymous
         )
@@ -228,6 +258,15 @@ final class PasswordFlowsTests: XCTestCase {
 private final class PasswordAuthClient: AuthClient, @unchecked Sendable {
     private let lock = NSLock()
     private var recorded: [(token: String, password: String)] = []
+    /// When set, the first password update fails with a 401 after running this,
+    /// which lets a test switch accounts while that request is out.
+    private let firstUpdate: (@MainActor @Sendable () -> Void)?
+    private let refreshed: AuthSession?
+
+    init(firstUpdate: (@MainActor @Sendable () -> Void)? = nil, refreshed: AuthSession? = nil) {
+        self.firstUpdate = firstUpdate
+        self.refreshed = refreshed
+    }
 
     var updates: [(token: String, password: String)] {
         lock.withLock { recorded }
@@ -236,11 +275,19 @@ private final class PasswordAuthClient: AuthClient, @unchecked Sendable {
     func restoreSession() -> AuthSession? { nil }
     func clearSession() {}
     func refreshSession(refreshToken: String) async throws -> AuthSession {
-        throw AuthServiceError.invalidResponse
+        guard let refreshed else { throw AuthServiceError.invalidResponse }
+        return refreshed
     }
     func deleteAccount(accessToken: String) async throws {}
 
     func updatePassword(accessToken: String, newPassword: String) async throws {
-        lock.withLock { recorded.append((accessToken, newPassword)) }
+        let isFirst = lock.withLock { () -> Bool in
+            recorded.append((accessToken, newPassword))
+            return recorded.count == 1
+        }
+        if isFirst, let firstUpdate {
+            await MainActor.run { firstUpdate() }
+            throw APIClientError.unauthorized
+        }
     }
 }

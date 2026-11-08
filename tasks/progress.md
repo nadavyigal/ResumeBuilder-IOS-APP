@@ -6,7 +6,7 @@ Active Story: sign-in has "Forgot password?" (Supabase `/auth/v1/recover`); Me h
 Last Completed Story: 1.6.0 (39) submitted; web reset page live (#208).
 Next Recommended Story: founder runs the flow once on a real iPhone, then bump to 1.6.1 and upload after 1.6.0 is approved.
 Blockers: Apple review of 1.6.0.
-Last Validation: 2026-11-06 full suite 728 tests, 0 failures, 11 skipped (16 new in `PasswordFlowsTests`). Simulator: `resumebuilder://signin` opens sign-in from foreground, background and a cold launch; Forgot password sent a reset to +review, Resend "Delivered".
+Last Validation: 2026-11-08 full suite 730 tests, 0 failures, 11 skipped (18 in `PasswordFlowsTests`, incl. CodeRabbit fixes: retry bound to the starting account, 403 `bad_jwt` treated as an expired session). Simulator: `resumebuilder://signin` opens sign-in from foreground, background and a cold launch; Forgot password sent a reset to +review, Resend "Delivered".
 Last Updated: 2026-11-06
 
 # 2026-11-05: 1.6.0 (39) submitted to App Review with 3 products (PR #226)

@@ -207,13 +207,24 @@ final class AuthService: @unchecked Sendable {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AuthServiceError.invalidResponse
         }
-        if httpResponse.statusCode == 401 {
+        if Self.isExpiredSession(statusCode: httpResponse.statusCode, body: data) {
             throw APIClientError.unauthorized
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Could not change the password"
             throw AuthServiceError.serverError(parseGoTrueError(text))
         }
+    }
+
+    /// GoTrue answers an expired or invalid access token with 401, or with 403
+    /// and `error_code: "bad_jwt"`. Other 403s (for example a reauthentication
+    /// requirement) stay server errors with their own message.
+    static func isExpiredSession(statusCode: Int, body: Data) -> Bool {
+        if statusCode == 401 { return true }
+        guard statusCode == 403,
+              let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
+        else { return false }
+        return json["error_code"] as? String == "bad_jwt"
     }
 
     static func makeRecoverRequest(email: String) throws -> URLRequest {
