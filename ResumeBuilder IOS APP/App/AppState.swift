@@ -86,6 +86,7 @@ final class AppState {
     private(set) var signInRequestCount = 0
     var anonymousATSSessionId: String?
     var creditsBalance: Int = 0
+    @ObservationIgnored private var creditsReadGeneration: UInt64 = 0
     /// Pro as the server last reported it; nil before the first read or
     /// signed out.
     var subscription: SubscriptionStatus?
@@ -324,6 +325,7 @@ final class AppState {
     }
 
     func signOut() {
+        invalidateCreditsReads()
         authClient.clearSession()
         optimizationRecoveryGeneration &+= 1
         session = nil
@@ -590,6 +592,7 @@ final class AppState {
     }
 
     func setSession(_ session: AuthSession) async {
+        invalidateCreditsReads()
         optimizationRecoveryGeneration &+= 1
         optimizationRecoveryState = .idle
         self.session = session
@@ -828,18 +831,32 @@ final class AppState {
         }
     }
 
+    /// An unlock or verified purchase supersedes reads made before that write,
+    /// even if its follow-up credits request has not started yet.
+    func applyCreditsBalance(_ balance: Int?) {
+        invalidateCreditsReads()
+        if let balance { creditsBalance = balance }
+    }
+
+    private func invalidateCreditsReads() {
+        creditsReadGeneration &+= 1
+    }
+
     func refreshCredits() async {
         // Export credits are read whatever `isMonetizationEnabled` says: the server
         // decides the gate (StoreKit spec 11), and the paywall reports the balance.
         guard let token = session?.accessToken else { return }
         let requestedFor = session?.userId
+        invalidateCreditsReads()
+        let generation = creditsReadGeneration
 
         do {
             let response: CreditsResponse = try await apiClient.get(endpoint: .credits, token: token)
             // A reply for an account that signed out (or was replaced) while
             // the request was in flight must not land on the next one
             // (Codex on #226).
-            guard session?.userId == requestedFor else { return }
+            guard session?.userId == requestedFor,
+                  creditsReadGeneration == generation else { return }
             creditsBalance = response.balance
             subscription = response.subscription
         } catch {

@@ -20,6 +20,29 @@ Blockers: Apple review of 1.6.0.
 Last Validation: 2026-11-08 full suite 730 tests, 0 failures, 11 skipped (18 in `PasswordFlowsTests`, incl. CodeRabbit fixes: retry bound to the starting account, 403 `bad_jwt` treated as an expired session). Simulator: `resumebuilder://signin` opens sign-in from foreground, background and a cold launch; Forgot password sent a reset to +review, Resend "Delivered".
 Last Updated: 2026-11-06
 
+# 2026-11-10: Credits reply ordering repair (#226)
+
+Status: implemented; targeted regressions pass and independent read-only review approved. Full build/suite passed: 718 XCTest cases (11 existing skips, 0 failures) plus 5 Swift Testing cases; git diff --check clean. Results: /tmp/resumely-credits-full-20261110.xcresult. PR remains draft; no merge/release or billing operation.
+Current Phase: reconcile pricing-v2 source with main's #228 live-release record and repair stale balance/usage replies.
+Active Story: prevent older credits reads from overwriting newer balance or Pro usage.
+Last Completed Story: three baseline tests reproduced stale balance/usage (4 assertions failed); read generations plus synchronous write invalidation fix the race. Main's dated 1.6.0 live record is preserved above the older submission history. Row 12's unrun kill-before-grant scenario is no longer described as a pass.
+Next Recommended Story: hosted review of this head, then #227 GoTrue parsing follow-up and source refresh against this pricing branch; #226 integration precedes #227.
+Blockers: final high-risk review and founder source-integration approval; physical QA limitations remain. Separate pre-existing P2: a successful A unlock can still apply its balance/authorization after switching to B; fix by binding successful completion to the session generation. Not a server-credit grant to B, and not fixed by this read-ordering change.
+Last Validation: targeted CreditsResponseOrderingTests 6/6 and ExportUsageRefreshTests 3/3 passed (iPhone 17, iOS 26.5, English), independent agent review approved with the successful-unlock case retained separately. No new StoreKit purchase or production write.
+Last Updated: 2026-11-10
+
+# 2026-11-08: 1.6.0 live (build 39 most likely)
+
+Status: 1.6.0 live on the App Store since 2026-11-07T03:07:05Z. Submitted 2026-11-05 16:57 Asia/Jerusalem with build 39 and 3 products (`resumely.exports.14`, `resumely.exports.5.v2`, `resumely.pro.monthly`), release setting automatic after approval. The public lookup does not show the build number; 39 was the only build attached at submission, so the live build is most likely 39. Not checked in App Store Connect.
+Release source: commit `953fb12` on branch `claude/resumely-pricing-v2` (PR #226, still a draft). `main` does not contain the 1.6.0 code, so `main` is older than the live app until #226 merges. The full 1.6.0 history (upload, ASC setup, submission) is in #226's `tasks/progress.md`.
+Current Phase: Post-release of 1.6.0. Payments v2 live in the binary; server billing flag off.
+Active Story: 1.6.1 on PR #227 (password reset and change, stacked on #226). The PR Steward's 2026-11-08 sweep found a blocking account-switch risk in its password retry; `b9a4c43` addresses it and awaits current-head review.
+Last Completed Story: 1.6.0 released.
+Next Recommended Story: current-head review and merge of #226 so `main` matches the live app, then #227 (1.6.1). Founder decides separately when to set `EXPORT_CREDITS_ENABLED` on (Vercel + redeploy, his yes), then remove the old 1.5.6 packs from sale. Check the 3 products' state in App Store Connect (not checked this session).
+Blockers: public billing stays off until the founder's named yes. Hosted Codex review is out of credits.
+Last Validation: 2026-11-08: App Store lookup (id 6776752349) returned 1.6.0, released 2026-11-07T03:07:05Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-11-08
+
 # 2026-11-05: 1.6.0 (39) submitted to App Review with 3 products (PR #226)
 
 Status: submitted 16:57 Asia/Jerusalem on the founder's yes. Submission holds 5 items: iOS 1.6.0 (39), `resumely.exports.14`, `resumely.exports.5.v2`, `resumely.pro.monthly`, subscription group Resumely Pro. Release setting: automatic after approval. PR #226 is still a draft, not merged.
@@ -68,8 +91,8 @@ Last Updated: 2026-11-05
 
 Status: 1.6.0 (37) uploaded 09:45 on the founder's yes, in the internal Founder QA group only. Phone run done: `docs/qa/2026-11-05-testflight-37-phone-run.md`. Not merged, not submitted.
 Current Phase: Payments v2, launch preparation.
-Active Story: none in code. WP-79 S4 phone run closed: must-pass rows 3, 5, 7, 12, 18, 27 passed; rows 11 and 25 not run on the founder's named yes (2026-11-05).
-Last Completed Story: on TestFlight 37: row 6 Pro renewal PASS, S3 usage refresh PASS (count +1 without relaunch), row 12 PASS (one +5 grant, one debit, balance 4; grant lands before a person can close the app), row 27 PASS (re-sent transaction added no row, Restore kept 4). First row 12 attempt closed the app inside Apple's sheet: no purchase, no charge, correct.
+Active Story: none in code. WP-79 S4 phone run: rows 3, 5, 7, 18 and 27 passed; row 12's kill-before-grant scenario remains unrun (evidence correction 2026-11-10). Rows 11 and 25 not run on the founder's named yes (2026-11-05).
+Last Completed Story: on TestFlight 37: row 6 Pro renewal PASS, S3 usage refresh PASS (count +1 without relaunch), row 12 normal fast-grant path observed (one +5 grant, one debit, balance 4), not the required kill-before-grant recovery, row 27 PASS (re-sent transaction added no row, Restore kept 4). First row 12 attempt closed the app inside Apple's sheet: no purchase, no charge, correct.
 Next Recommended Story: ASC draft renamed 1.5.7 to 1.6.0 (saved). Builds 36 and 37 were uploaded internal-testing-only and cannot be attached; build 38 (same code) archived, upload waits on the founder's yes. Store texts drafted in `docs/qa/2026-11-05-asc-1.6.0-texts.md`, waiting on his OK. Review account ready at 0 (ledger verified 13:16). Then App Store Connect 1.6.0 setup with build 37, S7 accountant, S8 screenshots (#225), submit. After release: EXPORT_CREDITS_ENABLED on, old packs off sale.
 Blockers: S7 accountant; S8 screenshots. Not run by design: StoreKit unit tests on a phone (1 pass / 9 fail on 1 Nov), rows 10, 11, 17, 20 to 22, 25, 26, 28 to 31.
 Last Validation: 2026-11-05: Release archive 1.6.0 (37) succeeded and was verified; ledger, PostHog and Vercel logs read for every row above. No app source change since 80f36fc (712 XCTest, 0 failures, 11 skipped).

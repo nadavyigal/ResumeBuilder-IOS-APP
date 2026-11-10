@@ -19,7 +19,7 @@ Earlier rows (packs, cancel, restore, Pro buy, ownership, cancel, expiry, resubs
 |---|---|---|---|
 | 6 | Pro renews by itself | PASS | qa-pro resubscribed 3 Nov 11:35, server period 4 Nov 11:35 to 5 Nov 11:35, auto-renew on. Founder: Profile "renews Nov 5" |
 | S3 fix | Export, then Me without relaunch: count +1 | PASS on 37 | Founder report, qa-pro. On 36 the count lagged until relaunch |
-| 12 | Pay, close the app, reopen | PASS, weaker than written | 10:28:19 purchase started, 10:28:32 one +5 `resumely.exports.5.v2` Sandbox row, 10:28:34 one export debit, balance 4. The grant lands about 2 s after Apple's confirmation, before a person can close the app, so a kill before the grant was not reproduced |
+| 12 | Pay, close the app before grant, reopen | NOT RUN as specified; normal fast-grant path observed | 10:28:19 purchase started, 10:28:32 one +5 `resumely.exports.5.v2` Sandbox row, 10:28:34 one export debit, balance 4. The grant lands about 2 s after Apple's confirmation, before a person can close the app, so a kill before the grant was not reproduced |
 | 27 | Relaunch twice, Restore | PASS | 10:31:44 the same transaction was re-sent at relaunch (`iap_verified`), server added no row. After Restore: one ledger row for the transaction, 12 rows, balance 4. Founder screenshot: 4 left |
 
 ## First attempt at row 12, not a failure
@@ -39,7 +39,7 @@ The founder closed the app at about 10:13 while Apple's sheet was still open. Po
 
 ## Testing verdict
 
-The six must-pass money rows (3, 5, 7, 12, 18, 27) passed across builds 36 and 37. Row 18 is covered by the 3 Nov resubscribe: after expiry the paywall offered Pro and the founder bought it there. Testing is closed for submission.
+Correction, 2026-11-10: the record supports passes for rows 3, 5, 7, 18 and 27 across builds 36 and 37. The required row 12 kill-after-purchase/before-grant recovery scenario was not reproduced and remains unrun; a normal fast grant is weaker evidence. Row 18 is covered by the 3 Nov resubscribe: after expiry the paywall offered Pro and the founder bought it there. The dated submission below proceeded on the founder's authorization; this evidence correction neither repeats submission nor establishes new release readiness.
 
 ## App Review account
 

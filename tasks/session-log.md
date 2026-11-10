@@ -4,6 +4,12 @@ Executed the first task in the founder-approved progress plan. Used existing cle
 
 Regression evidence: 11 tests / 14 failures on old production source; fixed targeted run 31/31 passes. Full suite 739 XCTest cases (11 skipped, no failures) plus 5 Swift Testing cases passes, including independent-review additions for persistence and old/new refresh coalescing. Final cleanup rebuild/full suite passed again with the same counts; git diff --check clean. Results: /tmp/resumely-session-final-20261110.xcresult. The independent reviewer made no production calls and reported no remaining findings. This task does not resolve the separate GoTrue parsing P2 or #226 credits finding and does not authorize merge, upload or release. No build/version changes.
 
+## 2026-11-10: PR #226 credits-ordering follow-up
+
+Created `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-credits-response-ordering`, branch `fix/credits-response-ordering`, from remote pricing head 06d367c. The original pricing checkout has an existing date-only progress edit and was left intact. Locally merged main 2b6367a; preserved #228's live1.6.0 record and all pricing submission history while resolving the progress-file conflict. No product PR was merged.
+
+Baseline three reversed-response regressions produced four assertion failures. The repair invalidates older reads on each new read, unlock/purchase balance write (including nil balance), sign-out and session install. Targeted six ordering plus three existing export-usage tests pass. Independent read-only review approved the scoped fix and retained a separate successful-unlock/session-switch P2 for later repair. Payment QA row12 is corrected to unrun as specified; its fast-grant observation remains. Full results and push head are recorded in the PR precheck. No live billing, transaction, upload or submission action. Taste check: useful user state correction; existing UI/voice preserved; no product filler introduced; scope restricted to ordering/evidence repair. Retrospective: explicit held responses reproduced the bug; a nil-balance unlock must invalidate reads as well.
+
 # 2026-10-25: Styled PDF when exporting before the preview loads
 
 - Worktree /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-export-styled-pdf, branch fix/export-styled-pdf-when-preview-not-loaded, from main e7a5e36.

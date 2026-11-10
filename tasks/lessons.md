@@ -1,3 +1,9 @@
+## 2026-11-10: Stop a merge workflow when its resolution script fails
+
+**Category:** Git / tooling.
+**Rule:** Run dependent merge-resolution and commit commands in separate checked steps, or fail the shell immediately on script errors. Check anchored conflict-marker lines rather than a substring that can also occur in a historical lesson.
+**Why:** A resolution script stopped after encountering a literal conflict-marker example in lessons; the subsequent shell commit still ran, retaining markers in three notes. It was caught locally before push, resolved while preserving both sets of records, and the unpublished merge commit was amended. No published history was rewritten.
+
 ## 2026-11-10: Refresh ownership must be checked before persistence
 
 **Category:** Auth / concurrency.
@@ -9,6 +15,12 @@
 **Category:** Tests.
 **Rule:** Before releasing a held response, wait for an explicit caller-entry handshake on the same actor instead of assuming a fixed number of Task.yield calls proves the caller joined.
 **Why:** Independent review caught a potential false failure in the new old-account/new-account coalescing regression: a late third caller could legitimately start after completion. The MainActor handshake proves it entered while the request is pending. Also wait for a simulator to be booted before using simctl spawn to reset its preferences; xcodebuild may shut it down after a run.
+
+## 2026-11-10: Authoritative credits writes invalidate earlier reads
+
+**Category:** Payments / concurrency.
+**Rule:** Give every credits read a generation and reject superseded replies before applying both balance and subscription usage. Invalidate older reads synchronously when an unlock or verified purchase updates state, even with no returned balance; do not wait for its follow-up Task to begin.
+**Why:** Two post-export reads completed backwards and the older balance/Pro count won. A read started before an unlock could also undo the unlock's new balance before the next read completed. Six stubbed-response regressions cover these boundaries without real purchases. Preserve physical-test limitations: a normal fast grant does not prove kill-before-grant recovery.
 
 ## 2026-11-05: Re-read the live deployment right before a redeploy
 
