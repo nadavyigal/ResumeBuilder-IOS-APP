@@ -4,6 +4,33 @@ import XCTest
 // `AuthSession` is main-actor isolated by the app target's default isolation.
 @MainActor
 final class AuthServiceResponseTests: XCTestCase {
+    func testNumericReauthenticationErrorUsesGoTrueMessage() {
+        let raw = #"{"code":403,"error_code":"reauthentication_needed","msg":"Password update requires reauthentication"}"#
+        XCTAssertEqual(AuthService.parseGoTrueError(raw), "Password update requires reauthentication")
+    }
+
+    func testResetEmailRateLimitUsesGoTrueMessage() {
+        let raw = #"{"code":429,"error_code":"over_email_send_rate_limit","msg":"Wait before requesting another reset email."}"#
+        XCTAssertEqual(AuthService.parseGoTrueError(raw), "Wait before requesting another reset email.")
+    }
+
+    func testGoTrueErrorPreservesExistingMessageFallbacks() {
+        for key in ["message", "error_description", "error"] {
+            XCTAssertEqual(AuthService.parseGoTrueError("{\"\(key)\":\"Readable failure\"}"), "Readable failure")
+        }
+    }
+
+    func testGoTrueErrorIgnoresNonStringAndEmptyMessageFields() {
+        let raw = #"{"code":400,"msg":null,"message":" ","error_description":"Readable failure","details":{"retry":true}}"#
+        XCTAssertEqual(AuthService.parseGoTrueError(raw), "Readable failure")
+    }
+
+    func testNonJSONGoTrueErrorStaysReadable() {
+        for raw in ["Service unavailable", "{invalid", "[1,2]", #"{"code":500}"#] {
+            XCTAssertEqual(AuthService.parseGoTrueError(raw), raw)
+        }
+    }
+
     /// GoTrue can answer a token request without a refresh token; the app must refuse to
     /// build a session it could never refresh.
     func testGoTrueResponseWithoutRefreshTokenIsRejected() throws {

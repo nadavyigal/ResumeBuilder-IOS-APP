@@ -156,7 +156,7 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Sign-up failed"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         // Supabase returns access_token=nil when email confirmation is required
@@ -199,7 +199,7 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Could not send the reset email"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
     }
 
@@ -217,7 +217,7 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Could not change the password"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
     }
 
@@ -293,7 +293,7 @@ final class AuthService: @unchecked Sendable {
             if Self.indicatesAnonymousDisabled(text) {
                 throw AuthServiceError.anonymousSignInDisabled
             }
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         struct AnonymousResponse: Decodable {
@@ -431,19 +431,24 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Authentication failed"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         return try JSONDecoder().decode(GoTrueResponse.self, from: data).makeSession()
     }
 
-    // Extracts a human-readable message from GoTrue error JSON ({"error":"…","message":"…"})
-    private func parseGoTrueError(_ raw: String) -> String {
+    // GoTrue includes numeric codes and nested details alongside its message.
+    static func parseGoTrueError(_ raw: String) -> String {
         guard let data = raw.data(using: .utf8),
-              let json = try? JSONDecoder().decode([String: String].self, from: data),
-              let msg = json["message"] ?? json["error_description"] ?? json["error"]
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { return raw }
-        return msg
+        for key in ["msg", "message", "error_description", "error"] {
+            if let message = json[key] as? String,
+               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return message
+            }
+        }
+        return raw
     }
 }
 

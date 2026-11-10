@@ -1,3 +1,9 @@
+## 2026-11-10: GoTrue errors are heterogeneous JSON
+
+**Category:** Auth / API.
+**Rule:** Decode error objects as heterogeneous dictionaries and select nonempty readable strings from msg/message/error_description/error. Numeric status codes, nulls and nested details must not cause the whole parse to fall back to raw JSON.
+**Why:** The [String:String] decoder rejected modeled numeric-code reauthentication and reset-email rate-limit errors. Five new cases reproduce those failures, retain existing fallbacks and cover malformed/unsupported responses without a live auth call.
+
 ## 2026-11-10: Stop a merge workflow when its resolution script fails
 
 **Category:** Git / tooling.

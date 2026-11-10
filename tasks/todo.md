@@ -1,3 +1,13 @@
+# 2026-11-10: GoTrue error parsing (#227)
+
+- [x] Reproduce raw JSON shown for numeric-code/msg errors and mixed-type fallbacks.
+- [x] Parse heterogeneous response dictionaries and choose a nonempty readable string, preserving legacy message/error_description/error fallbacks and raw non-JSON fallback.
+- [x] Read-only independent review; all five production error paths use the helper.
+- [x] Incorporate pricing source9d2fc2c and preserve both sets of notes; resolve all conflict markers before push.
+- [x] Combined full suite: 750 XCTest cases (11 skipped, 0 failures) plus 5 Swift Testing cases pass.
+- [ ] Current-head hosted review before integration.
+- [ ] Separate existing account-isolation P2: reject successful unlock completion after a session boundary.
+
 # 2026-11-10: Session isolation during refresh (#227)
 
 - [x] Reproduce a late refresh restoring account A after sign-out/account B sign-in.

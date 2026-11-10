@@ -1,3 +1,14 @@
+# 2026-11-10: GoTrue error parsing and combined source validation (#227)
+
+Status: GoTrue parsing repaired after reproducing three modeled response failures; independent read-only review approved. Combined full build/suite passed: 750 XCTest cases (11 existing skips, zero failures) plus 5 Swift Testing cases. Results: /tmp/resumely-combined-full-20261110.xcresult. Not merged/released.
+Current Phase: 1.6.1 source follow-ups; pricing source 9d2fc2c incorporated locally without merging either product PR.
+Active Story: display the provider's readable error when GoTrue includes numeric codes/nested details; preserve existing string-key and non-JSON fallbacks.
+Last Completed Story: #226 credits ordering repair pushed; session-refresh isolation repair retained. Main's #228 live1.6.0 record and row12 unrun evidence correction survive the source merge.
+Next Recommended Story: current-head hosted review and remaining successful-unlock/session-boundary P2; founder integration order #226 then #227, then real-phone password-flow QA and separate release decision. Web #209 stays draft until repaired1.6.1 is public.
+Blockers: hosted review; named source/release approval; physical QA limitations. Existing successful-unlock account-switch P2 remains a separate follow-up, not a claim of server credit transfer.
+Last Validation: old parser fails numeric reauthentication, reset-email rate-limit, and heterogeneous/empty-message fallback tests. Independent reviewer found no remaining parser issues and no conflict markers in the merged records. scripts/validate-store-version.sh confirmed repo/store1.6.0 released2026-11-07T03:07:05Z; measurement-contract Python tests7/7 pass. Combined source build and suite passed with the counts above; git diff --check clean.
+Last Updated: 2026-11-10
+
 # 2026-11-10: PR #227 session-refresh isolation repair
 
 Status: implemented and locally verified; independent read-only review has no remaining findings. Hosted review of the new head is pending. Not merged or released.
