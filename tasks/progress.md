@@ -1,3 +1,14 @@
+# 2026-11-10: PR #227 session-refresh isolation repair
+
+Status: implemented and locally verified; independent read-only review has no remaining findings. Hosted review of the new head is pending. Not merged or released.
+Current Phase: 1.6.1 security follow-up on `claude/ios-password-reset`, stacked on pricing PR #226.
+Active Story: prevent an in-flight refresh from restoring a signed-out session or retrying an old password operation.
+Last Completed Story: reproduced the suspended-refresh bug; moved refresh persistence behind AppState's session-generation/cancellation checks; unified launch and retry refreshes and protected new-task cleanup.
+Next Recommended Story: current-head hosted review, then the separate #226 credit-response ordering task; integrate repaired #226 before #227. Keep GoTrue numeric-code/msg parsing as a separate #227 follow-up.
+Blockers: #226 dependency/credit ordering; #227 GoTrue error parsing P2; hosted review and founder source/release decisions. No readiness claim from green checks alone.
+Last Validation: iPhone 17, iOS 26.5; red baseline 11 AppStateRefreshTests with 14 assertion failures; targeted fixed run 31/31 passes; full suite 739 XCTest cases (11 skipped, 0 failures) plus 5 Swift Testing cases passed. Final source rebuild/full suite passed again with the same counts, no new refresh-token compiler warning, and git diff --check clean. Results: /tmp/resumely-session-final-20261110.xcresult. Independent reviewer requested new-task cleanup and persistence regressions; both added and reviewed, deterministic MainActor entry handshake replaces fixed yields. No live auth calls in the new regression tests; no UI changes, so no new UI smoke required.
+Last Updated: 2026-11-10
+
 # 2026-11-06: Forgot and change password in the app (1.6.1 plan A)
 
 Status: branch `claude/ios-password-reset` (stacked on `claude/resumely-pricing-v2`, PR #226), PR open, not merged, no build uploaded. Ships as 1.6.1 after Apple approves 1.6.0.

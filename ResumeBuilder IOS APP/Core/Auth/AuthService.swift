@@ -44,13 +44,18 @@ extension AuthServiceError {
 protocol AuthClient: Sendable {
     func restoreSession() -> AuthSession?
     func clearSession()
+    /// Fetches credentials without persisting them; AppState validates ownership first.
     func refreshSession(refreshToken: String) async throws -> AuthSession
+    func persistRefreshedSession(_ session: AuthSession)
     func deleteAccount(accessToken: String) async throws
     func signInAnonymously() async throws -> AuthSession
     func updatePassword(accessToken: String, newPassword: String) async throws
 }
 
 extension AuthClient {
+    /// Test doubles without durable storage do not need a persistence implementation.
+    func persistRefreshedSession(_ session: AuthSession) {}
+
     /// Test doubles that never start an anonymous session behave as a project
     /// with the provider off: the app stays an unauthenticated guest.
     func signInAnonymously() async throws -> AuthSession {
@@ -404,9 +409,11 @@ final class AuthService: @unchecked Sendable {
             .appending(queryItems: [URLQueryItem(name: "grant_type", value: "refresh_token")])
 
         let payload: [String: Any] = ["refresh_token": refreshToken]
-        let session = try await postToGoTrue(url: url, payload: payload)
+        return try await postToGoTrue(url: url, payload: payload)
+    }
+
+    func persistRefreshedSession(_ session: AuthSession) {
         persist(session)
-        return session
     }
 
     // MARK: - Shared GoTrue POST helper

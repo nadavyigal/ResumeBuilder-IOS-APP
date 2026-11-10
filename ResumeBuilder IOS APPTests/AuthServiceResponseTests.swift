@@ -43,8 +43,8 @@ final class AuthServiceResponseTests: XCTestCase {
 
     // MARK: - is_anonymous survives refresh
     //
-    // `refreshSession` persists exactly what `makeSession()` returns, and
-    // `restoreSession()` reads it back with `JSONDecoder`. Before this was fixed,
+    // After AppState validates the refresh, `persistRefreshedSession` saves what
+    // `makeSession()` returns; `restoreSession()` decodes it. Before this was fixed,
     // `makeSession()` dropped `user.is_anonymous`, so the first token refresh
     // saved an anonymous guest as a real account and `AppState.isAuthenticated`
     // turned true for them. These go through the same encode/decode the Keychain

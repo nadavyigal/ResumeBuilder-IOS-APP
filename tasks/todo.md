@@ -1,3 +1,13 @@
+# 2026-11-10: Session isolation during refresh (#227)
+
+- [x] Reproduce a late refresh restoring account A after sign-out/account B sign-in.
+- [x] Invalidate pending refresh and password retries across explicit session boundaries, including identical same-account credentials.
+- [x] Persist rotated credentials only after the session-generation/cancellation checks, with no suspension before installation.
+- [x] Cover launch refresh, sign-out, A to B, same-account re-entry, stale failure, ordinary persistence, coalescing, and old-task/new-task cleanup.
+- [x] Independent read-only review; confirmed suggestions fixed.
+- [ ] Current-head hosted review after push; no merge or release in this task.
+- [ ] Separate follow-ups: #226 credit reply ordering; #227 GoTrue error parsing.
+
 # 2026-11-06: Forgot password and change password in the app (1.6.1, plan A)
 
 As a Resumely user who signed up with email, I want to reset a forgotten password from the app's sign-in screen and change my password from Me, and after a reset on the web page get back into the app.

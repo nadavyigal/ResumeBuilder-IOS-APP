@@ -64,7 +64,20 @@ enum OptimizationRecoveryState: Sendable, Equatable {
 @Observable
 @MainActor
 final class AppState {
-    var session: AuthSession?
+    private var storedSession: AuthSession?
+    @ObservationIgnored private var sessionGeneration: UInt64 = 0
+
+    /// Explicit session installation is a new sign-in boundary, even when
+    /// the same account and credentials are installed after signing out.
+    var session: AuthSession? {
+        get { storedSession }
+        set {
+            sessionGeneration &+= 1
+            refreshTask?.cancel()
+            refreshTask = nil
+            storedSession = newValue
+        }
+    }
     var pendingSharedJobURL: URL?
     /// Bumped by `resumebuilder://signin` (the web reset page's "Open the
     /// Resumely app" button) while signed out. The tab view switches to Me and
@@ -300,8 +313,10 @@ final class AppState {
     /// `recordAIConsentGrant`).
     func changePassword(_ newPassword: String) async throws {
         guard let accountId = session?.userId else { throw APIClientError.unauthorized }
+        let generation = sessionGeneration
         try await callWithFreshToken { token in
-            guard self.session?.userId == accountId, self.session?.accessToken == token else {
+            guard self.sessionGeneration == generation,
+                  self.session?.userId == accountId, self.session?.accessToken == token else {
                 throw APIClientError.unauthorized
             }
             try await self.authClient.updatePassword(accessToken: token, newPassword: newPassword)
@@ -330,8 +345,6 @@ final class AppState {
         UserDefaults.standard.removeObject(forKey: Self.submitPackageRecordsKey)
         UserDefaults.standard.removeObject(forKey: Self.savedResumeRecordsKey)
         UserDefaults.standard.removeObject(forKey: Self.completedATSImprovementIdsKey)
-        refreshTask?.cancel()
-        refreshTask = nil
         // The fit floor is a display guarantee for one person's journey. Left
         // in place it would float the next account's first score to whatever
         // this one reached (WP-45 D7).
@@ -702,27 +715,23 @@ final class AppState {
 
     func refreshSessionIfNeeded() async {
         guard let currentSession = session,
-              let refreshToken = currentSession.refreshToken else { return }
+              currentSession.refreshToken != nil else { return }
 
         guard JWTDecoder.shouldRefresh(accessToken: currentSession.accessToken) else { return }
 
-        do {
-            let newSession = try await authClient.refreshSession(refreshToken: refreshToken)
-            session = newSession
-        } catch {
-            if shouldSignOutAfterRefreshFailure(error) {
-                signOut()
-            }
-        }
+        await refreshAccessToken()
     }
 
     @discardableResult
     func refreshAccessToken() async -> String? {
+        let generation = sessionGeneration
         if let existing = refreshTask {
-            return try? await existing.value
+            let token = try? await existing.value
+            guard sessionGeneration == generation, !Task.isCancelled else { return nil }
+            return token
         }
 
-        guard let refreshToken = session?.refreshToken else {
+        guard let currentSession = session, let refreshToken = currentSession.refreshToken else {
             signOut()
             return nil
         }
@@ -730,19 +739,34 @@ final class AppState {
         let task = Task<String, Error> { @MainActor in
             do {
                 let newSession = try await self.authClient.refreshSession(refreshToken: refreshToken)
-                self.session = newSession
+                try Task.checkCancellation()
+                guard self.sessionGeneration == generation,
+                      newSession.userId == currentSession.userId else {
+                    throw APIClientError.unauthorized
+                }
+                // No suspension between validation, Keychain persistence and
+                // installation. Refresh rotates credentials within this session;
+                // explicit session assignments invalidate this generation.
+                self.authClient.persistRefreshedSession(newSession)
+                self.storedSession = newSession
                 return newSession.accessToken
             } catch {
-                if self.shouldSignOutAfterRefreshFailure(error) {
+                if self.sessionGeneration == generation, !Task.isCancelled,
+                   self.shouldSignOutAfterRefreshFailure(error) {
                     self.signOut()
                 }
                 throw error
             }
         }
         refreshTask = task
-        defer { refreshTask = nil }
+        defer {
+            // An old task must not clear the replacement account's refresh.
+            if sessionGeneration == generation { refreshTask = nil }
+        }
 
-        return try? await task.value
+        let token = try? await task.value
+        guard sessionGeneration == generation, !Task.isCancelled else { return nil }
+        return token
     }
 
     /// Best-effort. A failure leaves the local yes in place and retries on the next launch or send.
@@ -787,6 +811,7 @@ final class AppState {
     }
 
     func callWithFreshToken<T>(_ work: (String) async throws -> T) async throws -> T {
+        let generation = sessionGeneration
         guard let token = session?.accessToken else {
             throw APIClientError.unauthorized
         }
@@ -794,7 +819,9 @@ final class AppState {
         do {
             return try await work(token)
         } catch APIClientError.unauthorized {
-            guard let freshToken = await refreshAccessToken() else {
+            guard sessionGeneration == generation, !Task.isCancelled,
+                  let freshToken = await refreshAccessToken(),
+                  sessionGeneration == generation, !Task.isCancelled else {
                 throw APIClientError.unauthorized
             }
             return try await work(freshToken)

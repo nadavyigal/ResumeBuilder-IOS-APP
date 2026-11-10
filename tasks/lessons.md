@@ -1,3 +1,15 @@
+## 2026-11-10: Refresh ownership must be checked before persistence
+
+**Category:** Auth / concurrency.
+**Rule:** Treat every explicit sign-in/session installation as a new generation, even with identical credentials. Validate the captured generation and cancellation before synchronously persisting and installing refreshed credentials; legitimate token rotation stays within that generation. Old failures and cleanup must not affect a replacement generation.
+**Why:** A cancelled request may still return. Checking only account IDs or cancelling a task did not stop a suspended refresh from restoring the signed-out session and retrying its password change. Guarding only AppState also left stale credentials in Keychain because AuthService persisted first. New regressions fail on the old source and pass after the repair.
+
+## 2026-11-10: A fixed number of yields is not an async test handshake
+
+**Category:** Tests.
+**Rule:** Before releasing a held response, wait for an explicit caller-entry handshake on the same actor instead of assuming a fixed number of Task.yield calls proves the caller joined.
+**Why:** Independent review caught a potential false failure in the new old-account/new-account coalescing regression: a late third caller could legitimately start after completion. The MainActor handshake proves it entered while the request is pending. Also wait for a simulator to be booted before using simctl spawn to reset its preferences; xcodebuild may shut it down after a run.
+
 ## 2026-11-05: Re-read the live deployment right before a redeploy
 
 I read the live Vercel deployment id at 11:3x, then redeployed that id at 12:4x to pick up an env change. In between, web PR #207 merged and auto-deployed at 11:52. My redeploy rebuilt the older 09:39 source; it only failed at build, so production was not rolled back. The 11:52 auto-deploy had already picked up the env change.
