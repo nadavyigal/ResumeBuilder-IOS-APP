@@ -102,12 +102,6 @@ struct ScoreResultView: View {
 
             // ── Footer ────────────────────────────────────────────────────────
             VStack(alignment: .leading, spacing: 4) {
-                if let remaining = result.checksRemaining {
-                    Text("\(remaining) free checks remaining this week.")
-                        .font(.caption)
-                        .foregroundStyle(Theme.textTertiary)
-                }
-
                 Text(isAuthenticated
                      ? "Use Tailor to generate the full optimized resume."
                      : "Sign in to unlock full resume optimization.")
@@ -155,9 +149,6 @@ struct ScoreResultView: View {
         }
         if let quickWins = result.quickWins, !quickWins.isEmpty {
             tiles.append(("quick_wins", "Quick wins", "\(quickWins.count)"))
-        }
-        if let remaining = result.checksRemaining {
-            tiles.append(("checks_left", "Checks left", "\(remaining)"))
         }
         return tiles
     }

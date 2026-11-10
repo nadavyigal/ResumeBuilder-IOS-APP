@@ -13,7 +13,7 @@ enum APIClientError: Error, LocalizedError {
         case .unauthorized:
             return NSLocalizedString("Unauthorized", comment: "")
         case .paymentRequired:
-            return NSLocalizedString("You don't have enough credits for this.", comment: "Any route answered 402")
+            return NSLocalizedString("You have no PDF downloads left.", comment: "Any route answered 402")
         case .serverError(let status, let message):
             return String(format: NSLocalizedString("Server error (%lld): %@", comment: ""), status, message)
         case .invalidResponse:

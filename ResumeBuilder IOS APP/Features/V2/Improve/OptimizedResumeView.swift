@@ -27,6 +27,10 @@ struct OptimizedResumeView: View {
     @State private var isDownloadingPDF = false
     /// Set when the server answers 402 for this export; opens the paywall sheet.
     @State private var paywallOptimizationId: String?
+    /// `match_score_viewed` once per screen, and only with this tab active.
+    @State private var scoreViewPolicy = ScoreViewPolicy()
+    /// The embedded preview failed to render; the paywall then opens without it.
+    @State private var previewFailed = false
     @State private var pdfTempURL: URL? = nil
     /// Everything the last export produced, résumé first. Drives the share sheet.
     @State private var packageFileURLs: [URL] = []
@@ -90,7 +94,9 @@ struct OptimizedResumeView: View {
                         customization: designVM?.customization,
                         isActive: isActive,
                         renderedHTML: $renderedPreviewHTML,
+                        onRenderFailed: { previewFailed = true },
                         onVisibleRender: { displayedHTML in
+                            previewFailed = false
                             if let optimizationId = previewActivationPolicy.consumeVisibleRender(
                                 optimizationId: viewModel.optimizationIdentifier,
                                 renderedHTML: displayedHTML,
@@ -99,6 +105,10 @@ struct OptimizedResumeView: View {
                                 AnalyticsService.shared.track(
                                     .optimizedPreviewRendered(optimizationId: optimizationId)
                                 )
+                                AnalyticsService.shared.track(.pdfPreviewViewed(
+                                    optimizationId: optimizationId,
+                                    template: designVM?.selectedTemplateId ?? "default"
+                                ))
                             }
                         }
                     )
@@ -120,6 +130,7 @@ struct OptimizedResumeView: View {
                 if shouldShowATSInsightPanel {
                     atsInsightPanel
                         .padding(.horizontal, AppSpacing.lg)
+                        .onAppear { recordScoreViewIfActive() }
                 }
 
                 // Diagnosis used to sit in front of this screen as a checkpoint;
@@ -228,7 +239,7 @@ struct OptimizedResumeView: View {
                 OnboardingView(viewModel: OnboardingViewModel(appState: appState))
             }
         }
-        .exportPaywall(optimizationId: $paywallOptimizationId) {
+        .exportPaywall(optimizationId: $paywallOptimizationId, entryPoint: "optimized") {
             // Credits granted: run the export the user tapped, no second tap.
             Task { await performExport() }
         }
@@ -268,9 +279,16 @@ struct OptimizedResumeView: View {
             guard isActive else { return }
             trackOptimizedAndExportVisibilityIfNeeded()
         }
+        // Signing in on this screen changes the account; what is on screen
+        // was seen by the new account too (second-model on #226).
+        .onChange(of: appState.session?.userId) { _, _ in
+            recordScoreViewIfActive()
+            if renderedPreviewHTML != nil { appState.markPDFPreviewSeen() }
+        }
         .onChange(of: isActive) { _, active in
             guard active else { return }
             trackOptimizedAndExportVisibilityIfNeeded()
+            recordScoreViewIfActive()
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, _ in
             trackOptimizedAndExportVisibilityIfNeeded()
@@ -1204,9 +1222,9 @@ struct OptimizedResumeView: View {
             showPDFShare = true
             showExportSuccess = true
         } catch ExportCreditsError.creditsRequired {
-            paywallOptimizationId = optimizationId
+            openPaywallIfEligible(optimizationId)
         } catch APIClientError.paymentRequired {
-            paywallOptimizationId = optimizationId
+            openPaywallIfEligible(optimizationId)
         } catch ExportCreditsError.accountRequired {
             // Exports need a real account once the gate is on (spec 6.3).
             showSaveAccount = true
@@ -1216,6 +1234,39 @@ struct OptimizedResumeView: View {
             } else {
                 viewModel.errorMessage = String(format: NSLocalizedString("PDF export failed: %@", comment: ""), error.localizedDescription)
             }
+        }
+    }
+
+    /// The paywall opens only after this account saw its own score and the
+    /// preview (plan 3.1). With no score on this screen the rule cannot be met
+    /// here, so the paywall opens rather than leaving the 402 with no way on.
+    @MainActor
+    private func openPaywallIfEligible(_ optimizationId: String) {
+        let eligibility = appState.paywallEligibility(
+            requiresScore: shouldShowATSInsightPanel,
+            requiresPreview: !previewFailed
+        )
+        if let notice = eligibility.notice {
+            viewModel.errorMessage = notice
+        } else {
+            paywallOptimizationId = optimizationId
+        }
+    }
+
+    /// Called when the panel appears and when the tab becomes active, because
+    /// a panel mounted in the hidden tab has no second `onAppear`.
+    private func recordScoreViewIfActive() {
+        let outcome = scoreViewPolicy.consume(
+            panelShown: shouldShowATSInsightPanel,
+            isActive: isActive,
+            score: viewModel.atsScoreAfter ?? viewModel.atsScoreBefore
+        )
+        if outcome.markSeen { appState.markMatchScoreSeen() }
+        if let score = outcome.trackedScore {
+            AnalyticsService.shared.track(.matchScoreViewed(
+                source: "own",
+                scoreBucket: AnalyticsEvent.scoreBucket(for: score)
+            ))
         }
     }
 

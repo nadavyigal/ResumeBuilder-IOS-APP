@@ -1,3 +1,9 @@
+## 2026-11-10: PR #226 credits-ordering follow-up
+
+Created `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-credits-response-ordering`, branch `fix/credits-response-ordering`, from remote pricing head 06d367c. The original pricing checkout has an existing date-only progress edit and was left intact. Locally merged main 2b6367a; preserved #228's live1.6.0 record and all pricing submission history while resolving the progress-file conflict. No product PR was merged.
+
+Baseline three reversed-response regressions produced four assertion failures. The repair invalidates older reads on each new read, unlock/purchase balance write (including nil balance), sign-out and session install. Targeted six ordering plus three existing export-usage tests pass. Independent read-only review approved the scoped fix and retained a separate successful-unlock/session-switch P2 for later repair. Payment QA row12 is corrected to unrun as specified; its fast-grant observation remains. Full results and push head are recorded in the PR precheck. No live billing, transaction, upload or submission action. Taste check: useful user state correction; existing UI/voice preserved; no product filler introduced; scope restricted to ordering/evidence repair. Retrospective: explicit held responses reproduced the bug; a nil-balance unlock must invalidate reads as well.
+
 # 2026-10-25: Styled PDF when exporting before the preview loads
 
 - Worktree /Users/nadavyigal/Developer/resumebuilder-worktrees/ios-export-styled-pdf, branch fix/export-styled-pdf-when-preview-not-loaded, from main e7a5e36.
@@ -1199,3 +1205,11 @@ Verified current backend merge/migration truth, reproduced and fixed #207 review
 ## 2026-10-24 — Sandbox succeeds, recovery P2 addressed
 
 User confirmed the real Sandbox five-pack purchase opened the export flow. Production ledger independently confirms +5 apple_iap Sandbox / -1 export_unlock / balance 4. No duplicate grant. Corrected #207's new locked-paywall delivery-retry P2 with red-green model coverage; 582 XCTest cases (one skipped) and five Swift Testing cases pass. PostHog connector requires reauthentication; events are not claimed verified. Signed build/review and remaining physical checks pending at this record.
+
+## 2026-10-31 — Track T1, iOS payment blockers
+
+Fixed the three open #226 findings test-first and prepared the launch documents. Committed and pushed on the founder's yes (d1d0f98, c4c4b52). Files changed: `AppState.swift`, `StoreKitManager.swift`, `ExportPaywallSheet.swift`, `OptimizedResumeView.swift`, `ResumePreviewWebView.swift`, `project.pbxproj`, test files, `Resumely.storekit`, new `StoreKit Tests.xcscheme`, `StoreKitRequired.xctestplan`, `docs/qa/2026-10-31-*.md`, `audit/pricing-v2-t1/`.
+
+Decisions: probe with a local-only product because real products now exist in App Store Connect; keep D1 although 38 of 39 real accounts hold 3; recommend reusing the 1.5.7 draft as 1.6.0.
+
+**Next action:** PR pre-check on a yes, then the founder's StoreKit run on a real iPhone.
