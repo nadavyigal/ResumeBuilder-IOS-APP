@@ -1,3 +1,12 @@
+# 2026-11-10: #226 and #227 merged to main
+
+Current Phase: 1.6.1 source on main (pricing v2, credits ordering, password reset, session isolation); not built, uploaded or released.
+Active Story: none; 1.6.1 release prep waits on real-iPhone checks.
+Next Recommended Story: real-iPhone StoreKit run and password-flow QA on main, then bump to 1.6.1 and upload on founder yes.
+Blockers: real-iPhone QA; Codex review limit. P2 follow-up: AuthService.parseGoTrueError shows raw JSON when no readable key exists.
+Last Validation: full suite on 9d2fc2c 718 XCTest/0 failed; on 394344e 750/0 failed; main f9c5475 tree equals tested 394344e.
+Last Updated: 2026-11-10
+
 # 2026-11-10: GoTrue error parsing and combined source validation (#227)
 
 Status: GoTrue parsing repaired after reproducing three modeled response failures; independent read-only review approved. Combined full build/suite passed: 750 XCTest cases (11 existing skips, zero failures) plus 5 Swift Testing cases. Results: /tmp/resumely-combined-full-20261110.xcresult. Not merged/released.
