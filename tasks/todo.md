@@ -1,3 +1,39 @@
+# 2026-11-10: GoTrue error parsing (#227)
+
+- [x] Reproduce raw JSON shown for numeric-code/msg errors and mixed-type fallbacks.
+- [x] Parse heterogeneous response dictionaries and choose a nonempty readable string, preserving legacy message/error_description/error fallbacks and raw non-JSON fallback.
+- [x] Read-only independent review; all five production error paths use the helper.
+- [x] Incorporate pricing source9d2fc2c and preserve both sets of notes; resolve all conflict markers before push.
+- [x] Combined full suite: 750 XCTest cases (11 skipped, 0 failures) plus 5 Swift Testing cases pass.
+- [ ] Current-head hosted review before integration.
+- [ ] Separate existing account-isolation P2: reject successful unlock completion after a session boundary.
+
+# 2026-11-10: Session isolation during refresh (#227)
+
+- [x] Reproduce a late refresh restoring account A after sign-out/account B sign-in.
+- [x] Invalidate pending refresh and password retries across explicit session boundaries, including identical same-account credentials.
+- [x] Persist rotated credentials only after the session-generation/cancellation checks, with no suspension before installation.
+- [x] Cover launch refresh, sign-out, A to B, same-account re-entry, stale failure, ordinary persistence, coalescing, and old-task/new-task cleanup.
+- [x] Independent read-only review; confirmed suggestions fixed.
+- [ ] Current-head hosted review after push; no merge or release in this task.
+- [ ] Separate follow-ups: #226 credit reply ordering; #227 GoTrue error parsing.
+
+# 2026-11-06: Forgot password and change password in the app (1.6.1, plan A)
+
+As a Resumely user who signed up with email, I want to reset a forgotten password from the app's sign-in screen and change my password from Me, and after a reset on the web page get back into the app.
+
+Plan A, approved 2026-11-06. No Apple portal change, no app links.
+
+- [x] `AuthService`: `sendPasswordReset(email:)` (POST `/auth/v1/recover`) and `updatePassword(accessToken:newPassword:)` (PUT `/auth/v1/user`).
+- [x] `AppState`: `changePassword(_:)` with a fresh token; `resumebuilder://signin` sets `pendingSignInRequest`.
+- [x] `Features/V2/Auth/PasswordSheets.swift`: Forgot password sheet and Change password sheet, each with an `@Observable` view model.
+- [x] Sign-in screen: "Forgot password?" in sign-in mode. Me tab: "Change Password" for email accounts only (not Apple, not guests).
+- [x] `Config/Info.plist`: register the `resumebuilder` URL scheme. The tab view opens Me and the sign-in sheet on that link.
+- [x] Hebrew strings in `Localizable.xcstrings`.
+- [x] Web (separate PR): the update-password success screen shows "Open the Resumely app" on iPhone, linking to `resumebuilder://signin`.
+- [x] Tests: view model validation, link parsing, AppState routing, request shape. Build, full suite, simulator smoke test.
+- [ ] Founder: one run on a real iPhone (forgot password from the app, open the email, save, tap "Open the Resumely app", sign in; then Me > Change Password).
+
 # 2026-11-10: Credits read ordering (#226)
 
 - [x] Reproduce two exports with reversed credits replies for packs and Pro.

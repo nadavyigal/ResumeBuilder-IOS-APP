@@ -1,6 +1,156 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Your session has expired. Sign out, sign in again, then change your password." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פג תוקף ההתחברות. התנתק, התחבר שוב ואז שנה את הסיסמה."
+          }
+        }
+      }
+    },
+    "Forgot password?" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שכחת סיסמה?"
+          }
+        }
+      }
+    },
+    "Reset password" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איפוס סיסמה"
+          }
+        }
+      }
+    },
+    "Enter your account email. We'll send you a link to choose a new password." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הזן את האימייל של החשבון. נשלח לך קישור לבחירת סיסמה חדשה."
+          }
+        }
+      }
+    },
+    "Send reset link" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שלח קישור לאיפוס"
+          }
+        }
+      }
+    },
+    "Check your email" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדוק את האימייל שלך"
+          }
+        }
+      }
+    },
+    "If an account uses %@, a reset link is on its way. Open it, choose a new password, then sign in here." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אם יש חשבון עם %@, קישור לאיפוס בדרך אליך. פתח אותו, בחר סיסמה חדשה ואז התחבר כאן."
+          }
+        }
+      }
+    },
+    "Enter a valid email address." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הזן כתובת אימייל תקינה."
+          }
+        }
+      }
+    },
+    "Change Password" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שינוי סיסמה"
+          }
+        }
+      }
+    },
+    "New password" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סיסמה חדשה"
+          }
+        }
+      }
+    },
+    "Confirm new password" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אימות סיסמה חדשה"
+          }
+        }
+      }
+    },
+    "Save new password" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שמור סיסמה חדשה"
+          }
+        }
+      }
+    },
+    "Use at least %lld characters." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "השתמש בלפחות %lld תווים."
+          }
+        }
+      }
+    },
+    "The passwords don't match." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסיסמאות אינן תואמות."
+          }
+        }
+      }
+    },
+    "Password changed. Use it next time you sign in." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הסיסמה שונתה. השתמש בה בהתחברות הבאה."
+          }
+        }
+      }
+    },
     "Previous best: %lld" : {
       "comment" : "Below the match score when an earlier score was higher",
       "extractionState" : "manual",

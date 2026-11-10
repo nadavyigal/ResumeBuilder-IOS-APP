@@ -24,6 +24,7 @@ struct ProfileView: View {
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var deleteAccountError: String?
+    @State private var changePasswordViewModel: ChangePasswordViewModel?
 
     private var accountInfo: AccountDisplayInfo {
         AccountDisplayInfo.resolve(
@@ -124,6 +125,15 @@ struct ProfileView: View {
                 if isAuthenticated {
                     showOnboarding = false
                 }
+            }
+            // `resumebuilder://signin` from the web reset page: open sign-in.
+            .onChange(of: appState.signInRequestCount, initial: true) { _, count in
+                guard count > 0, !appState.isAuthenticated else { return }
+                onboardingStartsInSignUp = false
+                showOnboarding = true
+            }
+            .sheet(item: $changePasswordViewModel) { model in
+                ChangePasswordView(viewModel: model)
             }
             .onChange(of: appState.applicationsRefreshToken) { _, _ in
                 guard isActive else { return }
@@ -537,6 +547,19 @@ struct ProfileView: View {
             }
 
             if accountInfo.showsSignOut {
+                if appState.canChangePassword {
+                    Button {
+                        changePasswordViewModel = ChangePasswordViewModel { [appState] newPassword in
+                            try await appState.changePassword(newPassword)
+                        }
+                    } label: {
+                        profileRow(icon: "key.fill", label: "Change Password", color: Theme.accent, isAction: true)
+                    }
+                    .buttonStyle(.plain)
+
+                    Divider().background(Color.white.opacity(0.06)).padding(.horizontal, 14)
+                }
+
                 Button(role: .destructive) {
                     appState.signOut()
                 } label: {

@@ -1,3 +1,36 @@
+# 2026-11-10: GoTrue error parsing and combined source validation (#227)
+
+Status: GoTrue parsing repaired after reproducing three modeled response failures; independent read-only review approved. Combined full build/suite passed: 750 XCTest cases (11 existing skips, zero failures) plus 5 Swift Testing cases. Results: /tmp/resumely-combined-full-20261110.xcresult. Not merged/released.
+Current Phase: 1.6.1 source follow-ups; pricing source 9d2fc2c incorporated locally without merging either product PR.
+Active Story: display the provider's readable error when GoTrue includes numeric codes/nested details; preserve existing string-key and non-JSON fallbacks.
+Last Completed Story: #226 credits ordering repair pushed; session-refresh isolation repair retained. Main's #228 live1.6.0 record and row12 unrun evidence correction survive the source merge.
+Next Recommended Story: current-head hosted review and remaining successful-unlock/session-boundary P2; founder integration order #226 then #227, then real-phone password-flow QA and separate release decision. Web #209 stays draft until repaired1.6.1 is public.
+Blockers: hosted review; named source/release approval; physical QA limitations. Existing successful-unlock account-switch P2 remains a separate follow-up, not a claim of server credit transfer.
+Last Validation: old parser fails numeric reauthentication, reset-email rate-limit, and heterogeneous/empty-message fallback tests. Independent reviewer found no remaining parser issues and no conflict markers in the merged records. scripts/validate-store-version.sh confirmed repo/store1.6.0 released2026-11-07T03:07:05Z; measurement-contract Python tests7/7 pass. Combined source build and suite passed with the counts above; git diff --check clean.
+Last Updated: 2026-11-10
+
+# 2026-11-10: PR #227 session-refresh isolation repair
+
+Status: implemented and locally verified; independent read-only review has no remaining findings. Hosted review of the new head is pending. Not merged or released.
+Current Phase: 1.6.1 security follow-up on `claude/ios-password-reset`, stacked on pricing PR #226.
+Active Story: prevent an in-flight refresh from restoring a signed-out session or retrying an old password operation.
+Last Completed Story: reproduced the suspended-refresh bug; moved refresh persistence behind AppState's session-generation/cancellation checks; unified launch and retry refreshes and protected new-task cleanup.
+Next Recommended Story: current-head hosted review, then the separate #226 credit-response ordering task; integrate repaired #226 before #227. Keep GoTrue numeric-code/msg parsing as a separate #227 follow-up.
+Blockers: #226 dependency/credit ordering; #227 GoTrue error parsing P2; hosted review and founder source/release decisions. No readiness claim from green checks alone.
+Last Validation: iPhone 17, iOS 26.5; red baseline 11 AppStateRefreshTests with 14 assertion failures; targeted fixed run 31/31 passes; full suite 739 XCTest cases (11 skipped, 0 failures) plus 5 Swift Testing cases passed. Final source rebuild/full suite passed again with the same counts, no new refresh-token compiler warning, and git diff --check clean. Results: /tmp/resumely-session-final-20261110.xcresult. Independent reviewer requested new-task cleanup and persistence regressions; both added and reviewed, deterministic MainActor entry handshake replaces fixed yields. No live auth calls in the new regression tests; no UI changes, so no new UI smoke required.
+Last Updated: 2026-11-10
+
+# 2026-11-06: Forgot and change password in the app (1.6.1 plan A)
+
+Status: branch `claude/ios-password-reset` (stacked on `claude/resumely-pricing-v2`, PR #226), PR open, not merged, no build uploaded. Ships as 1.6.1 after Apple approves 1.6.0.
+Current Phase: Payments v2; 1.6.0 (39) in App Review.
+Active Story: sign-in has "Forgot password?" (Supabase `/auth/v1/recover`); Me has "Change Password" for accounts with an email identity (PUT `/auth/v1/user`); the app registers `resumebuilder://`, and `resumebuilder://signin` opens Me and its sign-in sheet. Web draft PR nadavyigal/new-ResumeBuilder-ai-#209 adds "Open the Resumely app" on the reset success screen; merge it only after 1.6.1 is live.
+Last Completed Story: 1.6.0 (39) submitted; web reset page live (#208).
+Next Recommended Story: founder runs the flow once on a real iPhone, then bump to 1.6.1 and upload after 1.6.0 is approved.
+Blockers: Apple review of 1.6.0.
+Last Validation: 2026-11-08 full suite 730 tests, 0 failures, 11 skipped (18 in `PasswordFlowsTests`, incl. CodeRabbit fixes: retry bound to the starting account, 403 `bad_jwt` treated as an expired session). Simulator: `resumebuilder://signin` opens sign-in from foreground, background and a cold launch; Forgot password sent a reset to +review, Resend "Delivered".
+Last Updated: 2026-11-06
+
 # 2026-11-10: Credits reply ordering repair (#226)
 
 Status: implemented; targeted regressions pass and independent read-only review approved. Full build/suite passed: 718 XCTest cases (11 existing skips, 0 failures) plus 5 Swift Testing cases; git diff --check clean. Results: /tmp/resumely-credits-full-20261110.xcresult. PR remains draft; no merge/release or billing operation.

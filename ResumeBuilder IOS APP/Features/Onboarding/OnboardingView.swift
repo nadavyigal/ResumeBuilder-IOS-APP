@@ -6,6 +6,7 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var localization: LocalizationManager { .shared }
     @FocusState private var focusedField: CredentialField?
+    @State private var forgotPasswordViewModel: ForgotPasswordViewModel?
 
     private enum CredentialField: Hashable {
         case email
@@ -104,6 +105,18 @@ struct OnboardingView: View {
                             .padding(AppSpacing.lg)
                             .glassCard(cornerRadius: AppRadii.md)
 
+                        if !viewModel.isSignUp {
+                            Button {
+                                forgotPasswordViewModel = ForgotPasswordViewModel(email: viewModel.email)
+                            } label: {
+                                Text("Forgot password?")
+                                    .font(.appCaption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(AppColors.gradientMid)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+
                         GradientButton(
                             title: viewModel.isSignUp ? "Create Account" : "Sign In",
                             isLoading: viewModel.isLoading
@@ -165,6 +178,9 @@ struct OnboardingView: View {
             .scrollDismissesKeyboard(.interactively)
             .screenBackground(showRadialGlow: true)
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $forgotPasswordViewModel) { model in
+                ForgotPasswordView(viewModel: model)
+            }
         }
     }
 }

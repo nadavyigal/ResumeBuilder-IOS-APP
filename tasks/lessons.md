@@ -1,3 +1,27 @@
+## 2026-11-10: GoTrue errors are heterogeneous JSON
+
+**Category:** Auth / API.
+**Rule:** Decode error objects as heterogeneous dictionaries and select nonempty readable strings from msg/message/error_description/error. Numeric status codes, nulls and nested details must not cause the whole parse to fall back to raw JSON.
+**Why:** The [String:String] decoder rejected modeled numeric-code reauthentication and reset-email rate-limit errors. Five new cases reproduce those failures, retain existing fallbacks and cover malformed/unsupported responses without a live auth call.
+
+## 2026-11-10: Stop a merge workflow when its resolution script fails
+
+**Category:** Git / tooling.
+**Rule:** Run dependent merge-resolution and commit commands in separate checked steps, or fail the shell immediately on script errors. Check anchored conflict-marker lines rather than a substring that can also occur in a historical lesson.
+**Why:** A resolution script stopped after encountering a literal conflict-marker example in lessons; the subsequent shell commit still ran, retaining markers in three notes. It was caught locally before push, resolved while preserving both sets of records, and the unpublished merge commit was amended. No published history was rewritten.
+
+## 2026-11-10: Refresh ownership must be checked before persistence
+
+**Category:** Auth / concurrency.
+**Rule:** Treat every explicit sign-in/session installation as a new generation, even with identical credentials. Validate the captured generation and cancellation before synchronously persisting and installing refreshed credentials; legitimate token rotation stays within that generation. Old failures and cleanup must not affect a replacement generation.
+**Why:** A cancelled request may still return. Checking only account IDs or cancelling a task did not stop a suspended refresh from restoring the signed-out session and retrying its password change. Guarding only AppState also left stale credentials in Keychain because AuthService persisted first. New regressions fail on the old source and pass after the repair.
+
+## 2026-11-10: A fixed number of yields is not an async test handshake
+
+**Category:** Tests.
+**Rule:** Before releasing a held response, wait for an explicit caller-entry handshake on the same actor instead of assuming a fixed number of Task.yield calls proves the caller joined.
+**Why:** Independent review caught a potential false failure in the new old-account/new-account coalescing regression: a late third caller could legitimately start after completion. The MainActor handshake proves it entered while the request is pending. Also wait for a simulator to be booted before using simctl spawn to reset its preferences; xcodebuild may shut it down after a run.
+
 ## 2026-11-10: Authoritative credits writes invalidate earlier reads
 
 **Category:** Payments / concurrency.
@@ -1011,3 +1035,6 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 
 **Rule:** `APIClientError.paymentRequired` copy names what ran out (PDF downloads), never a plan, "upgrade" or "Premium". Before rewording any payment error, grep the tests for the message and read the decision it cites.
 **Why:** the 1.6.0 copy fix first changed it to "Your plan does not include this. See your plan on the Me tab." `testPaymentRequiredCopyNamesTheExportCreditNotAPlan` failed on "plan" and caught it before commit. Shipped text: "You have no PDF downloads left."
+
+### 2026-11-06: Edit Info.plist and Localizable.xcstrings as text, not through a parser
+Rewriting `Config/Info.plist` with `plistlib` or `Localizable.xcstrings` with `json.dump` reformats or reorders the whole file (a 13-line change became 152 lines; 140 lines became 5,450). Insert the new block as text at a known anchor, then check it still parses (`plutil -lint`, `json.loads`).

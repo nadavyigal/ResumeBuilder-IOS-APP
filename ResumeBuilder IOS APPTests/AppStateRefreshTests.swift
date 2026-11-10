@@ -61,6 +61,7 @@ final class AppStateRefreshTests: XCTestCase {
         XCTAssertEqual(firstToken, "fresh")
         XCTAssertEqual(secondToken, "fresh")
         XCTAssertEqual(appState.session?.accessToken, "fresh")
+        XCTAssertEqual(stub.savedSession?.accessToken, "fresh")
     }
 
     /// A transport failure says nothing about the credential, so it must not sign the user out.
@@ -101,6 +102,152 @@ final class AppStateRefreshTests: XCTestCase {
         XCTAssertNil(appState.session, "A rejected refresh token must clear the session.")
     }
 
+    func testPasswordRefreshCannotRestoreSignedOutSession() async {
+        await assertPasswordRefreshCannotCrossSession(replacement: nil)
+    }
+
+    func testPasswordRefreshCannotReplaceAnotherAccount() async {
+        await assertPasswordRefreshCannotCrossSession(replacement: makeSession("user-2", token: "B"))
+    }
+
+    func testPasswordRefreshCannotSurviveSameAccountSignIn() async {
+        // Identical credentials still represent a new sign-in after sign-out.
+        await assertPasswordRefreshCannotCrossSession(replacement: makeSession("user-1", token: "stale"))
+    }
+
+    func testPasswordRefreshFailureCannotSignOutReplacementAccount() async {
+        await assertPasswordRefreshCannotCrossSession(
+            replacement: makeSession("user-2", token: "B"),
+            result: .failure(AuthServiceError.serverError("invalid_grant: Refresh Token Not Found"))
+        )
+    }
+
+    func testOrdinaryPasswordRetryPersistsRefreshedSession() async throws {
+        let stub = StubAuthClient(result: .success(makeSession("user-1", token: "fresh")))
+        let appState = AppState(authClient: stub)
+        appState.session = makeSession("user-1", token: "stale")
+
+        try await appState.changePassword(String(repeating: "q", count: 16))
+
+        XCTAssertEqual(stub.passwordTokens, ["stale", "fresh"])
+        XCTAssertEqual(appState.session?.accessToken, "fresh")
+        XCTAssertEqual(stub.savedSession?.accessToken, "fresh")
+    }
+
+    func testLaunchRefreshCannotRestoreSignedOutSession() async {
+        let stub = StubAuthClient(
+            result: .success(makeSession("user-1", token: "fresh")), holdUntilReleased: true
+        )
+        let appState = AppState(authClient: stub)
+        appState.session = makeSession("user-1", token: "expired")
+        let refresh = Task { await appState.refreshSessionIfNeeded() }
+        await stub.waitUntilRefreshStarted()
+        appState.signOut()
+        stub.release()
+        await refresh.value
+
+        XCTAssertNil(appState.session)
+        XCTAssertNil(stub.savedSession)
+    }
+
+    func testReplacingSessionWithoutSignOutInvalidatesRefresh() async {
+        let stub = StubAuthClient(
+            result: .success(makeSession("user-1", token: "fresh")), holdUntilReleased: true
+        )
+        let appState = AppState(authClient: stub)
+        appState.session = makeSession("user-1", token: "stale")
+        let refresh = Task { await appState.refreshAccessToken() }
+        await stub.waitUntilRefreshStarted()
+        appState.session = makeSession("user-2", token: "B")
+        stub.release()
+        let token = await refresh.value
+
+        XCTAssertNil(token)
+        XCTAssertEqual(appState.session?.accessToken, "B")
+        XCTAssertNil(stub.savedSession)
+    }
+
+    func testOrdinaryLaunchRefreshPersistsRotatedCredentials() async {
+        let stub = StubAuthClient(result: .success(makeSession("user-1", token: "fresh")))
+        let appState = AppState(authClient: stub)
+        appState.session = makeSession("user-1", token: "expired")
+
+        await appState.refreshSessionIfNeeded()
+
+        XCTAssertEqual(stub.refreshCallCount, 1)
+        XCTAssertEqual(stub.savedSession?.accessToken, "fresh")
+        XCTAssertEqual(appState.session?.accessToken, "fresh")
+    }
+
+    func testOldRefreshCompletionDoesNotClearNewAccountsRefreshTask() async {
+        let oldClient = StubAuthClient(
+            result: .success(makeSession("user-1", token: "old-fresh")), holdUntilReleased: true
+        )
+        let newClient = StubAuthClient(
+            result: .success(makeSession("user-2", token: "new-fresh")), holdUntilReleased: true
+        )
+        let appState = AppState(authClient: RoutedAuthClient(old: oldClient, new: newClient))
+        appState.session = makeSession("user-1", token: "stale")
+        let oldRefresh = Task { await appState.refreshAccessToken() }
+        await oldClient.waitUntilRefreshStarted()
+        appState.session = makeSession("user-2", token: "B")
+        let newRefresh = Task { await appState.refreshAccessToken() }
+        await newClient.waitUntilRefreshStarted()
+
+        oldClient.release()
+        let oldToken = await oldRefresh.value
+        XCTAssertNil(oldToken)
+        var joinedRefreshEntered = false
+        let joinedRefresh = Task { @MainActor in
+            joinedRefreshEntered = true
+            return await appState.refreshAccessToken()
+        }
+        // Both run on MainActor: the join enters the shared-task wait before
+        // this actor can observe the flag and release the pending response.
+        while !joinedRefreshEntered { await Task.yield() }
+        newClient.release()
+        let newToken = await newRefresh.value
+        let joinedToken = await joinedRefresh.value
+
+        XCTAssertEqual(newToken, "new-fresh")
+        XCTAssertEqual(joinedToken, "new-fresh")
+        XCTAssertEqual(newClient.refreshCallCount, 1, "The new account's callers must still coalesce.")
+        XCTAssertEqual(appState.session?.accessToken, "new-fresh")
+    }
+
+    private func assertPasswordRefreshCannotCrossSession(
+        replacement: AuthSession?, result: Result<AuthSession, Error>? = nil
+    ) async {
+        let stub = StubAuthClient(
+            result: result ?? .success(makeSession("user-1", token: "fresh")),
+            holdUntilReleased: true
+        )
+        let appState = AppState(authClient: stub)
+        appState.session = makeSession("user-1", token: "stale")
+        let change = Task { () -> Bool in
+            do {
+                try await appState.changePassword(String(repeating: "q", count: 16))
+                return true
+            } catch { return false }
+        }
+        await stub.waitUntilRefreshStarted()
+        appState.signOut()
+        appState.session = replacement
+        // The stub deliberately ignores cancellation, like a request whose
+        // response has already arrived. Generation checks must still reject it.
+        stub.release()
+        let didChangePassword = await change.value
+
+        XCTAssertFalse(didChangePassword)
+        XCTAssertEqual(appState.session, replacement)
+        XCTAssertEqual(stub.passwordTokens, ["stale"])
+        XCTAssertNil(stub.savedSession, "A rejected refresh must never be persisted.")
+    }
+
+    private func makeSession(_ userId: String, token: String) -> AuthSession {
+        AuthSession(accessToken: token, refreshToken: "refresh-" + userId, userId: userId, email: nil)
+    }
+
     private func base64URL(_ data: Data) -> String {
         data.base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
@@ -117,6 +264,24 @@ private final class StubAuthClient: AuthClient, @unchecked Sendable {
 
     private let lock = NSLock()
     private var callCount = 0
+    private var recordedPasswordTokens: [String] = []
+    private var persistedSession: AuthSession?
+
+    var passwordTokens: [String] { lock.withLock { recordedPasswordTokens } }
+    var savedSession: AuthSession? { lock.withLock { persistedSession } }
+
+    func persistRefreshedSession(_ session: AuthSession) {
+        lock.withLock { persistedSession = session }
+    }
+
+    func updatePassword(accessToken: String, newPassword: String) async throws {
+        let first = lock.withLock {
+            recordedPasswordTokens.append(accessToken)
+            return recordedPasswordTokens.count == 1
+        }
+        if first { throw APIClientError.unauthorized }
+    }
+
     private var didEnterRefresh = false
     private var isReleased = false
     private var entryWaiters: [CheckedContinuation<Void, Never>] = []
@@ -192,7 +357,21 @@ private final class StubAuthClient: AuthClient, @unchecked Sendable {
 
     func restoreSession() -> AuthSession? { nil }
 
-    func clearSession() {}
+    func clearSession() { lock.withLock { persistedSession = nil } }
 
     func deleteAccount(accessToken: String) async throws {}
+}
+
+/// Independent held responses let the old request finish while the new one is pending.
+private struct RoutedAuthClient: AuthClient {
+    let old: StubAuthClient
+    let new: StubAuthClient
+
+    func restoreSession() -> AuthSession? { nil }
+    func clearSession() {}
+    func deleteAccount(accessToken: String) async throws {}
+    func refreshSession(refreshToken: String) async throws -> AuthSession {
+        let client = refreshToken == "refresh-user-1" ? old : new
+        return try await client.refreshSession(refreshToken: refreshToken)
+    }
 }

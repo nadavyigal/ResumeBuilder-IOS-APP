@@ -44,16 +44,27 @@ extension AuthServiceError {
 protocol AuthClient: Sendable {
     func restoreSession() -> AuthSession?
     func clearSession()
+    /// Fetches credentials without persisting them; AppState validates ownership first.
     func refreshSession(refreshToken: String) async throws -> AuthSession
+    func persistRefreshedSession(_ session: AuthSession)
     func deleteAccount(accessToken: String) async throws
     func signInAnonymously() async throws -> AuthSession
+    func updatePassword(accessToken: String, newPassword: String) async throws
 }
 
 extension AuthClient {
+    /// Test doubles without durable storage do not need a persistence implementation.
+    func persistRefreshedSession(_ session: AuthSession) {}
+
     /// Test doubles that never start an anonymous session behave as a project
     /// with the provider off: the app stays an unauthenticated guest.
     func signInAnonymously() async throws -> AuthSession {
         throw AuthServiceError.anonymousSignInDisabled
+    }
+
+    /// Test doubles that do not exercise password changes fail loudly.
+    func updatePassword(accessToken: String, newPassword: String) async throws {
+        throw AuthServiceError.invalidResponse
     }
 }
 
@@ -145,7 +156,7 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Sign-up failed"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         // Supabase returns access_token=nil when email confirmation is required
@@ -171,6 +182,77 @@ final class AuthService: @unchecked Sendable {
         )
         persist(session)
         return session
+    }
+
+    // MARK: - Password reset and change
+
+    /// Asks Supabase to email a reset link. The email's link is set by the
+    /// Supabase "Reset password" template: it opens the website's
+    /// `/auth/confirm`, then `/auth/update-password`, which works on any device.
+    /// Supabase answers 200 for an unknown address too, so this never reveals
+    /// whether an account exists.
+    func sendPasswordReset(email: String) async throws {
+        let request = try Self.makeRecoverRequest(email: email)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+        if !(200...299).contains(httpResponse.statusCode) {
+            let text = String(data: data, encoding: .utf8) ?? "Could not send the reset email"
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
+        }
+    }
+
+    /// Sets a new password for the signed-in account. A 401 is thrown as
+    /// `APIClientError.unauthorized` so `AppState.callWithFreshToken` retries
+    /// once with a refreshed token.
+    func updatePassword(accessToken: String, newPassword: String) async throws {
+        let request = try Self.makeUpdatePasswordRequest(accessToken: accessToken, newPassword: newPassword)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthServiceError.invalidResponse
+        }
+        if Self.isExpiredSession(statusCode: httpResponse.statusCode, body: data) {
+            throw APIClientError.unauthorized
+        }
+        if !(200...299).contains(httpResponse.statusCode) {
+            let text = String(data: data, encoding: .utf8) ?? "Could not change the password"
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
+        }
+    }
+
+    /// GoTrue answers an expired or invalid access token with 401, or with 403
+    /// and `error_code: "bad_jwt"`. Other 403s (for example a reauthentication
+    /// requirement) stay server errors with their own message.
+    static func isExpiredSession(statusCode: Int, body: Data) -> Bool {
+        if statusCode == 401 { return true }
+        guard statusCode == 403,
+              let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
+        else { return false }
+        return json["error_code"] as? String == "bad_jwt"
+    }
+
+    static func makeRecoverRequest(email: String) throws -> URLRequest {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("auth/v1/recover")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["email": email])
+        request.timeoutInterval = 20
+        return request
+    }
+
+    static func makeUpdatePasswordRequest(accessToken: String, newPassword: String) throws -> URLRequest {
+        let url = BackendConfig.supabaseURL.appendingPathComponent("auth/v1/user")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(BackendConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["password": newPassword])
+        request.timeoutInterval = 20
+        return request
     }
 
     // MARK: - Anonymous sign-in
@@ -211,7 +293,7 @@ final class AuthService: @unchecked Sendable {
             if Self.indicatesAnonymousDisabled(text) {
                 throw AuthServiceError.anonymousSignInDisabled
             }
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         struct AnonymousResponse: Decodable {
@@ -327,9 +409,11 @@ final class AuthService: @unchecked Sendable {
             .appending(queryItems: [URLQueryItem(name: "grant_type", value: "refresh_token")])
 
         let payload: [String: Any] = ["refresh_token": refreshToken]
-        let session = try await postToGoTrue(url: url, payload: payload)
+        return try await postToGoTrue(url: url, payload: payload)
+    }
+
+    func persistRefreshedSession(_ session: AuthSession) {
         persist(session)
-        return session
     }
 
     // MARK: - Shared GoTrue POST helper
@@ -347,19 +431,24 @@ final class AuthService: @unchecked Sendable {
         }
         if !(200...299).contains(httpResponse.statusCode) {
             let text = String(data: data, encoding: .utf8) ?? "Authentication failed"
-            throw AuthServiceError.serverError(parseGoTrueError(text))
+            throw AuthServiceError.serverError(Self.parseGoTrueError(text))
         }
 
         return try JSONDecoder().decode(GoTrueResponse.self, from: data).makeSession()
     }
 
-    // Extracts a human-readable message from GoTrue error JSON ({"error":"…","message":"…"})
-    private func parseGoTrueError(_ raw: String) -> String {
+    // GoTrue includes numeric codes and nested details alongside its message.
+    static func parseGoTrueError(_ raw: String) -> String {
         guard let data = raw.data(using: .utf8),
-              let json = try? JSONDecoder().decode([String: String].self, from: data),
-              let msg = json["message"] ?? json["error_description"] ?? json["error"]
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { return raw }
-        return msg
+        for key in ["msg", "message", "error_description", "error"] {
+            if let message = json[key] as? String,
+               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return message
+            }
+        }
+        return raw
     }
 }
 
