@@ -1,3 +1,14 @@
+# 2026-11-10: Credits read ordering (#226)
+
+- [x] Reproduce two exports with reversed credits replies for packs and Pro.
+- [x] Reject older reads after a newer read starts or an unlock/verified purchase applies a balance, including nil-balance Pro unlocks.
+- [x] Invalidate reads on sign-out and setSession; cover same-account re-entry.
+- [x] Preserve main's #228 live-release record; correct row 12's evidence limitation without repeating a transaction/submission.
+- [x] Independent scoped review; no blocking read-order finding.
+- [x] Full suite: 718 XCTest cases (11 skipped, 0 failures) plus 5 Swift Testing cases passed.
+- [ ] Current-head hosted review and founder source decision before integration.
+- [ ] Separate account-isolation follow-up: reject successful unlock completion across a session boundary before applying balance or returning authorization.
+
 # 2026-11-05: Profile usage refresh after an export (WP-79 S3, PR #226)
 
 Plan: a failing test first, then re-read the plan after a new unlock and on each Me-tab show.

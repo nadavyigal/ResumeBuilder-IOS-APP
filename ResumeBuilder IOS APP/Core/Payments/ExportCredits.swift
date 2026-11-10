@@ -100,9 +100,7 @@ extension AppState {
         let response = try await callWithFreshToken { token in
             try await service.unlock(optimizationId: optimizationId, token: token)
         }
-        if let balance = response.balance {
-            creditsBalance = balance
-        }
+        applyCreditsBalance(response.balance)
         // A new unlock changed what the server holds. The reply has the credit
         // balance but not Pro's fair-use count, so read the plan again, in the
         // background: the file does not wait for it (founder phone test,
@@ -148,7 +146,7 @@ extension AppState {
             return self.purchaseAccount
         }
         store.onCreditsGranted = { [weak self] balance in
-            if let balance { self?.creditsBalance = balance }
+            self?.applyCreditsBalance(balance)
         }
         store.onPlanChanged = { [weak self] in
             Task { await self?.refreshCredits() }

@@ -1,3 +1,9 @@
+## 2026-11-10: Authoritative credits writes invalidate earlier reads
+
+**Category:** Payments / concurrency.
+**Rule:** Give every credits read a generation and reject superseded replies before applying both balance and subscription usage. Invalidate older reads synchronously when an unlock or verified purchase updates state, even with no returned balance; do not wait for its follow-up Task to begin.
+**Why:** Two post-export reads completed backwards and the older balance/Pro count won. A read started before an unlock could also undo the unlock's new balance before the next read completed. Six stubbed-response regressions cover these boundaries without real purchases. Preserve physical-test limitations: a normal fast grant does not prove kill-before-grant recovery.
+
 ## 2026-11-05: Re-read the live deployment right before a redeploy
 
 I read the live Vercel deployment id at 11:3x, then redeployed that id at 12:4x to pick up an env change. In between, web PR #207 merged and auto-deployed at 11:52. My redeploy rebuilt the older 09:39 source; it only failed at build, so production was not rolled back. The 11:52 auto-deploy had already picked up the env change.
