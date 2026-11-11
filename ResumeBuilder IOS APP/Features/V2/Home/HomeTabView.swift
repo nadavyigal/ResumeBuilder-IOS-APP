@@ -1207,7 +1207,7 @@ struct HomeTabView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Shared step UI (mirrors TailorView)
+    // MARK: - Shared step UI
 
     private var libraryButton: some View {
         Button {

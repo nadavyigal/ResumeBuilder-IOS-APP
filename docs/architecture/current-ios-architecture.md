@@ -50,7 +50,7 @@ ResumeBuilder_IOS_APPApp.swift   ← @main; DEBUG smoke harnesses via --smoke-* 
 | `Services/` | Network services and their protocols; `MockResumeServices.swift` holds preview/test mocks (compiled into Release too) |
 | `Core/API/` | `APIClient`, `Endpoints`, `BackendConfig` (feature flags), domain models |
 | `Core/Auth/`, `Core/Payments/`, `Core/Analytics/`, `Core/Export/`, `Core/Localization/` | Cross-cutting services |
-| `Core/DesignSystem/` | `Theme`, tokens (`AppColors`, `AppSpacing`, `AppRadii`, `AppShadows`, `AppGradients`, `AppTypography`), shared components |
+| `Core/DesignSystem/` | `Theme`, tokens (`AppColors`, `AppSpacing`, `AppRadii`, `AppShadows`, `AppGradients`; `Font.app*` in `AppTypography.swift`), shared components |
 | `Ambassador/` | Unwired skeleton (see `docs/audits/2026-11-11-repo-audit.md`) |
 
 Not reachable from the tab shell today but still compiled because tests use them: `ImproveViewModel`, `ScanViewModel`, `ChatView` + `ChatViewModel`, `OptimizationDesignSheet` + `TemplateThumbnail`. The Fit-check screens in `Features/V2/Fit/` are wired into `HomeTabView` but switched off (`isFitCheckEnabled = false` since 2026-07-24).
