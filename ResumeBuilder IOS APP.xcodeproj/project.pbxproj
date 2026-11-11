@@ -27,33 +27,9 @@
 		CC00FF001122334455667788 /* Secrets.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AA55CC77EE99AA11BB22CC33 /* Exceptions for "ResumeBuilder IOS APP" folder in "ResumeBuilder IOS APP" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Core/API/Secrets.swift.example,
-				Features/Tailor/CLAUDE_CODE_COMPLETE_BACKEND_PROMPT.md,
-				Features/Tailor/INVESTIGATION_PREVIEW_STILL_NOT_SHOWING.md,
-				Features/Tailor/SIMPLE_MOCKED_TEST.md,
-				Features/Tailor/URGENT_DIAGNOSTIC_CHECKLIST.md,
-				Features/V2/Improve/CLAUDE_CODE_BACKEND_INVESTIGATION_PROMPT.md,
-				Features/V2/Improve/CRITICAL_FIXES_PREVIEW_AND_LIBRARY.md,
-				Features/V2/Improve/PASTE_INTO_CLAUDE_CODE.md,
-				Features/V2/Improve/PREVIEW_NOT_SHOWING_COMPLETE_DEBUG.md,
-				Features/V2/Preview/OPTIMIZED_RESUME_NOT_SHOWING_FIX.md,
-				Features/V2/Preview/QUICK_FIX_OPTIMIZED_RESUME.md,
-				Services/FIX_FILE_PERMISSION_ERROR.md,
-			);
-			target = 335AA7622FA77AB800FD6628 /* ResumeBuilder IOS APP */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		335AA7652FA77AB800FD6628 /* ResumeBuilder IOS APP */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AA55CC77EE99AA11BB22CC33 /* Exceptions for "ResumeBuilder IOS APP" folder in "ResumeBuilder IOS APP" target */,
-			);
 			path = "ResumeBuilder IOS APP";
 			sourceTree = "<group>";
 		};

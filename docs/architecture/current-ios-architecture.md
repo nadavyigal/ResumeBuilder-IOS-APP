@@ -1,6 +1,6 @@
-# Current iOS Architecture — ResumeBuilder iOS
+# Current iOS Architecture: ResumeBuilder iOS
 
-**Last updated:** 2026-05-13
+**Last updated:** 2026-11-11 (rewritten from the code; the 2026-05-13 version described a tab shell that no longer exists)
 
 ---
 
@@ -8,110 +8,52 @@
 
 | Item | Value |
 |------|-------|
-| Language | Swift 6.0 (strict concurrency enabled) |
-| UI framework | SwiftUI (no UIKit) |
+| Language | Swift 6.0, strict concurrency `complete`, default actor isolation `MainActor` |
+| UI framework | SwiftUI |
 | iOS target | iOS 17.0+ |
 | Architecture | MVVM |
 | State management | Swift Observation (`@Observable`, `@MainActor`) |
-| Persistence | `ModelContainer.swift` (SwiftData or custom — see file) |
-| Auth | Sign in with Apple + custom JWT + `KeychainStore` |
-| Payments | StoreKit 2 |
-| Networking | `URLSession` via custom `APIClient` |
-| PDF preview | `WKWebView` (`ResumePreviewWebView.swift`) |
-| SPM packages | None — pure system frameworks |
-| Xcode required | Xcode 16+ |
+| Persistence | `UserDefaults` and Keychain only (no SwiftData) |
+| Auth | Supabase GoTrue (email + password; Sign in with Apple behind `BackendConfig.isAppleSignInEnabled`), tokens in `KeychainStore` |
+| Payments | StoreKit 2 export-credit packs (`Core/Payments/`), server-verified |
+| Networking | `URLSession` via `APIClient` + `Endpoint` enum |
+| Resume preview / PDF | `WKWebView` (`ResumePreviewWebView.swift`, `HTMLPDFExporter.swift`) |
+| SPM packages | None, system frameworks only |
+| Xcode project | File-system synchronized groups: any file in the app folder joins the target |
 
 ---
 
 ## Layer Map
 
 ```
-ResumeBuilder_IOS_APPApp.swift   ← @main entry point
-    └── ContentView.swift
-        └── AppState (@Observable, bootstraps session)
-            └── RootView.swift (auth gate: onboarding vs. main)
-                └── MainTabViewV2.swift
-                    ├── Score tab   → ScoreView (Features/V2/Score/)
-                    ├── Tailor tab  → TailorView (Features/Tailor/)
-                    ├── Design tab  → RedesignResumeView (Features/V2/Design/)
-                    ├── Track tab   → ApplicationsListView (Features/Track/)
-                    └── Profile tab → ProfileView (Features/V2/Profile/)
+ResumeBuilder_IOS_APPApp.swift   ← @main; DEBUG smoke harnesses via --smoke-* launch args
+    └── ContentView.swift        ← --marketing-screenshot slots, else RootView
+        └── RootView.swift       ← waits for session bootstrap
+            └── MainTabViewV2.swift  (custom ResumlyTabBar, tabs kept alive with opacity)
+                ├── .tailor    → HomeTabView      (Features/V2/Home/)   uses TailorViewModel
+                ├── .optimized → OptimizedResumeTabView (Features/V2/Improve/)
+                ├── .design    → DesignTabView    (Features/V2/Design/) uses DesignViewModel
+                ├── .expert    → ExpertTabView    (Features/V2/Expert/)
+                └── .me        → ProfileView      (Features/Profile/)
 ```
 
 ---
 
-## Key Files by Layer
+## Folders
 
-### App Layer
-| File | Purpose |
-|------|---------|
-| `App/AppState.swift` | Global observable state: session, credits, deep links |
-| `App/MainTabViewV2.swift` | 5-tab container; VMs instantiated here as `@State` |
-| `App/RootView.swift` | Auth gate — shows Onboarding or MainTabViewV2 |
-| `App/DeepLinkRouter.swift` | Parses incoming URLs for shared job links |
+| Path | What lives there |
+|------|------------------|
+| `App/` | `AppState` (session, credits, deep links), `MainTabViewV2`, `RootView`, `DeepLinkRouter` |
+| `Features/V2/` | All current screens. New screens go here. |
+| `Features/Profile/`, `Features/Track/`, `Features/Onboarding/`, `Features/Score/`, `Features/Tailor/` | Older folders still holding live code (`ProfileView`, `TailorViewModel`, `SavedResumePickerSheet`, application tracking, sign-in) |
+| `ViewModels/` | Shared view models (`DesignViewModel`, `OptimizedResumeViewModel`, `ResumePreviewViewModel`, `ResumeLibraryViewModel`) |
+| `Services/` | Network services and their protocols; `MockResumeServices.swift` holds preview/test mocks (compiled into Release too) |
+| `Core/API/` | `APIClient`, `Endpoints`, `BackendConfig` (feature flags), domain models |
+| `Core/Auth/`, `Core/Payments/`, `Core/Analytics/`, `Core/Export/`, `Core/Localization/` | Cross-cutting services |
+| `Core/DesignSystem/` | `Theme`, tokens (`AppColors`, `AppSpacing`, `AppRadii`, `AppShadows`, `AppGradients`, `AppTypography`), shared components |
+| `Ambassador/` | Unwired skeleton (see `docs/audits/2026-11-11-repo-audit.md`) |
 
-### Features (active — V2)
-| Path | Screens |
-|------|---------|
-| `Features/V2/Score/` | ScoreView, ScoreResultView, ATSBreakdownView, IssuesSummaryView, QuickWinsSection |
-| `Features/V2/Improve/` | ImproveView, OptimizedResumeView, OptimizationDesignSheet |
-| `Features/V2/Design/` | RedesignResumeView |
-| `Features/V2/Chat/` | ChatView, PendingChangeCard |
-| `Features/V2/Expert/` | ExpertModesView, ExpertReportView |
-| `Features/V2/History/` | HistoryView, ModificationHistoryView, OptimizationReviewView |
-| `Features/V2/Preview/` | ResumePreviewExportView, ResumePreviewWebView |
-| `Features/V2/Scan/` | ScanResumeView |
-| `Features/V2/Home/` | HomeView |
-| `Features/V2/Profile/` | ProfileViewV2 |
-| `Features/Tailor/` | TailorView, TailorViewModel, OptimizingView |
-| `Features/Track/` | ApplicationsListView, ApplicationDetailView, ApplicationCompareView |
-| `Features/Onboarding/` | OnboardingView, ImportResumeView |
-
-**Important:** `Features/` (top-level, non-V2) is legacy. All new screens go in `Features/V2/`.
-
-### ViewModels
-All ViewModels use `@Observable @MainActor`. They live in `ViewModels/` (shared) or alongside their feature screen.
-
-Key VMs: `ScoreViewModel`, `TailorViewModel`, `DesignViewModel`, `OptimizedResumeViewModel`, `ImproveViewModel`, `ResumePreviewViewModel`, `ResumeManagementViewModel`, `ProfileViewModel`, `HomeViewModel`, `ScanViewModel`.
-
-### Services
-| File | Purpose |
-|------|---------|
-| `Services/ResumeUploadService.swift` | Upload PDF to backend |
-| `Services/ResumeOptimizationService.swift` | Call `/api/optimize`, parse sections |
-| `Services/ResumeDesignService.swift` | Fetch templates, apply design |
-| `Services/ResumeAnalysisService.swift` | ATS score and analysis |
-| `Services/ResumeExportService.swift` | Download and share optimized PDF |
-| `Services/RecentExportsService.swift` | Local cache of recent export records |
-| `Services/OptimizationHistoryService.swift` | Fetch optimization history |
-| `Services/MockResumeServices.swift` | Test mocks for all services |
-
-### Models
-All models are `Codable` + `Sendable` structs.
-
-| File | Key type |
-|------|---------|
-| `Models/ResumeDocument.swift` | `ResumeDocument` — uploaded file metadata |
-| `Models/ResumeAnalysis.swift` | ATS analysis result |
-| `Models/OptimizedResumeSection.swift` | Resume section after optimization |
-| `Models/DesignTemplate.swift` | Template metadata |
-| `Models/ResumeExport.swift` | Export record |
-
-### Core
-| Path | Purpose |
-|------|---------|
-| `Core/API/Endpoints.swift` | `Endpoint` enum — all API route definitions |
-| `Core/API/ApplicationTrackingService.swift` | Job application CRUD |
-| `Core/Auth/AuthService.swift` | JWT session management |
-| `Core/Auth/SignInWithAppleCoordinator.swift` | Apple sign-in coordinator |
-| `Core/Auth/KeychainStore.swift` | Secure token storage |
-| `Core/Payments/StoreKitManager.swift` | IAP products + purchase flow |
-| `Core/Payments/ReceiptVerifier.swift` | Server-side receipt verification |
-| `Core/Storage/ModelContainer.swift` | Local persistence container |
-| `Core/Push/PushService.swift` | Push notification registration |
-| `Core/DesignSystem/Theme.swift` | Global theme values |
-| `Core/DesignSystem/Tokens/` | AppColors, AppSpacing, AppTypography, AppShadows, AppRadii, AppGradients |
-| `Core/DesignSystem/Components/` | Reusable UI components (ATSDial, ResumlyTabBar, GradientButton, MetricCard, etc.) |
+Not reachable from the tab shell today but still compiled because tests use them: `ImproveViewModel`, `ScanViewModel`, `ChatView` + `ChatViewModel`, `OptimizationDesignSheet` + `TemplateThumbnail`. The Fit-check screens in `Features/V2/Fit/` are wired into `HomeTabView` but switched off (`isFitCheckEnabled = false` since 2026-07-24).
 
 ---
 
@@ -119,39 +61,20 @@ All models are `Codable` + `Sendable` structs.
 
 ```
 Endpoint enum (Endpoints.swift)
-    → APIClient (on AppState)
+    → APIClient
         → Service (e.g. ResumeOptimizationService)
             → ViewModel (e.g. TailorViewModel)
-                → View (e.g. TailorView)
+                → View (e.g. HomeTabView)
 ```
 
-The `APIClient` attaches the JWT from `AppState.session` to requests. The base URL comes from `API_BASE_URL` in Info.plist — it is never hardcoded.
-
----
-
-## Auth Flow
-
-```
-App launch → AppState.bootstrapAndRefreshSession()
-    → AuthService.shared.restoreSession() (reads Keychain)
-    → If no session: RootView shows OnboardingView
-    → If session: RootView shows MainTabViewV2
-Sign in with Apple → SignInWithAppleCoordinator → AuthService → JWT stored in Keychain
-```
+The base URL comes from `API_BASE_URL` (build setting → `Config/Info.plist`). Keys come from the gitignored `Secrets.xcconfig` (template: `Secrets.xcconfig.template`).
 
 ---
 
 ## Tests
 
-Located in `ResumeBuilder IOS APPTests/`:
-- `OptimizedResumeViewModelTests.swift`
-- `ImproveViewModelTests.swift`
-- `ResumeOptimizationParsingTests.swift`
-- `ResumeOptimizationServiceSwiftTestingTests.swift`
+`ResumeBuilder IOS APPTests/` (XCTest + a few Swift Testing cases). No live API calls.
 
-Uses `MockResumeServices.swift` for dependency injection. No live API calls in tests.
-
-Run tests:
 ```bash
 xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" \
   -scheme "ResumeBuilder IOS APP" \
@@ -163,12 +86,4 @@ xcodebuild -project "ResumeBuilder IOS APP.xcodeproj" \
 
 ## Design System
 
-All tokens are in `Core/DesignSystem/Tokens/`. Use them for all new UI:
-- Colors: `AppColors.*`
-- Spacing: `AppSpacing.*`
-- Typography: `AppTypography.*`
-- Shadows: `AppShadows.*`
-- Radii: `AppRadii.*`
-- Gradients: `AppGradients.*`
-
-The app runs in **dark mode only** (`.preferredColorScheme(.dark)` in the root).
+Use the tokens in `Core/DesignSystem/Tokens/` and `Theme` for new UI. Fonts: the `Font.app*` tokens in `Tokens/AppTypography.swift`. The app runs in dark mode only (`.preferredColorScheme(.dark)` at the root).

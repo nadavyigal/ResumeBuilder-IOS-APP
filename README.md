@@ -2,7 +2,7 @@
 
 SwiftUI iOS client for uploading, optimizing, redesigning, and exporting resumes.
 
-**Source of truth:** [github.com/nadavyigal/ResumeBuilder-IOS-APP](https://github.com/nadavyigal/ResumeBuilder-IOS-APP), branch **`main`** only. Clone this repo and work on `main`; older feature branches have been removed to avoid drift.
+**Source of truth:** [github.com/nadavyigal/ResumeBuilder-IOS-APP](https://github.com/nadavyigal/ResumeBuilder-IOS-APP), branch **`main`** only. Clone this repo and branch from `main`.
 
 Historical tags include `pre-consolidation-r3` (prior `main`), `pre-consolidation-r2`, and `consolidated-2026-05-11` for provenance.
 
@@ -39,10 +39,10 @@ Historical tags include `pre-consolidation-r3` (prior `main`), `pre-consolidatio
 
 ## Running
 
-1. Build and run the app from Xcode.
-2. Authenticate through onboarding.
-3. Upload a resume.
-4. Go to Improve and tap **Optimize for This Job**.
+1. Build and run the app from Xcode. It opens on the Home tab, signed out (guest mode).
+2. On Home, upload a resume and add the job (link or pasted description).
+3. Run the check, then open the result in the Optimized tab.
+4. Sign in from the Me tab to test account-only paths.
 
 ## Testing
 

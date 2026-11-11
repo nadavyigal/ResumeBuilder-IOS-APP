@@ -1,3 +1,7 @@
+## 2026-11-11: `git grep -E` has no `\b`; count uses with `-w` before deleting
+
+The repo audit counted `Font.app*` uses with `git grep -nE '\.appBody\b'`, got zero, and deleted `AppTypography.swift`; the build then failed in three components. `git grep` ERE treats `\b` as a literal, so every count was zero. Use `git grep -w <name>` (or Python `re`) to prove a symbol is unused, and let the compiler confirm before committing.
+
 ## 2026-11-10: GoTrue errors are heterogeneous JSON
 
 **Category:** Auth / API.

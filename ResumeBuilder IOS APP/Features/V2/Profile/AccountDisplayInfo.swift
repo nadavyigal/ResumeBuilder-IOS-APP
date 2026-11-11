@@ -34,8 +34,8 @@ enum AccountDisplayInfo: Equatable, Sendable {
     /// testable without SwiftUI, like every other label in this type.
     ///
     /// Names only what an account actually adds. Export is deliberately absent:
-    /// `ResumeExportAction.exportPDF` gates on `optimizationIdentifier` alone,
-    /// `BackendConfig.isMonetizationEnabled` is false, and Home routes anonymous
+    /// `ResumeExportAction.exportPDF` gates on `optimizationIdentifier` alone
+    /// (credits are enforced by the server, not by sign-in), and Home routes anonymous
     /// sessions through on `canOptimize` — so a guest shown this card can
     /// already export, and telling them otherwise costs the export the north
     /// star measures (WP-75 S4).

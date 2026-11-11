@@ -80,10 +80,6 @@ struct ResumeExport: Identifiable, Codable, Sendable {
     }
 }
 
-struct OptimizationListResponse: Codable, Sendable {
-    let optimizations: [ResumeExport]
-}
-
 struct ExportResponse: Codable, Sendable {
     let success: Bool?
     let exportId: String?

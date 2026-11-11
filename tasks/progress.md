@@ -1,3 +1,12 @@
+# 2026-11-11: Repo audit and dead-code cleanup (iOS)
+
+Current Phase: 1.6.1 source follow-ups; repo hygiene pass on `claude/project-audit-cleanup-cacbdb`.
+Active Story: remove unreachable screens, unused types, stale flag and stray docs; refresh README and architecture doc.
+Next Recommended Story: founder review of `docs/audits/2026-11-11-repo-audit.md` items 1-5, then the Resumely web audit.
+Blockers: none for this PR; review list items need founder decisions.
+Last Validation: iPhone 17 iOS 26.5 full suite after cleanup 750 XCTest (11 skipped, 0 fail) + 5 Swift Testing; app warnings 3 to 0.
+Last Updated: 2026-11-11
+
 # 2026-11-10: GoTrue error parsing and combined source validation (#227)
 
 Status: GoTrue parsing repaired after reproducing three modeled response failures; independent read-only review approved. Combined full build/suite passed: 750 XCTest cases (11 existing skips, zero failures) plus 5 Swift Testing cases. Results: /tmp/resumely-combined-full-20261110.xcresult. Not merged/released.

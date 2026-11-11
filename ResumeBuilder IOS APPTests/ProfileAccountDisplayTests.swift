@@ -33,8 +33,8 @@ final class ProfileAccountDisplayTests: XCTestCase {
     }
 
     // WP-75 S4. Guest export is not account-gated: `ResumeExportAction.exportPDF`
-    // guards only on `optimizationIdentifier`, `BackendConfig.isMonetizationEnabled`
-    // is false, and Home routes anonymous sessions straight through on
+    // guards only on `optimizationIdentifier` (credits are a server gate, not
+    // a sign-in gate), and Home routes anonymous sessions straight through on
     // `canOptimize`. Me-tab copy that conditions export on signing in is
     // therefore false for the exact users who are shown it.
     func testGuestCopyDoesNotGateExportBehindSignIn() {

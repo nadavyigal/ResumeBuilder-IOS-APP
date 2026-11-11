@@ -389,20 +389,6 @@ struct DynamicCodingKey: CodingKey {
     }
 }
 
-struct OptimizationSummary: Codable, Sendable {
-    let atsScore: Int
-    let contentScore: Int?
-    let designScore: Int?
-    let keywordScore: Int?
-
-    init(item: OptimizationHistoryItem) {
-        atsScore = item.matchScorePercent
-        contentScore = item.contentScorePercent
-        designScore = item.designScorePercent
-        keywordScore = item.keywordScorePercent
-    }
-}
-
 struct OptimizationHistoryResponse: Codable, Sendable {
     let success: Bool?
     let optimizations: [OptimizationHistoryItem]?
@@ -1265,11 +1251,6 @@ struct ResumeUploadResponse: Codable, Sendable {
     }
 }
 
-struct TailorRequest: Codable, Sendable {
-    let resumeId: String
-    let jobDescriptionId: String
-}
-
 /// The fit check the user sees between optimizing and accepting.
 ///
 /// `/api/optimize` measured all of this and used to discard it, so the app had
@@ -1335,23 +1316,6 @@ struct OptimizeFitGap: Codable, Sendable {
             estimatedGain = nil
         }
     }
-}
-
-struct TailorResponse: Codable, Sendable {
-    let reviewId: String?
-    let nextStep: String?
-    let error: String?
-    /// Present from 2026-07-26. Absent on older backends, in which case the app
-    /// falls through to its previous behaviour rather than showing an empty
-    /// fit check.
-    let fit: OptimizeFitPreview?
-}
-
-struct IAPVerifyResponse: Codable, Sendable {
-    let success: Bool?
-    let creditsGranted: Int?
-    let balance: Int?
-    let error: String?
 }
 
 struct AuthSession: Codable, Equatable, Sendable {
@@ -1605,21 +1569,6 @@ struct ChatSessionDetailEnvelope: Decodable, Sendable {
     }
 }
 
-/// GET `/api/v1/chat/sessions/{id}/messages` pagination.
-struct ChatMessagesPageEnvelope: Decodable, Sendable {
-    let messages: [ChatMessageRecord]?
-    let total: Int?
-    let page: Int?
-    let pageSize: Int?
-    let hasMore: Bool?
-
-    private enum CodingKeys: String, CodingKey {
-        case messages, total, page
-        case pageSize = "page_size"
-        case hasMore = "has_more"
-    }
-}
-
 /// POST `/api/v1/chat/approve-change`
 struct ChatApproveChangeResponseDTO: Decodable, Sendable {
     let success: Bool?
@@ -1682,23 +1631,6 @@ struct ExpertAtsImpactEstimate: Codable, Sendable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case before, after, delta
         case confidenceNote = "confidence_note"
-    }
-}
-
-/// Structured report surfaced in model output (`output.report`).
-struct ExpertWorkflowReportEnvelope: Codable, Sendable, Equatable {
-    let headline: String?
-    let executiveSummary: String?
-    let priorityActions: [String]?
-    let evidenceGaps: [String]?
-    let atsImpactEstimate: ExpertAtsImpactEstimate?
-
-    private enum CodingKeys: String, CodingKey {
-        case headline
-        case executiveSummary = "executive_summary"
-        case priorityActions = "priority_actions"
-        case evidenceGaps = "evidence_gaps"
-        case atsImpactEstimate = "ats_impact_estimate"
     }
 }
 
