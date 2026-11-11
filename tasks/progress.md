@@ -3,7 +3,7 @@
 Current Phase: 1.6.1 source follow-ups; repo hygiene pass on `claude/project-audit-cleanup-cacbdb`.
 Active Story: remove unreachable screens, unused types, stale flag and stray docs; refresh README and architecture doc.
 Next Recommended Story: founder review of `docs/audits/2026-11-11-repo-audit.md` items 1-5, then the Resumely web audit.
-Blockers: none for this PR; review list items need founder decisions.
+Blockers: PR #230 open, code-reviewer APPROVED, Codex review pending; review-list items need founder decisions.
 Last Validation: iPhone 17 iOS 26.5 full suite after cleanup 750 XCTest (11 skipped, 0 fail) + 5 Swift Testing; app warnings 3 to 0.
 Last Updated: 2026-11-11
 
