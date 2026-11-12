@@ -18,6 +18,13 @@ final class TailorViewModel {
     /// Set when the server runs the direct flow (no diff review). Drives navigation to `OptimizedResumeView`.
     var optimizationId: String?
 
+    /// The last finished check and what it ran on (`Features/V2/Home/RepeatCheckCache.swift`).
+    private(set) var repeatCheckCache = RepeatCheckCache()
+    /// Set when `optimize` reused a check that already became an optimization.
+    /// Home opens that résumé; accepting the review again would mint a second
+    /// optimization and bill a second run.
+    private(set) var reusedOptimizationId: String?
+
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
     var uploadFailureReason: UploadFailureReason?
@@ -72,13 +79,35 @@ final class TailorViewModel {
     /// test 2026-10-21). An upload is reused only by the identity that made it.
     private var uploadIdentity: String?
 
+    /// False only when the server says the optimization is gone (404), for
+    /// example deleted from history. Any other failure counts as "still there":
+    /// the Optimized tab then shows its own error and retry.
+    typealias OptimizationLookup = @MainActor (_ optimizationId: String, _ appState: AppState) async -> Bool
+    private let optimizationStillExists: OptimizationLookup
+
     init(
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
         uploader: ResumeUploader? = nil,
-        track: (@MainActor (AnalyticsEvent) -> Void)? = nil
+        track: (@MainActor (AnalyticsEvent) -> Void)? = nil,
+        optimizationStillExists: OptimizationLookup? = nil
     ) {
         self.optimizationService = optimizationService
         self.track = track ?? { AnalyticsService.shared.track($0) }
+        self.optimizationStillExists = optimizationStillExists ?? { optimizationId, appState in
+            do {
+                let _: OptimizationDetailDTO = try await appState.callWithFreshToken { token in
+                    try await RuntimeServices.sharedAPIClient.get(
+                        endpoint: .optimizationDetail(id: optimizationId),
+                        token: token
+                    )
+                }
+                return true
+            } catch APIClientError.serverError(status: 404, _) {
+                return false
+            } catch {
+                return true
+            }
+        }
         self.uploader = uploader ?? { fileURL, jobDescription, jobDescriptionURL, token in
             try await RuntimeServices.sharedAPIClient.uploadResume(
                 fileURL: fileURL,
@@ -106,6 +135,14 @@ final class TailorViewModel {
         uploadContextSignature = nil
         uploadIdentity = nil
         pendingSaveResumeId = nil
+        repeatCheckCache.reset()
+        reusedOptimizationId = nil
+    }
+
+    /// Records the optimization the user's accept minted for `reviewId`, so a
+    /// repeat of that check opens it.
+    func recordAcceptedCheck(reviewId: String?, optimizationId: String) {
+        repeatCheckCache.recordAccepted(reviewId: reviewId, optimizationId: optimizationId)
     }
 
     /// True for the server's answer when the ids sent no longer resolve for this
@@ -291,12 +328,54 @@ final class TailorViewModel {
             return
         }
 
+        // Busy from here, before the first await: Home disables the check
+        // button and shows its check screen on this flag, so a second check
+        // cannot start while the reuse lookup is in flight (Codex P2, #233).
         isOptimizing = true
+        defer { isOptimizing = false }
         errorMessage = nil
         isConnectionError = false
+        reusedOptimizationId = nil
+        let identity = Self.uploadIdentity(for: appState.session)
+        // Reading and hashing a multi-MB PDF stays off the main thread.
+        let inputKey: String?
+        if let fileURL = selectedResumeURL {
+            inputKey = await Task.detached(priority: .userInitiated) {
+                RepeatCheckCache.inputKey(fileURL: fileURL, jobInput: jobInput)
+            }.value
+        } else {
+            inputKey = nil
+        }
+
+        // Same file, job and account as the last finished check: reuse it,
+        // unless the optimization it became has since been deleted.
+        if let last = repeatCheckCache.match(inputKey: inputKey, identity: identity) {
+            var reusable = true
+            if let accepted = last.optimizationId {
+                reusable = await optimizationStillExists(accepted, appState)
+            }
+            if reusable {
+                errorMessage = nil
+                isConnectionError = false
+                fitPreview = last.fitPreview
+                if let accepted = last.optimizationId {
+                    reviewId = nil
+                    optimizationId = nil
+                    reusedOptimizationId = accepted
+                } else {
+                    reviewId = last.reviewId
+                    optimizationId = nil
+                }
+                #if DEBUG
+                print("♻️ [TAILOR] same résumé and job as the last check, reusing it")
+                #endif
+                return
+            }
+            repeatCheckCache.reset()
+        }
+
         reviewId = nil
         optimizationId = nil
-        defer { isOptimizing = false }
 
         // False until this run has an upload in hand. A cached upload from
         // another identity or job is replaced, and that upload can fail; its
@@ -373,6 +452,16 @@ final class TailorViewModel {
                 print("❌ [TAILOR] → no valid id in response")
                 #endif
                 errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
+            }
+
+            if errorMessage == nil {
+                repeatCheckCache.record(
+                    inputKey: inputKey,
+                    identity: identity,
+                    reviewId: reviewId,
+                    optimizationId: optimizationId,
+                    fitPreview: fitPreview
+                )
             }
         } catch where Self.isCancellation(error) {
             // The user cancelled the check. Nothing failed, so nothing is reported.
