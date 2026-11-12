@@ -1,3 +1,12 @@
+# 2026-11-12: Optimized screen shows the score on the first screen (story 2, Meirav call)
+
+Current Phase: 1.6.1 source follow-ups; tester-feedback fixes (Meirav call 2026-11-12). Web PR #214 (no "Not specified") merged.
+Active Story: résumé card shows top half of page, no inner scroll, "View full resume" sheet; score panel above export bar.
+Next Recommended Story: story 3, copy pass: "Improve fit once", "are now current", export label, back button.
+Blockers: none. Needs one founder look on a real iPhone with a real optimization.
+Last Validation: 2026-11-12, iPhone 17 iOS 26.5 full suite 754 XCTest (11 skipped, 0 fail) + 5 Swift Testing; simulator EN and HE.
+Last Updated: 2026-11-12
+
 # 2026-11-11: Repo audit and dead-code cleanup (iOS)
 
 Current Phase: 1.6.1 source follow-ups; repo hygiene pass on `claude/project-audit-cleanup-cacbdb`.

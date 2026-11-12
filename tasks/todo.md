@@ -1,3 +1,15 @@
+# 2026-11-12: Result screen shows score and next step above the fold (story 2, Meirav call)
+
+Tester did not know the Optimized screen scrolls: the full-page preview filled the phone, its web view scrolled on its own, and the export bar is pinned. Keep the resume first (lesson 2026-07-14) but shorter.
+
+- [x] `ResumePreviewWebView`: `isScrollEnabled` option (default on; Design tab unchanged). Add `RenderedResumeHTMLView` for a read-only full page.
+- [x] `OptimizedResumeView`: inline preview shows the top of the page in a fixed-ratio card, no inner scroll, bottom fade, "View full resume" button; tap opens the full page in a sheet built from the HTML already on screen.
+- [x] Move "See what changed" above the preview when changes were applied (replaces the static "Applied changes" line); lower link only when it is not shown up top.
+- [x] Hebrew for "View full resume".
+- [x] Tests for the preview ratio; build; full suite (754, 0 failures, English test language); simulator first screen in English and Hebrew via `--smoke-optimized`.
+- [x] Score panel shows above the export bar: card is half a page, "Save to My Resumes" moved below the score.
+- [ ] Founder: one look on a real iPhone with a real optimization.
+
 # 2026-11-10: GoTrue error parsing (#227)
 
 - [x] Reproduce raw JSON shown for numeric-code/msg errors and mixed-type fallbacks.

@@ -2,6 +2,23 @@ import SwiftUI
 import StoreKit
 import UIKit
 
+/// Size of the résumé card on the Optimized screen. It shows the top half of a
+/// US Letter page (name, contact line, summary) so the score panel starts on
+/// the first screen of a phone, above the pinned export bar.
+nonisolated enum InlineResumePreviewLayout {
+    /// US Letter, width over height.
+    static let pageAspectRatio: CGFloat = 8.5 / 11
+    /// Share of the page height the card shows.
+    static let visiblePageFraction: CGFloat = 0.5
+    /// Width over height of the card.
+    static var cardAspectRatio: CGFloat { pageAspectRatio / visiblePageFraction }
+
+    static func cardHeight(forWidth width: CGFloat) -> CGFloat {
+        guard width > 0 else { return 0 }
+        return width / cardAspectRatio
+    }
+}
+
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.requestReview) private var requestReview
@@ -60,6 +77,10 @@ struct OptimizedResumeView: View {
     // Updated by the preview web view after each render-preview call.
     // Passed to the export action so the PDF matches the displayed design template.
     @State private var renderedPreviewHTML: String? = nil
+    /// The HTML the preview card is showing right now (also set on a cached
+    /// render, which `renderedPreviewHTML` misses). The full-page sheet reads it.
+    @State private var displayedPreviewHTML: String? = nil
+    @State private var showFullResume = false
 
     var body: some View {
         ScrollView {
@@ -78,14 +99,18 @@ struct OptimizedResumeView: View {
                 // supporting ATS/diagnosis panels so opening this tab never looks
                 // like the optimized document is missing on a phone-sized screen.
                 if let optId = viewModel.optimizationIdentifier {
+                    // Applied edits are reviewed here, before the page, so a
+                    // user who never scrolls still finds them (tester, 2026-11-12).
                     if viewModel.hasVisibleAppliedChanges {
-                        Label("Applied changes are ready to preview", systemImage: "checkmark.seal.fill")
-                            .font(.appSubheadline.weight(.semibold))
-                            .foregroundStyle(AppColors.accentTeal)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        seeWhatChangedLink
                             .padding(.horizontal, AppSpacing.lg)
                     }
 
+                    // A card showing the top of the page, not the whole page. A
+                    // full page filled the phone, so users never learned the score
+                    // and the next steps sit below it (tester, 2026-11-12). The
+                    // page stays first (lesson 2026-07-14); the full page opens
+                    // from the card.
                     ResumePreviewWebView(
                         optimizationId: optId,
                         sections: viewModel.sections,
@@ -93,9 +118,14 @@ struct OptimizedResumeView: View {
                         templateId: designVM?.selectedTemplateId,
                         customization: designVM?.customization,
                         isActive: isActive,
+                        isScrollEnabled: false,
                         renderedHTML: $renderedPreviewHTML,
-                        onRenderFailed: { previewFailed = true },
+                        onRenderFailed: {
+                            previewFailed = true
+                            displayedPreviewHTML = nil
+                        },
                         onVisibleRender: { displayedHTML in
+                            displayedPreviewHTML = displayedHTML
                             previewFailed = false
                             if let optimizationId = previewActivationPolicy.consumeVisibleRender(
                                 optimizationId: viewModel.optimizationIdentifier,
@@ -112,13 +142,12 @@ struct OptimizedResumeView: View {
                             }
                         }
                     )
-                    .aspectRatio(8.5 / 11, contentMode: .fit)
+                    .aspectRatio(InlineResumePreviewLayout.cardAspectRatio, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .overlay(alignment: .bottom) { previewCardFooter }
                     .clipShape(RoundedRectangle(cornerRadius: AppRadii.lg))
                     .padding(.horizontal, AppSpacing.lg)
                     .accessibilityIdentifier("optimized-resume-preview")
-
-                    savedResumePanel
-                        .padding(.horizontal, AppSpacing.lg)
                 } else if viewModel.isLoadingSections || viewModel.isAwaitingInitialSections {
                     ProgressView("Loading resume…")
                         .tint(AppColors.accentViolet)
@@ -133,10 +162,18 @@ struct OptimizedResumeView: View {
                         .onAppear { recordScoreViewIfActive() }
                 }
 
+                // Saving to My Resumes is secondary; it follows the score so the
+                // score is what shows right under the page.
+                if viewModel.optimizationIdentifier != nil {
+                    savedResumePanel
+                        .padding(.horizontal, AppSpacing.lg)
+                }
+
                 // Diagnosis used to sit in front of this screen as a checkpoint;
                 // it is now reachable from it as an optional detail. Same screen,
-                // same view model — only its position in the flow moved.
-                if viewModel.optimizationIdentifier != nil {
+                // same view model — only its position in the flow moved. With
+                // applied changes the link sits above the page instead.
+                if viewModel.optimizationIdentifier != nil, !viewModel.hasVisibleAppliedChanges {
                     seeWhatChangedLink
                         .padding(.horizontal, AppSpacing.lg)
                 }
@@ -179,6 +216,8 @@ struct OptimizedResumeView: View {
         }
         .onChange(of: viewModel.optimizationIdentifier) { _, newId in
             renderedPreviewHTML = nil
+            displayedPreviewHTML = nil
+            showFullResume = false
             pdfTempURL = nil
             showPDFShare = false
             shareOutcome = nil
@@ -298,6 +337,9 @@ struct OptimizedResumeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             bottomBar
+        }
+        .sheet(isPresented: $showFullResume) {
+            fullResumeSheet
         }
         .sheet(isPresented: $showRefineSheet) {
             refineSheet
@@ -427,6 +469,67 @@ struct OptimizedResumeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("see-what-changed")
+    }
+
+    // MARK: - Preview card
+
+    /// Fade and "View full resume" over the bottom of the card. Shown only once
+    /// a page is on screen, so the loading and "Try Again" states stay tappable.
+    @ViewBuilder
+    private var previewCardFooter: some View {
+        if displayedPreviewHTML != nil {
+            ZStack(alignment: .bottom) {
+                // The whole card opens the full page. It also sits above the web
+                // view, so a swipe on the card scrolls this screen.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { showFullResume = true }
+                    .accessibilityHidden(true)
+
+                LinearGradient(
+                    colors: [Color.white.opacity(0), Color.white.opacity(0.95)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 88)
+                .allowsHitTesting(false)
+
+                Button {
+                    showFullResume = true
+                } label: {
+                    Label("View full resume", systemImage: "arrow.up.left.and.arrow.down.right")
+                        .font(.appSubheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(Capsule().fill(AppColors.accentViolet))
+                }
+                .buttonStyle(.plain)
+                .padding(.bottom, AppSpacing.md)
+                .accessibilityIdentifier("view-full-resume")
+            }
+        }
+    }
+
+    private var fullResumeSheet: some View {
+        NavigationStack {
+            Group {
+                if let html = displayedPreviewHTML {
+                    RenderedResumeHTMLView(html: html)
+                        .ignoresSafeArea(edges: .bottom)
+                } else {
+                    ProgressView()
+                        .tint(AppColors.accentViolet)
+                }
+            }
+            .navigationTitle("Optimized Resume")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showFullResume = false }
+                }
+            }
+        }
     }
 
     // MARK: - ATS score card (unchanged)
