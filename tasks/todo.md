@@ -1,11 +1,11 @@
-# 2026-11-12: Expert tools order and "Before you send" checklist (story 4, Meirav call)
+# 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
 - [x] Expert tab lists Cover letter, Screening answers, Achievement quantifier, Summary, ATS report, Resume Rewrite last (`ExpertWorkflowType.displayOrder`; API enum order unchanged).
 - [x] Optimized tab: "Before you send" card under the score: Improve match, Add a cover letter (Expert tab), Choose a design (Design tab); done rows checked, next open row highlighted, "All set. Export below." when complete. Only in the tab (`showsNextSteps`), not in Profile/History hosts.
 - [x] Hebrew for the five new strings; `NextStepsAndExpertOrderTests` (6); full suite 760, 0 failures; simulator EN.
-- [ ] Not done: "Export now or improve more first?" prompt on Export (Meirav's other idea); the checklist covers the same need.
+- [ ] Not done: "Export now or improve more first?" prompt on Export (the tester's other idea); the checklist covers the same need.
 
-# 2026-11-12: Reuse the last check for the same résumé and job (story 5, Meirav call)
+# 2026-11-12: Reuse the last check for the same résumé and job (story 5, tester call)
 
 - [x] `TailorViewModel`: remember the last finished check by file bytes (SHA256) + job + account; a repeat restores it without a server call.
 - [x] Accepted check: Home opens that optimization instead of offering the review again (accepting again mints and bills a second optimization).
@@ -13,7 +13,7 @@
 - [x] Reused optimization deleted (404): run a fresh check (code review finding). File hash runs off the main thread.
 - [x] `RepeatCheckReuseTests` (9); `UploadCacheIdentityTests.testSameIdentityReusesTheUpload` now uses a real file; full suite 763, 0 failures.
 
-# 2026-11-12: Copy pass on the Optimized screen (story 3, Meirav call)
+# 2026-11-12: Copy pass on the Optimized screen (story 3, tester call)
 
 - [x] "Improve fit once" to "Improve match", the name the blocker tip already uses; caption "A second pass on keywords and metrics."
 - [x] "Fit improvement applied once... are now current" to "Done. Your résumé and score are updated." (fallback "Done. Your score is updated.")
@@ -22,7 +22,7 @@
 - [x] Hebrew for the five new strings; tests updated; full suite; simulator EN + HE.
 - [ ] Follow-up: "Refine", "Edit", "Design", "Expert" chips show in English in Hebrew mode (existed before).
 
-# 2026-11-12: Result screen shows score and next step above the fold (story 2, Meirav call)
+# 2026-11-12: Result screen shows score and next step above the fold (story 2, tester call)
 
 Tester did not know the Optimized screen scrolls: the full-page preview filled the phone, its web view scrolled on its own, and the export bar is pinned. Keep the resume first (lesson 2026-07-14) but shorter.
 

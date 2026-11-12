@@ -1,4 +1,4 @@
-# 2026-11-12: Expert order and "Before you send" checklist (story 4, Meirav call)
+# 2026-11-12: Expert order and "Before you send" checklist (story 4, tester call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231, #232 merged; #233 (story 5) open.
 Active Story: Expert tab puts cover letter first, rewrite last; Optimized tab shows a "Before you send" checklist.
@@ -7,7 +7,7 @@ Blockers: none.
 Last Validation: 2026-11-12, full suite 760 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5; simulator EN.
 Last Updated: 2026-11-12
 
-# 2026-11-12: Same résumé and job reuse the last check (story 5, Meirav call)
+# 2026-11-12: Same résumé and job reuse the last check (story 5, tester call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231 and #232 merged.
 Active Story: repeat "Check my fit" on same file+job+account reuses the last check; accepted check opens its résumé; deleted one re-runs.
@@ -15,7 +15,7 @@ Next Recommended Story: story 4, expert tools order (cover letter first) and a "
 Blockers: none.
 Last Validation: 2026-11-12, full suite 764 XCTest (11 skipped, 0 fail) + 5 Swift Testing after Codex fixes (V2 cache file, busy first).
 
-# 2026-11-12: Optimized screen copy pass (story 3, Meirav call)
+# 2026-11-12: Optimized screen copy pass (story 3, tester call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214 and iOS #231 merged.
 Active Story: clear labels: "Improve match", "Done. Your résumé and score are updated.", "Export résumé", "Back to my résumé".
@@ -24,9 +24,9 @@ Blockers: none. Hebrew chips Refine/Edit/Design/Expert untranslated (pre-existin
 Last Validation: 2026-11-12, full suite 754 XCTest (11 skipped, 0 fail) + 5 Swift Testing; simulator EN and HE.
 Last Updated: 2026-11-12
 
-# 2026-11-12: Optimized screen shows the score on the first screen (story 2, Meirav call)
+# 2026-11-12: Optimized screen shows the score on the first screen (story 2, tester call)
 
-Current Phase: 1.6.1 source follow-ups; tester-feedback fixes (Meirav call 2026-11-12). Web PR #214 (no "Not specified") merged.
+Current Phase: 1.6.1 source follow-ups; tester-feedback fixes (tester call 2026-11-12). Web PR #214 (no "Not specified") merged.
 Active Story: résumé card shows top half of page, no inner scroll, "View full resume" sheet; score panel above export bar.
 Next Recommended Story: story 3, copy pass: "Improve fit once", "are now current", export label, back button.
 Blockers: none. Needs one founder look on a real iPhone with a real optimization.
@@ -1651,7 +1651,7 @@ Also fixed: recency resolved on only one side of the comparison (a benchmark cas
 
 **S6.** `BackendConfig.isFitCheckEnabled` is now false. Both Home and Tailor already carried the direct path behind that flag (S0 built it), so Analyze runs upload-then-optimize with one tap and no Fit sheet. `optimize()` calls `ensureUploadedResumeForCurrentJob` internally and it is idempotent, so no double-upload or double-charge. Analytics move to `flow_version=direct_optimize_v2` automatically.
 
-Why the gate had to go rather than be reordered: bands are strong >= 75 / stretch >= 50, but the free checker's 60-day mean was 34.5 with a maximum of 51. Three in four users were told to skip the job, "strong" was never awarded to anyone, and the Meirav session met a 45 before seeing any value.
+Why the gate had to go rather than be reordered: bands are strong >= 75 / stretch >= 50, but the free checker's 60-day mean was 34.5 with a maximum of 51. Three in four users were told to skip the job, "strong" was never awarded to anyone, and the tester session met a 45 before seeing any value.
 
 **S7 — audited, not changed.** Option (a) is already how the result screen is built: "Preview & Export PDF" is the primary button, Submit Package secondary, Design and Expert reachable as side-doors. The remaining step count comes from the tab bar presenting Design and Expert as peers of the journey — that is option (b), five tabs to three, and it stays the founder decision the packet flags.
 
