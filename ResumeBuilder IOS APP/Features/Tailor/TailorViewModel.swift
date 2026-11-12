@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Observation
 
@@ -17,6 +18,25 @@ final class TailorViewModel {
     var fitPreview: OptimizeFitPreview?
     /// Set when the server runs the direct flow (no diff review). Drives navigation to `OptimizedResumeView`.
     var optimizationId: String?
+
+    /// The last check that finished, and what it was run on. Running "Check my
+    /// fit" again on the same file, job and account reuses it instead of a new
+    /// AI run (tester, 2026-11-12: three identical checks, three full runs; a
+    /// guest's checks also count against the free limit).
+    struct CompletedCheck {
+        let inputKey: String
+        let identity: String
+        let reviewId: String?
+        let fitPreview: OptimizeFitPreview?
+        /// The optimization this check became: the direct flow's id, or the one
+        /// minted when the user accepted the review.
+        var optimizationId: String?
+    }
+    private(set) var lastCheck: CompletedCheck?
+    /// Set when `optimize` reused a check that already became an optimization.
+    /// Home opens that résumé; accepting the review again would mint a second
+    /// optimization and bill a second run.
+    private(set) var reusedOptimizationId: String?
 
     var uploadResponse: ResumeUploadResponse?
     var errorMessage: String?
@@ -72,13 +92,35 @@ final class TailorViewModel {
     /// test 2026-10-21). An upload is reused only by the identity that made it.
     private var uploadIdentity: String?
 
+    /// False only when the server says the optimization is gone (404), for
+    /// example deleted from history. Any other failure counts as "still there":
+    /// the Optimized tab then shows its own error and retry.
+    typealias OptimizationLookup = @MainActor (_ optimizationId: String, _ appState: AppState) async -> Bool
+    private let optimizationStillExists: OptimizationLookup
+
     init(
         optimizationService: any ResumeOptimizationServiceProtocol = RuntimeServices.resumeOptimizationService(),
         uploader: ResumeUploader? = nil,
-        track: (@MainActor (AnalyticsEvent) -> Void)? = nil
+        track: (@MainActor (AnalyticsEvent) -> Void)? = nil,
+        optimizationStillExists: OptimizationLookup? = nil
     ) {
         self.optimizationService = optimizationService
         self.track = track ?? { AnalyticsService.shared.track($0) }
+        self.optimizationStillExists = optimizationStillExists ?? { optimizationId, appState in
+            do {
+                let _: OptimizationDetailDTO = try await appState.callWithFreshToken { token in
+                    try await RuntimeServices.sharedAPIClient.get(
+                        endpoint: .optimizationDetail(id: optimizationId),
+                        token: token
+                    )
+                }
+                return true
+            } catch APIClientError.serverError(status: 404, _) {
+                return false
+            } catch {
+                return true
+            }
+        }
         self.uploader = uploader ?? { fileURL, jobDescription, jobDescriptionURL, token in
             try await RuntimeServices.sharedAPIClient.uploadResume(
                 fileURL: fileURL,
@@ -106,6 +148,25 @@ final class TailorViewModel {
         uploadContextSignature = nil
         uploadIdentity = nil
         pendingSaveResumeId = nil
+        lastCheck = nil
+        reusedOptimizationId = nil
+    }
+
+    /// Records the optimization the user's accept minted for `reviewId`, so a
+    /// repeat of that check opens it.
+    func recordAcceptedCheck(reviewId: String?, optimizationId: String) {
+        guard let reviewId, lastCheck?.reviewId == reviewId else { return }
+        lastCheck?.optimizationId = optimizationId
+    }
+
+    /// What a check depends on: the file's bytes (a different file under the
+    /// same name is a different check) and the job as sent. Nil when the file
+    /// cannot be read, which never reuses.
+    nonisolated static func checkInputKey(fileURL: URL, jobInput: JobInputPolicy.Evaluation) -> String? {
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else { return nil }
+        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        return [digest, jobInput.normalizedDescription ?? "", jobInput.normalizedURL ?? ""]
+            .joined(separator: "\u{1F}")
     }
 
     /// True for the server's answer when the ids sent no longer resolve for this
@@ -291,6 +352,45 @@ final class TailorViewModel {
             return
         }
 
+        reusedOptimizationId = nil
+        let identity = Self.uploadIdentity(for: appState.session)
+        // Reading and hashing a multi-MB PDF stays off the main thread.
+        let inputKey: String?
+        if let fileURL = selectedResumeURL {
+            inputKey = await Task.detached(priority: .userInitiated) {
+                Self.checkInputKey(fileURL: fileURL, jobInput: jobInput)
+            }.value
+        } else {
+            inputKey = nil
+        }
+
+        // Same file, job and account as the last finished check: reuse it,
+        // unless the optimization it became has since been deleted.
+        if let inputKey, let last = lastCheck, last.inputKey == inputKey, last.identity == identity {
+            var reusable = true
+            if let accepted = last.optimizationId {
+                reusable = await optimizationStillExists(accepted, appState)
+            }
+            if reusable {
+                errorMessage = nil
+                isConnectionError = false
+                fitPreview = last.fitPreview
+                if let accepted = last.optimizationId {
+                    reviewId = nil
+                    optimizationId = nil
+                    reusedOptimizationId = accepted
+                } else {
+                    reviewId = last.reviewId
+                    optimizationId = nil
+                }
+                #if DEBUG
+                print("♻️ [TAILOR] same résumé and job as the last check, reusing it")
+                #endif
+                return
+            }
+            lastCheck = nil
+        }
+
         isOptimizing = true
         errorMessage = nil
         isConnectionError = false
@@ -373,6 +473,16 @@ final class TailorViewModel {
                 print("❌ [TAILOR] → no valid id in response")
                 #endif
                 errorMessage = optimize.error ?? NSLocalizedString("Optimization did not return a result. Try again.", comment: "")
+            }
+
+            if errorMessage == nil, let inputKey, reviewId != nil || optimizationId != nil {
+                lastCheck = CompletedCheck(
+                    inputKey: inputKey,
+                    identity: identity,
+                    reviewId: reviewId,
+                    fitPreview: fitPreview,
+                    optimizationId: optimizationId
+                )
             }
         } catch where Self.isCancellation(error) {
             // The user cancelled the check. Nothing failed, so nothing is reported.

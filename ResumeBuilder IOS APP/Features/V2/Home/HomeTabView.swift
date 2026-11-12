@@ -120,6 +120,7 @@ struct HomeTabView: View {
                                     to: optimizationId
                                 )
                                 appState.latestOptimizationId = optimizationId
+                                viewModel.recordAcceptedCheck(reviewId: reviewId, optimizationId: optimizationId)
                                 appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
                                 viewModel.pendingSaveResumeId = optimizationId
                                 journeyRoute = nil
@@ -748,6 +749,7 @@ struct HomeTabView: View {
                 )
                 FitBaselineStore.shared.carryForward(from: reviewId, to: optimizationId)
                 appState.latestOptimizationId = optimizationId
+                viewModel.recordAcceptedCheck(reviewId: reviewId, optimizationId: optimizationId)
                 appState.rememberJobURL(viewModel.jobDescriptionURL, for: optimizationId)
                 viewModel.pendingSaveResumeId = optimizationId
                 journeyRoute = nil
@@ -762,6 +764,14 @@ struct HomeTabView: View {
         await viewModel.optimize(appState: appState)
         // Cancelled on the check screen: stay on Home, open nothing.
         guard !Task.isCancelled else { return }
+
+        // Same résumé and job as a check the user already accepted: open that
+        // résumé. Accepting the review again would mint a second optimization.
+        if let reused = viewModel.reusedOptimizationId {
+            appState.latestOptimizationId = reused
+            onShowOptimizedPreview(reused)
+            return
+        }
         // The free check recorded its score against the resume id; every screen
         // from here on is keyed by the optimization. Join them, or the floor is
         // recorded and never found (WP-45 D7).

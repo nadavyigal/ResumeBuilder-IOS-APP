@@ -1,3 +1,11 @@
+# 2026-11-12: Reuse the last check for the same résumé and job (story 5, Meirav call)
+
+- [x] `TailorViewModel`: remember the last finished check by file bytes (SHA256) + job + account; a repeat restores it without a server call.
+- [x] Accepted check: Home opens that optimization instead of offering the review again (accepting again mints and bills a second optimization).
+- [x] Cleared on account change (`resetUploadCache`); a failed check is never reused; an unreadable file never reuses.
+- [x] Reused optimization deleted (404): run a fresh check (code review finding). File hash runs off the main thread.
+- [x] `RepeatCheckReuseTests` (9); `UploadCacheIdentityTests.testSameIdentityReusesTheUpload` now uses a real file; full suite 763, 0 failures.
+
 # 2026-11-12: Result screen shows score and next step above the fold (story 2, Meirav call)
 
 Tester did not know the Optimized screen scrolls: the full-page preview filled the phone, its web view scrolled on its own, and the export bar is pinned. Keep the resume first (lesson 2026-07-14) but shorter.

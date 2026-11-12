@@ -49,10 +49,18 @@ final class UploadCacheIdentityTests: XCTestCase {
     }
 
     /// Guard against over-correcting: the same identity, file and job reuse the upload.
-    func testSameIdentityReusesTheUpload() async {
+    /// The first run fails after the upload, so there is no finished check to
+    /// reuse (`RepeatCheckReuseTests` covers that) and the retry must run the
+    /// optimizer again on the cached upload. A real file, so the check's input
+    /// key exists and this is not passing only because the file is missing.
+    func testSameIdentityReusesTheUpload() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("upload-reuse-\(UUID().uuidString).pdf")
+        try Data("%PDF-1.4 maya".utf8).write(to: file)
+        defer { try? FileManager.default.removeItem(at: file) }
         let uploads = UploadSpy()
-        let optimizer = OptimizerSpy(results: [.success, .success])
+        let optimizer = OptimizerSpy(results: [.serverDown, .success])
         let model = makeModel(uploads: uploads, optimizer: optimizer)
+        model.selectedResumeURL = file
         let appState = makeAppState(session("user-2"))
 
         await model.optimize(appState: appState)
@@ -60,6 +68,7 @@ final class UploadCacheIdentityTests: XCTestCase {
 
         XCTAssertEqual(uploads.count, 1)
         XCTAssertEqual(optimizer.resumeIds, ["resume-1", "resume-1"])
+        XCTAssertNil(model.errorMessage)
     }
 
     func testUploadIdentityIsTheUserIdOrGuest() {

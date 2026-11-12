@@ -1,3 +1,12 @@
+# 2026-11-12: Same résumé and job reuse the last check (story 5, Meirav call)
+
+Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231 and #232 merged.
+Active Story: repeat "Check my fit" on same file+job+account reuses the last check; accepted check opens its résumé; deleted one re-runs.
+Next Recommended Story: story 4, expert tools order (cover letter first) and a "Next step" card.
+Blockers: none.
+Last Validation: 2026-11-12, full suite 763 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, English test language.
+Last Updated: 2026-11-12
+
 # 2026-11-12: Optimized screen shows the score on the first screen (story 2, Meirav call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes (Meirav call 2026-11-12). Web PR #214 (no "Not specified") merged.
