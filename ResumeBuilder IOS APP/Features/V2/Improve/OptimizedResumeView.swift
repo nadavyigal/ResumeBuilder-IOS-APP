@@ -21,6 +21,7 @@ nonisolated enum InlineResumePreviewLayout {
 
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
+    @Environment(LocalizationManager.self) private var localization
     @Environment(\.requestReview) private var requestReview
     @Bindable var viewModel: OptimizedResumeViewModel
     var isActive = true
@@ -530,6 +531,9 @@ struct OptimizedResumeView: View {
                 }
             }
         }
+        // A sheet does not inherit the app's right-to-left direction (lesson
+        // 2026-10-19); only the résumé HTML carries its own.
+        .environment(\.layoutDirection, localization.layoutDirection)
     }
 
     // MARK: - ATS score card (unchanged)
@@ -1885,4 +1889,5 @@ private extension View {
         )
     }
     .environment(AppState())
+    .environment(LocalizationManager.shared)
 }
