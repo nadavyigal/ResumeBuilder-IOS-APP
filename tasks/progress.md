@@ -1,3 +1,12 @@
+# 2026-11-12: 1.6.1 (40) release build for TestFlight
+
+Current Phase: 1.6.1 release; tester-call fixes #231 to #234 plus #226 and #227 on main.
+Active Story: 1.6.1 (40) bump on `release/1.6.1-40`; suite, Release archive, TestFlight upload on the founder's yes.
+Next Recommended Story: founder on-device check of build 40 from TestFlight; App Store submission is a separate yes.
+Blockers: TestFlight upload waits for the founder's yes.
+Last Validation: 2026-11-12, store check PASS (live 1.6.0); full suite pending on this commit.
+Last Updated: 2026-11-12
+
 # 2026-11-12: Expert order and "Before you send" checklist (story 4, tester call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231, #232 merged; #233 (story 5) open.
