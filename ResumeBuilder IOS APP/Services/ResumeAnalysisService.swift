@@ -1,13 +1,5 @@
 import Foundation
 
-// MARK: - Wire types for POST /api/ats/score
-
-private struct ATSScoreRequest: Encodable {
-    let resume_original: String
-    let resume_optimized: String
-    let job_description: String
-}
-
 // MARK: - Protocol
 
 protocol ResumeAnalysisServiceProtocol: Sendable {

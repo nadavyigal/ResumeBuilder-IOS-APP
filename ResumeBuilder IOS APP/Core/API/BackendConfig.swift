@@ -21,11 +21,6 @@ enum BackendConfig {
     /// removed once the release readout is clean (WP-45 S10).
     static let isFitCheckEnabled = false
 
-    /// Stage 1 ships without monetization. Flip to `true` once the backend
-    /// credit ledger and StoreKit IAP wiring land in Stage 2.
-    /// TODO(Stage2-RES-MONETIZATION): enable after sandbox IAP QA passes.
-    static let isMonetizationEnabled = false
-
     /// Sign in with Apple is hidden until the Apple provider is enabled in the
     /// Supabase dashboard (Authentication -> Providers -> Apple, with this
     /// app's bundle ID in Client IDs). The reviewer hit provider_disabled on

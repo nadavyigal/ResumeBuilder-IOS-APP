@@ -26,13 +26,3 @@ extension View {
         modifier(GlassCardModifier(cornerRadius: cornerRadius))
     }
 }
-
-struct GlassCard<Content: View>: View {
-    var cornerRadius: CGFloat = AppRadii.glass
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        content()
-            .glassCard(cornerRadius: cornerRadius)
-    }
-}

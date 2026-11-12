@@ -161,6 +161,7 @@ final class DesignViewModel {
         case failed
     }
 
+    @discardableResult
     private func loadCurrentAssignment(optimizationId optId: String, token: String, shouldSyncCategory: Bool) async -> AssignmentLoadResult {
         do {
             guard let assignment = try await designService.currentAssignment(optimizationId: optId, token: token) else { return .ready }

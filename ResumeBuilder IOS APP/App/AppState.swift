@@ -843,8 +843,8 @@ final class AppState {
     }
 
     func refreshCredits() async {
-        // Export credits are read whatever `isMonetizationEnabled` says: the server
-        // decides the gate (StoreKit spec 11), and the paywall reports the balance.
+        // The server decides the export gate (StoreKit spec 11); the paywall
+        // reports the balance read here.
         guard let token = session?.accessToken else { return }
         let requestedFor = session?.userId
         invalidateCreditsReads()
