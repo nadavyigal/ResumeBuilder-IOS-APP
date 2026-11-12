@@ -11622,6 +11622,56 @@
           }
         }
       }
+    },
+    "A second pass on keywords and metrics." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סבב שני על מילות מפתח ומדדים."
+          }
+        }
+      }
+    },
+    "Done. Your résumé and score are updated." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בוצע. קורות החיים והציון עודכנו."
+          }
+        }
+      }
+    },
+    "Done. Your score is updated." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בוצע. הציון עודכן."
+          }
+        }
+      }
+    },
+    "Export résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא קורות חיים"
+          }
+        }
+      }
+    },
+    "Back to my résumé" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חזרה לקורות החיים"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

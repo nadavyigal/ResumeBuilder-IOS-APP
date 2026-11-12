@@ -374,7 +374,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         XCTAssertTrue(vm.hasCompletedATSImprovement)
         XCTAssertTrue(appState.hasCompletedATSImprovement(for: optimizationId))
         XCTAssertEqual(vm.sections.first?.body, "Swift, SwiftUI")
-        XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above and resume preview are now current.")
+        XCTAssertEqual(vm.atsUpliftMessage, "Done. Your résumé and score are updated.")
 
         await vm.improveATS(token: "tok", appState: appState)
 
@@ -410,7 +410,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             vm.atsUpliftMessage,
-            "Fit improvement applied once. The score above is current for this resume."
+            "Done. Your score is updated."
         )
         XCTAssertNotEqual(vm.atsUpliftMessage, vm.errorMessage)
     }
@@ -455,7 +455,7 @@ final class OptimizedResumeViewModelTests: XCTestCase {
 
         XCTAssertTrue(vm.hasCompletedATSImprovement)
         XCTAssertTrue(relaunched.hasCompletedATSImprovement(for: "  opt-persisted\n"))
-        XCTAssertEqual(vm.atsUpliftMessage, "Fit improvement applied once. The score above is current for this resume.")
+        XCTAssertEqual(vm.atsUpliftMessage, "Done. Your score is updated.")
     }
 
     func testATSInsightsExplainLowScoreAndExposeActions() {
