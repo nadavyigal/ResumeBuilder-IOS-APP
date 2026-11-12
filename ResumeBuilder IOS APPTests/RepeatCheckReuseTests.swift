@@ -150,11 +150,45 @@ final class RepeatCheckReuseTests: XCTestCase {
         XCTAssertEqual(model.reviewId, "review-1")
     }
 
+    /// Codex P2 on #233: the check is busy from its first await, so Home's
+    /// button and check screen guard the reuse lookup too.
+    func testCheckIsBusyDuringTheReuseLookup() async {
+        let optimizer = ReviewOptimizerSpy()
+        let box = ModelBox()
+        let model = TailorViewModel(
+            optimizationService: optimizer,
+            uploader: CountingUploader().upload,
+            track: { _ in },
+            optimizationStillExists: { _, _ in
+                box.busyDuringLookup = box.model?.isOptimizing
+                return true
+            }
+        )
+        box.model = model
+        model.selectedResumeURL = fileURL
+        model.jobDescriptionURL = "https://www.linkedin.com/jobs/view/4012345678"
+        let state = appState()
+
+        await model.optimize(appState: state)
+        model.recordAcceptedCheck(reviewId: "review-1", optimizationId: "opt-accepted")
+        await model.optimize(appState: state)
+
+        XCTAssertEqual(box.busyDuringLookup, true)
+        XCTAssertFalse(model.isOptimizing, "busy clears when the check returns")
+        XCTAssertEqual(model.reusedOptimizationId, "opt-accepted")
+    }
+
     func testUnreadableFileNeverReuses() {
         let missing = URL(fileURLWithPath: "/tmp/does-not-exist-\(UUID().uuidString).pdf")
         let job = JobInputPolicy.evaluate(description: "", urlString: "https://www.linkedin.com/jobs/view/4012345678")
-        XCTAssertNil(TailorViewModel.checkInputKey(fileURL: missing, jobInput: job))
+        XCTAssertNil(RepeatCheckCache.inputKey(fileURL: missing, jobInput: job))
     }
+}
+
+@MainActor
+private final class ModelBox {
+    weak var model: TailorViewModel?
+    var busyDuringLookup: Bool?
 }
 
 @MainActor

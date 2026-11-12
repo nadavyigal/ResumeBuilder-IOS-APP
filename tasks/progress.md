@@ -4,7 +4,7 @@ Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #23
 Active Story: repeat "Check my fit" on same file+job+account reuses the last check; accepted check opens its résumé; deleted one re-runs.
 Next Recommended Story: story 4, expert tools order (cover letter first) and a "Next step" card.
 Blockers: none.
-Last Validation: 2026-11-12, full suite 763 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, English test language.
+Last Validation: 2026-11-12, full suite 764 XCTest (11 skipped, 0 fail) + 5 Swift Testing after Codex fixes (V2 cache file, busy first).
 
 # 2026-11-12: Optimized screen copy pass (story 3, Meirav call)
 
