@@ -1,10 +1,10 @@
 # 2026-11-12: 1.6.1 (40) release build for TestFlight
 
 Current Phase: 1.6.1 release; tester-call fixes #231 to #234 plus #226 and #227 on main.
-Active Story: 1.6.1 (40) bump on `release/1.6.1-40`; suite, Release archive, TestFlight upload on the founder's yes.
+Active Story: 1.6.1 (40) uploaded 18:31 Asia/Jerusalem on the founder's yes, `testFlightInternalTestingOnly` false; Apple processing.
 Next Recommended Story: founder on-device check of build 40 from TestFlight; App Store submission is a separate yes.
-Blockers: TestFlight upload waits for the founder's yes.
-Last Validation: 2026-11-12, 770 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, EN; store check PASS.
+Blockers: Chrome signed out of App Store Connect; What to Test and internal group need a sign-in.
+Last Validation: 2026-11-12, 770 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, EN; store check PASS; Release archive 40 checked; `-exportArchive` "Upload succeeded".
 Last Updated: 2026-11-12
 
 # 2026-11-12: Expert order and "Before you send" checklist (story 4, tester call)
