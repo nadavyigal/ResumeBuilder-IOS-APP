@@ -1,3 +1,10 @@
+# 2026-11-12: Expert tools order and "Before you send" checklist (story 4, Meirav call)
+
+- [x] Expert tab lists Cover letter, Screening answers, Achievement quantifier, Summary, ATS report, Resume Rewrite last (`ExpertWorkflowType.displayOrder`; API enum order unchanged).
+- [x] Optimized tab: "Before you send" card under the score: Improve match, Add a cover letter (Expert tab), Choose a design (Design tab); done rows checked, next open row highlighted, "All set. Export below." when complete. Only in the tab (`showsNextSteps`), not in Profile/History hosts.
+- [x] Hebrew for the five new strings; `NextStepsAndExpertOrderTests` (6); full suite 760, 0 failures; simulator EN.
+- [ ] Not done: "Export now or improve more first?" prompt on Export (Meirav's other idea); the checklist covers the same need.
+
 # 2026-11-12: Copy pass on the Optimized screen (story 3, Meirav call)
 
 - [x] "Improve fit once" to "Improve match", the name the blocker tip already uses; caption "A second pass on keywords and metrics."

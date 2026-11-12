@@ -23,7 +23,7 @@ struct OptimizedResumeTabView: View {
             // hierarchy before it can be activated.
             if let vm = optimizedVM, vm.optimizationIdentifier == appState.latestOptimizationId {
                 NavigationStack {
-                    OptimizedResumeView(viewModel: vm, isActive: isActive, onSwitchTab: onSwitchTab)
+                    OptimizedResumeView(viewModel: vm, isActive: isActive, onSwitchTab: onSwitchTab, showsNextSteps: true)
                         .id(vm.optimizationIdentifier)
                 }
             } else {

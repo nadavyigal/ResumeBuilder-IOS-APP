@@ -1,3 +1,12 @@
+# 2026-11-12: Expert order and "Before you send" checklist (story 4, Meirav call)
+
+Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231, #232 merged; #233 (story 5) open.
+Active Story: Expert tab puts cover letter first, rewrite last; Optimized tab shows a "Before you send" checklist.
+Next Recommended Story: story 6, add the web outreach kit to the iOS Expert tab (spec first).
+Blockers: none.
+Last Validation: 2026-11-12, full suite 760 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5; simulator EN.
+Last Updated: 2026-11-12
+
 # 2026-11-12: Optimized screen copy pass (story 3, Meirav call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214 and iOS #231 merged.
