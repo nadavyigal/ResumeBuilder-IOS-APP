@@ -58,7 +58,7 @@ struct OptimizedResumeSmokeHarness: View {
 
     var body: some View {
         NavigationStack {
-            OptimizedResumeView(viewModel: viewModel)
+            OptimizedResumeView(viewModel: viewModel, showsNextSteps: true)
         }
         .environment(appState)
         .task {

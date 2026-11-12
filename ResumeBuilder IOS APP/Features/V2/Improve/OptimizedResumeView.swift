@@ -19,6 +19,29 @@ nonisolated enum InlineResumePreviewLayout {
     }
 }
 
+/// The optional steps between a tailored résumé and sending it. Users went
+/// optimize, export, done, and never found the rest (tester, 2026-11-12: "you
+/// built nice features, it's a pity people don't reach them").
+nonisolated struct BeforeYouSendChecklist: Equatable {
+    enum Step: CaseIterable, Equatable { case improveMatch, coverLetter, design }
+
+    let hasImprovedMatch: Bool
+    let hasCoverLetter: Bool
+    let hasDesign: Bool
+
+    func isDone(_ step: Step) -> Bool {
+        switch step {
+        case .improveMatch: return hasImprovedMatch
+        case .coverLetter: return hasCoverLetter
+        case .design: return hasDesign
+        }
+    }
+
+    var isComplete: Bool { Step.allCases.allSatisfy(isDone) }
+    /// The first step still open, in the order the steps are listed.
+    var nextStep: Step? { Step.allCases.first { !isDone($0) } }
+}
+
 struct OptimizedResumeView: View {
     @Environment(AppState.self) private var appState
     @Environment(LocalizationManager.self) private var localization
@@ -26,6 +49,9 @@ struct OptimizedResumeView: View {
     @Bindable var viewModel: OptimizedResumeViewModel
     var isActive = true
     var onSwitchTab: (ResumlyTab) -> Void = { _ in }
+    /// The "Before you send" checklist. Only the Optimized tab sets it: other
+    /// hosts (Profile, History) have no tabs to switch to.
+    var showsNextSteps = false
 
     /// ATS headline percent for export "share score" copy (from Improve analysis).
     var atsScorePercent: Int? = nil
@@ -161,6 +187,11 @@ struct OptimizedResumeView: View {
                     atsInsightPanel
                         .padding(.horizontal, AppSpacing.lg)
                         .onAppear { recordScoreViewIfActive() }
+                }
+
+                if showsNextSteps, viewModel.optimizationIdentifier != nil {
+                    beforeYouSendCard
+                        .padding(.horizontal, AppSpacing.lg)
                 }
 
                 // Saving to My Resumes is secondary; it follows the score so the
@@ -474,6 +505,75 @@ struct OptimizedResumeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("see-what-changed")
+    }
+
+    // MARK: - Before you send
+
+    private var checklist: BeforeYouSendChecklist {
+        BeforeYouSendChecklist(
+            hasImprovedMatch: viewModel.hasCompletedATSImprovement,
+            hasCoverLetter: appState.submitPackageRecord(for: viewModel.optimizationIdentifier)?.hasCoverLetter == true,
+            hasDesign: designVM?.selectedTemplateId != nil
+        )
+    }
+
+    private var beforeYouSendCard: some View {
+        let list = checklist
+        return VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Before you send")
+                .font(.appSubheadline.weight(.semibold))
+                .foregroundStyle(AppColors.textPrimary)
+            Text(list.isComplete ? "All set. Export below." : "Optional steps that make the application stronger.")
+                .font(.appCaption)
+                .foregroundStyle(AppColors.textSecondary)
+
+            ForEach(BeforeYouSendChecklist.Step.allCases, id: \.self) { step in
+                checklistRow(step, done: list.isDone(step), isNext: list.nextStep == step)
+            }
+        }
+        .padding(AppSpacing.lg)
+        .glassCard(cornerRadius: AppRadii.lg)
+        .accessibilityIdentifier("before-you-send")
+    }
+
+    private func checklistRow(_ step: BeforeYouSendChecklist.Step, done: Bool, isNext: Bool) -> some View {
+        let title: LocalizedStringKey
+        switch step {
+        case .improveMatch: title = "Improve match"
+        case .coverLetter: title = "Add a cover letter"
+        case .design: title = "Choose a design"
+        }
+        return Button {
+            switch step {
+            case .improveMatch:
+                AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
+                Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
+            case .coverLetter:
+                onSwitchTab(.expert)
+            case .design:
+                onSwitchTab(.design)
+            }
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(done ? AppColors.accentTeal : (isNext ? AppColors.accentViolet : AppColors.textTertiary))
+                Text(title)
+                    .font(.appSubheadline.weight(isNext ? .semibold : .regular))
+                    .foregroundStyle(done ? AppColors.textSecondary : AppColors.textPrimary)
+                    .strikethrough(done, color: AppColors.textTertiary)
+                Spacer(minLength: 0)
+                if !done {
+                    Image(systemName: "chevron.forward")
+                        .imageScale(.small)
+                        .foregroundStyle(AppColors.textTertiary)
+                }
+            }
+            .frame(minHeight: 40)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(done || (step == .improveMatch && viewModel.isImprovingATS))
+        .accessibilityAddTraits(done ? .isSelected : [])
     }
 
     // MARK: - Preview card

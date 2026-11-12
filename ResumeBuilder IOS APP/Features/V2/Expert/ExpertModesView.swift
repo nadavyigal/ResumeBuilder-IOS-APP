@@ -1,5 +1,21 @@
 import SwiftUI
 
+extension ExpertWorkflowType {
+    /// The order the Expert tab lists the tools. The résumé has already been
+    /// rewritten by the time a user gets here, so the tools that add something
+    /// new (cover letter, screening answers) come first and "Resume Rewrite"
+    /// last (tester, 2026-11-12: "the first thing is Rewrite, which I just did").
+    /// The enum's own order stays as the API defines it.
+    nonisolated static let displayOrder: [ExpertWorkflowType] = [
+        .coverLetterArchitect,
+        .screeningAnswerStudio,
+        .achievementQuantifier,
+        .professionalSummaryLab,
+        .atsOptimizationReport,
+        .fullResumeRewrite,
+    ]
+}
+
 struct ExpertModesView: View {
     @Environment(AppState.self) private var appState
     @Bindable var vm: ExpertModesViewModel
@@ -49,7 +65,7 @@ struct ExpertModesView: View {
                 savedReportsSection
             }
             LazyVStack(spacing: AppSpacing.md) {
-                ForEach(ExpertWorkflowType.allCases) { mode in
+                ForEach(ExpertWorkflowType.displayOrder) { mode in
                     ExpertModeTile(
                         mode: mode,
                         phase: vm.phase(for: mode),

@@ -11672,6 +11672,56 @@
           }
         }
       }
+    },
+    "Before you send" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לפני השליחה"
+          }
+        }
+      }
+    },
+    "Optional steps that make the application stronger." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צעדים אופציונליים שמחזקים את המועמדות."
+          }
+        }
+      }
+    },
+    "All set. Export below." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הכול מוכן. אפשר לייצא למטה."
+          }
+        }
+      }
+    },
+    "Add a cover letter" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הוספת מכתב מלווה"
+          }
+        }
+      }
+    },
+    "Choose a design" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחירת עיצוב"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
