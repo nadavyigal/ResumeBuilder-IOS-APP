@@ -12,6 +12,9 @@ struct ResumePreviewWebView: View {
     var templateId: String? = nil
     var customization: DesignCustomization? = nil
     var isActive = true
+    /// Off when the preview sits inside another scroll view as a card, so a
+    /// swipe on it scrolls the screen instead of the page.
+    var isScrollEnabled = true
     var renderDebounce: Duration = .zero
     /// Optional binding — when provided, updated each time the rendered HTML changes.
     /// The parent can read this to generate a PDF that matches the displayed design.
@@ -62,6 +65,7 @@ struct ResumePreviewWebView: View {
                 WebKitHTMLView(
                     html: html,
                     baseURL: BackendConfig.apiBaseURL,
+                    isScrollEnabled: isScrollEnabled,
                     onLoadSuccess: {
                         appState.markPDFPreviewSeen()
                         onVisibleRender(html)
@@ -444,9 +448,28 @@ struct ScoreViewPolicy: Sendable {
 
 // MARK: - WKWebView wrapper
 
+/// The full résumé page from HTML that is already rendered on screen. Read
+/// only: no render request, no export. Used for "View full resume".
+struct RenderedResumeHTMLView: View {
+    let html: String
+
+    var body: some View {
+        WebKitHTMLView(
+            html: html,
+            baseURL: BackendConfig.apiBaseURL,
+            isScrollEnabled: true,
+            onLoadSuccess: {},
+            onLoadFailure: { message in
+                previewLogger.error("Full resume view failed to load: \(message, privacy: .public)")
+            }
+        )
+    }
+}
+
 private struct WebKitHTMLView: UIViewRepresentable {
     let html: String
     let baseURL: URL?
+    var isScrollEnabled = true
     let onLoadSuccess: @MainActor () -> Void
     let onLoadFailure: @MainActor (String) -> Void
 
@@ -455,6 +478,7 @@ private struct WebKitHTMLView: UIViewRepresentable {
         config.allowsInlineMediaPlayback = true
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+        webView.scrollView.isScrollEnabled = isScrollEnabled
         webView.scrollView.bounces = true
         webView.backgroundColor = .clear
         webView.isOpaque = false
@@ -468,6 +492,7 @@ private struct WebKitHTMLView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.onLoadSuccess = onLoadSuccess
         context.coordinator.onLoadFailure = onLoadFailure
+        webView.scrollView.isScrollEnabled = isScrollEnabled
         guard context.coordinator.lastLoadedHTML != html else { return }
         context.coordinator.lastLoadedHTML = html
         webView.loadHTMLString(html, baseURL: baseURL)
