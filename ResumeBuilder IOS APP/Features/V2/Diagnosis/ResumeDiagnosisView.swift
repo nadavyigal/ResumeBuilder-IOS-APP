@@ -13,6 +13,10 @@ struct ResumeDiagnosisView: View {
     /// The "What changed" data, already loaded. DEBUG smoke harness only;
     /// the app always fetches it by review id.
     var previewChanges: OptimizationReviewEnvelope?
+    /// Set when this screen is a detail opened from the résumé ("See what
+    /// changed"): one button, with this title, that goes back. Both default
+    /// actions only went back there, under names that promised something else.
+    var returnActionTitle: LocalizedStringKey?
 
     @State private var viewedRewriteIds: Set<UUID> = []
     @State private var blockedRewriteIds: Set<UUID> = []
@@ -298,7 +302,21 @@ struct ResumeDiagnosisView: View {
         .glassCard(cornerRadius: AppRadii.lg)
     }
 
+    @ViewBuilder
     private var bottomActions: some View {
+        if let returnActionTitle {
+            GradientButton(title: returnActionTitle, icon: "arrow.uturn.backward") {
+                onImprove()
+            }
+            .accessibilityIdentifier("diagnosis-return")
+            .padding(AppSpacing.lg)
+            .background(.ultraThinMaterial.opacity(0.86))
+        } else {
+            defaultBottomActions
+        }
+    }
+
+    private var defaultBottomActions: some View {
         VStack(spacing: AppSpacing.sm) {
             if viewModel.optimizationId?.isEmpty == false {
                 GradientButton(title: "Improve my resume", icon: "wand.and.stars") {

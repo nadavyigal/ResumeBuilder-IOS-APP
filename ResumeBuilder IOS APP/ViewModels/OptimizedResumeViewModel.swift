@@ -133,7 +133,7 @@ final class OptimizedResumeViewModel {
                 appState.markATSImprovementComplete(for: optimizationId)
             }
             atsUpliftMessage = NSLocalizedString(
-                "Fit improvement applied once. The score above is current for this resume.",
+                "Done. Your score is updated.",
                 comment: ""
             )
         }
@@ -821,7 +821,7 @@ final class OptimizedResumeViewModel {
     func improveATS(token: String?, appState: AppState) async {
         guard !isImprovingATS, !hasCompletedATSImprovement else {
             atsUpliftMessage = NSLocalizedString(
-                "Fit improvement applied once. The score above is current for this resume.",
+                "Done. Your score is updated.",
                 comment: ""
             )
             return
@@ -889,11 +889,11 @@ final class OptimizedResumeViewModel {
             errorMessage = previewRefreshError
             atsUpliftMessage = previewRefreshError == nil
                 ? NSLocalizedString(
-                    "Fit improvement applied once. The score above and resume preview are now current.",
+                    "Done. Your résumé and score are updated.",
                     comment: ""
                 )
                 : NSLocalizedString(
-                    "Fit improvement applied once. The score above is current for this resume.",
+                    "Done. Your score is updated.",
                     comment: ""
                 )
         } catch ExpertWorkflowServiceError.scoreWouldDecrease(let kept, let measured) {

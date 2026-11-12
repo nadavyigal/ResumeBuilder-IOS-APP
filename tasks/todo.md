@@ -1,3 +1,12 @@
+# 2026-11-12: Copy pass on the Optimized screen (story 3, Meirav call)
+
+- [x] "Improve fit once" to "Improve match", the name the blocker tip already uses; caption "A second pass on keywords and metrics."
+- [x] "Fit improvement applied once... are now current" to "Done. Your résumé and score are updated." (fallback "Done. Your score is updated.")
+- [x] Export button says "Export résumé" when nothing else is included; "Export application package" when a cover letter or answers are.
+- [x] "See what changed" detail: one "Back to my résumé" button instead of "Improve my resume" + "Edit target job" (both only went back).
+- [x] Hebrew for the five new strings; tests updated; full suite; simulator EN + HE.
+- [ ] Follow-up: "Refine", "Edit", "Design", "Expert" chips show in English in Hebrew mode (existed before).
+
 # 2026-11-12: Result screen shows score and next step above the fold (story 2, Meirav call)
 
 Tester did not know the Optimized screen scrolls: the full-page preview filled the phone, its web view scrolled on its own, and the export bar is pinned. Keep the resume first (lesson 2026-07-14) but shorter.
