@@ -1,3 +1,12 @@
+# 2026-11-12: 1.6.1 (40) submitted to App Review
+
+Current Phase: 1.6.1 in App Review; PR #237 merged (543b001); founder passed build 40 on his iPhone.
+Active Story: none in code. 1.6.1 Waiting for Review since 18:56, auto-release to all users after approval.
+Next Recommended Story: after approval, run `scripts/validate-store-version.sh` expecting 1.6.1; then story 6 outreach kit (#235, spec first).
+Blockers: none; Apple review (up to 48 hours).
+Last Validation: 2026-11-12, 770 XCTest (11 skipped, 0 fail) + 5 Swift Testing; founder TestFlight phone pass on 40; ASC fields read back.
+Last Updated: 2026-11-12
+
 # 2026-11-12: 1.6.1 (40) release build for TestFlight
 
 Current Phase: 1.6.1 release; tester-call fixes #231 to #234 plus #226 and #227 on main.
