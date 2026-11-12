@@ -422,10 +422,14 @@ struct OptimizedResumeView: View {
         }
         .navigationDestination(isPresented: $navigateToDiagnosis) {
             if let optId = viewModel.optimizationIdentifier {
+                // Reached from "See what changed": the only way on is back to
+                // the résumé, so say that (tester, 2026-11-12, was unsure the
+                // top arrow would return her).
                 ResumeDiagnosisView(
                     viewModel: ResumeDiagnosisViewModel(optimizationId: optId),
                     onImprove: { navigateToDiagnosis = false },
-                    onEditTargetJob: { navigateToDiagnosis = false }
+                    onEditTargetJob: { navigateToDiagnosis = false },
+                    returnActionTitle: "Back to my résumé"
                 )
             } else {
                 Text("Optimization not available.")
@@ -656,7 +660,7 @@ struct OptimizedResumeView: View {
 
             if viewModel.hasCompletedATSImprovement {
                 Label(
-                    viewModel.atsUpliftMessage ?? "Fit improvement applied once. The score above is current for this resume.",
+                    viewModel.atsUpliftMessage ?? "Done. Your score is updated.",
                     systemImage: "checkmark.seal.fill"
                 )
                 .font(.appCaption.weight(.semibold))
@@ -667,6 +671,9 @@ struct OptimizedResumeView: View {
                 .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
                 .accessibilityIdentifier("fit-improvement-complete")
             } else {
+                // Same name as the blocker tip above ("Run Improve match…"), so
+                // the tip and the button read as one thing (tester, 2026-11-12:
+                // "Improve fit once" did not say what it does).
                 Button {
                     AnalyticsService.shared.track(.atsImproveTapped(currentScore: viewModel.currentATSScore))
                     Task { await viewModel.improveATS(token: appState.session?.accessToken, appState: appState) }
@@ -678,7 +685,7 @@ struct OptimizedResumeView: View {
                         } else {
                             Image(systemName: "gauge.with.dots.needle.67percent")
                         }
-                        Text(viewModel.isImprovingATS ? "Improving fit…" : "Improve fit once")
+                        Text(viewModel.isImprovingATS ? "Improving match…" : "Improve match")
                     }
                     .font(.appSubheadline.weight(.semibold))
                     .foregroundStyle(AppColors.textPrimary)
@@ -687,6 +694,11 @@ struct OptimizedResumeView: View {
                 .buttonStyle(GradientButtonStyle())
                 .disabled(viewModel.isImprovingATS)
                 .accessibilityIdentifier("improve-fit-once")
+
+                Text("A second pass on keywords and metrics.")
+                    .font(.appCaption)
+                    .foregroundStyle(AppColors.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
         .padding(AppSpacing.lg)
@@ -844,7 +856,7 @@ struct OptimizedResumeView: View {
             }
 
             GradientButton(
-                title: "Export application package",
+                title: exportButtonTitle,
                 icon: "arrow.down.doc.fill",
                 isLoading: isDownloadingPDF
             ) {
@@ -1174,6 +1186,14 @@ struct OptimizedResumeView: View {
 
     /// Names the artifacts this optimization actually has, so Export never promises
     /// something the share sheet will not contain.
+    /// "Package" only when there is more than the résumé to package (tester,
+    /// 2026-11-12: "why application package?" when exporting a résumé alone).
+    private var exportButtonTitle: LocalizedStringKey {
+        let record = appState.submitPackageRecord(for: viewModel.optimizationIdentifier)
+        let hasExtras = record?.hasCoverLetter == true || record?.hasScreeningAnswers == true
+        return hasExtras ? "Export application package" : "Export résumé"
+    }
+
     private var pendingPackageSummary: LocalizedStringKey {
         let record = appState.submitPackageRecord(for: viewModel.optimizationIdentifier)
         switch (record?.hasCoverLetter == true, record?.hasScreeningAnswers == true) {

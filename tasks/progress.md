@@ -5,6 +5,14 @@ Active Story: repeat "Check my fit" on same file+job+account reuses the last che
 Next Recommended Story: story 4, expert tools order (cover letter first) and a "Next step" card.
 Blockers: none.
 Last Validation: 2026-11-12, full suite 763 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, English test language.
+
+# 2026-11-12: Optimized screen copy pass (story 3, Meirav call)
+
+Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214 and iOS #231 merged.
+Active Story: clear labels: "Improve match", "Done. Your résumé and score are updated.", "Export résumé", "Back to my résumé".
+Next Recommended Story: story 4, expert tools order (cover letter first) and a "Next step" card.
+Blockers: none. Hebrew chips Refine/Edit/Design/Expert untranslated (pre-existing).
+Last Validation: 2026-11-12, full suite 754 XCTest (11 skipped, 0 fail) + 5 Swift Testing; simulator EN and HE.
 Last Updated: 2026-11-12
 
 # 2026-11-12: Optimized screen shows the score on the first screen (story 2, Meirav call)
