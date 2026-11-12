@@ -4,7 +4,7 @@ Current Phase: 1.6.1 release; tester-call fixes #231 to #234 plus #226 and #227 
 Active Story: 1.6.1 (40) bump on `release/1.6.1-40`; suite, Release archive, TestFlight upload on the founder's yes.
 Next Recommended Story: founder on-device check of build 40 from TestFlight; App Store submission is a separate yes.
 Blockers: TestFlight upload waits for the founder's yes.
-Last Validation: 2026-11-12, store check PASS (live 1.6.0); full suite pending on this commit.
+Last Validation: 2026-11-12, 770 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, EN; store check PASS.
 Last Updated: 2026-11-12
 
 # 2026-11-12: Expert order and "Before you send" checklist (story 4, tester call)
