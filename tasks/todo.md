@@ -1,3 +1,11 @@
+# 2026-11-12: Reuse the last check for the same résumé and job (story 5, Meirav call)
+
+- [x] `TailorViewModel`: remember the last finished check by file bytes (SHA256) + job + account; a repeat restores it without a server call.
+- [x] Accepted check: Home opens that optimization instead of offering the review again (accepting again mints and bills a second optimization).
+- [x] Cleared on account change (`resetUploadCache`); a failed check is never reused; an unreadable file never reuses.
+- [x] Reused optimization deleted (404): run a fresh check (code review finding). File hash runs off the main thread.
+- [x] `RepeatCheckReuseTests` (9); `UploadCacheIdentityTests.testSameIdentityReusesTheUpload` now uses a real file; full suite 763, 0 failures.
+
 # 2026-11-12: Copy pass on the Optimized screen (story 3, Meirav call)
 
 - [x] "Improve fit once" to "Improve match", the name the blocker tip already uses; caption "A second pass on keywords and metrics."

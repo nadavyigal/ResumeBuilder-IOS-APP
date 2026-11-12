@@ -1044,7 +1044,7 @@ A mature D7 denominator also needs an upper conversion bound. Test generated que
 Rewriting `Config/Info.plist` with `plistlib` or `Localizable.xcstrings` with `json.dump` reformats or reorders the whole file (a 13-line change became 152 lines; 140 lines became 5,450). Insert the new block as text at a known anchor, then check it still parses (`plutil -lint`, `json.loads`).
 
 ### 2026-11-12: The shared iPhone 17 simulator is set to Hebrew; force English for the suite
-**Rule:** Run the suite with `-testLanguage en -testRegion US`. `LocalizationManager` falls back to the device language when nothing is stored, and the iPhone 17 (iOS 26.5) simulator has `AppleLanguages = he`, so uninstalling the app does not reset it. Check with `xcrun simctl spawn <udid> defaults read -g AppleLanguages`.
+**Rule:** Run the suite with `-testLanguage en -testRegion US`. `LocalizationManager` falls back to the device language when nothing is stored, and the iPhone 17 (iOS 26.5) simulator has `AppleLanguages = he`, so uninstalling the app does not reset it. Check with `xcrun simctl spawn <udid> defaults read -g AppleLanguages`. After any `--smoke-he` run, also uninstall the app first: a language the app stored beats `-testLanguage` (same 34 failures came back on 2026-11-12 until `xcrun simctl uninstall`).
 **Why:** after a `--smoke-he` run the full suite showed 34 failures, all English strings coming back in Hebrew (`ApplicationPackageBuilderTests`, `CopyClaimsTests`, `DiagnosisScoreStoryTests`). Uninstalling did not help; `-testLanguage en` gave 754 tests, 0 failures.
 
 ### 2026-11-12: On the Optimized screen the résumé is a half-page card, not a full page
