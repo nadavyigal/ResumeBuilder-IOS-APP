@@ -1,6 +1,6 @@
 # Resumely 1.6.1 (40): TestFlight "What to Test"
 
-Paste the block below into App Store Connect > TestFlight > build 40 > Test Details.
+Saved in App Store Connect > TestFlight > build 40 > Test Details on 2026-11-12 (read back, 1,211 characters). Build 40: Binary State Validated, non-exempt encryption No, status Ready to Submit, group "Resumely 1.6.0 Founder QA" (internal), 1 invite.
 
 ```
 Run a check with a résumé and a job, then open the Optimized tab.
