@@ -1,3 +1,12 @@
+# 2026-11-12: 1.6.1 (40) release build for TestFlight
+
+Current Phase: 1.6.1 release; tester-call fixes #231 to #234 plus #226 and #227 on main.
+Active Story: 1.6.1 (40) uploaded 18:31 on the founder's yes; processed, What to Test saved, in Founder QA group (1 invite).
+Next Recommended Story: founder on-device check of build 40 from TestFlight; App Store submission is a separate yes.
+Blockers: none; founder phone check of build 40 next.
+Last Validation: 2026-11-12, 770 XCTest (11 skipped, 0 fail) + 5 Swift Testing, iPhone 17 iOS 26.5, EN; store check PASS; Release archive 40 checked; `-exportArchive` "Upload succeeded".
+Last Updated: 2026-11-12
+
 # 2026-11-12: Expert order and "Before you send" checklist (story 4, tester call)
 
 Current Phase: 1.6.1 source follow-ups; tester-feedback fixes. Web #214, iOS #231, #232 merged; #233 (story 5) open.
