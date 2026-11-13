@@ -5,6 +5,14 @@ Active Story: delete unused view models, chat screen, design sheet, Ambassador s
 Next Recommended Story: remove leftover chat endpoints and StreamingClient (touches AIConsentGate); Fit-check removal once WP-45 S10 closes.
 Blockers: none.
 Last Validation: 2026-11-13 iPhone 17 iOS 26.5 full suite 762 XCTest (11 skipped, 0 failures, 4 new keyword-flow tests) + 1 Swift Testing; app warnings 0.
+
+# 2026-11-13: Share links checked strictly; stale docs archived
+
+Current Phase: 1.6.1 source follow-ups; audit items decided by the founder.
+Active Story: `DeepLinkRouter.parseSharedJobURL` accepts only resumebuilder://share with an http(s) job URL; work packs, June sweeps and May benchmarks archived; IAP checklist corrected.
+Next Recommended Story: merge #239 and this PR once CI is green.
+Blockers: none.
+Last Validation: 2026-11-13 iPhone 17 iOS 26.5 full suite 774 XCTest (11 skipped, 0 failures), 4 new DeepLinkRouterTests.
 Last Updated: 2026-11-13
 
 # 2026-11-12: 1.6.1 (40) submitted to App Review

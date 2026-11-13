@@ -65,7 +65,10 @@ Do not upload `iphone-6.5/` duplicates into the same iPhone section.
 
 ## IAP Products
 
-N/A for v1.0 resubmission — `BackendConfig.isMonetizationEnabled = false`. Skip IAP configuration unless monetization is enabled in a future release.
+In-app purchases are live since 1.6.0 (export credits). Before each submission:
+
+- [ ] Every product this build can sell is approved or "Ready to Submit" in App Store Connect and attached to the version (product list: `plans/resumely-pricing-v2.md`)
+- [ ] A sandbox purchase and a restore pass on a device (see `StoreKitRequired.xctestplan` for the automated part)
 
 ---
 
