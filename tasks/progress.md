@@ -1,3 +1,12 @@
+# 2026-11-13: Share links checked strictly; stale docs archived
+
+Current Phase: 1.6.1 source follow-ups; audit items decided by the founder.
+Active Story: `DeepLinkRouter.parseSharedJobURL` accepts only resumebuilder://share with an http(s) job URL; work packs, June sweeps and May benchmarks archived; IAP checklist corrected.
+Next Recommended Story: merge #239 and this PR once CI is green.
+Blockers: none.
+Last Validation: 2026-11-13 iPhone 17 iOS 26.5 full suite 774 XCTest (11 skipped, 0 failures), 4 new DeepLinkRouterTests.
+Last Updated: 2026-11-13
+
 # 2026-11-12: 1.6.1 (40) submitted to App Review
 
 Current Phase: 1.6.1 in App Review; PR #237 merged (543b001); founder passed build 40 on his iPhone.

@@ -29,7 +29,7 @@ look for it in `origin/main` with `git grep <symbol> origin/main`.
 | `claude/wp63-person-scope-race` | 2026-07-29 | **Landed** (#138) | `testPersonScopeUsesThePayloadSnapshot…` present in `origin/main` |
 | `pr-72-review` | 2026-06-22 | **Landed** | `previewKeywordSuggestion` (2 files) and `keywordSuggestionRow` (1) present in `origin/main` |
 | `docs/ftux-audit-rescue` | 2026-07-15 | **Landed** (#96) | `docs/audits/first-time-user-journey-audit.md` exists at `origin/main` |
-| `feat/localization-updates` | 2026-06-16 | **Landed** | its only commit adds `tasks/work-pack-p2-analytics-library.md`, which exists at `origin/main`. The branch name does not describe its content |
+| `feat/localization-updates` | 2026-06-16 | **Landed** | its only commit adds `docs/archive/work-packs/work-pack-p2-analytics-library.md`, which exists at `origin/main`. The branch name does not describe its content |
 | `codex/wp46-story-10` | 2026-07-18 | **Landed** | `jobInputValidationShown` (5 files), `analysisCTATapped` (4), `optimizationApplyStarted` (3), `direct_optimize_v2` (3) all in `origin/main` |
 | `codex/wp46-story-11` | 2026-07-18 | **Landed** | `UploadFailureView` present in `origin/main` (2 files) |
 | `codex/wp46-story-12` | 2026-07-18 | **Landed** | `SecondJobRequest` (3 files), `requestSecondJob` (3), `completeSecondJobRequest` (2) all in `origin/main` |
