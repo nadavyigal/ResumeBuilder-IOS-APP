@@ -24,7 +24,7 @@ final class FitJourneyTests: XCTestCase {
     }
 
     func testAnImprovementThatMeasuresLowerDoesNotPullTheNumberDown() {
-        // The defect: ImproveViewModel assigned the rescan result
+        // The defect: the old Improve screen assigned the rescan result
         // unconditionally, so a worse rescan lowered the number in front of a
         // user who had just paid for an improvement.
         var journey = FitJourney(fit: 48)
