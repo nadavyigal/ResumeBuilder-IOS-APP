@@ -12,16 +12,6 @@ final class KeywordSuggestionFlowTests: XCTestCase {
         var preview: Result<KeywordSuggestionPreviewDTO, Error>
         var approve: Result<ChatApproveChangeResponseDTO, Error>
 
-        func fetchActiveSession(optimizationId: String, token: String?) async throws -> ChatSessionRecord? { nil }
-        func getMessages(sessionId: String, token: String?) async throws -> [ChatMessageRecord] { [] }
-        func sendMessage(
-            sessionId: String?,
-            optimizationId: String,
-            content: String,
-            token: String?
-        ) async throws -> (stream: AsyncThrowingStream<String, Error>, pendingChanges: [ChatPendingChange]?, resolvedSessionId: String?) {
-            throw URLError(.unsupportedURL)
-        }
         func approveChange(
             optimizationId: String,
             suggestionId: String,
@@ -37,7 +27,6 @@ final class KeywordSuggestionFlowTests: XCTestCase {
         ) async throws -> KeywordSuggestionPreviewDTO {
             try preview.get()
         }
-        func rejectChange(sessionId: String, changeId: String, token: String?) {}
     }
 
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
