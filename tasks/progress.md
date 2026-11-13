@@ -1,3 +1,12 @@
+# 2026-11-13: Dead tested code and Ambassador skeleton removed
+
+Current Phase: 1.6.1 source follow-ups; cleanup decided by the founder from the 2026-11-11 audit.
+Active Story: delete unused view models, chat screen, design sheet, Ambassador skeleton, their tests and mocks; trim ChatService to its 2 live calls; add keyword-flow tests.
+Next Recommended Story: remove leftover chat endpoints and StreamingClient (touches AIConsentGate); Fit-check removal once WP-45 S10 closes.
+Blockers: none.
+Last Validation: 2026-11-13 iPhone 17 iOS 26.5 full suite 762 XCTest (11 skipped, 0 failures, 4 new keyword-flow tests) + 1 Swift Testing; app warnings 0.
+Last Updated: 2026-11-13
+
 # 2026-11-12: 1.6.1 (40) submitted to App Review
 
 Current Phase: 1.6.1 in App Review; PR #237 merged (543b001); founder passed build 40 on his iPhone.

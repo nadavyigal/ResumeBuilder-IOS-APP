@@ -1357,71 +1357,6 @@ enum ChatParticipant: String, Codable, Sendable {
     case ai
 }
 
-/// Row from `chat_sessions`.
-struct ChatSessionRecord: Codable, Identifiable, Sendable {
-    let id: String
-    let optimizationId: String?
-    let status: String?
-    let createdAt: String?
-    let lastActivityAt: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case optimizationId = "optimization_id"
-        case status
-        case createdAt = "created_at"
-        case lastActivityAt = "last_activity_at"
-    }
-}
-
-/// Row from `chat_messages`; `sender` is `user` or `ai` from API.
-struct ChatMessageRecord: Codable, Identifiable, Sendable {
-    let id: String
-    let sessionId: String?
-    let sender: ChatParticipant?
-    /// API field name `sender`; some proxies may expose `role`
-    let content: String
-    let createdAt: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case sessionId = "session_id"
-        case sender
-        case role
-        case content
-        case createdAt = "created_at"
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        id = try c.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
-        sessionId = try c.decodeIfPresent(String.self, forKey: .sessionId)
-        if let sender = try c.decodeIfPresent(ChatParticipant.self, forKey: .sender) {
-            self.sender = sender
-        } else if let roleRaw = try c.decodeIfPresent(String.self, forKey: .role) {
-            self.sender = ChatParticipant(rawValue: roleRaw) ?? ChatParticipant.ai
-        } else {
-            sender = nil
-        }
-        content = try c.decode(String.self, forKey: .content)
-        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(id, forKey: .id)
-        try c.encodeIfPresent(sessionId, forKey: .sessionId)
-        try c.encodeIfPresent(sender, forKey: .sender)
-        try c.encode(content, forKey: .content)
-        try c.encodeIfPresent(createdAt, forKey: .createdAt)
-    }
-
-    /// UI role (defaults assistant for unknown senders except user).
-    var uiRole: ChatParticipant {
-        sender ?? .ai
-    }
-}
-
 /// Affected field from ATS pending-change payloads (`originalValue` / `newValue` may be heterogeneous JSON).
 struct ChatAffectedField: Codable, Sendable {
     let sectionId: String
@@ -1526,49 +1461,6 @@ struct ChatPendingChange: Decodable, Identifiable, Sendable {
     var id: String { suggestionId }
 }
 
-/// POST `/api/v1/chat` decode (subset used by native client).
-struct ChatSendMessageResponseDTO: Decodable, Sendable {
-    let sessionId: String?
-    let messageId: String?
-    let aiResponse: String?
-    let pendingChanges: [ChatPendingChange]?
-
-    private enum CodingKeys: String, CodingKey {
-        case sessionId = "session_id"
-        case messageId = "message_id"
-        case aiResponse = "ai_response"
-        case pendingChanges = "pending_changes"
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        sessionId = try c.decodeIfPresent(String.self, forKey: .sessionId)
-        messageId = try c.decodeIfPresent(String.self, forKey: .messageId)
-        aiResponse = try c.decodeIfPresent(String.self, forKey: .aiResponse)
-        pendingChanges =
-            try c.decodeIfPresent([ChatPendingChange].self, forKey: .pendingChanges)
-    }
-}
-
-/// GET `/api/v1/chat/sessions` list wrapper.
-struct ChatSessionListEnvelope: Decodable, Sendable {
-    let sessions: [ChatSessionRecord]?
-    let total: Int?
-}
-
-/// GET `/api/v1/chat/sessions/{id}` detail.
-struct ChatSessionDetailEnvelope: Decodable, Sendable {
-    let session: ChatSessionRecord?
-    let messages: [ChatMessageRecord]?
-    let totalMessages: Int?
-
-    private enum CodingKeys: String, CodingKey {
-        case session
-        case messages
-        case totalMessages = "total_messages"
-    }
-}
-
 /// POST `/api/v1/chat/approve-change`
 struct ChatApproveChangeResponseDTO: Decodable, Sendable {
     let success: Bool?
@@ -1588,15 +1480,6 @@ struct KeywordSuggestionPreviewDTO: Decodable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case suggestionId = "suggestion_id"
         case affectedFields = "affected_fields"
-    }
-}
-
-/// POST `/api/v1/chat/sessions/{id}/apply`
-struct ChatApplyAmendmentResponseDTO: Decodable, Sendable {
-    let updatedContent: JSONValue?
-
-    private enum CodingKeys: String, CodingKey {
-        case updatedContent = "updated_content"
     }
 }
 
