@@ -1,3 +1,12 @@
+# 2026-11-13: Dead tested code and Ambassador skeleton removed
+
+Current Phase: 1.6.1 source follow-ups; cleanup decided by the founder from the 2026-11-11 audit.
+Active Story: delete ImproveViewModel, ScanViewModel, chat screen, OptimizationDesignSheet, TemplateThumbnail, Ambassador skeleton, their tests and 4 unused mocks.
+Next Recommended Story: Fit-check screen removal once WP-45 S10 closes.
+Blockers: none.
+Last Validation: 2026-11-13 iPhone 17 iOS 26.5 full suite 758 XCTest (11 skipped, 0 failures) + 1 Swift Testing; app warnings 0.
+Last Updated: 2026-11-13
+
 # 2026-11-12: 1.6.1 (40) submitted to App Review
 
 Current Phase: 1.6.1 in App Review; PR #237 merged (543b001); founder passed build 40 on his iPhone.
