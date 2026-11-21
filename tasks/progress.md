@@ -1,10 +1,10 @@
-# 2026-11-21: Funnel events for the job step and paywall rows (Sprout plan, PR 1)
+# 2026-11-21: Sprout plan, 3 draft PRs open (#242 events, #243 SE paywall check, #244 ASO docs)
 
-Current Phase: Sprout-learnings plan approved by founder; 3 draft PRs in order: funnel events, SE paywall check, ASO metadata.
-Active Story: add `job_input_seen` and `paywall_offer_selected`; fresh PostHog baseline recorded in docs/sprout-learnings-plan.md.
-Next Recommended Story: PR 2, iPhone SE paywall check in EN and HE; then PR 3 ASO metadata docs.
-Blockers: none; live subtitle, Hebrew name and prices to be pasted by founder for PR 3.
-Last Validation: 2026-11-21 iPhone 17 iOS 26.5 full suite 767 XCTest (11 skipped, 0 failures), 0 Swift warnings.
+Current Phase: Sprout-learnings plan approved; drafts #242, #243, #244 open, none merged.
+Active Story: #242 adds `job_input_seen` and `paywall_offer_selected`; #243 SE paywall PASS, no code; #244 keyword drafts and App Preview brief.
+Next Recommended Story: founder pastes live subtitle, Hebrew name, prices; finalize #244; then 2-screen intro after #242 baseline.
+Blockers: founder yes to merge each draft; live App Store Connect fields for #244.
+Last Validation: 2026-11-21 iPhone 17 iOS 26.5 full suite 767 XCTest (11 skipped, 0 failures), 0 warnings; SE screenshots EN+HE.
 Last Updated: 2026-11-21
 
 # 2026-11-13: Dead tested code and Ambassador skeleton removed
