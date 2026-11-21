@@ -38,11 +38,32 @@ Job Match Resume Tailor
 
 ## Keywords (100 bytes max)
 
-Use only if the title/subtitle do not already contain the same words:
+### Proposed 2026-11-21 (draft, not in App Store Connect)
+
+Based on the live name "Resume AI - CV Builder" (app id 6776752349, founder
+confirmed 2026-11-21). "Resumely: AI Resume Match" is not approved; the rename is
+open, so nothing here assumes it.
+
+Rules applied: single words, commas, no spaces, no word already in the name
+(resume, ai, cv, builder). Apple combines words across name, subtitle and
+keywords, so "cover" + "letter" still matches "cover letter".
+
+```
+tailor,match,job,application,cover,letter,career,scanner,optimizer,interview,linkedin,seeker,hebrew
+```
+(99 chars)
+
+Before pasting: remove any word the live subtitle already has (founder to paste
+the live subtitle), then refill to 100 with `ats` or `template`. The Match Score
+estimate rule and "Claims To Avoid" below still apply; a keyword is a search
+term, not a claim.
+
+### Previous draft (replaced)
+
 ```
 cv builder,job application,cover letter,career,scanner,optimizer,interview,linkedin,job seeker
 ```
-(94 chars)
+(94 chars; "cv builder" repeats the name, spaces waste 6 characters)
 
 ## Promotional Text (170 chars max)
 
