@@ -1,3 +1,12 @@
+# 2026-11-21: Xcode Cloud archive script (draft PR) and Apple membership plan
+
+Current Phase: Apple membership follow-ups; Apple models dropped for Resumely (Hebrew users).
+Active Story: PR 4, `ci_scripts/ci_post_clone.sh` writes Secrets.xcconfig from Xcode Cloud secrets; plan in docs/apple-membership-plan.md.
+Next Recommended Story: Nadav OKs and creates the Xcode Cloud workflow, then one manual run to TestFlight internal.
+Blockers: Xcode Cloud and App Store Connect setup need founder OK; GitHub billing and OpenAI spend unknown.
+Last Validation: 2026-11-21 6 script unit tests pass; Release simulator build with script-written Secrets.xcconfig, keys present in Info.plist.
+Last Updated: 2026-11-21
+
 # 2026-11-13: Dead tested code and Ambassador skeleton removed
 
 Current Phase: 1.6.1 source follow-ups; cleanup decided by the founder from the 2026-11-11 audit.
