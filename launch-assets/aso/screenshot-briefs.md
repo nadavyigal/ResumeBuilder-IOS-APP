@@ -78,6 +78,24 @@ Identical content to Frame 1-HE above. Used specifically in the Hebrew locale li
 
 ---
 
+## App Preview Video (draft brief, 2026-11-21)
+
+Why: the store page has no App Preview video. A solo founder reported downloads
+roughly doubled after adding one, at the same reach (self-reported, one app;
+treat as direction, not proof).
+
+- Length: 15 to 25 seconds. Portrait, recorded from the Simulator or a device.
+- No voice-over needed; on-screen captions of 2 to 4 words, EN and HE versions.
+- Shots, one benefit each:
+  1. Paste a job (caption "Paste a job" / "מדביקים משרה").
+  2. The Match Score estimate appears, before and after (caption "See your fit, estimated" / "רואים הערכת התאמה").
+  3. Scroll the tailored CV (caption "Tailored to this job" / "מותאם למשרה").
+  4. Export the PDF, Hebrew right to left (caption "Ready PDF" / "PDF מוכן").
+- Rules: real app footage only (Apple requirement), no price on screen, no
+  "guaranteed" or interview claims, Match Score always called an estimate.
+- Upload: App Store Connect, version page, App Previews and Screenshots tab, 6.9"
+  display. Founder action.
+
 ## Notes for Designer
 - All screenshots should use real (or realistic) resume content — not Lorem Ipsum
 - The "before" Match Score should look genuinely bad (62, red) to make the "after" (89, green) feel like a real win
