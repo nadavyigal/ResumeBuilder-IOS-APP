@@ -144,9 +144,10 @@ final class ExportPaywallModel {
         offers.first { $0.id == selectedID }
     }
 
-    func select(_ offer: PackOffer) {
-        guard phase == .ready else { return }
+    func select(_ offer: PackOffer, analytics: AnalyticsService = .shared) {
+        guard phase == .ready, selectedID != offer.id else { return }
         selectedID = offer.id
+        analytics.track(.paywallOfferSelected(productId: offer.id, isSubscription: offer.isSubscription))
     }
 
     /// Hides Pro while this account has it (the 402 then means the fair-use

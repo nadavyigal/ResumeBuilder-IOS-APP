@@ -35,11 +35,35 @@ final class PricingFunnelEventsTests: XCTestCase {
             (.pdfPreviewViewed(optimizationId: "opt-1", template: "minimal-ssr"), "pdf_preview_viewed", ["optimization_id": "opt-1", "template": "minimal-ssr"]),
             (.paywallViewed(entryPoint: "optimized", balance: 0), "paywall_viewed", ["entry_point": "optimized", "balance": "0"]),
             (.exportCompleted(optimizationId: "opt-1", source: "grant"), "export_completed", ["optimization_id": "opt-1", "source": "grant"]),
+            (.jobInputSeen(source: "home", mode: "link"), "job_input_seen", ["source": "home", "mode": "link"]),
+            (.paywallOfferSelected(productId: "resumely.pro.monthly", isSubscription: true), "paywall_offer_selected", ["product_id": "resumely.pro.monthly", "is_subscription": "true"]),
+            (.paywallOfferSelected(productId: "resumely.exports.5.v2", isSubscription: false), "paywall_offer_selected", ["product_id": "resumely.exports.5.v2", "is_subscription": "false"]),
         ]
         for (event, name, properties) in cases {
             XCTAssertEqual(event.name, name)
             XCTAssertEqual(event.properties, properties, name)
         }
+    }
+
+    func testChoosingAnotherPaywallRowIsTrackedOnce() async {
+        let offers = [
+            PackOffer.make(id: "resumely.exports.14", displayPrice: "$7.99")!,
+            PackOffer.make(id: "resumely.exports.5.v2", displayPrice: "$3.99")!,
+            PackOffer.make(id: "resumely.pro.monthly", displayPrice: "$9.99")!,
+        ]
+        let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: offers)
+        let transport = FunnelTransport()
+        let analytics = AnalyticsService(transport: transport)
+
+        // The 14-pack is preselected, so tapping it again is not a choice.
+        model.select(offers[0], analytics: analytics)
+        model.select(offers[2], analytics: analytics)
+        model.select(offers[2], analytics: analytics)
+
+        let count = await transport.count(of: "paywall_offer_selected")
+        XCTAssertEqual(count, 1)
+        XCTAssertEqual(transport.events.first { $0.name == "paywall_offer_selected" }?.properties["product_id"], "resumely.pro.monthly")
+        XCTAssertEqual(model.selectedID, "resumely.pro.monthly")
     }
 
     func testTheOldNamesStayForCurrentDashboards() {
