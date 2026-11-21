@@ -141,7 +141,7 @@ It already does, free and unlimited.
 | Sprout / golf pattern | Exists in Resumely? | Recommendation | Why | Effort |
 |---|---|---|---|---|
 | Play before pay: preview Match Score before paywall | Yes. Free unlimited score, 3 free exports (`PaywallEligibility.swift`, `ExportCredits.swift:85`) | Keep | This is Resumely's edge against Sprout's hard paywall | none |
-| Hard paywall right after onboarding | No | Don't adopt | Reverses the edge; top 1-star theme for Sprout; with ~2 arrivals a week nothing would be learned | n/a |
+| Hard paywall right after onboarding | No | Don't adopt | Reverses the edge; top 1-star theme for Sprout; with ~4 new users a week nothing would be learned | n/a |
 | Early price transparency | Partial. Prices appear only on the paywall | Adapt: one honest line on the intro "how it works" screen | Answers Sprout's "price hidden until after my data" complaint | S |
 | Benefit screens between questions | No | Adapt: one benefit screen, not five | Each added screen risks the logged 63% launch bounce | S |
 | Short question block (golf: 2 questions) | No questions | Adopt 1 question (job-hunt stage) + existing language choice | Personalizes copy; feeds PostHog segments | S |
