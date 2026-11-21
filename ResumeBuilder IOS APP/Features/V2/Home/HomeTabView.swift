@@ -23,6 +23,7 @@ struct HomeTabView: View {
     @State private var isImporterFlowActive = false
     @State private var appeared = false
     @State private var didTrackUploadCTASeen = false
+    @State private var didTrackJobInputSeen = false
     @State private var didTrackJobAdded = false
     @State private var jobInputValidationTrackingPolicy = JobInputValidationTrackingPolicy()
     @State private var isApplyingReview = false
@@ -254,6 +255,7 @@ struct HomeTabView: View {
                             if hasSelectedResume {
                                 jobInputCard
                                     .id(ScrollAnchor.jobInput)
+                                    .onAppear(perform: trackJobInputSeenIfNeeded)
                             }
 
                             if viewModel.errorMessage != nil, viewModel.uploadFailureReason == nil, viewModel.isConnectionError {
@@ -587,6 +589,15 @@ struct HomeTabView: View {
         guard !didTrackUploadCTASeen else { return }
         didTrackUploadCTASeen = true
         AnalyticsService.shared.track(.resumeUploadCTASeen(source: "home"))
+    }
+
+    private func trackJobInputSeenIfNeeded() {
+        guard !didTrackJobInputSeen else { return }
+        didTrackJobInputSeen = true
+        AnalyticsService.shared.track(.jobInputSeen(
+            source: "home",
+            mode: jobInputMode == .link ? "link" : "description"
+        ))
     }
 
     private func runAnalysis() async {

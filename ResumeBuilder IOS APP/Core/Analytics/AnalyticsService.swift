@@ -253,6 +253,12 @@ enum AnalyticsEvent: Sendable {
     case paywallViewed(entryPoint: String, balance: Int)
     /// A file reached the share sheet. `source`: `grant`, `pack`, `subscription` or `ungated`.
     case exportCompleted(optimizationId: String, source: String)
+    /// The job input card appeared after a CV was picked. `mode`: `link` or `description`.
+    /// Without it, a user who picked a CV and left cannot be told apart from one
+    /// who never reached the job step (founder baseline, 2026-11-21).
+    case jobInputSeen(source: String, mode: String)
+    /// The user chose a different row on the export paywall.
+    case paywallOfferSelected(productId: String, isSubscription: Bool)
 
     nonisolated var name: String {
         switch self {
@@ -330,6 +336,8 @@ enum AnalyticsEvent: Sendable {
         case .matchScoreViewed: return "match_score_viewed"
         case .pdfPreviewViewed: return "pdf_preview_viewed"
         case .paywallViewed: return "paywall_viewed"
+        case .jobInputSeen: return "job_input_seen"
+        case .paywallOfferSelected: return "paywall_offer_selected"
         case .exportCompleted: return "export_completed"
         }
     }
@@ -441,6 +449,10 @@ enum AnalyticsEvent: Sendable {
             return ["entry_point": entryPoint, "balance": "\(balance)"]
         case .exportCompleted(let optimizationId, let source):
             return ["optimization_id": optimizationId, "source": source]
+        case .jobInputSeen(let source, let mode):
+            return ["source": source, "mode": mode]
+        case .paywallOfferSelected(let productId, let isSubscription):
+            return ["product_id": productId, "is_subscription": isSubscription ? "true" : "false"]
         case .appStoreReviewRequested(let source):
             return ["source": source]
         case .saveFailed(let optimizationId, let reason, let errorCode):
