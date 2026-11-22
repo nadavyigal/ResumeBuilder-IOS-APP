@@ -1,3 +1,12 @@
+# 2026-11-22: Supabase key rotation Phase 2
+
+Current Phase: leaked Supabase keys rotation; web on new keys, delete_account v4 live on new secret key.
+Active Story: iOS uses publishable key locally; end-to-end delete test on simulator not run yet.
+Next Recommended Story: run delete test with throwaway user, then App Store build with the new key.
+Blockers: simulator overload on 2026-11-22 (orphaned headless Chrome cleaned up).
+Last Validation: 2026-11-22 tests 767 run, 0 failures; delete_account probes 401/401/405; built app has sb_publishable_.
+Last Updated: 2026-11-22
+
 # 2026-11-21: Sprout plan, 3 draft PRs open (#242 events, #243 SE paywall check, #244 ASO docs)
 
 Current Phase: Sprout-learnings plan; founder approved merging #242, #243, #244 on 2026-11-21 (reviews run here, Codex out of credits).

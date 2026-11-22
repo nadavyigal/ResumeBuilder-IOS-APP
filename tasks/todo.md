@@ -1,3 +1,17 @@
+# 2026-11-22: Supabase key rotation Phase 2 (iOS + edge function)
+
+Web production moved to the new keys on 2026-11-22 (web PR #220). Phase 2 moves the last two legacy-key users.
+Found: only `delete_account` is deployed; `storekit-verify` and `ambassador-reward` (web repo) are stubs with no key use.
+No cron, pg_net or database webhook holds a key. `SUPABASE_SECRET_KEYS` exists in Edge Function secrets.
+
+- [ ] `supabase/functions/delete_account/index.ts:29-33`: read `JSON.parse(SUPABASE_SECRET_KEYS).default`; no legacy fallback.
+- [ ] `Secrets.xcconfig.template:5`: placeholder says publishable key (`sb_publishable_...`). Variable name unchanged.
+- [ ] Founder pastes the publishable key into local `Secrets.xcconfig` (gitignored).
+- [ ] Build, unit tests, simulator sign-in with the new key.
+- [ ] Deploy `delete_account` (founder yes); `verify_jwt = false` per `supabase/config.toml` (live is true today).
+- [ ] End-to-end: throwaway test user (founder yes) signs in on simulator, deletes account; user gone; log shows `sb_secret_`.
+- [ ] Not in this story: App Store build with the new key; disabling legacy keys (after users update; Supabase ends legacy keys end of 2026).
+
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
 - [x] Expert tab lists Cover letter, Screening answers, Achievement quantifier, Summary, ATS report, Resume Rewrite last (`ExpertWorkflowType.displayOrder`; API enum order unchanged).

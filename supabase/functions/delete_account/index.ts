@@ -18,6 +18,18 @@ function jsonResponse(status: number, body: Record<string, unknown>): Response {
   });
 }
 
+// The legacy SUPABASE_SERVICE_ROLE_KEY leaked and is being retired (2026-11-22).
+// Supabase injects the new secret keys as a JSON object keyed by name.
+function readSecretKey(): string | null {
+  try {
+    const keys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+    const key = keys?.default;
+    return typeof key === "string" && key.length > 0 ? key : null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -27,8 +39,8 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !serviceRoleKey) {
+  const secretKey = readSecretKey();
+  if (!supabaseUrl || !secretKey) {
     return jsonResponse(500, { error: "Server configuration missing" });
   }
 
@@ -38,7 +50,7 @@ Deno.serve(async (req) => {
     return jsonResponse(401, { error: "Missing access token" });
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
+  const admin = createClient(supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
