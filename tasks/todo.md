@@ -10,7 +10,8 @@ No cron, pg_net or database webhook holds a key. `SUPABASE_SECRET_KEYS` exists i
 - [x] Build and unit tests (767, 0 failures); built app carries `sb_publishable_`.
 - [x] Deployed `delete_account` v4 (founder yes), `verify_jwt = false`; probes 401/401/405.
 - [x] End-to-end delete test PASSED (founder, 2026-11-22): test user signed in on simulator, deleted, gone from Supabase.
-- [ ] Next: App Store build with the new key (see PR #246 release steps); disabling legacy keys (after users update; Supabase ends legacy keys end of 2026).
+- [ ] Next: App Store build with the new key (see PR #246 release steps). Ship it as soon as possible.
+- [ ] Founder decision, urgent: disable the legacy keys. While they are enabled, the leaked `service_role` key still bypasses RLS. Supabase cannot retire `service_role` alone: disabling legacy keys also turns off `anon`, so iOS 1.6.0 and older lose sign-in until users update. Options: (a) disable now and accept that older builds must update; (b) disable the day the new build is live, with a forced-update prompt. Waiting for most users to update is not an option. Supabase ends legacy keys at the end of 2026 regardless.
 
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
