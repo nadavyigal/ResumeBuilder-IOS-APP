@@ -3,7 +3,7 @@
 Current Phase: leaked Supabase keys rotation; web and delete_account on new keys, E2E delete test passed.
 Active Story: ship the publishable key in the next App Store build (PR #246 release steps).
 Next Recommended Story: App Store build, then the legacy-key disable checklist in web runbook PR #220.
-Blockers: founder archives the build; legacy disable waits on users updating past 1.6.0.
+Blockers: founder archives the build; urgent founder decision on disabling leaked legacy keys (older builds lose sign-in).
 Last Validation: 2026-11-22 founder E2E delete test passed; tests 767, 0 failures; delete_account probes 401/401/405.
 Last Updated: 2026-11-22
 
