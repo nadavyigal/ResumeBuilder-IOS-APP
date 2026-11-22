@@ -4,13 +4,13 @@ Web production moved to the new keys on 2026-11-22 (web PR #220). Phase 2 moves 
 Found: only `delete_account` is deployed; `storekit-verify` and `ambassador-reward` (web repo) are stubs with no key use.
 No cron, pg_net or database webhook holds a key. `SUPABASE_SECRET_KEYS` exists in Edge Function secrets.
 
-- [ ] `supabase/functions/delete_account/index.ts:29-33`: read `JSON.parse(SUPABASE_SECRET_KEYS).default`; no legacy fallback.
-- [ ] `Secrets.xcconfig.template:5`: placeholder says publishable key (`sb_publishable_...`). Variable name unchanged.
-- [ ] Founder pastes the publishable key into local `Secrets.xcconfig` (gitignored).
-- [ ] Build, unit tests, simulator sign-in with the new key.
-- [ ] Deploy `delete_account` (founder yes); `verify_jwt = false` per `supabase/config.toml` (live is true today).
-- [ ] End-to-end: throwaway test user (founder yes) signs in on simulator, deletes account; user gone; log shows `sb_secret_`.
-- [ ] Not in this story: App Store build with the new key; disabling legacy keys (after users update; Supabase ends legacy keys end of 2026).
+- [x] `supabase/functions/delete_account/index.ts`: reads `SUPABASE_SECRET_KEYS.default`; no legacy fallback.
+- [x] `Secrets.xcconfig.template`: placeholder says publishable key (`sb_publishable_...`). Variable name unchanged.
+- [x] Founder pasted the publishable key into local `Secrets.xcconfig` (gitignored).
+- [x] Build and unit tests (767, 0 failures); built app carries `sb_publishable_`.
+- [x] Deployed `delete_account` v4 (founder yes), `verify_jwt = false`; probes 401/401/405.
+- [x] End-to-end delete test PASSED (founder, 2026-11-22): test user signed in on simulator, deleted, gone from Supabase.
+- [ ] Next: App Store build with the new key (see PR #246 release steps); disabling legacy keys (after users update; Supabase ends legacy keys end of 2026).
 
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
