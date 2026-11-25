@@ -1,3 +1,21 @@
+# 2026-11-25: Xcode Cloud script requires the publishable Supabase key (#245)
+
+Current Phase: Apple membership follow-ups; Small Business Program accepted 2026-11-13 (15%); debrief stack merged in RunSmart.
+Active Story: #245 `ci_post_clone.sh` now fails on a legacy anon JWT; only an `sb_publishable_` key is accepted.
+Next Recommended Story: Tier 2 reviews on #245 (Codex, CodeRabbit), then Nadav OKs the Xcode Cloud workflow and secrets.
+Blockers: Codex review quota; Xcode Cloud setup needs founder OK; PCC request not yet sent.
+Last Validation: 2026-11-25 8 script unit tests pass (`test_ci_post_clone.py`); Codex review clean; CodeRabbit findings fixed.
+Last Updated: 2026-11-25
+
+# 2026-11-21: Xcode Cloud archive script (draft PR) and Apple membership plan
+
+Current Phase: Apple membership follow-ups; Apple models dropped for Resumely (Hebrew users).
+Active Story: PR 4, `ci_scripts/ci_post_clone.sh` writes Secrets.xcconfig from Xcode Cloud secrets; plan in docs/apple-membership-plan.md.
+Next Recommended Story: Nadav OKs and creates the Xcode Cloud workflow, then one manual run to TestFlight internal.
+Blockers: Xcode Cloud and App Store Connect setup need founder OK; GitHub billing and OpenAI spend unknown.
+Last Validation: 2026-11-21 6 script unit tests pass; Release simulator build with script-written Secrets.xcconfig, keys present in Info.plist.
+Last Updated: 2026-11-21
+
 # 2026-11-21: Sprout plan, 3 draft PRs open (#242 events, #243 SE paywall check, #244 ASO docs)
 
 Current Phase: Sprout-learnings plan; founder approved merging #242, #243, #244 on 2026-11-21 (reviews run here, Codex out of credits).
