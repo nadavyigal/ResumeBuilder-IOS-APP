@@ -8,7 +8,7 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parent.parent / "ci_scripts" / "ci_post_clone.sh"
 KEYS = {
     "POSTHOG_API_KEY": "phc_synthetic",
-    "SUPABASE_ANON_KEY": "synthetic.anon.key",
+    "SUPABASE_ANON_KEY": "sb_publishable_synthetic",
     "INTERNAL_TESTER_EMAILS": "tester@example.com",
     "INTERNAL_TESTER_USER_IDS": "00000000-0000-0000-0000-000000000000",
 }
@@ -34,9 +34,9 @@ class CiPostCloneTests(unittest.TestCase):
 
     def test_double_slash_is_escaped_for_xcconfig(self):
         with tempfile.TemporaryDirectory() as repo:
-            env = {"CI_PRIMARY_REPOSITORY_PATH": repo, **KEYS, "SUPABASE_ANON_KEY": "a//b"}
+            env = {"CI_PRIMARY_REPOSITORY_PATH": repo, **KEYS, "INTERNAL_TESTER_EMAILS": "a//b"}
             self.assertEqual(self.run_script(env).returncode, 0)
-            self.assertIn("SUPABASE_ANON_KEY = a/$()/b\n", (Path(repo) / "Secrets.xcconfig").read_text())
+            self.assertIn("INTERNAL_TESTER_EMAILS = a/$()/b\n", (Path(repo) / "Secrets.xcconfig").read_text())
 
     def test_missing_or_blank_key_fails_and_writes_nothing(self):
         with tempfile.TemporaryDirectory() as repo:
@@ -55,6 +55,16 @@ class CiPostCloneTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("INTERNAL_TESTER_EMAILS", result.stderr)
             self.assertNotIn("a$(HOME)b", result.stderr)
+            self.assertFalse((Path(repo) / "Secrets.xcconfig").exists())
+
+    def test_legacy_jwt_anon_key_is_rejected(self):
+        with tempfile.TemporaryDirectory() as repo:
+            jwt = "eyJhbGciOiJIUzI1NiJ9.synthetic.signature"
+            env = {"CI_PRIMARY_REPOSITORY_PATH": repo, **KEYS, "SUPABASE_ANON_KEY": jwt}
+            result = self.run_script(env)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("sb_publishable_", result.stderr)
+            self.assertNotIn(jwt, result.stdout + result.stderr)
             self.assertFalse((Path(repo) / "Secrets.xcconfig").exists())
 
     def test_refuses_to_run_outside_xcode_cloud(self):

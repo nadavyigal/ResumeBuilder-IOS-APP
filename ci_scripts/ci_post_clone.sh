@@ -35,6 +35,16 @@ if [ -n "$missing" ]; then
   exit 1
 fi
 
+# Supabase key rotation: the app ships the publishable key only, never the legacy
+# anon JWT (eyJ...). Fail early so a wrong secret never reaches TestFlight.
+case "$SUPABASE_ANON_KEY" in
+  sb_publishable_*) ;;
+  *)
+    echo "error: SUPABASE_ANON_KEY must be the sb_publishable_ key, not the legacy anon JWT." >&2
+    exit 1
+    ;;
+esac
+
 # xcconfig reads // as the start of a comment, so write it as /$()/.
 escape() {
   printf '%s' "$1" | sed 's#//#/$()/#g'

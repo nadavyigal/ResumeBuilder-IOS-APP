@@ -9,7 +9,8 @@ Study and plan only. No code, entitlement, App Store Connect or Xcode Cloud chan
 - Beta Club = App Store users with a server-granted free-for-life invite code. TestFlight is only for pilot coaches. No external TestFlight group for Beta Club.
 - PCC entitlement: yes, request it (free, no code). Nadav sends the request.
 - Order of work: PR 4 and PR 5 (Xcode Cloud archives) first, then PRs 1-3. Draft PRs only, no merge, no App Store Connect or Xcode Cloud changes without Nadav's OK.
-- Still open: Small Business Program status, GitHub billing, OpenAI spend (Nadav will send).
+- Small Business Program: accepted 2026-11-13 (Apple email). PCC is open to Nadav's request.
+- Still open: GitHub billing, OpenAI spend (Nadav will send). No Apple email shows the PCC request was sent.
 Repos read: Resumely iOS (`main` @ fbe2e40), RunSmart iOS (`main` @ b901258), Resumely web (`main` @ 3a32aea), RunSmart web (branch `chore/weekly-log-cleanup`, not `main`).
 
 **Bottom line.** The membership saves real money in one place only: CI minutes, and only if GitHub bills you for them. The free Apple LLM is real but the saving on your current calls is cents. Its value is offline, faster, private replies on RunSmart. Hebrew is not supported by Apple Intelligence, which limits it for Resumely.
@@ -194,7 +195,7 @@ Event `run_debrief_generated` with `source` (on_device / cloud / fallback), `lat
 
 ## 6. PCC application path
 **Eligibility checklist**
-- [ ] Enrolled in App Store Small Business Program (status unknown; check App Store Connect → Business).
+- [x] Enrolled in App Store Small Business Program: requested 2026-10-21, accepted 2026-11-13 (Apple email: commission now 15%).
 - [ ] Under 2M first-time downloads across all apps (check App Store Connect analytics).
 - [ ] Entitlement request sent: https://developer.apple.com/contact/request/private-cloud-compute/
 - [ ] Apps gate PCC calls on iOS 27 and Apple Intelligence availability.
@@ -214,7 +215,7 @@ Workflows:
 Setup Nadav does in App Store Connect / Xcode (only after OK, nothing done yet):
 1. Xcode → Integrate → Create Workflow (or App Store Connect → app → Xcode Cloud). Grant access to the GitHub repo.
 2. Start condition: branch changes on `main`. Action: Archive, iOS, scheme `ResumeBuilder IOS APP` / `IOS RunSmart app`, distribution TestFlight (internal only). Post-action: TestFlight Internal Testing, group "Founder QA" (Resumely) or the internal group (RunSmart).
-3. Resumely only: Environment → add `POSTHOG_API_KEY`, `SUPABASE_ANON_KEY`, `INTERNAL_TESTER_EMAILS`, `INTERNAL_TESTER_USER_IDS`, each marked Secret (values from your local `Secrets.xcconfig`).
+3. Resumely only: Environment → add `POSTHOG_API_KEY`, `SUPABASE_ANON_KEY`, `INTERNAL_TESTER_EMAILS`, `INTERNAL_TESTER_USER_IDS`, each marked Secret (values from your local `Secrets.xcconfig`). `SUPABASE_ANON_KEY` must be the `sb_publishable_` key, never the legacy anon JWT: the script fails the build otherwise.
 4. Build numbers: Xcode Cloud numbers its own builds from 1. For iOS, App Store Connect only needs version + build to be unique, so this works for the next version. To keep the numbers you know, set Next Build Number to 41 (Resumely) and 47 (RunSmart) under Xcode Cloud → Settings → Build Number ([Apple doc](https://developer.apple.com/documentation/xcode/setting-the-next-build-number-for-xcode-cloud-builds)).
 5. Run the workflow once by hand. Pass = build reaches TestFlight internal and the app opens on the iPhone.
 
@@ -257,7 +258,7 @@ Honest total: close to $0/month now. The article's $4,900/year applies only to t
 ---
 
 ## 10. Open questions for Nadav
-1. Are you enrolled in the App Store Small Business Program?
+1. Are you enrolled in the App Store Small Business Program? **Answered 2026-11-25: yes, accepted 2026-11-13 (requested 2026-10-21), commission 15%.**
 2. What is your monthly OpenAI spend, split by app if possible?
 3. What is your GitHub plan, and are macOS minutes billed? (github.com → Settings → Billing)
 4. What share of iOS users can run Apple Intelligence? Run the HogQL in 2.6 on both PostHog projects.
