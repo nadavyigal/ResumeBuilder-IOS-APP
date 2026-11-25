@@ -196,7 +196,7 @@ Event `run_debrief_generated` with `source` (on_device / cloud / fallback), `lat
 ## 6. PCC application path
 **Eligibility checklist**
 - [x] Enrolled in App Store Small Business Program: requested 2026-10-21, accepted 2026-11-13 (Apple email: commission now 15%).
-- [ ] Under 2M first-time downloads across all apps (check App Store Connect analytics).
+- [ ] Under 2M first-time downloads (check App Store Connect analytics). Open question to confirm with Apple: whether the 2M limit counts all apps together or each app on its own. Apple's wording ("any of their apps", "any app") doesn't settle it.
 - [ ] Entitlement request sent: https://developer.apple.com/contact/request/private-cloud-compute/
 - [ ] Apps gate PCC calls on iOS 27 and Apple Intelligence availability.
 
@@ -217,7 +217,11 @@ Setup Nadav does in App Store Connect / Xcode (only after OK, nothing done yet):
 2. Start condition: branch changes on `main`. Action: Archive, iOS, scheme `ResumeBuilder IOS APP` / `IOS RunSmart app`, distribution TestFlight (internal only). Post-action: TestFlight Internal Testing, group "Founder QA" (Resumely) or the internal group (RunSmart).
 3. Resumely only: Environment → add `POSTHOG_API_KEY`, `SUPABASE_ANON_KEY`, `INTERNAL_TESTER_EMAILS`, `INTERNAL_TESTER_USER_IDS`, each marked Secret (values from your local `Secrets.xcconfig`). `SUPABASE_ANON_KEY` must be the `sb_publishable_` key, never the legacy anon JWT: the script fails the build otherwise.
 4. Build numbers: Xcode Cloud numbers its own builds from 1. For iOS, App Store Connect only needs version + build to be unique, so this works for the next version. To keep the numbers you know, set Next Build Number to 41 (Resumely) and 47 (RunSmart) under Xcode Cloud → Settings → Build Number ([Apple doc](https://developer.apple.com/documentation/xcode/setting-the-next-build-number-for-xcode-cloud-builds)).
-5. Run the workflow once by hand. Pass = build reaches TestFlight internal and the app opens on the iPhone.
+5. Run the workflow once by hand. Pass = all three:
+   - the build reaches TestFlight internal and the app opens on the iPhone;
+   - Resumely: the Xcode Cloud log shows "Wrote Secrets.xcconfig with 4 keys" (the script stops the build on a missing, `$`-containing or non-publishable key);
+   - Resumely: the archived app really carries the publishable key. Download the archive's app from the Xcode Cloud build artifacts and run, without printing the key:
+     `/usr/libexec/PlistBuddy -c "Print :SUPABASE_ANON_KEY" "<App>.app/Info.plist" | grep -q '^sb_publishable_' && echo publishable || echo WRONG`
 
 Hours estimate (guess until measured; archive time 10-15 min per the article):
 | Workflow | Runs/month (guess) | Min/run | Hours |

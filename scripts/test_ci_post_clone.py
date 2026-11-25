@@ -38,6 +38,18 @@ class CiPostCloneTests(unittest.TestCase):
             self.assertEqual(self.run_script(env).returncode, 0)
             self.assertIn("INTERNAL_TESTER_EMAILS = a/$()/b\n", (Path(repo) / "Secrets.xcconfig").read_text())
 
+    def test_runs_of_three_and_four_slashes_leave_no_double_slash(self):
+        for value in ("a///b@example.com", "a////b@example.com", "a/b@example.com"):
+            with tempfile.TemporaryDirectory() as repo:
+                env = {"CI_PRIMARY_REPOSITORY_PATH": repo, **KEYS, "INTERNAL_TESTER_EMAILS": value}
+                self.assertEqual(self.run_script(env).returncode, 0, value)
+                line = next(l for l in (Path(repo) / "Secrets.xcconfig").read_text().splitlines()
+                            if l.startswith("INTERNAL_TESTER_EMAILS = "))
+                written = line.split(" = ", 1)[1]
+                self.assertNotIn("//", written, value)
+                self.assertEqual(written.replace("$()", ""), value)
+        self.assertIn("INTERNAL_TESTER_EMAILS = a/b@example.com", line)
+
     def test_missing_or_blank_key_fails_and_writes_nothing(self):
         with tempfile.TemporaryDirectory() as repo:
             env = {"CI_PRIMARY_REPOSITORY_PATH": repo, **KEYS, "INTERNAL_TESTER_USER_IDS": "  "}

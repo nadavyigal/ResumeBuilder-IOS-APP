@@ -46,8 +46,17 @@ case "$SUPABASE_ANON_KEY" in
 esac
 
 # xcconfig reads // as the start of a comment, so write it as /$()/.
+# One pass leaves a pair in runs of 3+ slashes (/// -> /$()//), so repeat until
+# no literal // is left. $() has no slash, so each pass shrinks the work.
 escape() {
-  printf '%s' "$1" | sed 's#//#/$()/#g'
+  value=$1
+  while :; do
+    case "$value" in
+      *//*) value=$(printf '%s' "$value" | sed 's#//#/$()/#g') ;;
+      *) break ;;
+    esac
+  done
+  printf '%s' "$value"
 }
 
 target="$CI_PRIMARY_REPOSITORY_PATH/Secrets.xcconfig"

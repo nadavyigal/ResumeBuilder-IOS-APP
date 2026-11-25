@@ -4,7 +4,7 @@ Current Phase: Apple membership follow-ups; Small Business Program accepted 2026
 Active Story: #245 `ci_post_clone.sh` now fails on a legacy anon JWT; only an `sb_publishable_` key is accepted.
 Next Recommended Story: Tier 2 reviews on #245 (Codex, CodeRabbit), then Nadav OKs the Xcode Cloud workflow and secrets.
 Blockers: Codex review quota; Xcode Cloud setup needs founder OK; PCC request not yet sent.
-Last Validation: 2026-11-25 7 script unit tests pass (`test_ci_post_clone.py`).
+Last Validation: 2026-11-25 8 script unit tests pass (`test_ci_post_clone.py`); Codex review clean; CodeRabbit findings fixed.
 Last Updated: 2026-11-25
 
 # 2026-11-21: Xcode Cloud archive script (draft PR) and Apple membership plan
