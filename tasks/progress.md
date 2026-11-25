@@ -2,9 +2,9 @@
 
 Current Phase: Production outage. Legacy Supabase keys disabled 11:58 UTC; App Store 1.6.1 (40) gets 401 everywhere.
 Active Story: hotfix 1.6.2 (41), PR #247; upload commit ab29944 (same code as 40, key now `sb_publishable_`).
-Next Recommended Story: founder yes, then archive and upload 41, submit with expedited review.
-Blockers: founder yes to upload; Apple review time. Users stay locked out until they update.
-Last Validation: 2026-11-25 Release build OK; Info.plist 1.6.2/41/sb_publishable_; publishable key passes Supabase refresh gate.
+Next Recommended Story: founder re-signs Xcode Accounts, uploads archive 41 from Organizer, submits 1.6.2 with expedited review.
+Blockers: Xcode has no App Store Connect login (export failed 14:32); Apple review time.
+Last Validation: 2026-11-25 archive of ab29944 OK: 1.6.2/41, prod API, sb_publishable_ key; upload not done.
 Last Updated: 2026-11-25
 
 # 2026-11-25: Xcode Cloud script requires the publishable Supabase key (#245)
