@@ -27,6 +27,28 @@ Resumely: בונה קורות חיים
 (28 chars)
 
 ### Keywords (100 chars max)
+
+Proposed 2026-11-21 (draft, not in App Store Connect). Single words, commas, no
+spaces, no word already in the Hebrew name or subtitle. The live Hebrew name and
+subtitle are not confirmed yet (founder to paste them).
+
+If the live Hebrew name or subtitle contains "קורות חיים":
+```
+משרה,עבודה,מועמדות,מכתב,מקדים,התאמה,ציון,מגייס,ראיון,קריירה,לינקדאין,כתיבת,שכתוב,רזומה
+```
+(86 chars)
+
+If it does not:
+```
+קורות,חיים,משרה,עבודה,מועמדות,מכתב,מקדים,התאמה,ציון,מגייס,ראיון,קריירה,לינקדאין,רזומה
+```
+(85 chars)
+
+Check the counter in App Store Connect after pasting: some guides say the limit is
+100 bytes, and Hebrew letters take 2 bytes each in UTF-8 (these lines are about
+160 bytes). If the field refuses it, drop words from the end until it fits.
+
+Previous draft (replaced; multi-word phrases and repeats of the name):
 ```
 קורות חיים,בקשת עבודה,ATS,מחפש עבודה,כתיבת קורות חיים,ייעול קורות חיים,מכתב מקדים
 ```

@@ -3,7 +3,6 @@ import Foundation
 enum ChatServiceError: LocalizedError, Sendable {
     case missingToken
     case missingOptimizationId
-    case noSessionYet
     case encodePayloadFailed
 
     var errorDescription: String? {
@@ -12,8 +11,6 @@ enum ChatServiceError: LocalizedError, Sendable {
             return NSLocalizedString("Sign in required to chat.", comment: "")
         case .missingOptimizationId:
             return NSLocalizedString("Optimization is not ready yet.", comment: "")
-        case .noSessionYet:
-            return NSLocalizedString("Chat session begins after your first message.", comment: "")
         case .encodePayloadFailed:
             return NSLocalizedString("Could not serialize change fields.", comment: "")
         }
@@ -21,14 +18,6 @@ enum ChatServiceError: LocalizedError, Sendable {
 }
 
 protocol ChatMessaging: Sendable {
-    func fetchActiveSession(optimizationId: String, token: String?) async throws -> ChatSessionRecord?
-    func getMessages(sessionId: String, token: String?) async throws -> [ChatMessageRecord]
-    func sendMessage(
-        sessionId: String?,
-        optimizationId: String,
-        content: String,
-        token: String?
-    ) async throws -> (stream: AsyncThrowingStream<String, Error>, pendingChanges: [ChatPendingChange]?, resolvedSessionId: String?)
     func approveChange(
         optimizationId: String,
         suggestionId: String,
@@ -40,76 +29,11 @@ protocol ChatMessaging: Sendable {
         suggestionId: String,
         token: String?
     ) async throws -> KeywordSuggestionPreviewDTO
-    func rejectChange(sessionId: String, changeId: String, token: String?)
 }
 
 /// Native client for authenticated chat (`/api/v1/chat`).
 struct ChatService: ChatMessaging, Sendable {
     var apiClient: APIClient = RuntimeServices.sharedAPIClient
-    var streamingClient: StreamingClient = StreamingClient()
-
-    // MARK: - Session
-
-    /// Best-effort: active backend session tied to `optimization_id`, if present.
-    func fetchActiveSession(optimizationId: String, token: String?) async throws -> ChatSessionRecord? {
-        guard let token else { throw ChatServiceError.missingToken }
-        let list: ChatSessionListEnvelope = try await apiClient.getWithQuery(
-            endpoint: .chatSessionsActive,
-            token: token
-        )
-        let sessions = list.sessions ?? []
-        return sessions.first { ($0.optimizationId ?? "") == optimizationId && ($0.status ?? "active") == "active" }
-    }
-
-    /// Plan alias (`resume_id` unused here — optimization is keyed by optimization id throughout chat APIs).
-    func createSession(resumeId: String, optimizationId: String?, token: String?) async throws -> ChatSessionRecord {
-        _ = resumeId
-        guard let optimizationId else { throw ChatServiceError.missingOptimizationId }
-        guard let token else { throw ChatServiceError.missingToken }
-        if let existing = try await fetchActiveSession(optimizationId: optimizationId, token: token) {
-            return existing
-        }
-        throw ChatServiceError.noSessionYet
-    }
-
-    // MARK: - Messages
-
-    /// Loads history via `/api/v1/chat/sessions/{id}` (same path the web sidebar uses).
-    func getMessages(sessionId: String, token: String?) async throws -> [ChatMessageRecord] {
-        guard let token else { throw ChatServiceError.missingToken }
-        let detail: ChatSessionDetailEnvelope = try await apiClient.get(endpoint: .chatSession(id: sessionId), token: token)
-        return detail.messages ?? []
-    }
-
-    /// Streams assistant text sequentially (API returns JSON, not SSE). Also returns pending ATS changes if any.
-    func sendMessage(
-        sessionId: String?,
-        optimizationId: String,
-        content: String,
-        token: String?
-    ) async throws -> (stream: AsyncThrowingStream<String, Error>, pendingChanges: [ChatPendingChange]?, resolvedSessionId: String?) {
-        guard let token else { throw ChatServiceError.missingToken }
-
-        var body: [String: Any] = [
-            "optimization_id": optimizationId,
-            "message": content,
-        ]
-        if let sessionId {
-            body["session_id"] = sessionId
-        }
-
-        /// Long chats can occasionally exceed default API timeout (~30s server-side scoring).
-        let dto: ChatSendMessageResponseDTO = try await apiClient.postJSONObject(
-            endpoint: .chatSend,
-            bodyObject: body,
-            token: token,
-            timeout: 120
-        )
-
-        let full = dto.aiResponse ?? ""
-        let stream = streamingClient.streamDisplayedText(from: full, chunkSize: 10)
-        return (stream, dto.pendingChanges, dto.sessionId)
-    }
 
     // MARK: - Pending ATS changes
 
@@ -145,26 +69,6 @@ struct ChatService: ChatMessaging, Sendable {
         return try await apiClient.postJSONObject(
             endpoint: .keywordSuggestionPreview(optimizationId: optimizationId, suggestionId: suggestionId),
             bodyObject: [:],
-            token: token,
-            timeout: 60
-        )
-    }
-
-    /// Matches web UX: rejecting is client-side only (`ChatSidebar.tsx` removes from local list).
-    /// TODO(Stage2-RES-CHAT): persist reject to backend when endpoint ships.
-    func rejectChange(sessionId: String, changeId: String, token: String?) {
-        _ = sessionId
-        _ = changeId
-        _ = token
-    }
-
-    /// Applies a single persisted amendment (`amendment_requests` row).
-    func applyAmendment(sessionId: String, amendmentId: String, token: String?) async throws -> ChatApplyAmendmentResponseDTO {
-        guard let token else { throw ChatServiceError.missingToken }
-        let body: [String: Any] = ["amendment_id": amendmentId]
-        return try await apiClient.postJSONObject(
-            endpoint: .chatSessionApply(sessionId: sessionId),
-            bodyObject: body,
             token: token,
             timeout: 60
         )

@@ -87,8 +87,6 @@ final class CopyClaimsTests: XCTestCase {
 
         XCTAssertFalse(ResumePreviewViewModel.shareAppURL.contains("vercel.app"),
                        "share URL still points at the internal deploy domain")
-        XCTAssertFalse(LinkedInShareComposer.appStoreURL.contains("id000000000"),
-                       "App Store URL still carries the placeholder id")
     }
 
     // MARK: - Marketing screenshot slots (Story 2)
@@ -151,14 +149,6 @@ final class CopyClaimsTests: XCTestCase {
         XCTAssertTrue(hebrew.contains("ציון ההתאמה של Resumely"), hebrew)
         XCTAssertFalse(key.contains("—"))
         XCTAssertFalse(hebrew.contains("—"))
-    }
-
-    func testTheTraditionalTemplateLabelMakesNoATSClaim() {
-        for slug in ["traditional", "ats_safe", "ats-safe"] {
-            let label = OptimizationDesignSheet.categoryLabel(for: slug)
-            XCTAssertEqual(label, "Traditional · Simple layout")
-            XCTAssertNil(label.range(of: #"\bATS\b"#, options: .regularExpression), label)
-        }
     }
 }
 

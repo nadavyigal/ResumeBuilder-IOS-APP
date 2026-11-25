@@ -1,0 +1,1776 @@
+# Archived progress.md history (entries dated before 2026-10-30)
+
+Moved from `tasks/progress.md` on 2026-11-13 so agents load less context. Original order, unchanged text.
+
+# 2026-10-29: Pricing v2, S3 paywall placement and copy (same draft PR)
+
+Status: S3 on branch `claude/resumely-pricing-v2`, code commit 94aa208, draft PR nadavyigal/ResumeBuilder-IOS-APP#226 (S2 + S3). Not merged.
+Current Phase: Payments v2 (plan "S3 as built" note).
+Active Story: S3 review. Codex on d56ca0d: 1 P2 (empty offers left a "ready" sheet with nothing to buy), fixed in 4152160. Second-model review on 94aa208: no P0/P1; P2s fixed in 4152160 (account switch on the same screen re-marks score and preview; Restore at the Pro cap no longer reopens a refusing paywall; Profile Restore names a restored purchase first; footer wraps). Founder decision 2026-10-29: keep "unlimited PDF downloads (fair use)" on the Pro row.
+Last Completed Story: S3: redesigned sheet (14-pack preselected "Best value", 5-pack, Pro with "/ month" and renewal line, Continue, Restore, Terms, Privacy, estimate footer); paywall only after own score + preview, notice otherwise; no-session export asks for an account (D5, code fix, not reproduced on the simulator); Profile Plan section with Manage subscription and Restore; PaywallView and CreditsView deleted; harness `--smoke-paywall-sub`; EN/HE screenshots in `audit/pricing-v2-s3/`. Copy drops "in under a minute" until S6 times it.
+Next Recommended Story: S4 sample CV start, Home headline, LinkedIn hint.
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests.
+Last Validation: at 4152160: full suite 674 tests, 0 failures, 11 skipped, iPhone 17 Pro, iOS 26.5. Clear `app_selected_language` after a `--smoke-he` run (lesson 2026-10-29).
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2, S2 StoreKit v2 + Pro in the app (draft PR)
+
+Status: S2 on branch `claude/resumely-pricing-v2` (worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/ios-pricing-v2`), code commit 3f39b0a. Draft PR, not merged. Server half is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (migration not applied).
+Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, "S2 as built" note).
+Active Story: S2 review. Second-model review on 3f39b0a: a failed Pro delivery locked pack sales (new in S2), and a permanent 4xx re-locked the paywall every 48h (P1, from #207); both fixed in 9c1b3cc (only a retryable pack failure locks). Older P2s (stale lock after concurrent deliveries, declined Ask to Buy lock, sheet waits on slow delivery) left as follow-ups. Codex on cb58a6f: 2 P2 (Pro locks never cleared after a refresh recovery or an other-account answer), fixed in 94a9e99: Pro never sets a lock, and a plan the refresh records resumes a waiting paywall.
+Last Completed Story: S2: `ResumelyProducts` (14-pack, 5.v2, Pro; v1 never loaded but still delivered when paid), Pro purchase, `refreshEntitlements()` at launch and sign-in, `restorePurchases()`, renewals and refunds re-read the plan, `AppState.subscription` from `/api/v1/credits`, "belongs to another Resumely account" message, `Resumely.storekit` in the test folder (not in the Run scheme, so S6 Sandbox stays real).
+Next Recommended Story: S3 paywall placement and copy (Pro row, Restore button, eligibility, guest gap D5, Profile plan row).
+Blockers: founder yes to apply the S1 migration; ASC products before Sandbox (S6); one Xcode run (Product > Test) for the 10 StoreKitSessionTests, which skip under `xcodebuild` on iOS 26.5 (Apple forums thread 826971).
+Last Validation: at 94a9e99: full suite 654 tests, 0 failures, 11 skipped (10 new StoreKit session tests + 1 existing), iPhone 17 Pro, iOS 26.5. A first full run hit 2 WebKit PDF timeouts while a second simulator was booted; they pass alone, in every clean rerun, and on main.
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2, S1 server (draft PR open, review fixes pushed)
+
+Status: S1 is draft PR nadavyigal/new-ResumeBuilder-ai-#204 (branch `claude/pricing-v2-server`, head abc36d4, worktree `/Users/nadavyigal/Developer/resumebuilder-worktrees/web-pricing-v2`). Not merged. Migration `20261029120000_pricing_v2.sql` written, not applied.
+Current Phase: Payments v2 (plan `plans/resumely-pricing-v2.md` v3, approved 2026-10-29 with D1 to D5 as recommended).
+Active Story: S1 review. Codex on c3892ae: 1 P1 + 2 P2, all fixed in bc9951a (a pre-refund replay can no longer clear a revocation; renewal info ordered by signedDate; subscription_renewed sent by whichever path records the renewal). Second-model review: same P1, plus older-period refund documented as intended, GRACE_PERIOD_EXPIRED event, unused credit functions start at 0. Codex on 82d2de4: 2 P2, fixed in abc36d4 (fair-use usage counted in `subscription_export_usage`, so deleting CVs cannot reset it; REFUND_REVERSED restores the plan through `set_subscription_revocation`, ordered by notification signedDate). Codex re-requested on abc36d4, not finished yet.
+Last Completed Story: S1 server pricing v2 (welcome grant 3, packs 5.v2 and 14, retired v1 still honored, Pro subscription with fair use 40, notifications, server funnel events, credits route plan state).
+Next Recommended Story: S2 StoreKit v2 + entitlements in this repo, after the founder reviews #204.
+Blockers: founder yes to apply the migration; ASC products before real Sandbox (S6).
+Last Validation: at abc36d4: web lint 0 errors; tsc 24 pre-existing test-file errors, none new; jest 1161 passed / 84 skipped; build passes; local Postgres pricing-v2 22, export-credits 13, apple-iap 18, security-definer-grants 11 checks.
+Last Updated: 2026-10-29
+
+# 2026-10-29: Pricing v2 plan v3 (waiting for approval)
+
+Status: plan only, no code. Branch `claude/resumely-pricing-v2`, file `plans/resumely-pricing-v2.md`.
+Current Phase: Payments v2. Founder decisions 2026-10-29: Match Score free and unlimited (only PDF exports paid); upload stays file-only; advice A1 to A5 accepted: 3 free PDF exports per account, 14-pack first as "Best value" then 5-pack then Pro (60-day rule: under 10 paying subscribers removes Pro), free-scores headline on Home and App Store page, LinkedIn "Save to PDF" hint under Upload (Safari steps, re-check on a real iPhone in S4), saved PostHog funnel read 30 days after launch.
+Active Story: none until the founder approves decisions D1 to D5.
+Last Completed Story: plan v3 written.
+Next Recommended Story: S1 server pricing v2 in the web repo, behind `PRICING_V2_ENABLED` (off).
+Blockers: founder approval of D1 to D5; ASC products needed before real Sandbox (S6).
+Last Validation: none (docs only).
+Last Updated: 2026-10-29
+
+# 2026-10-28: Consent record retry stays with the consenting account
+
+Status: draft PR open, not merged. Branch `fix/consent-followup` from main 11c26c6.
+Change: the AI consent record checks, before the first POST and before and after the 401 token refresh, that the signed-in account is still the one that agreed. Before, a sign-out and sign-in during the request let the retry store account A's yes under account B's token. `AppState` takes an injectable `APIClient` so the test can stub the network.
+Last Validation: new test fails on the old code (A's yes re-sent with B's fresh token) and passes now; full suite 626 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Codex on #217's final commit 11c26c6: no major issues.
+Next Recommended Story: none in this area. Open follow-up: a failed refresh during the consent record still signs the user out, like any other signed-in call.
+Blockers: none.
+Last Updated: 2026-10-28
+
+# 2026-10-26: AI consent server record and privacy manifest
+
+Status: draft PR, not merged. Branch `feat/ai-consent-record` from main e7a5e36.
+The phone reports a grant to `POST /api/v1/ai-consent` once the user has an account or anonymous session. The privacy manifest lists the collected data types. AI calls are not blocked when the server record is missing.
+Last Validation: 585 XCTest cases (one skipped, zero failures) plus five Swift Testing cases.
+2026-10-28: Codex P1 fixed in 56d946f. Each queued send keeps its identity and generation; after the server record the answer is checked again, and a send from another identity is asked for its own answer. Last Validation: two new regressions fail on the old gate and pass now; full suite 587 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Sonnet P2 fixed in the next commit: a record that returns after sign-out no longer marks the identity recorded (new assertion fails without it). Codex P2 fixed next: the already-consented path re-checks after the record await, so a sign-out during it blocks the send (new test fails without it; full suite 588 tests, 0 failures, 1 skipped). Codex P2s on 18eadd3 fixed: the answer is rechecked inside the recording task, so a sign-out right after the sheet answers cannot restore cleared consent; the best-effort record now runs after the launch gate instead of holding the spinner. Merged main (b3834fc). GuestConsentCarryOverTests now stub the recorder: with #203 live, their fake token reached production, got a 401, and the refresh signed the test user out. Full suite 624 tests, 0 failures, 1 skipped. Codex P2 on 123144e fixed: a queued send whose identity signed out, or is no longer signed in, gets false instead of being re-asked as someone else. Open P2 follow-up: bind the record retry to the consenting identity. Blocker: backend #203 must merge and be applied first. Last Updated: 2026-10-28.
+
+# 2026-10-25: Styled PDF when exporting before the preview loads
+
+Status: merging into main 2026-10-28 (founder approved, Codex clean at 74594da). Branch `fix/export-styled-pdf-when-preview-not-loaded`.
+Change: the Optimized tab export now fetches the styled design HTML and renders the PDF on the phone when the preview hasn't loaded; the server download is the last fallback. `export_success` carries `pdf_path` (`styled_preview` / `styled_fetched` / `server`). Preview and export share `StyledResumeHTML` for the request and the Hebrew direction rule.
+Evidence for the change: all 21 server `export_success` events in 120 days used the plain jsPDF renderer.
+Last Validation: 593 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator. Export waits for the saved design to load before choosing a template.
+Next Recommended Story: route History, Track, Submit Package and preview-screen exports through the same styled path, keeping the credit gate.
+2026-10-28: Codex P1 fixed in a32fe3c. An export that began signed in and lost its session in the design-load refresh now stops (unauthorized), with no PDF and no export_success; a real guest still exports locally. Last Validation: full suite 596 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Codex P2 fixed next: a design refresh during the first saved-design load now fetches again, so the Optimized preview and export pick up a design saved in the Design tab (new test fails without it; full suite 597 tests, 0 failures, 1 skipped). Codex fixes on d77b6a4: a guest export no longer calls the token refresh (it signed the guest out and cleared their local progress); a saved design that cannot be read gives no settings, so export uses the loaded preview or the server PDF instead of the default template. Both new tests fail on the old code; full suite 599 tests, 0 failures, 1 skipped. Open P2 follow-ups from CodeRabbit: failed preview render never tries a fresh styled fetch; cached preview not cleared on template change; failed assignment reads return default settings. Last Updated: 2026-10-28.
+
+# 2026-10-28: Remove ATS claims (Release 1, story 8)
+
+Status: draft PR open, not merged. Branch `feat/remove-ats-claims` from main 4d7b6c3.
+Change: three in-app claims replaced in English and Hebrew: the Fit check disclaimer now names the Resumely Match Score (was "not an employer ATS score"); the format panel says "Readable structure, simple to parse." (was "ATS parsing safeguards"); the traditional template is "Traditional · Simple layout" (was "ATS-Safe"). Three unused catalog entries that claimed ATS deleted. MarketingScreenshotView already carried no ATS. The screenshot generator already matched the 5 slots; a new Python test now fails if they drift again.
+Last Validation: CopyClaimsTests scan every shipped English key and Hebrew value (red on the 6 entries first); full suite 599 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5); screenshot script tests 5 pass (4 existing plus the new guard), both via discover and run directly (Sonnet P2: the guard class sat after the __main__ block). All 5 slots rendered in English (real generator, validation PASS) and Hebrew: no ATS.
+Next Recommended Story: upload the regenerated 5-slot set to App Store Connect (founder, ASC access); Hebrew marketing copy for the slots is a separate story.
+Blockers: none in code. The live App Store screenshots change only when the new set is uploaded.
+Last Updated: 2026-10-28
+
+# 2026-10-28: Previous best as its own label (Release 1, story 7)
+
+Status: draft PR open, not merged. Branch `feat/previous-best-label` from main 5e0bb58.
+Change: the Optimized match score now shows what the resume measures now. When an earlier score for the same job was higher, a "Previous best: N" line (Hebrew "הציון הטוב הקודם: N") appears under the status text. This supersedes the display half of the 2026-07-26 never-decrease rule; the floored value stays in `FitJourney.currentDisplayedScore` for diagnostics.
+Last Validation: score tests red on the floored headline, green after; full suite 592 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). English and Hebrew card rendered in the simulator test host (64 with previous best 72).
+Sonnet fixes: status badge and description read the measured score (red: a 40 read "High"); the Improve tab ring shows the measured rescan with the same Previous best label; the rescan regression signal compares against the best shown. Full suite 594 tests, 0 failures, 1 skipped. Track and TargetReached screens checked: no floor.
+Codex fixes (on fc5b0fb): a rescan that replaces a stage keeps the earlier best as Previous best; an edit after an expert pass updates the expert-stage score so the headline is the latest measurement. Codex's badge finding was already fixed in fc5b0fb. Full suite 596 tests, 0 failures, 1 skipped.
+Next Recommended Story: Release 1 story 8, remove ATS claims from copy and App Store screenshots.
+Blockers: none.
+Last Updated: 2026-10-28
+
+# 2026-10-28: Release 1 plan approved
+
+Status: improvement plan approved for Release 1 only; Releases 2 and 3 parked. `docs/superpowers/plans/2026-10-25-resumely-improvement-plan.md`.
+Current Phase: Release 1, trust and export.
+Active Story: show "previous best" as its own label (tracker story 7).
+Last Completed Story: #215 merged (a0764a5); P1 fixes on #203, #214, #217 (2026-10-28).
+Next Recommended Story: web #203 merge, then its migration (named yes), then iOS #217.
+Blockers: #217 needs web #203 merged and its migration applied (separate named yes).
+Last Validation: docs-only change.
+Last Updated: 2026-10-28
+
+# 2026-10-28: 1.5.6 (35) live
+
+Status: 1.5.6 (35) live on the App Store since 2026-10-26T21:36:26Z. The 2026-10-25 entry below ("final submission pending") is superseded: it was submitted and released.
+Current Phase: Post-release verification of 1.5.6 (35).
+Active Story: P1 fixes on open PRs: #214 export auth (a32fe3c) and #217 consent queue (56d946f), both awaiting exact-head review.
+Last Completed Story: 1.5.6 (35) released.
+Next Recommended Story: confirm the three consumables' App Review state in App Store Connect (not checked this session), then exact-head review of #214 and #217.
+Blockers: public billing stays off; activation needs separate founder authorization on or after 2026-10-31. #217 needs backend #203 merged and its migration applied (named yes) first.
+Last Validation: 2026-10-28: App Store lookup returned 1.5.6, released 2026-10-26T21:36:26Z (3 of 3 polls with varying URLs). Status-file change only; no build, test or code change.
+Last Updated: 2026-10-28
+
+# 2026-10-25: Score floor stays on its own job
+
+Status: merged 2026-10-28 as #215 (a0764a5). Branch `fix/score-floor-stays-on-its-job` from main e7a5e36.
+Change: the free-check floor no longer carries a higher score from a different job onto the next one. Re-checking the same job, and later stages of that job, still hold the higher number.
+Last Validation: 584 XCTest cases (one skipped, zero failures) plus five Swift Testing cases on the iPhone 17 simulator.
+2026-10-28: Sonnet P2 fixed: carryForward now takes the current job, so optimizing job B without a fresh check does not inherit job A's floor; an unmatched key drops the floor (the real score shows). Founder approved merge (show "previous best" as a separate label is the next story). Last Validation: full suite 586 tests, 0 failures, 1 skipped (iPhone 17, iOS 26.5). Follow-ups (P2/P3): normalize the job key (whitespace, URL host case, trailing slash); hash the text key; tests for URL-then-pasted and nil-key paths. Last Updated: 2026-10-28.
+
+# 2026-10-25: Prepare release 1.5.6 (35)
+
+Status: build uploaded and selected; final submission pending.
+Current Phase: App Review candidate 1.5.6 (35).
+Active Story: complete combined app/consumable review readiness, PR #213.
+Last Completed Story: archive/export/upload validated; processed build 35 selected; all three consumables have real review screenshots and are Ready for Review in one draft.
+Next Recommended Story: finish screenshot/localization checks, final-head PR pre-check, integrate metadata and submit the combined app/products.
+Blockers: desktop-control tools unavailable after founder unlocked Mac; finish Other Diagnostic Data and User ID analytics privacy disclosures, verify 6.5 screenshot order, stage app version in existing draft, and complete current-head review. Public billing stays off; activation needs separate authorization on/after October 31. P2 #210/#211 remain follow-ups.
+Last Validation: project/diff checks; 11 Python tests; 582 XCTest cases (one skipped, zero failures), five Swift Testing cases; signed archive and App Store export; extracted metadata, production host, strict signature and distribution entitlements; successful upload, processed build selection and real phone StoreKit screenshot. See `docs/qa/reports/release-1.5.6-2026-10-25.md`.
+Last Updated: 2026-10-25
+
+# 2026-10-24: Real Sandbox grant verified; reopen recovery follow-up
+
+The founder confirmed the PDF share flow worked on the iPhone 13 after signing in with a newly created Apple Sandbox tester. Read-only production evidence: exactly one `iap_purchase` from `apple_iap`, product `resumely.exports.5`, environment `Sandbox`, delta +5; one `export_unlock` delta -1; balance 4. The initial Apple-looking verification failure produced no `/iap/verify` request from the phone in the inspected log window; Sandbox sign-in succeeded before the successful retry. No production-money purchase occurred. Public switch remains off; only the selected founder account is allowlisted.
+
+#208 is merged into #207 at d17b7de. Its current-head review found one new P2: a lock written after failed launch delivery prevented the paywall from reaching its pre-sale retry. This follow-up retries unfinished delivery on loading a locked paywall, while retaining the lock until delivery succeeds. Two of three deterministic regression cases fail before the behavior change. Full suite now passes 582 XCTest cases (one skipped) plus five Swift Testing cases. A first full run inherited `he` from the earlier smoke and failed 27 English-copy assertions; reset the actual app-container preference to `en`, then the full run passes. Device Release/review pending at this entry. Physical repeat-export/new-HE-export checks and PostHog reauthentication remain.
+
+# 2026-10-24: Phase 2 closure work, review follow-up on #207
+
+Status: implementation fixes verified locally; real Apple Sandbox purchase still pending. Follow-up branch `codex/payments-phase2-2026-10-24` starts at #207 head 7a9367a in a separate checkout because `ios-p3b-s6-paywall` has existing uncommitted pending-lock work. That work is preserved. The same multi-account finding is handled here with legacy persisted-lock compatibility added.
+
+Changes: per-account saved purchase locks; current-account check before publishing a background grant; immediate independent Transaction.updates listener before unfinished replay; localized English/Hebrew export error. The terminal refund lock path was already fixed by #207's recordDelivery and is retained (regression passes).
+
+Validation: old source fails the new multi-account and raw-error tests (three assertions). Fixed: 20 targeted tests pass; full suite 579 XCTest cases, one skipped, no failures, plus five Swift Testing cases. Unsigned and signed device Release builds pass with candidate build settings 1.5.6 (35), production API host verified; EN/HE simulator paywall smoke checked. Hosted review pending. Device install attempt failed with a disconnected CoreDevice transport; no device pass claimed. No real StoreKit transaction simulated by these tests.
+
+Read-only deployment evidence: web #195/#196/#197/#198 merged; production schema_migrations includes export_credits, harden_security_definer_grants, apple_iap_verification; unlock_export and grant_apple_purchase have postgres/service_role EXECUTE only. Production credit_transactions has no apple_iap rows. This supersedes older migration-not-applied notes for the current production state, without asserting who applied them.
+
+# 2026-10-22: P3b S6, StoreKit 2 export paywall (server-decided)
+
+**Status:** branch `feat/p3b-s6-storekit-paywall`, PR open, not merged. Nothing changes for users while the web switch `EXPORT_CREDITS_ENABLED` is off: the server answers every unlock `ungated`, so the sheet never opens.
+**Current Phase:** Payments Phase 2 (EXD-037): iOS In-App Purchase. Web side: #195 (export credits), #196 (function grants), #197 (Apple verification, S3).
+**Active Story:** S6. Every export asks `POST /api/v1/exports/unlock` first (with `X-Resumely-Client: ios`); a 402 opens the paywall sheet; a 401 `account_required` opens the save-account sheet. The sheet shows `resumely.exports.1/.5/.10` at `product.displayPrice`, buys with `appAccountToken` = the user id, sends the `jwsRepresentation` to `/api/v1/iap/verify`, and calls `finish()` only after the server granted. Unfinished transactions are re-sent at launch, on `Transaction.updates`, and after sign-in. After a grant the export the user tapped runs without a second tap. PostHog: `paywall_shown`, `paywall_dismissed`, `purchase_started`, `purchase_cancelled`, `purchase_pending`, `purchase_completed` (after the grant), `purchase_failed`. The parked four-tier drafts in `Payments/` and their two tests are deleted.
+**Last Completed Story:** S3 web PR #197 (review P1 fixed).
+**Review fixes (second model, P1 + P2s):** a paid-but-not-granted purchase is retried in-session (5, 20, 60 s) and delivered before the sheet sells another pack, so nobody pays twice; background delivery refreshes an expired token once (same account only); the export re-runs from the sheet's `onDismiss`, so the share sheet is not dropped; Close is disabled mid-purchase; a refund-before-grant shows its own message; `refreshCredits` no longer waits on `isMonetizationEnabled`; Ask to Buy and retry grants fire `purchase_completed`. Accepted and documented: guests with no session skip the unlock (the server cannot charge them; content is already on screen, spec section 3); History and Track downloads at 0 credits show the 402 message, not the sheet.
+**Codex fixes (922f974):** the unlock and verify requests go through `APIClient` (`postJSONResponse`, raw status) per AGENTS.md; an anonymous export from the preview opens the sign-up flow.
+**Codex P1 on 04065f8 (fixed):** after Ask to Buy answers pending, the sheet stays locked (`awaitingApproval`), so a second purchase cannot start; the approval, delivered through `Transaction.updates`, resumes the tapped export. Not unit-tested (needs a StoreKit pending result); covered by the S7 plan's optional Ask to Buy check.
+**Codex P1 on 48fe565 (fixed):** a charged purchase whose server grant failed (`grantPending`) now also locks the sheet; the background retry's grant resumes the export, so a second tap cannot charge again.
+**Codex on eccb72c (fixed):** P1, the waiting state now lives in `StoreKitManager.undeliveredProductID`, so closing and reopening the paywall stays locked until the held or charged purchase is delivered; P2, the shared 402 message is generic again ("You don't have enough credits for this."), the export-specific copy stays on `ExportCreditsError`. 566 tests pass; Release build passes.
+**Codex on 232ff4e (fixed):** two P1s and a P2. The waiting lock is now saved on the device (`StoreKitManager.PendingPurchaseLock`, per account, 48 h), so a relaunch or another account cannot unlock or inherit it, and every paywall load derives its state from that lock, so a failed price load and a retry cannot unlock a waiting purchase. 570 tests pass. S7 plan: ships in **1.5.6**, built only after web #195 is live; Paddle (web) parked 2026-10-23.
+**Second-model review on 4b3c22a (fixed, 2026-10-23):** three P1s and a P2 (Codex could not run: usage limit). A background delivery that fails (server down at launch, app killed before the grant) now locks its buyer, and the sheet re-checks the lock after its own pre-sale delivery, so it cannot sell again before the first purchase is delivered; a lock already waiting is not replaced. A grant clears the lock only for the same pack, so an older pack's grant cannot unlock a pack still waiting. A grant that lands while prices load keeps the sheet waiting, so the export resumes. A refund clears its lock. New `StoreKitManager.recordDelivery`; 5 new tests. The load race fix is not unit-tested (needs StoreKit products). Follow-up P2: a corrupt saved lock is ignored silently.
+**Next Recommended Story:** S7 Sandbox test (plan: `docs/qa/2026-10-22-p3b-s7-sandbox-test-plan.md`). Decided: the paywall ships in 1.5.6 (build 35) after 1.5.5 (34); the App Review demo account goes in `EXPORT_CREDITS_USER_IDS`.
+**Blockers:** S5 (the three consumables in App Store Connect) is a founder step; Sandbox purchase is unverified until then.
+**Last Validation:** 2026-10-23 after the second-model fixes: full `xcodebuild test` on iPhone 17 Pro simulator, 575 tests, 1 skipped, 0 failures; unsigned Release build. Earlier: full `xcodebuild test` on iPhone 17 Pro simulator: 566 tests, 1 skipped, 0 failures (22 new), through a real `URLSession` with a mock `URLProtocol`; Release build passes. Unsigned Release build for generic iOS Simulator passes. English and Hebrew screenshots of the sheet via `--smoke-paywall` (`--smoke-he`), RTL correct. A first full run failed 27 language-shaped tests because the Hebrew smoke run left `app_selected_language = he` (lessons 2026-10-16); after resetting it to `en`, all pass.
+**Last Updated:** 2026-10-23
+
+# 2026-10-22: Anonymous flag survives token refresh (1.5.5)
+
+**Status:** PR open against main for 1.5.5, not merged. 1.5.4 (33) in App Review untouched. No version bump, archive or App Store Connect action.
+**Current Phase:** Resumely 1.5.5 fixes.
+**Active Story:** keep `is_anonymous` on sessions built from GoTrue token responses.
+**Bug (pre-existing, found by the #205 second-model review):** `GoTrueResponse.makeSession()` built `AuthSession` without `isAnonymous`, and `refreshSession` persisted it. After the first token refresh an anonymous guest was saved and restored as a real account (`isAccountSession` is `isAnonymous != true`), so `AppState.isAuthenticated` turned true: signed-in UI (Profile, History) without sign-up, analytics could identify an anonymous user, and the #204 consent carry-over on restore was skipped.
+**What changed:** `Core/Auth/AuthService.swift`: `GoTrueUser` decodes `is_anonymous` (optional; absent means account); `makeSession()` (refresh, email and Apple sign-in) and `signUpWithEmail` pass it into `AuthSession`. Tests in `AuthServiceResponseTests`: refreshed anonymous stays anonymous through persist/restore; refreshed account stays account; no `is_anonymous` decodes as account.
+**Decided 2026-10-22 (founder): repair added.** `restoreSession()` reads the saved access token's `is_anonymous` claim (`JWTDecoder.isAnonymous(from:)`). Claim true on a saved session with no flag (every session the old bug wrote): mark it anonymous and save it back once. False, missing or unreadable claim, or a saved explicit `false`: unchanged, so a real account is never turned into a guest. Runs before `bootstrap()` uses the session.
+**Next Recommended Story:** Codex on the repair head; merge into the 1.5.5 batch with #205.
+**Blockers:** none for the code. Device check not run (needs an anonymous session saved by an older build after one refresh).
+**Last Validation:** 2026-10-22, iPhone 17 Pro, iOS 26.5, English/US, per-test timeouts: 534 XCTest tests, 1 skipped, 0 failures; Swift Testing 5 passed. Refresh fix: without it, the anonymous and account refresh tests fail (5 assertions). Repair: with a no-op repair, the anonymous restore test fails (2 assertions); with a repair that ignores the claim, both guard tests fail (4 assertions); with the earlier `isAccountSession` guard, the explicit-false test fails.
+
+# 2026-10-22: #204 guest consent carried to the anonymous session (1.5.5)
+
+**Status:** PR open for 1.5.5, not merged. No version bump, archive, upload or App Store Connect change; 1.5.4 (33) is in App Review.
+**Current Phase:** Resumely 1.5.5 fixes.
+**Active Story:** #204, a new guest is asked for AI consent twice.
+**Bug:** founder device test on 1.5.4 (33), PostHog 270848, 2026-10-21: `ai_consent_accepted` 17:13:30 as `guest`, relaunch, `anonymous_session_started` 17:13:56, `ai_consent_shown` again 17:14:15. The yes was stored under `guest`; the anonymous session's user id had none.
+**Fix chosen:** carry the guest's yes to the anonymous session when it starts, instead of creating the session before the first prompt. Smaller and safer: no network wait in the consent gate, no change to launch order, and it also covers a session that lands while the sheet is open.
+- `Core/Storage/AIConsentStore.swift`: `carryGuestConsent(to:)` moves the `guest` answer (with its date) to the anonymous identity and removes the `guest` key.
+- `Core/API/AIConsentGate.swift`: `AIConsentCenter.carryGuestConsent(toAnonymousUserId:)` records the anonymous successor; a guest sheet answered after the session landed is moved too. `clearAll` forgets the successor.
+- `App/AppState.swift`: `establishAnonymousSessionIfNeeded` carries consent only for an anonymous session (via the injected `consentCenter`, default `.shared`), and now uses the injected `AuthClient` (`signInAnonymously` added to the protocol; test doubles default to "provider off"). Real sign-in (`setSession`) is untouched, so a real account is still asked.
+- `App/AppState.swift` `bootstrap()`: a restored anonymous session also takes the guest yes, for 1.5.4 installs that already have both.
+- `Features/Tailor/TailorViewModel.swift`: #202's accepted P2 fixed: `didUpload` starts false, so a failed identity-triggered replacement upload records `resume_upload_failed`.
+**Last Completed Story:** #202 merged at `3e36474`; 1.5.4 (33) submitted 2026-10-22.
+**Next Recommended Story:** founder device check on a 1.5.5 build: fresh install, guest Check, Agree, relaunch, Check again: no second sheet. Then the rest of 1.5.5.
+**Blockers:** none for the PR. Founder approval needed to merge.
+**Last Validation:** 2026-10-22, iPhone 17 Pro, iOS 26.5, en/US, per-test timeouts: full suite 538 XCTest tests, 1 skipped, 0 failures. New `GuestConsentCarryOverTests` 10 pass; `UploadCacheIdentityTests` 12 pass; `AIConsentTests` 27 pass. Red run (carry and `didUpload` fix absent): 7 fail (5 carry-over, 1 store, 1 upload analytics). Guard tests (real sign-in still asks, sign-out clears) pass with and without the fix, as intended; the two guards for the new code fail under mutation (carry for an account session; successor kept after sign-out). Review follow-up: `AppState` takes an injected `consentCenter` (default `.shared`) so the tests use a private center and defaults; the test host runs the real launch bootstrap, whose anonymous sign-in could otherwise touch the shared center mid-test. Full suite re-run after it: 538, 1 skipped, 0 failures; carry-over tests still fail with the carry removed. Hosted Codex P2 on a19e105 (fixed): a 1.5.4 install can hold a guest yes next to a saved anonymous session, and the restore path skipped the carry; `bootstrap()` now carries for a restored anonymous session (never an account). 2 new tests (restored anonymous takes the yes, fails without the fix; restored account does not). Final full suite: 540 XCTest, 1 skipped, 0 failures; Swift Testing 5 passed.
+**Last Updated:** 2026-10-22
+
+# 2026-10-21: Prepare release 1.5.4 (33)
+
+**Status:** planned future release on `release/1.5.4-33`; PR #203 open; original bump head bed4245 reviewed clean. App Store remains 1.5.3. No signed archive, upload or submission performed.
+**Current Phase:** Resumely 1.5.4 release preparation.
+**Active Story:** build-33 physical-device QA handoff; automated preparation complete.
+**Last Completed Story:** #200 merged at `e3e8b8a497f96b162d40bd5104dd93fcd98d40b4`; main integrated into #202 at `c2643e7283891e8a4b7ac0b937f37a3bb60bdb43`; #202 merged at `3e36474d1ffdf5e65b32c98eaebb918d37c34f53`. Hosted Codex at c2643e7 found no major issues; fresh independent review found no new blockers. Both reported GitHub checks passed. Remote `qa/pr200-consent-screenshots` deleted after #200 merged; it held only disposable screenshot evidence.
+**What changed:** Debug and Release `MARKETING_VERSION` 1.5.3 to 1.5.4, `CURRENT_PROJECT_VERSION` 32 to 33. No runtime code changed in the bump.
+**Release contents:** explicit OpenAI consent across AI entry points (#200) and identity-scoped upload cache with one recovery upload on not-found (#202), on top of current main.
+**Approved follow-ups:** founder explicitly waived only #202's Features/V2 placement P1, with migration of the active TailorViewModel/upload-cache behavior to V2 deferred. P2s retained: a slow anonymous-session arrival can prompt twice; identity-triggered replacement upload failure can omit its failure analytics event. Prior P3: disabled Fit check and legacy TailorView do not have optimize()'s recovery retry.
+**Next Recommended Story:** founder runs the build-33 phone checklist in `docs/qa/reports/release-1.5.4-2026-10-21.md`; then release merge and signed archive/validation. Distribution requires its separate authorization.
+**Blockers:** both paired iPhones unavailable; no current build-33 device pass. Hosted review completed clean at bed4245; readiness docs require their new-head review. Valid signing identities and matching unexpired development/store profiles found; actual signing, installation and ASC acceptance unverified.
+**Last Validation:** combined source before this metadata-only bump: 527 XCTest tests, 1 skipped, 0 failures, plus 5 Swift Testing tests; all 11 upload-cache tests; unsigned generic iOS Release build passed. On bump: all 11 Python script tests passed, project plist and diff checks passed; Unsigned generic iOS Release build passed; built app metadata verified: 1.5.4 (33), expected bundle ID, production API URL. Independent bump review approved with no blockers. Store validator intentionally exits 1: candidate 1.5.4 versus live 1.5.3 (release 2026-10-20T22:13:51Z), expected for an unshipped release branch.
+**Latest QA Report:** `docs/qa/reports/release-1.5.4-2026-10-21.md`
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: PR #202 integrated with consent PR #200 for 1.5.4
+
+**Status:** #200 merged as `e3e8b8a`; main merged into #202, ready to push for review at the integrated head. No archive, upload or submission.
+**Current Phase:** Resumely 1.5.4 release preparation.
+**Active Story:** #202 integration and verification.
+**Last Completed Story:** resolved only the expected `tasks/progress.md` conflict, retaining both entries. Full simulator suite passed on the combined source.
+**Founder exception:** explicitly approved 2026-10-21: keep the live fix in `Features/Tailor/TailorViewModel.swift` for 1.5.4. Follow up by moving the active view model or its upload-cache behavior under `Features/V2`. This architectural P1 does not block this release.
+**Known P2 follow-ups:** #200 can ask twice when the anonymous identity arrives during the consent sheet; #202 omits failure analytics if an identity-triggered replacement upload fails. Both remain documented and accepted for this release.
+**Next Recommended Story:** hosted Codex review on the integrated #202 head, merge if no new blockers, then open the 1.5.4 (33) version bump PR and complete section 7b.
+**Blockers:** current-head hosted review pending after push; no new code blocker found in the independent read-only review.
+**Last Validation:** 2026-10-21: iPhone 17 Pro, iOS 26.5, English/US, per-test timeouts: 527 XCTest tests, 1 skipped, 0 failures; Swift Testing 5 passed. `UploadCacheIdentityTests` 11 passed. All 11 Python script tests passed. Project plist and diff whitespace checks passed. Apple lookup: live 1.5.3, released 2026-10-20T22:13:51Z. Independent fresh Codex read-only review: no new blockers.
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: Upload cache keyed to the signed-in identity (ships in 1.5.4 with #200)
+
+**Status:** PR open, not merged. No build archived, uploaded or submitted.
+**Bug (in live 1.5.3, not caused by #200):** the founder's #200 device test, 2026-10-21. As a guest (anonymous Supabase user) he ran a check, which uploaded résumé `cf1cc929` owned by the anonymous user. He then signed in to his account and ran the same file and job. `TailorViewModel.ensureUploadedResumeForCurrentJob` reused the cached upload, because its signature (file path, job text, URL) had no identity. That gave three `optimization_started` events and no `resume_upload_started`. `/api/optimize` reads the résumé through the user's RLS client, could not see the guest's row, and answered "Resume not found" (web `src/app/api/optimize/route.ts:128`). `convertAnonymousSessionIfNeeded` converts only the free-check session, not uploads.
+**What changed:**
+- `Features/Tailor/TailorViewModel.swift`: the upload cache records its identity (`uploadIdentity`, the Supabase user id or `guest`) and is reused only by that identity. `resetUploadCache()` drops `uploadResponse`, the signature, the identity and `pendingSaveResumeId`; the picked file and job stay.
+- If optimize answers "Resume not found" or "Job description not found" (500 or 404, `isUploadedIdNotFound`), the cache is dropped, the résumé is uploaded once more (`forceFresh`), and optimize is retried once. A second not-found surfaces the error. The uploader is injectable for tests.
+- `App/MainTabViewV2.swift`: resets the cache whenever `appState.session?.userId` changes (sign-in, sign-out, account deletion). A guest whose anonymous session becomes an account keeps the same id, so that case keeps its upload.
+- The Fit check (off) reads the same cached upload, so it is covered too.
+**Last Validation:** 2026-10-21: new `UploadCacheIdentityTests`, 9 pass. Each part was then removed on purpose: without the identity check, the not-found classifier and the reset, 6 of them fail (sign-in re-upload, reset, both not-found re-uploads, the second not-found, the classifier). The 3 guards still pass (same identity reuses, other errors do not re-upload, identity helper). Full suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 498 tests, 0 failures, 1 skipped.
+**Follow-up (Codex on 245ef77, P2, fixed):** when the recovery upload itself failed, `didUpload` was still true from the first upload, so `resume_upload_failed` never fired and the funnel showed a start with no end. The re-upload now counts as an upload until it succeeds. Analytics is injectable (`track:`). 2 new tests: a failed recovery upload records one `resume_upload_failed` and no retry; a second not-found after a good re-upload records no upload failure. `UploadCacheIdentityTests` 11 pass; the first new test fails with the fix removed.
+**Device test (founder, iPhone 13, 2026-10-21, local build `test/1.5.4-combined` = main + #200 + #202 at 245ef77):** a guest check, then sign-in with the same file and job: the check completed with no "Resume not found". Sign-out, then a guest check: it worked. Passed.
+**Merge note:** plan to merge after #200 so both ship in 1.5.4. There's no code overlap with #200 (this PR touches `TailorViewModel` and `MainTabViewV2`; #200 does not). Only `tasks/progress.md` will conflict; keep both entries.
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: Consent sheet always resolves; device test passed (PR #200)
+
+**Status:** pushed to PR #200, not merged. Waits for the founder's named yes. Ships in 1.5.4 with #202.
+**Device test (founder, iPhone 13, 2026-10-21, local build `test/1.5.4-combined` = main + #200 at 33c6a20 + #202):** as a guest, Check, then "Not now": back on Home, nothing ran. A swipe down did the same. "Agree" ran the check. After sign-in, the same file and job asked again (a new account) and completed. After sign-out, a guest check worked and asked again. Passed.
+**What changed (CodeRabbit on 33c6a20, Major, fixed):** `UIKitAIConsentPresenter` resolved only on a button or a swipe. A sheet dismissed from above (an ancestor modal closed by code, a root swap), or a presentation UIKit refused, left `AIConsentCenter`'s waiters queued, so every later gated send would hang until relaunch.
+- A hosting subclass reports when the sheet has left the screen and is no longer presented. It captures itself strongly, because nothing else holds it after a dismissal from above.
+- A check on the next run-loop turn resolves a presentation that never happened.
+- `finish` is idempotent, and a button's answer set before the dismissal wins.
+- The top view controller is injectable for tests.
+- Also: "afterwards" to "afterward" in `tasks/lessons.md` (CodeRabbit nit).
+**Last Validation:** 2026-10-21: `AIConsentTests` 27 pass (3 new, driving the real UIKit presenter). The dismissed-from-above test failed on the first, weak-capture version, and passes now. The refused-presentation and center-asks-again tests fail with the post-present check removed. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 516 tests, 0 failures, 1 skipped.
+**Last Updated:** 2026-10-21
+
+# 2026-10-21: PR #200 brought up to main after #198, #199 and #201 merged
+
+**Status:** pushed to PR #200, not merged. Waits for the founder's device test and named yes. Ships in 1.5.4.
+**What changed:** merged main (`0e32d7d`, which has #198, #199 and #201) into the consent branch. #198's merge into this branch (`e3311c8`, catalog and task files) already existed; this merge only had a `tasks/progress.md` conflict, and both sides are kept.
+**Live version:** 1.5.3 is live, released 2026-10-20T22:13:51Z (Apple lookup, 2 cache-busted polls, 2026-10-21).
+**Last Validation:** 2026-10-21, on merge `9e743fb`: full iOS suite (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`, per-test timeouts on): 513 tests, 0 failures, 1 skipped. All 24 `AIConsentTests` pass, including the catalog checks: disclosure keys are present with Hebrew, and no "never share" claims are left.
+**Last Updated:** 2026-10-21
+
+# 2026-10-20: Consent review fixes on PR #200 (every AI send, per account, no "never share")
+
+**Status:** pushed to PR #200, not merged. 1.5.3 (32) is in review without this; it targets the next build.
+**What changed:** the PR Steward (2026-10-20), Codex and CodeRabbit found three gaps. (1) Only Home's "Check my fit" asked; chat and refine on a restored optimization sent without consent. Now `APIClient` and `StreamingClient` ask `AIConsentGate` before every POST to a route that reaches OpenAI (`Core/API/AIConsentGate.swift`, list traced from the web routes). One `AIConsentCenter` shows the sheet over whatever is on top, through UIKit, and shares one sheet across concurrent sends. Home still asks before its check screen opens. (2) Consent was device-wide. Now it is keyed by the Supabase user id (`ai_data_consent_v1.<userId>`, `guest` with no session), so a second account is asked again, and `AppState.signOut` (and account deletion) clears every stored answer. (3) Profile and the save-account sheet still said "We never sell or share your data" / "We never share your resume". They now say "We send your résumé to OpenAI to write your results. We don't sell your data." (the privacy page says "we do not sell your data"). English and Hebrew.
+**Last Validation:** 2026-10-20: `AIConsentTests` 21 tests, all pass. Mutation check: with the gate removed from `postJSON`/`postJSONObject`, sign-out clearing removed, the key made device-wide and the old catalog restored, 8 of them fail (chat and refine blocked, second account, account switch, sign-out, scoped key, catalog claims, Hebrew), then pass again once restored. Full suite (iPhone 17 Pro, iOS 26.5, per-test timeouts on): 502 tests, 0 failures, 1 skipped. Simulator smoke in English and Hebrew: Check shows the sheet through the new presenter, "Not now" and a swipe both return to Home with nothing stored. "Agree" not run end to end (it would send a real guest check to production).
+**Follow-up (CodeRabbit on b4169f5, both fixed):** a sign-out while the consent sheet was open let a later "Agree" re-record consent for the signed-out user; `AIConsentCenter.clearAll` now bumps a generation and the pending answer is voided. Two quick taps on "Check my fit" could start two checks after one "Agree"; Home now lets one start through at a time (`Features/V2/Home/CheckStartLatch.swift`) and disables the button while it waits. `AIConsentTests` 24 pass; the sign-out test fails with the guard removed.
+**Follow-up (Codex on cc649d4, P2, fixed):** two tests waited on the stub presenter with an unbounded loop, so a presenter regression would hang the run. They now run the consent request in a `Task` and wait with a 2-second deadline (`waitUntil`). With the callback dropped, both fail in about 2 seconds instead of hanging.
+**Last Updated:** 2026-10-20
+
+# 2026-10-19: Ask before résumé data goes to OpenAI (App Review 5.1.2(i))
+
+**Status:** PR open, not merged. No build archived or uploaded. Ships in the release after 1.5.3 (32).
+**What changed:** the first "Check my fit" now shows a one-time sheet: "Resumely sends your résumé text and the job description to OpenAI, our AI provider", the 7-day guest retention, a Privacy Policy link, "Agree and continue" and "Not now". Nothing is sent until the user agrees. "Not now" or swiping the sheet away sends nothing, and the next tap asks again. The gate sits in `HomeTabView.startCheck()`, the only caller of `runAnalysis`. The answer is stored per device with its date (`Core/Storage/AIConsentStore.swift`, key `ai_data_consent_v1`). New sheet: `Features/V2/Home/AIConsentSheet.swift`. New events: `ai_consent_shown`, `ai_consent_accepted`, `ai_consent_declined` (`source=home_check`). Two false labels removed with their catalog keys: "Your resume is encrypted and never shared." (`ScanResumeView`) and "Your resume data is encrypted end-to-end." (`ResumePreviewExportView`), both dead code.
+**Why:** the 2026-10-19 WWDC26 audit (vault `03-Research/2026-10-19-wwdc26-portfolio-adoption-audit.md`, O2) found the app sent résumé text to OpenAI with no in-app permission. The web privacy page named OpenAI, but guests could upload without ever seeing it.
+**Known limit:** chat or refine on an old optimization, before the user's next Check, is not gated.
+**Next:** founder review and merge; then the RunSmart consent fix and privacy page rewrite (same O2 finding).
+**Last Validation:** 2026-10-19: `AIConsentTests` 8 tests, red first (compile failure on the missing store, then 10 failures on missing Hebrew and the two catalog claims), now green. Full `xcodebuild test` (iPhone 17 Pro, iOS 26.5, `-testLanguage en -testRegion US`): 489 tests, 0 failures, 1 skipped, plus 3 Swift Testing tests passed. Simulator smoke with `--smoke-home-job` in English and Hebrew: tapping Check shows the sheet (Hebrew right-to-left, fully translated). "Not now" returns to Home with no check started and no consent stored. "Agree" was not run end to end, because it sends a real guest check to production.
+
+# 2026-10-20: Checklist crop fallback made followable (PR #201, Codex on 4c49350)
+
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
+**What changed:** Codex (P2) found that part C's crop fallback could not be followed. Only the universal file is in the Asset Library, Browse Assets lists only uploaded assets, live Publish needs approved ones, and the status note said never to upload another asset. Step 5 now uploads both dedicated files as new assets (part B steps 1 to 4), submits them standalone (part D.2), and waits for approval before re-running the preview. The status note now forbids re-uploading only the universal asset.
+**Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Checklist reconciled with the submitted creative asset (PR #201, Codex on b30f479)
+
+**Status:** pushed to PR #201, not merged. Nothing new was uploaded or submitted by this change (the universal creative asset stays submitted standalone since 2026-10-20 11:34, awaiting Apple's review; do not resubmit it).
+**What changed:** Codex found the checklist still said "nothing has been uploaded or submitted" and "Prepare for Submission (not submitted)" after the 11:34 standalone submission, and that it called parts C and D done although no preview ran. `docs/aso/2026-10-app-store-asset-publish-checklist.md` now opens with a status table (A not done, B done, C not done, D.2 done, D.1 and E not done), says not to upload or submit the asset again, and part E starts with a step 0: run part C's preview on an editable version before any live Publish.
+**Last Validation:** 2026-10-20: docs only; `python3 -m unittest discover -s scripts -p 'test_*.py'` OK; no em dashes in the checklist.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Creative asset submitted for review (rb-aso-003)
+
+**Status:** creative asset submitted for review standalone on 2026-10-20 11:34 (founder's yes); not published. Screenshots unchanged: 1.5.3 (32) went to review with the June set, so the swap moves to the next version.
+**Current Phase:** Q4 OKR A1, Resumely ASO.
+**Active Story:** rb-aso-003 creative asset.
+**Last Completed Story:** in Chrome, uploaded `resumely-universal-5244x2950.png` to Asset Library as `Header and search, Oct 2026` (ID 16c00019-3ed0-88dd-8028-aab55aafa4f4). Works With: Search Results and Product Page Header. Status Prepare for Submission.
+**Next Recommended Story:** after Apple approves (up to 48 hours), preview on the live version and publish only with the founder's yes (checklist part E); log rb-aso-003 with the publish date. Screenshot swap (part A) on the next version.
+**Blockers:** preview needs an approved asset or an editable version; neither exists today (1.5.3 locked in review, 1.5.2 live).
+**Last Validation:** 2026-10-20: Asset Library list and detail page read back in Chrome after upload (5244x2950, both placements); App Store Connect showed "1 Item Submitted". In-store look not checked.
+**Last Updated:** 2026-10-20
+
+# 2026-10-20: Asset publish pack review fixes on PR #201
+
+**Status:** pushed to PR #201, not merged. Nothing uploaded to App Store Connect or submitted.
+**What changed:** the PR Steward (2026-10-20) and Codex found three gaps. (1) The checklist assigned only the product page header before preview and removed only the header after it, so a search-results asset could ship with the version and mix the rb-aso-002 and rb-aso-003 reads. Part C now assigns **Header** and **Search Results** (Use header asset in search results for the universal file, the dedicated file otherwise), previews, deletes both, and checks both wells are empty, per Apple's "Remove creative assets from a placement" steps. Part E publishes both. (2) The screenshots target the next editable version (1.5.4 or later): 1.5.2 is live and 1.5.3 (32) is already in review without them. (3) `CAPTURE_IPAD=0` ran the final validator without `--iphone-only`, so a fresh iPhone-only folder failed on five missing iPad images. `scripts/generate-app-store-screenshots.sh` now passes the flag, and `SKIP_CAPTURE=1` re-checks existing PNGs without the simulator.
+**Last Validation:** 2026-10-20: new `scripts/test_app_store_screenshot_scripts.py` 4 tests pass (validator with and without `--iphone-only`, and the generator with `CAPTURE_IPAD=0` and `1` on a fresh synthetic iPhone-only folder). With the `--iphone-only` line removed, `test_capture_ipad_off_validates_iphone_only` fails, then passes again once restored. All `scripts/test_*.py` OK. `zsh -n` on the generator OK. No Swift changed.
+**Next Recommended Story:** founder follows the corrected checklist on the next version; builder-os-exchange #31 is redone around it.
+**Last Updated:** 2026-10-20
+
+# 2026-10-19: App Store asset publish pack (rb-aso-002 screenshots, rb-aso-003 creative asset)
+
+**Status:** PR open, not merged. Nothing uploaded to App Store Connect or submitted (founder step).
+**Current Phase:** Q4 OKR A1, Resumely ASO.
+**Active Story:** asset publish pack, this PR.
+**Last Completed Story:** Apple's screenshot spec (read 2026-10-19) requires at least one iPhone "Dynamic Island (medium display)" screenshot; 1242x2688 is only the scaled fallback for it. Added a native 1206x2622 set (`app-store-v2/iphone-6.3-1206x2622/`, iPhone 17, same 5 slots, `MarketingScreenshotView` unchanged since 1.5.2). Generator, normalizer and validator now take the iPhone folder (`IPHONE_DIR`, `CAPTURE_IPAD=0`). New creative asset for the iOS 27 product page header and search results in `dist/app-store-creative-assets/` (universal 5244x2950, plus 3840x1646 header and 3840x2560 search crops), rendered by `scripts/render-app-store-creative-assets.sh`, which refuses ATS, price, free and score words. Click-by-click checklist: `docs/aso/2026-10-app-store-asset-publish-checklist.md`.
+**Next Recommended Story:** founder follows the checklist: swap screenshots on 1.5.3 before submitting it, upload the creative asset to the Asset Library and submit it standalone, publish it 28 days after the screenshots, log rb-aso-002 and rb-aso-003 in Agentic OS `distribution-os/experiment-log.md`.
+**Blockers:** none.
+**Reminder:** by 2027-03-01, iPhone Duo screenshots (1398x2034 outer, 2007x2853 inner) are required from April 2027 for builds on the iOS 27.1 SDK.
+**Last Validation:** 2026-10-19: `validate-app-store-screenshots.sh` PASS for all three sets (1242x2688, 1206x2622, 2064x2752; 5 unique opaque PNGs each); `render-app-store-creative-assets.sh` PASS (copy check, sizes, no alpha); every new PNG viewed; `CopyClaimsTests` 5 tests, 0 failures (iPhone 17 Pro Max, `-testLanguage en -testRegion US`). Full suite not run: no app code changed.
+
+# 2026-10-19: Diagnosis tells one score story
+
+**Status:** PR open, not merged. Not in 1.5.3 (32); ships in the next build.
+**Current Phase:** post-1.5.3 fixes.
+**Active Story:** Diagnosis one score story (`fix/diagnosis-one-score-story`).
+**Last Completed Story:** the ring showed the stored 67 while "What changed" showed the review projection "Original 45% -> Match 49%". Now: headline 67, "Up from 45% before tailoring" (stored original, shown for +5 or more), no score in "What changed", no projected strip, no "ATS" in the checklist, section names and the server's change titles localized (Hebrew plural voice).
+**Next Recommended Story:** decide whether the Optimized tab's free-check floor (`FitJourney.baseline`) should also apply on Diagnosis, so the two screens can never differ; fit check projection vs stored result needs a server fix (49 promised, 67 stored).
+**Blockers:** none.
+**Last Validation:** 2026-10-19: `DiagnosisScoreStoryTests` (8) did not compile before the fix, pass after; full suite 489 tests, 0 failures, 1 skipped (iPhone 17 Pro sim, iOS 26.5, `-testLanguage en -testRegion US`, rebased on 1.5.3); `--smoke-diagnosis` screenshots in English and Hebrew.
+**Last Updated:** 2026-10-19
+
+# 2026-10-19: Release 1.5.3 (32), Home redesign
+
+**Status:** 1.5.3 (32) uploaded to App Store Connect 2026-10-19T18:33Z ("Upload succeeded", reported by the uploading session; not independently checked in App Store Connect). Merged: #195, #196, #197. **Founder reported it submitted for review 2026-10-20** (relayed by the morning-brief session; review state not checked here).
+**Current Phase:** Home redesign shipped to App Store Connect.
+**Active Story:** release 1.5.3 (32).
+**Last Completed Story:** Stories A (#195) and B (#196) merged into main, plus a device-found fix in #196: "Save this resume?" was lost after a check because the full-screen check was still up (device log "Attempt to present … which is already presenting"); it now waits for the check screen's `onDismiss`.
+**Next Recommended Story:** wait for 1.5.3 (32)'s review outcome; do not touch App Store Connect for it. Next build is 1.5.4: Diagnosis score fix (#198) and the AI consent sheet (#200).
+**Blockers:** none.
+**Known limits:** Cancel on the check screen stops the app, not the server: the cancelled run kept generating on the server for ~30s (PostHog `$ai_generation` after cancel, 2026-10-19). The system Paste button follows the phone language.
+**Last Validation:** 2026-10-19: IPA checked before upload: Apple Distribution signed, get-task-allow false, Sign in with Apple entitlement, API `https://www.resumelybuilderai.com`, PostHog key `phc_UmPZ` (project 270848), no DEBUG smoke flags in the binary. Full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); founder device QA on iPhone 13 (picker, link, cancel, full check, apply, Diagnosis), confirmed in PostHog; picker failure seen earlier on the same device not reproduced in a later device run or the simulator.
+**Last Updated:** 2026-10-20
+
+# 2026-10-19: Home check takes the full screen (Story B)
+
+**Status:** PR open, not merged, no build submitted. Stacked on Story A (PR #195).
+**Current Phase:** Home redesign (design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg).
+**Active Story:** Story B, this PR.
+**Last Completed Story:** Story B. "Check my fit" now opens a full-screen check (`HomeCheckScreen`, tab bar hidden) instead of the loader at the bottom of the scroll. It names the résumé file and the job (link site, or "Pasted description") side by side, and shows four stages that tick once and hold on the last: reading the résumé (ends when the upload finishes on the optimize path), reading the job, comparing requirements and experience, preparing the diagnosis. "Cancel check" stops the running task and returns to Home with the inputs as they were; cancellation shows no error and records no failure. The ATS line "Checking formatting parsers can read" is gone. 13 new strings, plural Hebrew. Reduce Motion: no scan beam, no spinner. DEBUG-only `--smoke-check-screen` opens it with no network call.
+**Next Recommended Story:** founder device check of Stories A and B together (a real check end to end, Cancel mid-check, Hebrew). Then merge #195 first, this PR second.
+**Blockers:** none.
+**Known limits:** Cancel stops the app waiting, not the server: a run already started may still finish and use a credit. With the fit check flag on (off in production) the upload before the fit sheet still shows only the button spinner.
+**Last Validation:** 2026-10-19: build OK; full suite 481 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en -testRegion US`), 9 new. Simulator iPhone SE: English and Hebrew check screen, stage sequence in Hebrew, Cancel back to Home with inputs intact, Reduce Motion on. Two bugs found there and fixed (Hebrew rendered left to right inside the cover; scan beam frozen). Cover closing while a sheet opens: checked with a throwaway sheet, not committed.
+**Last Updated:** 2026-10-19
+
+# 2026-10-19: Home job step, one field and a pinned button (Story A)
+
+**Status:** PR open, not merged, no build submitted.
+**Current Phase:** Home redesign (design: https://claude.ai/artifact/W196GdRXqqxegyetyWG7jg).
+**Active Story:** Story A, this PR.
+**Last Completed Story:** Story A. After a résumé is picked, Home asks "Which job is this for?" with one link field and the system Paste button. A valid link becomes a card (site, link, ✕). "No link? Paste the job description" opens a fixed-height box with a word meter against the real minimum. The step 3 card is gone: "Check my fit" is pinned above the tab bar, with the blocking reason under it. "Step N of 3" follows the real step, and "Match" is ticked only for a check run this session (it used to tick for any old `latestOptimizationId`). The old-result card and the 7-seconds strip show only before a résumé is picked. 18 new strings, plural Hebrew. DEBUG-only `--smoke-home-job` (with `SMOKE_RESUME_PATH`, `--smoke-job-url`, `--smoke-job-words`) for screenshots without the file picker.
+**Next Recommended Story:** Story B, full-screen check (`ResumeOptimizationLoadingView` as a cover, stages that never loop, Cancel, no ATS line). Founder: device check of this PR, including typing with the keyboard up (not checked in the simulator).
+**Blockers:** none.
+**Known limits:** the system Paste button follows the phone language, not the in-app switch. Hebrew progress chips ("העלה", "הוסף משרה") are older singular strings, unchanged.
+**Last Validation:** 2026-10-19: build OK; full suite 472 tests, 0 failures, 1 skipped (iPhone 17 Pro, `-testLanguage en`); simulator iPhone SE, English and Hebrew, states: empty, link added, 62 pasted words. Two bugs found there and fixed (button hidden behind the tab bar, description box growing off screen).
+**Last Updated:** 2026-10-19
+
+# 2026-10-19: G1b App Store screenshots, no ATS (WP-78)
+
+**Status:** PR open, not merged. Screenshots not uploaded (founder step).
+**What changed:** new 5-slot set in `dist/app-store-screenshots/app-store-v2/` (iPhone 6.5" 1242x2688 and iPad 13" 2064x2752), rendered from `main` at 1.5.2. No "ATS" on any image. Slot 2 subscores now use the app's real labels (Keyword Alignment, Content Quality, Format & Structure, Design). Slot 3's rewrite no longer invents the 18% result, it uses the fact in the "before" line. Slot 5 names a real expert tool (Achievement Quantifier) instead of a "Hiring-manager read" the app does not have. Three clipped lines fixed after visual review.
+**Why 5, not 10:** the renderer has had 5 slots since the 2026-07-20 caption pack, but the generator, normalizer and validator still expected 10, and the iPad simulator they named no longer exists. All three now take the slot count; the iPad default is iPad Pro 13-inch (M5). The June 10-slot set in `app-store-v1/` is the one live on the App Store and is kept as history.
+**Next:** founder deletes the 10 live screenshots in each App Store Connect device section and uploads the 5 new ones, then records the publish date as the new ASO baseline (Agentic OS `distribution-os/experiment-log.md`, rb-aso-002).
+**Last Validation:** 2026-10-19: `CopyClaimsTests.testMarketingSlotsNeverSayATS` failed 4 times on the old copy, passes on the new; generator run with `validate-app-store-screenshots.sh` PASS for both sets; every PNG viewed on a contact sheet; full `xcodebuild test` 472 tests, 0 failures, 1 skipped (iPhone 17 Pro, iOS 26.5).
+**Last Updated:** 2026-10-19
+
+# 2026-10-19: 1.5.2 (30) is live on the App Store
+
+**Status:** 1.5.2 (30) live since 2026-10-19. App Store lookup for "Resume AI - CV Builder" (id
+6776752349), polled 3 times on 2026-10-19 with a different `nocache` value each time (3 of 3 agreed):
+version 1.5.2, released 2026-10-19T01:22:38Z. The founder also confirmed it in App Store Connect.
+**Ships in 1.5.2:** #188 (no server placeholders), #189 (G2b "Add only if true") and #190 (job step
+asks only what the server needs). All three merged before the build. Known limit: issue #191 (link
+ending in punctuation).
+**Next:** device check of the live build, then G1b screenshots.
+**Last Validation:** 2026-10-19: App Store lookup 1.5.2 (3 of 3 polls). Status-file change only; no
+build, test or code change.
+**Last Updated:** 2026-10-19
+
+# 2026-10-18: Release 1.5.2 (30) version bump
+
+**Status:** PR open, not merged, no build archived or uploaded.
+**Ships in 1.5.2:** #188 placeholders (merged), #190 job input (50 words for tailoring, links from share
+text), #189 "Add only if true" (G2b). Known limits: issue #191 (link ending in punctuation).
+**Next:** merge #190 and #189, then this bump; build main, full test suite, device walk, archive,
+upload, founder submits in App Store Connect.
+
+# 2026-10-16: G2b, iOS "Add only if true"
+
+**Status:** PR open, not merged, no build submitted.
+
+**2026-10-18, founder-session review fix:** the timeout recovery read `review.optimizationId`, but the
+live review endpoint (`/api/v1/optimization-reviews/[id]`, web `service.ts:75-90`) returns only
+`applied_at`, so the recovery never fired. The test fixture had invented `optimization_id`. Now:
+`applied_at` set with no id closes the sheet with "Your changes were saved. Open History..."
+(`PhraseConfirmationError.appliedWithoutResult`) instead of a retry the server refuses. Server-shaped
+fixture is the test default. `AddOnlyIfTrueTests` 20/20.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md` G2b.
+**Active Story:** G2b, this PR.
+**Last Completed Story:** G2b. The optimize request now sends `confirmJobPhrases: true`, so the web
+holds back job-post lines the résumé never says. Before anything is applied, a new "Add only if true"
+sheet (`Features/V2/Home/AddOnlyIfTrueView.swift`) lists them unselected; Continue applies every change
+plus only the lines the user confirmed (`ConfirmPhraseSelection` in `OptimizationAutoApplyService.swift`).
+Wired into Home's apply paths (fit check and direct apply, `HomeTabView`); the unused legacy `TailorView` screen is unchanged. Auto-apply, the legacy review screen and
+Resume Diagnosis never apply or list an unconfirmed claim. English and Hebrew copy in the catalog.
+**Next Recommended Story:** founder: device check of the full flow, then a build; G1b screenshots.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-18 (round 4): merged main after the #188 squash (this branch's #188 commits are identical to it). A failed apply now reads the review back and lands as success when the server already applied it (timeout after commit), Cancel is disabled and ignored while an apply is in flight, and the Optimization Review screen disables and stops counting claims whose section is left out. 3 new tests fail without each fix; `AddOnlyIfTrueTests` 19/19; full suite 456 tests, 0 failures, 1 skipped. 2026-10-17 (round 3, PR #189 review): an out-of-range `estimated_gain` (1e308) is "unavailable" instead of a crash; the Optimization Review screen sends a claim only while its section change is included (or standalone); a failed apply keeps the sheet, the choices and a retryable error. 3 new tests reproduce each on fa57a5c (the old decode crashes with "Double value cannot be converted to Int"); `AddOnlyIfTrueTests` 16/16; full suite 453 tests, 0 failures, 1 skipped. 2026-10-16 (round 2, PR #189 review): the flow moved into `Features/V2/Home/PhraseConfirmationFlow.swift` and its sheet onto Home's NavigationStack, so the no-fit-preview path asks too; legacy `Features/Tailor/TailorView.swift` is back to main (the app never shows it). `AddOnlyIfTrueTests` 13/13 (4 new: no fit preview applies directly, held lines wait for the user, no held lines apply at once, cancel applies nothing); full suite 450 tests, 0 failures, 1 skipped; smoke `--smoke-confirm-flow` showed the sheet with no destination and over a pushed one, Continue applied 1 confirmed, Cancel applied nothing. Rebased onto #188 (6bd13b6). Earlier 2026-10-16: `AddOnlyIfTrueTests` 9/9 (3 fail with the flag removed and the old
+send-everything selection); full iOS suite 437 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator);
+smoke harness `--smoke-diagnosis --smoke-confirm` (and `--smoke-he`) rendered the sheet in English and
+Hebrew RTL, both claims unselected, toggle works. Production simulator run (Hebrew UI, guest, Maya
+fixture): fit check 46 to 59, accept showed the sheet with one real held claim unselected, Continue
+without confirming applied and landed on the tailored résumé.
+**Last Updated:** 2026-10-16
+
+# 2026-10-16: The Home job step asks only what the server needs
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Market play Track 1; the iOS activation leak (4 of 5 people who picked a résumé stopped at "Add Job", build 1.5.1 (29)).
+**Active Story:** iOS job-input policy (fix/job-input-policy).
+**Last Completed Story:** Job input policy. Tailoring needs 50 pasted words (was 100); the public free check, used with no session and by the fit check, still needs 100. A job link is found inside pasted share text (also when the text starts with the link), and a bare domain gets https://. `job_input_validation_shown` carries `word_count_bucket` (0, 1-24, 25-49, 50-99, 100+), never the text. English and Hebrew messages state the minimum for where the text goes.
+**Next Recommended Story:** a "no job post yet" path for people who type no job at all (P3, P5 in the 2026-10-16 read); then read `word_count_bucket` after the next build.
+**Blockers:** App Store submission is a founder step.
+**Last Validation:** 2026-10-18 (review round 2): share text that starts with the link ("https://www.linkedin.com/jobs/view/123 via LinkedIn") kept the trailing words in the path as %20via%20LinkedIn; a value with spaces is no longer taken whole, so link extraction runs on it. New regression test failed first (14 tests, 1 failure), then `JobInputPolicyTests` 14/14; origin/main (#188) merged; full suite 451 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator). 2026-10-17 (review round): Home and Tailor pick the rule with `Destination.firstSession(canOptimize:isFitCheckEnabled:)`, so the fit check (100 words) cannot drift from Home; Tailor now sends `word_count_bucket`; the unused "at least 100 words" fit key is removed. `JobInputPolicyTests` 13/13; full suite 441 tests, 0 failures, 1 skipped. 2026-10-16: new `JobInputPolicyTests` 12/12 (5 fail with the old 100-word floor and strict link parser); `FitCheckViewModelTests` updated for the two reversed behaviours; full suite 440 tests, 0 failures, 1 skipped (iPhone 17 Pro simulator).
+**Last Updated:** 2026-10-18
+
+# 2026-10-16: No "Company Name Job Position" placeholder header (PR #188, review fixes)
+
+**Status:** PR open, not merged, no build submitted.
+
+**Current Phase:** Market play Track 1 (go-to-market), web plan `docs/plans/2026-10-14-market-play-implementation.md`.
+**Active Story:** G2b, the iOS "Add only if true" review screen (next, on its own branch).
+**Last Completed Story:** PR #188 review fix: title and company sentinels split
+(`JobLabel.title` drops "Job Position" / "Position", `JobLabel.company` drops "Company Name"),
+so a company really named "Position" survives. Earlier (2026-10-12): the four Maya capture
+bugs were traced; web #167 and #168 are merged and live, so bugs 1 and 2 are fixed on the server.
+**Next Recommended Story:** G2b; then re-run the Maya capture on device to confirm the header.
+**Blockers:** none.
+**Last Validation:** 2026-10-16 (round 2): `JobLabel` is `Sendable` (AGENTS.md:41), pinned by a compile-time test; full suite 437 tests, 0 failures, 1 skipped. 2026-10-16: 3 new cross-field tests in `JobLabelPlaceholderTests` failed
+with the shared set (9 assertion failures), 8/8 after the split; full iOS suite 436 tests,
+1 skipped, 1 failure in `FirstSessionJourneyTests.testLateRecoveryFailureDoesNotOverwriteNewerOptimization`
+("before timeout"), which passed on rerun (13/13 with `JobLabelPlaceholderTests` 8/8); iPhone 17 Pro
+simulator. No new simulator flow run: the change is decode-only and covered by the tests.
+**Last Updated:** 2026-10-16
+
+# 2026-09-24: WP-77 verdict, no visibility issue on the Home upload CTA
+
+**Status:** Measured, read-only. No product, analytics or UI change.
+
+**Current Phase:** Resumely activation measurement, Q4 Objective A.
+**Active Story:** None.
+**Last Completed Story:** WP-77, remeasure upload-CTA reach on a valid common cohort.
+**Next Recommended Story:** Per WP-77's verdict rule, diagnose the next measured loss after
+`resume_file_picker_opened`. Do not open a Home UI or lifecycle packet on this evidence.
+
+On PostHog 270848, query end `2026-09-24T06:00:00Z`: 39 real people whose first-ever
+`guest_mode_started` is on or after 2026-07-08 (the `resume_upload_cta_seen` birthday),
+testers excluded per person. **32 of 39 (82.1%)** emitted CTA-seen from 60 seconds before
+their first guest event through the query end; **32 of 36 (88.9%)** among builds that can
+emit it. Both clear the 80% bar. 18 tapped and 18 opened the picker (46.2%, ever-fired, not
+a sequence). The query measures reach through its end, not first-launch attribution for
+all 32 impressions.
+
+**WP-76's 99 -> 33 was three measurement defects, not users missing the CTA.**
+
+- Mixed event birthdays across a 100-day window.
+- 3 people on a client that sends no `app_version` and has never emitted CTA-seen for anyone.
+- An ordering race in this app. `guest_mode_started` is sent after
+  `await appState.bootstrapAndRefreshSession()` in `ResumeBuilder_IOS_APPApp.swift:41-45`,
+  while `HomeTabView.uploadHero` sends CTA-seen on appear. Ten people's CTA-seen landed 0 to
+  2 seconds before their guest event in the same launch, so a strict "after the guest event"
+  rule drops them. That is the whole gap between 56.4% and 82.1%.
+
+**Worth knowing for any future funnel on this app:**
+
+- Anything anchored on `guest_mode_started` with strict ordering undercounts same-launch
+  events.
+- PostHog's `$app_version` is never set. The version lives in `app_version` and
+  `build_number`.
+- Build `1.3 (9)` under-emits CTA-seen (3 impressions against 10 taps).
+
+**Uncertainty:** n = 39, and the margin on the full denominator is one person (31 of 39
+would fail). Full query, columns, rows and method are in Agentic OS
+`executive-os/work-packets/WP-77-resumely-remeasure-upload-cta-reach.md`.
+
+## 2026-09-13 — 1.5.1 (29) live; listing correction verified
+
+**Status:** Live. Three cache-busted iTunes lookup reads on 2026-09-13 returned
+version 1.5.1 with `currentVersionReleaseDate = 2026-09-09T16:51:52Z` and confirmed
+the exact phrase `pass ATS screening` is absent from the public description.
+
+**Current Phase:** Resumely activation measurement, Q4 Objective A.
+**Active Story:** None. WP-77 is ready in Agentic OS to correct the mixed-birthday
+`guest_mode_started` -> `resume_upload_cta_seen` read before any UI change.
+**Last Completed Story:** WP-75 S3 — corrected listing live, UTC publish timestamp
+recorded, and the unsupported description claim removed from the public surface.
+
+The publish timestamp is the fourth Resumely measurement boundary. Events before
+and after `2026-09-09T16:51:52Z` are separate series and must not be combined into
+one listing-effect trend.
+
+**Known remainder:** App Store screenshots still carry the previously disclosed ATS
+wording. The founder explicitly accepted this remainder for 1.5.1; it was not fixed
+or re-approved in this status update.
+
+**Next Recommended Story:** Execute Agentic OS WP-77 first. On or after 2026-09-16,
+run WP-75 S5 only with WP-77's aligned cohort contract; do not reuse the withdrawn
+99 -> 33 CTA-reach figure.
+**Blockers:** Live PostHog access is required for WP-77. The Codex PostHog connection
+required reauthentication on 2026-09-13, so no replacement rate was derived here.
+**Last Validation:** 2026-09-13 — three public lookup reads returned
+`1.5.1 2026-09-09T16:51:52Z False`, where `False` means the unsupported phrase was
+absent. No build or tests run because no product code changed.
+**Last Updated:** 2026-09-13
+
+---
+
+## 2026-09-09 — 1.5.1 (29) submitted, Waiting for Review
+
+**Status:** Submitted. Confirmed `1.5.1 Waiting for Review` on the App Store Connect version page.
+**Current Phase:** Resumely listing correction and activation (WP-75, Q4 Objective A).
+**Active Story:** None. Awaiting Apple review.
+**Last Completed Story:** WP-75 S2 — the corrected listing is filed.
+
+### What shipped in the binary
+
+PR #184 (WP-75 S1/S4) and PR #185 (Hebrew leak in the English upload card), merged
+2026-09-09. Both were green in isolation and had **never been built together**; they
+also conflicted in this file. Validated on the merged tree: `xcodebuild build`
+SUCCEEDED, and `xcodebuild test` on iPhone 17 / iOS 26.5 returned **433 tests, 432
+passed, 0 failed, 1 skipped**.
+
+Version bump 1.5.0 (28) → **1.5.1 (29)**. 1.5.0 (28) has been live since
+2026-09-02T19:44:22Z, so build 28 could not be uploaded again. The bump was guarded
+with a sorted before/after diff of every build-setting line in `project.pbxproj`:
+exactly four lines changed, one pair per build configuration. That is the check the
+2026-08-14 version regression exists to force.
+
+### What shipped in the metadata
+
+The live description claimed resumes "pass ATS screening" and that templates are
+"ATS-friendly". Neither is supportable. Both are gone. The description now leads with
+the actual product ("Paste the job you are applying for...") and says "Resumely Match
+Score", which the old text never did once.
+
+**The subtitle was not what WP-75 said it was.** The packet asserted `Paste Job. Free
+Match Score`; the live subtitle is `Resume & CV Maker`. The accepted keyword field had
+been built by excluding `paste`, `job`, `free`, `match`, `score` as already-indexed —
+none of which are in the real subtitle. Pasting it would have **removed `job` from the
+keywords entirely**. Recomputed against the real name and subtitle and filed at exactly
+100/100 characters:
+
+```
+job,match,score,cover letter,career,tailor,application,export,template,optimize,interview,hiring,pdf
+```
+
+Pre-change field, captured before overwriting because no public API exposes it:
+`resume,CV,job,career,AI,builder,cover letter,professional,template,interview,hiring`
+
+### Two stale-wording defects fixed on the ASC page
+
+- App Review notes claimed "Saved resume library is disabled in v1.0 (backend not yet
+  live)". False — that feature is wired across `AppState`, `Endpoints` and
+  `RuntimeServices`, and the note described v1.0 on a 1.5.1 submission.
+- The review path made sign-in step 1, which is wrong for a guest-first app and made
+  the review depend on the demo account working, in a product whose Supabase host was
+  NXDOMAIN as recently as 2026-08-30. Rewritten so the core path needs no account.
+
+`IAP is disabled` kept, verified against `BackendConfig.isMonetizationEnabled = false`.
+No Sign in with Apple exists anywhere in the codebase.
+
+### Disclosed, not fixed
+
+- **Screenshots still carry the ATS claims.** "Templates that pass ATS and impress
+  recruiters" is a headline on screenshot 7; screenshots 1, 2 and 10 say "ATS score" /
+  "ATS match", contradicting the decision that the product name is "Resumely Match
+  Score". Founder decided to ship anyway. The rebuild is now overdue for two reasons.
+- **Eight export-flow strings have no Hebrew translation** (`Export application
+  package`, `Save this application to Me`, and six siblings). Xcode added them to
+  `Localizable.xcstrings` during the 1.5.1 archive. Verified no translation was lost:
+  948 → 956 keys, 0 removed, 0 keys lost their Hebrew. They were already English-only,
+  so this is a disclosure, not a regression — but it is in the export flow, which is
+  the north-star action.
+- **Copyright reads `2025 Nadav Yigal`** on a 2026 submission. Cosmetic, pre-existing.
+
+### Release settings
+
+Automatic release on approval, all users immediately, **Keep existing rating**. Because
+release is automatic, take the publish timestamp from the store, not from the
+submission time. That timestamp becomes the fourth Resumely measurement boundary.
+
+**Blockers:** none. Awaiting Apple.
+**Next Recommended Story:** on approval, run the three cache-busted lookup polls and
+confirm the ATS string is absent, then record the publish timestamp here and on the
+vault `ResumeBuilder` living page. WP-75 S5 is date-gated to 2026-09-16 and needs
+`AGENTIC_OS_POSTHOG_API_KEY` exported before `scripts/measurement_contract.py` can run.
+**Last Validation:** 2026-09-09 — 433 tests, 432 passed, 0 failed, 1 skipped, on the
+merged tree with the version bump applied.
+**Last Updated:** 2026-09-09
+
+---
+
+## 2026-09-09 — 1.5.1 (29) prepared for submission
+
+Both 2026-09-09 branches merged and the version bumped for release. 1.5.0 (28) is
+already live (2026-09-02T19:44:22Z), so build 28 cannot be uploaded again; App Store
+Connect rejects a duplicate build number. `MARKETING_VERSION` 1.5.0 -> **1.5.1**,
+`CURRENT_PROJECT_VERSION` 28 -> **29**.
+
+Guarded the bump the way the 2026-08-14 regression required: sorted the full set of
+build-setting lines in `project.pbxproj` before and after, and diffed. Exactly four
+lines changed, two `CURRENT_PROJECT_VERSION` and two `MARKETING_VERSION`, one pair per
+build configuration. Nothing else moved.
+
+**Validated on the merged tree, not on either branch separately.** Both PRs were green
+in isolation and had never been built together; they also conflicted in this file.
+
+- `xcodebuild build`, iPhone 17 simulator, Debug: **BUILD SUCCEEDED**
+- `xcodebuild test`, iPhone 17 (iOS 26.5), `-testLanguage en -testRegion US`:
+  **433 tests, 432 passed, 0 failed, 1 skipped**
+
+Carries: the WP-75 S4 export-claim correction (#184) and the Hebrew-leak fix in the
+English upload card (#185). Listing text (WP-75 S2/S3) is metadata-only and needs no
+build; it is founder work in App Store Connect and is not gated on this release.
+
+**Last Updated:** 2026-09-09
+
+---
+
+## 2026-09-09 — Hebrew leak in the English upload card
+
+The Home/onboarding upload-card subtitle rendered "PDF או DOCX · 5 עד MB" with the
+HE/EN toggle on EN. Root cause is not the string catalog: `Localizable.xcstrings` is
+correct (source language `en`, one `he` translation, no bad `en` entry, no fragment
+composition). The subtitle was the only visible `NSLocalizedString` on that card, so it
+resolved once during body evaluation under Hebrew and never re-resolved on the switch,
+while every neighbouring `Text("literal")` re-resolved from the environment locale.
+Instrumented evidence: `setAppLanguage(en)` fired, and `uploadHero`'s body did not
+re-run. Fixed by moving the card's copy into `UploadCardCopy` as `LocalizedStringKey`.
+
+**Status:** Fixed and verified. Xcode Debug build succeeds; full suite 426 tests, 1 skipped, 0 failures (twice, consecutively) on device 9E2E82B6 (iOS 26.5) with `-testLanguage en -testRegion US`. One earlier full run under simulator load reported 17 failures across unrelated suites and did not reproduce; treated as the known XCTest host instability, not a regression.
+**Current Phase:** Localization correctness on the guest onboarding surface.
+**Active Story:** None — story complete.
+**Last Completed Story:** Upload-card Hebrew-in-EN fix plus `UploadCardLocalizationTests` regression guard.
+**Next Recommended Story:** Same bug class remains at 24 constant-key `NSLocalizedString` display sites in 5 files (FitCheckView 7, ProfileView 7, FitVerdictView 5, OptimizeFitCheckView 4, TailorView 1). Convert them to `LocalizedStringKey`, or decide instead on the one-line root fix of keying the app root on `localization.language` (which fixes all sites but resets view state on every switch).
+**Blockers:** None.
+**Last Validation:** 2026-09-09, 426 tests passed / 1 skipped / 0 failures, plus simulator smoke test in HE and EN on 9E2E82B6.
+## 2026-09-09 — WP-75 S1 pre-publish baseline, and S4 export-claim correction
+
+### S1. Baseline, read at 2026-09-09T06:13:40Z
+
+Recorded **before** any listing change, so S5 has something to compare against.
+Live version 1.5.0, released 2026-09-02T19:44:22Z, App Store id 6776752349.
+
+**Weekly non-internal arrivals — four most recent complete weeks.**
+Source: Agentic OS `dashboard/site-data/portfolio-hq-founder.json`, `today.briefing.arrivals`,
+payload stamped `sources.northStar = 2026-09-09`. Weeks are week-start dates.
+
+| Week starting | People |
+|---|---|
+| 2026-08-10 | 3 |
+| 2026-08-17 | 2 |
+| 2026-08-24 | **not present in the payload** |
+| 2026-08-31 | 2 |
+
+The 2026-08-24 week is **absent from the series, not zero**. The payload jumps from
+2026-08-17 straight to 2026-08-31. It is not recorded here as 0, and it must not be
+smoothed or interpolated in S5; either the source gains that week or S5 states the gap.
+The week starting 2026-09-07 is still in progress and is excluded as incomplete.
+Direction reported by the payload: `falling`. This is the 2/week the directive cites.
+
+**Clean D7 activation against the EXD-022 target of 20: NOT DERIVED. Two separate reasons.**
+
+1. *The command exists but could not run.* WP-73 has landed as
+   `scripts/measurement_contract.py`. It stopped with:
+   `STOPPED: AGENTIC_OS_POSTHOG_API_KEY is not set. This script reads credentials only from
+   the environment; export it and re-run.` No key is present in this environment, and the
+   script deliberately refuses to read credential files. So the two numbers were **not**
+   derived by the contract.
+2. *1.5.0 is not old enough yet.* The earliest honest D7 read for 1.5.0 is
+   2026-09-09T19:44:22Z (release + 168h). This baseline was read at 06:13Z the same day,
+   i.e. **~13.5 hours before a D7 figure for 1.5.0 can legitimately exist.**
+
+The Portfolio HQ payload does carry `portfolio.ventures[0].northStar` with value 4, target 20,
+label "D7 export, native iOS, internal testers excluded", status "measured". That number
+is **deliberately not adopted here as the activation baseline**: its label is *export*, and
+`measurement_contract.py` states that primary activation is `optimization_completed` while
+`export_success` is a secondary diagnostic, naming Agentic OS `north_star.py` as the thing
+that queries the diagnostic and saying do not copy it. Recorded as the export diagnostic, 4,
+not as the activation count.
+
+Per WP-75 S1, the funnel figures quoted in Growth's exchange PR #3 ("7 clean unique
+exporters", "105 -> 4") are **not** carried forward: they disagree with the canonical count
+of 4, name no window, and state no internal-exclusion method.
+
+**Verbatim live listing text, before the change.** Apple keeps no public history of this.
+
+- **Name:** `Resume AI - CV Builder` (verified via iTunes lookup)
+- **Subtitle:** NOT captured. No public Apple API exposes the subtitle, and the storefront
+  page renders it client-side. WP-75 asserts it is `Paste Job. Free Match Score` and that it
+  must not be touched; that string is recorded here as **packet-asserted, unverified against
+  the live store**. The founder must paste the true value from App Store Connect.
+- **Keyword field:** NOT captured, and not capturable. The keyword field is never public.
+  Founder must paste the pre-change value from App Store Connect before editing it.
+- **Description (verbatim, 1551 characters):**
+
+    Resume AI is your intelligent career companion, helping you craft professional resumes and CVs that get noticed by employers and pass ATS screening.
+
+    KEY FEATURES:
+
+    AI-Powered Resume Builder
+    Let our advanced AI analyze job descriptions and tailor your resume content to match exactly what employers are looking for. No more guessing what to include.
+
+    Professional Templates
+    Choose from a library of sleek, modern resume templates designed by career experts. Each template is ATS-friendly and optimized for real job applications.
+
+    Smart Content Suggestions
+    Get intelligent suggestions for your experience, skills, and achievements. Our AI helps you highlight your best qualities in the most impactful way.
+
+    Edit Anywhere, Anytime
+    Build and update your resume on the go with our intuitive mobile interface. Make quick edits before an interview or craft a full resume from scratch.
+
+    Export and Share
+    Export your finished resume as a PDF or share it directly with recruiters. Your professional document is always ready when you need it.
+
+    Multiple Resume Versions
+    Create and manage multiple resume versions for different job types or industries. Always have the right resume ready for every opportunity.
+
+    Cover Letter Support
+    Complement your resume with AI-generated cover letters personalized to each job application.
+
+    Whether you are a recent graduate, changing careers, or climbing the corporate ladder, Resume AI gives you the tools to present your best professional self.
+
+    Download Resume AI today and take the first step toward your next opportunity.
+
+**Pre-publish ATS poll**, the same command S3 uses as its pass condition, run now to show the
+baseline state. Three consecutive readings, varying the query parameter:
+
+    1.5.0 True
+    1.5.0 True
+    1.5.0 True
+
+`True` means the ATS string is still present. S3's pass condition is three consecutive
+`False` **after** the founder publishes.
+
+### S2 / S3 — not done, founder-only
+
+S2 (filing the corrected description and keyword field) and S3 (recording the publish
+timestamp) require App Store Connect, which no agent opens. They remain open. The corrected
+description and the accepted 99-character keyword field are ready to paste in
+`executive-os/work-packets/WP-75-resumely-correct-the-live-listing.md`.
+
+### S4. In-app claim corrected and verified
+
+Growth's claim held, but not where it was reported. Verified against the current build:
+
+- `ResumeExportAction.exportPDF` guards on `optimizationIdentifier` only — no auth gate.
+- `BackendConfig.isMonetizationEnabled = false`, so no export cap is live.
+- `AppState.isAuthenticated` is `session?.isAccountSession == true`, i.e. **real accounts
+  only**; an anonymous-session guest reads as `false` and still sees guest copy.
+- Home is already correct: `HomeTabView` gates the sign-in wall on `canOptimize`, and
+  `HomeActivationState.atsComplete` carries a comment scoping it to users with no session
+  at all. **The free-check surface needed no change.**
+
+The live false claim was in the **Me tab**, `ProfileView.signInValueCard`:
+"Create a free account to save every optimization, sync across devices, and export unlimited
+PDFs." A guest shown that card can already export, unlimited, today.
+
+Corrected to "Create a free account to save every optimization and sync across devices." The
+two remaining benefits are real: history is gated on `isAuthenticated` (`HistoryView`), and
+sync genuinely needs an account. Export is simply removed rather than replaced with a
+"no account needed" reassurance, because that would become false if the paywall returns.
+
+`AccountDisplayInfo.guest.subtitle` carried the same false claim ("...and export PDFs") and
+was corrected identically. Note it does **not** currently render: `ProfileView.profileSubtitle`
+short-circuits `.guest` to "Not signed in". It was fixed as a latent trap, not a live defect.
+
+Both strings had Hebrew translations asserting the same thing. The English keys were changed,
+which orphans them, so `Localizable.xcstrings` was updated in place: the new Hebrew was
+derived by deleting the export clause from the already-approved translations, keeping the
+existing wording for syncing between devices. Catalog still holds 948 keys.
+
+**Out of scope, per the packet:** export as primary CTA after Match Check, the 100-word paste
+rule, the accept-optimisation step, and splitting share-completed from PDF-built analytics.
+
+**Status:** S1 baseline recorded; S4 corrected and verified. S2/S3 blocked on founder (App Store Connect). S5 gated to 2026-09-16.
+**Current Phase:** WP-75 listing correction.
+**Active Story:** WP-75 S4 (done, in review).
+**Last Completed Story:** WP-75 S1 + S4.
+**Next Recommended Story:** Founder files S2 in App Store Connect, pasting the subtitle and old keyword field into this baseline first; then S3.
+**Blockers:** App Store Connect is founder-only. `AGENTIC_OS_POSTHOG_API_KEY` absent, so the D7 activation number is still underived. Subtitle and keyword field are missing from the baseline until the founder pastes them.
+**Last Validation:** 2026-09-09 — full suite on iPhone 17 `9E2E82B6` (iOS 26.5), `-testLanguage en -testRegion US`: 425 XCTest, 1 skipped, 0 failures, plus 5 Swift Testing passed. New regression test goes red on the pre-fix copy and green after. Guest Me tab smoke-tested on device in both English and Hebrew.
+**Last Updated:** 2026-09-09
+
+---
+
+## 2026-09-05 — Merge review corrections
+
+Review found that maturity excluded young users but still admitted conversions after day seven. The corrected report caps start, completion and export at 168 hours after selection, excludes internal users using current persons records, and rejects incomplete query responses. An adversarial SQL fixture covers late conversion, exact day-seven boundary, immature users, current internal classification without an event flag, and prerelease activity.
+
+Validation: seven Python tests pass; the new regression fails against the original implementation. Previously verified focused Xcode result: 41 passed, zero failures. Original implementation report records 426 passed, one skipped in the full suite. Review edits affect only measurement scripts and documentation, not Swift. Final HogQL changes have offline SQL-logic coverage but have not been rerun live: the PostHog connector needs reauthentication and the environment has no API key. Earlier live-query evidence below predates these corrections.
+
+Merge vehicle: #183 incorporates the useful #182 scripts; close #182 as superseded after merging. Next: authenticated physical-device export, cancel, retry and Files/Mail delivery check before release. No release/submission performed.
+
+# 2026-09-05 — Export/share truth bounded batch
+
+Implemented distinct artifact-ready and activity-completion/cancellation/failure feedback. Historical `export_success`, persisted export state, application-package extras and review eligibility remain unchanged. Existing Home guest continuity required no repair; final focused export/package/auth/continuity tests passed 41/41, after the full suite passed 426 with one skip and zero failures.
+
+Reused open WP-73 #182 scripts and repaired post-release cohort boundaries, 168-hour per-user maturity, small-step rate suppression and environment-only credentials. Six script tests pass; store drift validator passes current 1.5.0 and rejects synthetic 0.0.0. Main already contains 1.5.0 (28), #181/#147/#142. Build 28 has repo/archive/telemetry evidence; ASC selection was not independently verified.
+
+Live fixed read [2026-08-14T00:00:00Z, 2026-09-05T00:00:00Z): 25 exact-build events, four people, all prerelease/internal. Apple release boundary 2026-09-02T19:44:22Z; no production activation rate. D7 earliest 2026-09-09T19:44:22Z, and 168 hours per individual user. Details and limitations: `docs/qa/reports/2026-09-05-export-share-truth.md`.
+
+**Status:** Validated; focused branch ready for PR review. Final build passed after removing the temporary fixture; iPhone 17/SE visual captures are in the evidence report. No deployment or submission.
+**Next action:** Review this PR with #182 to avoid duplicate script landing, then schedule a separate physical-device authenticated share/retry check before release.
+**Last Updated:** 2026-09-05
+
+---
+
+# Project Progress
+
+## 2026-09-02 — App Store version 1.5.0 release candidate
+
+Version 1.5.0 packages the four September 2 integrations already merged to
+`main`: full application-package export (résumé, existing cover letter, and
+screening answers), crash-safe numeric decoding and display conversion, and a
+deterministic authentication test seam. The founder-created App Store version
+and its marketing wording are preserved; only version-specific What's New copy
+will be added during submission preparation.
+
+Build 28 is selected because local archive evidence reaches 1.4.9 (26) and
+production telemetry proves 1.4.9 build 27 existed. The repository's stale
+build 26 therefore cannot be reused.
+
+**Status:** Automated release gates passed; App Store distribution export is waiting on macOS Keychain approval.
+**Current Phase:** Export, upload, TestFlight physical-device smoke, and ASC review preparation.
+**Active Story:** Validate and submit version 1.5.0 without overwriting founder-edited marketing metadata.
+**Last Completed Story:** All four open PRs merged and worktree cleanup completed.
+**Next Recommended Story:** Approve the Apple Distribution certificate prompt, upload build 28, then run the authenticated physical-device smoke.
+**Blockers:** macOS Keychain approval is required to export with Apple Distribution signing; authenticated physical-device smoke remains founder-controlled; final ASC review submission requires action-time confirmation.
+**Last Validation:** 2026-09-02 — 420 XCTest cases (1 skipped, 0 failures) plus Swift Testing 5/5; five iPhone 17 cold launches and one iPhone SE launch; signed Release archive/store validation passed; bundle 1.5.0 (28), correct bundle/team/Sign in with Apple entitlement, non-local API, zero bundled Markdown files.
+**Last Updated:** 2026-09-02
+
+## 2026-09-02 — Four-PR cleanup is release-ready; #147 is the final merge vehicle
+
+PRs #180 and #173 merged cleanly. PR #142 was rebuilt from its one useful commit
+onto current `main`, retargeted from its closed stacked base, tested 7/7, and
+merged without its junk WIP commit. PR #147 was replayed onto that result and
+resolved by keeping current build settings, current funnel analytics, and
+`acceptScoreDecrease: false` at every Expert apply call.
+
+The final product scope is appropriate for the next binary: crash-safe numeric
+decoding plus a founder-approved Export flow that shares the résumé, existing
+cover letter, and screening answers as one application package. Submit reuses
+those artifacts instead of regenerating them.
+
+**Status:** PR #147 ready to merge after refreshed GitHub checks; no source or test blocker.
+**Current Phase:** Next App Store release integration; exact marketing wording and ASC version/build selection remain.
+**Active Story:** Merge PR #147, then prepare the next archive/TestFlight candidate.
+**Last Completed Story:** Rebuilt and verified all four open PRs against current main.
+**Next Recommended Story:** Confirm the App Store marketing wording, inspect ASC for the next version/build, then run archive and authenticated physical-device package export.
+**Blockers:** App Store wording is not specified yet; a real-device share-sheet/package walk is required before submission.
+**Last Validation:** 2026-09-02 — PR #147 focused 65/65; full iOS 26.5 suite 420 tests, 1 skipped, 0 failures, plus Swift Testing 5/5; simulator smoke rendered the updated Optimized export controls and the temporary seed was deleted.
+**Last Updated:** 2026-09-02
+
+## 2026-09-02 — PR #142 rebuilt on main with deterministic auth tests
+
+The useful commit from the stale stacked PR was replayed on current `main`; its
+junk WIP commit and obsolete progress history were dropped. `AppState` now
+depends on an injected `AuthClient` for restore, clear, refresh, and account
+deletion while anonymous sign-in remains on the concrete service. The three weak
+auth tests now exercise app code without a live Supabase request.
+
+**Status:** Ready to merge after focused tests and the integrated release suite.
+**Current Phase:** Next App Store release integration.
+**Active Story:** Review and land the four open iOS PRs.
+**Last Completed Story:** Rebuilt PR #142 on current main without its stale base or WIP commit.
+**Next Recommended Story:** Resolve PR #147 against the current submit flow, then run the integrated release checks.
+**Blockers:** None.
+**Last Updated:** 2026-09-02
+
+## 2026-08-31 — The Int(_:) trap, swept out of the view layer too
+
+**Follow-up to the same-day decoder sweep; the last 16 sites.** `Int(_:)` on a
+`Double` traps on an out-of-range or NaN value. After the decoders were fixed,
+16 more sites remained across 10 files. Three of them turned out to be
+network-reachable rather than "just formatting": `newAtsScore` and
+`PendingScoreDecrease.kept/measured` read straight off the expert apply DTO,
+and `intFromFlexible` in `ExpertReportParsing`/`ExpertResumeSectionMapping`
+converts a raw `JSONValue` number.
+
+**One primitive instead of 26 copies.** `Core/Extensions/Double+SafeInt.swift`
+adds `safeRoundedInt` (nil when unrepresentable) and `displayPercent` (scales
+`0...1`, clamps `0...100` in `Double` space *before* converting). The bug
+recurred this many times because no shared helper existed. Both members are
+`nonisolated` — the app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`,
+so an unannotated `extension Double` member will not compile inside
+`ExpertWorkflowService`.
+
+**The trap fix must not smuggle in a scaling change.** Sweeping
+`displayPercent` everywhere silently altered four sites that had never applied
+the `0...1` rule. Backed out: `ExpertAtsImpactResult.kept/measured` feeds the
+"would lower your match score from %d%% to %d%%" dialog, so scaling would report
+a genuine 1.0 as "100%" in a decision the user acts on; its siblings
+`before`/`after` render unscaled in `ExpertReportView.pct`, which settled it.
+`pts` is a signed delta and must never be clamped to `0...100`. Sites that
+already scaled use `displayPercent`; sites that did not use `safeRoundedInt`.
+
+**Status:** Landed on `claude/beautiful-benz-4d49f6`, same branch/PR as the
+decoder sweep. `grep -rn "Int(.*rounded()"` now matches only a doc comment.
+**Last Validation:** 2026-08-31 — new `DoubleSafeIntTests` 12/12; full suite
+**389 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5) with
+`-testLanguage en -testRegion US`, plus swift-testing 5/5.
+**Not done:** no simulator walk. The changed views render the same string for
+every representable value, so there is nothing visual to confirm; the behaviour
+that changed is only reachable with a malformed backend number.
+**Last Updated:** 2026-08-31
+
+## 2026-08-31 — The #178 trap, closed everywhere it existed
+
+**Same defect, ten more sites.** PR #178 replaced `Int(_:)` with
+`Int(exactly:)` in `OptimizeFitGap` because the unlabelled initializer TRAPS
+(kills the process; it does not throw) on a `Double` outside `Int`'s range or
+on NaN. That exact line survived at eight more decode sites in
+`DomainModels.swift` — `ATSAuthSuggestion.estimated_gain` (the one reported),
+`ATSAuthScoreResult`, `ATSSubScores`, `ATSRescanResponse.LossyCodingInt`,
+`ApplicationItem.ats_score`, `ExpertWorkflowApplyResponseDTO.selection_index`,
+`decodeInt(for:)` and `normalizePercent` — plus a byte-identical
+`normalizePercent` in `FitVerdict.swift`. All of them decode untrusted network
+numbers, so a malformed value from the backend was a crash, not a dropped
+field.
+
+**`normalizePercent` was clamping too late.** It read
+`min(100, max(0, Int(percent.rounded())))`, so the clamp ran *after* the
+conversion and never protected the only input that needed it. It now clamps in
+`Double` space first, which also absorbs NaN (`max(0, .nan)` is 0).
+
+**The bigger find: the trap was hiding dead code.** `decodeInt(for:)`,
+`decodePercent(for:)` and `decodeString(for:)` (both files), and
+`selection_index`, used a bare `try decodeIfPresent(...)`. `decodeIfPresent`
+THROWS when a key is present but holds the wrong shape — it returns nil only
+for absent/null — so the first branch aborted the whole decode and every
+fallback beneath it was unreachable. These helpers exist specifically to accept
+fractional numbers and could never reach that code: `decodePercent` could not
+decode the `0.82` it was written for, and a fractional `estimated_gain` killed
+`ATSOptimizationBlocker` the same way it killed `OptimizeFitGap` on production.
+Switching to `try?` is what makes the `Int(exactly:)` fix reachable at all.
+Confirmed empirically with a standalone `swift` script, not by reading.
+
+**Status:** Landed on `claude/beautiful-benz-4d49f6`. Next-build-only, like
+#178 — installed App Store users are unaffected until a binary ships.
+**Last Validation:** 2026-08-31 — new `DecoderNumberSafetyTests` 18/18; full
+suite **377 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5)
+with `-testLanguage en -testRegion US`. The `selection_index` test failed on
+the first run against a real thrown `DecodingError`, which is how the bare-`try`
+reachability bug was found; it passes after the `try?` fix. No UI changed, so
+no simulator walk.
+**Not done:** the ~15 `Int(x.rounded())` sites in view/formatting code
+(`ExpertReportView`, `OptimizedResumeViewModel`, `AppliedChangesSection` and
+others). Those read already-decoded values rather than network input, so they
+are a smaller risk and a separate story.
+**Last Updated:** 2026-08-31
+
+## 2026-08-31 — Every optimization on production has failed since 2026-08-28
+
+**The error the founder hit is a contract break, not a flake.**
+`ResumeOptimizationService.optimize` reports "We couldn't parse the
+optimization response" on exactly one condition: HTTP 2xx whose body fails to
+decode as `OptimizeResponse`. The body that fails is the `fit` block
+`/api/optimize` has returned since 2026-07-26, and the field that fails it is
+`fit.topGaps[].estimatedGain`.
+
+**Cause is on the web side, three days before the report.** Web WP-59 S1
+(#147, merged 2026-08-28, on `origin/main`) rewrote `estimateImpact` to return
+`Math.round(value * 10) / 10`; its own comment states every real value lands
+between 0.36 and 3.75, and `expandKeywordSuggestion` floors split gains to one
+decimal too. Before WP-59 a 100x scaling bug pushed every suggestion past a
+clamp of 15, so every gain serialized as the integer `15`. That accident is the
+only reason `OptimizeFitGap.estimatedGain: Int?` ever decoded. A fractional
+gain does not degrade one field: `JSONDecoder` throws `dataCorrupted`
+("Number 2.5 is not representable in Swift") and the whole response is lost,
+taking the completed, paid-for optimization with it.
+
+**Fixed on the client, and the fix is one struct.** `OptimizeFitGap` now uses
+the lenient Int-or-Double decoder that `ATSSuggestion` two structs above it
+already had for the same `estimated_gain` field. Rounds for display, nil when
+absent, integers unchanged. Verified red before green: the new test failed with
+the exact production error, then passed. Full suite 356 tests, 1 skipped,
+0 failures on iPhone 17 / iOS 26.5 (9E2E82B6).
+
+**Both halves shipped the same day.** The client fix (iOS #178, merged
+`8f24a2c`) cannot reach installed App Store users until a new binary is
+reviewed and released, so the server mitigation went out with it: web #151,
+merged `f6c5d9e`, deployed to production and aliased to
+`www.resumelybuilderai.com`, the domain the app actually calls. `toWireGain()`
+rounds at the API boundary, which repairs **every already-installed build**
+without a release. Nothing is lost by rounding: the app decodes
+`estimatedGain` and never renders it, and no web surface reads this endpoint's
+`topGaps`.
+
+**Review of the first commit widened the fix, and both additions were
+confirmed red first.** `fit` was decoded with `try`, so any unreadable field
+in a decorative preview block discarded a completed, already-billed
+optimization; it is now `try?`, and the run survives a preview it cannot
+read. And `Int(doubleGain.rounded())` used the unlabelled initializer, which
+traps on an out-of-range value, turning malformed network input into a crash;
+it is now `Int(exactly:)`.
+
+**Verified:** iOS merged `main` 359 tests / 1 skipped / 0 failures on iPhone 17
+iOS 26.5; web `npx jest src/lib/ats` 20 suites / 201 passed / 0 failures; eslint
+clean; production `/api/optimize` returns a clean 401 to an unauthenticated
+probe. **Not verified:** one real signed-in optimization end to end. CI's
+"Activation path E2E" runs against placeholder Supabase credentials and stubs
+the ATS route, so no automated test reaches the real endpoint. That check is a
+60-second manual retry in the app.
+
+**Why the suite never caught it:** `OptimizeFitResponseTests` hardcoded
+`"estimatedGain": 6` and `4`. The fixture was written 2026-07-26 and never
+tracked the backend.
+
+## 2026-08-14 — The three missing funnel events, and a `main` that could not build
+
+**`main` has been unbuildable since 2026-08-13.** `4df5860` ("Merge #141: make
+the test target auto-enroll new test files") committed unresolved conflict
+markers into `project.pbxproj` and `tasks/lessons.md`. Both parents of that
+merge are clean; the merge commit itself carries the markers. Every
+`xcodebuild` invocation since then fails before compiling with *"The project
+'ResumeBuilder IOS APP' is damaged and cannot be opened due to a parse error"*,
+and `plutil -lint` agrees. This is not a worktree artifact — the primary
+checkout fails identically. Nothing has been built or tested on this repo for a
+day and nobody noticed, because the failure looks like a local Xcode problem.
+
+**The resolution had a trap in it.** `project.pbxproj` resolves to #141's side
+(the synchronized test group it exists to install), but that branch predates the
+1.4.9 bump, so taking its file wholesale silently regresses `MARKETING_VERSION`
+to 1.4.7 and `CURRENT_PROJECT_VERSION` to 17 — the same shape as the 2026-07-16
+lesson. Versions were carried forward from `e385e1d`, and the resolution was
+checked by diffing the sorted set of build-setting lines against the conflicted
+file: identical, so no setting was dropped. `tasks/lessons.md` was a pure
+both-added conflict; every entry on both sides is kept. **The suite is 353 now,
+not 313** — auto-enrollment has been landed-but-inert since the bad merge.
+
+**WP-48 S2's three instrumentation gaps are closed.** (1)
+`score_screen_signin_tapped` did not exist; the wall it measures did — a live
+"Sign in to Optimize" button under the guest score. Without it a guest who saw
+their score and turned around was indistinguishable from one who never scored.
+(2) The picker's open/cancel pair now carries `file_type` and
+`file_size_bucket`. **These describe the résumé held at that moment, not the
+one being picked** — no file exists yet when the picker opens. That is the
+distinction the cancel rate needed: empty-handed-to-empty-handed is a real
+drop-off, an abandoned replacement is not. (3) `free_ats_completed` and
+`optimization_started` carry `job_source`; a scraped URL and a pasted
+description fail differently, so outcomes that differ between them were
+unattributable.
+
+**One naming inconsistency is shipping deliberately.** `analysis_cta_tapped`
+already spells this property `job_input_source`. The todo specified
+`job_source`, so that is what shipped; the two must be joined by hand in HogQL.
+
+**Status:** Next-build-only. 1.4.9 is LIVE (store-verified 2026-08-13 18:09Z);
+this changes no version, archive, or App Store artifact. No build was shipped.
+**Current Phase:** Instrumenting the next build's activation read while 1.4.9 is live.
+**Active Story:** WP-48 S2 funnel events — implemented, verified, PR open.
+**Last Completed Story:** `score_screen_signin_tapped`, picker held-file properties, and `job_source`.
+**Next Recommended Story:** Story B (ResumeBuilder Web, WP-49 anonymous carryover migration). On this repo: close or merge PR #174, and decide whether `job_source` should be renamed to match `job_input_source` before either has production data.
+**Blockers:** None. The events are unreadable until a build carrying them is released and receives non-internal traffic.
+**Last Validation:** 2026-08-14 — red run failed to compile on all three missing contracts (`no member 'scoreScreenSignInTapped'`, `extra arguments` ×4); `AnalyticsServiceTests` 36/36, 0 failures; full suite **353 executed, 1 skipped, 0 failures** on device `9E2E82B6` (iOS 26.5) with `-testLanguage en`, plus swift-testing 5/5; `xcodebuild build` exit 0. No simulator walk — no UI changed, only tracking calls inside existing button actions.
+**Last Updated:** 2026-08-14
+
+## 2026-08-15 — 1.4.9 is LIVE, its public cohort is empty, and the "4 of 20" gate was wrong three ways
+
+**1.4.9 is public**, store-verified `2026-08-13T18:09:33Z` (cache-busted Apple lookup, id 6776752349). The 2026-08-13 entry below ("1.4.9 (26) is in App Store Connect review") is superseded.
+
+**The activation gate reads 0, not 4.** Three independent errors, each sufficient on its own:
+
+1. **All four persons on 1.4.9 are internal.** Person-level exclusion (`max(is_internal_tester='true')` per `person_id`, then filter) returns **4 internal / 0 external**. One of the four is `nadav.yigal@gmail.com`. The published "4" is an unfiltered person count on `app_version = 1.4.9` — the exact error this file warned about on 2026-07-28: *"Exclusion must be person-level... every count derived that way was wrong."*
+2. **Every 1.4.9 event predates the public release.** The 1.4.9 event window is `2026-08-12T10:36:27Z` to `2026-08-13T07:12:12Z`, closing **11 hours before** the store went live. Those are TestFlight builds 19-27, not public users.
+3. **D7 is arithmetically impossible.** At the read (`2026-08-15 05:16Z`) 1.4.9 had been public 35.1 hours. D7 needs 168 hours per user. Earliest valid 1.4.9 D7 read: **2026-08-20 18:09Z**.
+
+**Since public release there have been zero iOS events of any kind.** The instrument is not at fault: build 27 emitted 21 events across 8 types at `2026-08-13T07:08-07:12Z`, so the SDK and the `is_internal_tester` envelope both work. Zero public events means zero public sessions. This is a distribution problem presenting as a measurement problem.
+
+**No window produces 4.** Clean activations (external persons with at least one `optimization_completed`, iOS only, person-level exclusion): 14d = 1, 30d = 3, 60d = 5, 90d = 6, **1.4.9-only = 0**. The gate has no stable value because window, version scope, and exclusion level were never pinned together. They now are, in the vault note `2026-08-15-weekly-measurement-contracts-and-gated-packets`.
+
+**The funnel is non-monotonic and therefore not currently a funnel.** Over 90 days, external persons, iOS: 102 `app_launched`, 31 `resume_upload_cta_seen`, 14 `resume_file_selected`, 13 `job_added`, 21 `fit_check_completed`, 5 `optimization_started`, 6 `optimization_completed`, 4 `optimized_viewed`, 4 `export_success`. `fit_check_completed` (21) exceeds `job_added` (13) and `optimization_completed` (6) exceeds `optimization_started` (5). Known causes: the server-side emitter copy of `optimization_completed`, and fit-check being reachable without the `job_added` path. **No percentage across these steps is trustworthy until step order is enforced or the steps are re-declared as independent milestones.** The dominant loss is the first step: 102 launched to 31 who ever saw the upload CTA.
+
+**The public build number is unverified.** Builds 19-27 all report `app_version = 1.4.9`; this file records (26) as submitted while (27) emitted afterwards; no post-release event exists to settle it. Read it off App Store Connect.
+
+**Status:** 1.4.9 public since 2026-08-13T18:09:33Z, build unverified, zero public sessions.
+**Current Phase:** Waiting for public traffic. No measurement work is actionable on an empty cohort.
+**Active Story:** None open. Three follow-up packets drafted **closed**, each gated: (A) ordered-funnel integrity, gated on the first external session; (B) exact-build cohort attribution, gated on ASC confirming both live builds; (C) RunSmart device-QA closure, gated on a connected device.
+**Last Completed Story:** Public 1.4.9 funnel proof and activation-gate correction.
+**Next Recommended Story:** Re-run the gate no earlier than **2026-08-20 18:09Z**. If the cohort is still empty at the 7-day mark, that is the finding, and it is a distribution finding.
+**Blockers:** Zero public sessions on 1.4.9. Live build number unknown.
+**Last Validation:** 2026-08-15 — PostHog project 270848 fingerprinted before reading; person-level exclusion returns 4 internal / 0 external on 1.4.9; post-release window returns zero iOS events; build 27 confirmed emitting pre-release.
+**Last Updated:** 2026-08-15
+
+## 2026-08-13 — Next-build activation source is measurable; 1.4.9 review remains frozen
+
+**The missing join key is fixed for the next build.** `resume_upload_cta_seen` and `resume_file_picker_opened` already carried `source = home`, but `resume_file_selected` did not. The picker outcome therefore could not be joined back to the reachable upload surface without assuming every historical selection came from Home. The event now carries the same PII-safe `source`, threaded from `HomeTabView` through `TailorViewModel`, and a regression pins all three ends to one value.
+
+**No funnel meaning changed.** `resume_file_selected` still fires only after local preflight succeeds, so this is a property addition rather than a denominator reset. No filename, résumé content, job content, UI, navigation, account behavior, dependency, version, archive, upload, or App Store action changed.
+
+**Status:** The founder reports **1.4.9 is in App Store Connect review** as of 2026-08-13. The exact reviewed build is not confirmed from App Store Connect, so no build number is asserted here. PostHog received one external-looking build-27 session on 2026-08-13; that is consistent with review traffic but is not proof of the submitted build. The reviewed binary remains frozen. This story merged in PR #171 and is next-build-only.
+**Current Phase:** App Review for 1.4.9; prepare measurement contract for the next build without touching the review submission.
+**Active Story:** Activation measurement follow-up — implemented, verified, and merged in PR #171.
+**Last Completed Story:** Add `source` to the reachable Home `resume_file_selected` event.
+**Next Recommended Story:** After the next build is released, verify one exact-build clean path from `app_launched` through `optimized_viewed` and `export_success`; keep paste/sample upload work gated until the source-split picker data names the loss.
+**Blockers:** Effectiveness cannot be judged until a build containing this property is released and receives non-internal traffic.
+**Last Validation:** 2026-08-13 — red compile failure proved the missing `source` contract; focused regression 1/1 passed; full iOS suite 314 executed, 1 skipped, 0 failures; incremental app build succeeded on iPhone 17 simulator.
+**Last Updated:** 2026-08-13
+
+## 2026-08-12 (later) — 1.4.9 (20) on TestFlight: flow rebuilt, analytics made countable, nothing yet walked on device
+
+**1.4.9 (20) uploaded 15:10 UTC.** Supersedes (19), which is also on TestFlight but predates every change below. 1.4.8 (18) remains the App Store release. Merged: #157 (analytics), #158 (flow), #159 (bump).
+
+**Two analytics defects fixed, both found by walking (19) on device.** `optimized_viewed`, `export_cta_seen` and `saved_resume_prompt_viewed` each fired **twice** at 10:39:40, the second copy carrying the *previous* optimization's id — two `OptimizedResumeView` instances were alive during the tab swap, each with its own `@State` dedupe Set. `ImpressionLog` moves the guard to the app process and `OptimizedResumeTabView` now renders only the view model matching `latestOptimizationId`. **The duplication is intermittent** (a second walk at 11:00 fired each once), which is worse than consistent — it cannot be corrected for after the fact.
+
+**Test runs were writing to production PostHog, and this retroactively explains the funnel.** `AnalyticsService` had no test guard, so three `xcodebuild test` runs on 2026-08-12 registered as three people with 61/61/57 events each, walking most of the funnel in under a second. **This corrects the earlier "77 applied, 0 landed" finding recorded above: much of that cohort was test traffic, not lost users.** Restricted to sessions with realistic LLM latency the 30-day funnel is 6 started → 4 applied → 3 landed → 3 exported, and both humans observed end-to-end (the external tester on 1.4.8, the founder on 1.4.9) landed and exported. Verified after the fix: a full test run adds no person to the project.
+
+**The tailoring flow was rebuilt (founder direction).** The action button reads בדיקת התאמה. Accepting at the fit check now applies the changes and lands on the résumé — סקירת אופטימיזציה is out of the happy path. **Every change is applied, including ones `RecommendationSafetyPolicy` would have held back**; those are marked "כדאי לבדוק" on אבחון קורות החיים rather than applied invisibly. The review screen's before/after moved to diagnosis (`AppliedChangesSection`), which also shows the original and current match score together. 14 Hebrew strings added, six of which had rendered in English since #152.
+
+**Status:** **1.4.9 (20) uploaded to TestFlight 2026-08-12T15:10Z**, processing. Not submitted for review.
+**Current Phase:** Awaiting a device walk on (20) before any App Store submission.
+**Active Story:** None.
+**Last Completed Story:** Analytics impression/test-traffic fixes and the fit-check-as-approval flow rebuild, shipped as 1.4.9 (20).
+**Next Recommended Story:** (1) **Walk 1.4.9 (20) on device — nothing in #158 has run on hardware.** Watch the RTL layout of the new before/after block (including the `arrow.forward` between the two scores, which may point the wrong way in Hebrew), and that accepting at the fit check reaches the résumé with no intermediate screen. (2) Confirm an expert workflow returns 200 for a free account against the live endpoint — web #136 is merged and deployed but only tested at the route-contract level. (3) Then submit for review. (4) Still unfixed: `is_internal_tester` at person level, so the founder still lands in the clean cohort.
+**Blockers:** None. The first upload attempt failed with "No Accounts with App Store Connect Access"; an immediate retry succeeded, so treat that as transient rather than a broken credential.
+**Last Validation:** 2026-08-12 — 311 tests executed, 0 failures, 1 skipped (executed count checked); archive exit 0, zero errors; upload "Progress 100%: Upload succeeded".
+**Last Updated:** 2026-08-12
+
+## 2026-08-12 — The export cliff has a cause: the direct optimize path never reaches the résumé
+
+**The 2026-08-10 question ("why does `export_cta_seen` render for almost nobody") is answered, and it is routing, not rendering.** `TailorView` has two optimize outcomes. When the API returns a `reviewId`, the user accepts changes and lands on the Optimized tab — fixed in #153. When it returns an `optimizationId` outright there is nothing to accept, and that branch pushed `ResumeDiagnosisView`. Since `optimized_viewed` and `export_cta_seen` fire only from `OptimizedResumeView`, everyone on the second path was walled off from both the résumé and the export button, reachable only via diagnosis's optional "Improve" link. **267 of 290 optimizations in 30 days took the direct path.** Of 81 people who applied an optimization, the 77 who did not pass through the review screen reached the result **0 times** and exported **0 times**; the 4 who did: 3 landed, 3 exported. Every export in the window came from those 4. **#153 fixed the minority path.** PR #154 fixes the majority one.
+
+**A real external tester completed the whole funnel on live 1.4.8, and it proves less than it looks.** yanivshm@gmail.com, 2026-08-12 07:28–07:36 UTC, person `c4ecc952`: launch → upload → job (2m05s) → free Match Check → **registered after 95s at the sign-in wall** → optimize (78s, two real `$ai_generation` calls) → recommendations → apply → `optimized_viewed` → **`export_success`** → review prompt. No errors, and identity merge worked correctly (two distinct IDs, one person). **But he went through Home's first-session journey, which already called `showOptimizedPreview`.** His walk never touched the broken path, so it validates the pipeline, not the fix. He is also one of only **3 people to export in 30 days**, and excluding the founder, one of **2**.
+
+**Peak intent hits a dead end.** Fourteen seconds after his first export he tapped four different premium workflows in nineteen seconds. All four returned 402. **The project contains zero paywall, purchase, subscription, upgrade or credit events in 30 days** — there is no checkout behind the lock. Per founder decision 2026-08-12, everything is ungated until monetization is real (ResumeBuilder web PR #136, `MONETIZATION_ENABLED` defaulting to off).
+
+**Two measurement defects fixed, both of which would have corrupted any production read.** (1) `optimization_completed` pooled two different moments under one name — 267 direct against 23 applied, plus a backend copy — which is why "completed → viewed the result" was unreadable; it now carries `path` and `emitter`. (2) `AppState.bootstrap()` identified *anonymous* sessions, repointing the PostHog distinct ID at the Supabase anon UUID with no alias, so one guest became two unlinked people and any guest funnel spanning a relaunch showed an invented drop. Server events also now carry `backend_release`, so shared event names can be filtered to a release.
+
+**Status:** **1.4.9 (19) uploaded to TestFlight 2026-08-12 13:19 UTC**, processing at Apple. 1.4.8 (18) remains the App Store release. All three PRs merged: iOS #154 (routing + analytics), iOS #155 (version bump), web #136 (ungate + server stamping). Web is already deployed — Vercel auto-deploys main — so **expert workflows are ungated in production now, for 1.4.8 users too**, ahead of the iOS build.
+**Current Phase:** Awaiting TestFlight processing, then the first direct-path walk on a real device.
+**Active Story:** None.
+**Last Completed Story:** Root-caused the export cliff to the direct optimize path; fixed it, the event ambiguity, the guest identity split, and the paywall dead end; shipped 1.4.9 (19) to TestFlight.
+**Next Recommended Story:** (1) **Walk the direct path on a device against 1.4.9 (19)** — upload → job → optimize → confirm you land on the résumé, not diagnosis → export. This is the seam that has never been watched working and the whole reason for the build. (2) Confirm an expert workflow returns 200 for a free account (verifies web #136 end to end; only the route contract has been tested, not the live call). (3) Then, and only then, read production funnel numbers — and split on `path`/`emitter`, because pre-2026-08-12 rates are not comparable. (4) Still unfixed: `is_internal_tester` at person level, so the founder still lands in the clean cohort.
+**Blockers:** None.
+**Last Validation:** 2026-08-12 — iOS 307 tests executed, 0 failures, 1 skipped, app target builds clean (exit 0). Web 4/4 contract tests, `tsc` clean under `src/`, eslint clean. PostHog 270848 fingerprinted before reading (`resumely-ios-urlsession`, 174 people/30d).
+**Last Updated:** 2026-08-12
+
+## 2026-08-10 — T+1 on 1.4.8: the public cohort is empty, and the review-prompt question is finally answered — it is the funnel
+
+**T+1 verdict: PARTIALLY PASSED, and the public half is unanswerable.** PostHog project 270848, fingerprinted before reading (`fit_check_started`, `submit_package_saved` present) because the MCP banner has served the wrong project while naming the right one. **Zero events of any kind have been ingested since the 1.4.8 release timestamp of 2026-08-09T19:58:34Z.** The newest event in the entire project is `2026-08-09T10:28:32Z`, nine and a half hours *before* Apple released the build. 1.4.8 has 78 events from 3 people, all between 07:36 and 08:04 UTC on 2026-08-09 — the device-walk and QA sessions, not public traffic. This is the identical shape as RunSmart 1.1.5 on 2026-08-06: instrumentation reachable, public cohort empty. **Re-run when a non-founder event lands on 1.4.8; trigger on data arriving, not on a date.**
+
+**WP-69's standing question is now closed, and the answer is "funnel".** The packet said: zero `app_store_review_requested (source = "export_success")` on the live build means the prompt was never attempted and this is a funnel problem; greater than zero with no ratings means the prompt defects are costing real prompts. The count is **1, lifetime, across every version**. It fired at `2026-08-09T10:26:50Z`, thirteen seconds after an `export_success`, from **`nadav.yigal@gmail.com`** — the founder's own 1.4.7 device walk. **So the prompt path demonstrably works, and it has never once fired for a real user.** The two `ReviewPromptGate` defects found on 2026-08-05 are real and are not what is costing ratings. Do not spend a release on them.
+
+**The cliff is `save_success` → `export_cta_seen`, and it is not an instrumentation artifact.** On live 1.4.7: **69 people, 54 optimized, 54 applied, 55 saved, 1 saw the export CTA, 1 exported** — and that 1 is the founder. `export_cta_seen` has existed since **2026-07-05**, three weeks before 1.4.7 shipped, so the birthday rule does not explain it (this is the check that invalidated three misread drop-offs on 2026-07-28). The same shape holds on every version measured since that birthday: 1.4.5 saved 15 and 1 saw the CTA; 1.4.2 saved 14 and 5 saw it. **Six people have ever reached `export_success`, lifetime.** Export is not leaking, it is walled off.
+
+**This retargets the open work.** PR #139 (WP-66 S1) instruments the *upload* step. Upload is not where the measured population is lost — 55 of 69 people got all the way to a saved resume. The unmeasured gap is between a saved resume and the export CTA ever being rendered. Instrumenting upload harder will not move the EXD-022 gate.
+
+**Two defects confirmed hitting real users on 1.4.7, both claimed fixed by 1.4.8, neither yet verifiable in public data.** `improve_score_regressed` fired for **35 distinct people**, so the score-going-down defect was not a founder anecdote. `optimization_apply_failed` and `optimization_state_recovery_failed` each hit **53 of 69 people**, and `save_failed` hit **54**, while `optimization_apply_succeeded` also covers 54 — failure and success fire for nearly the same population, which is either retry-then-succeed or double instrumentation and is worth one query before it is read as a 77% failure rate.
+
+**The founder's own event carried `is_internal_tester = false`.** The person-level flag defect mirrored from PRs #137/#138 is still unfixed here, which is why a founder device walk lands in the clean cohort. Every activation number in this project inherits that error until it is fixed.
+
+**Status:** **1.4.8 (18) is LIVE, released 2026-08-09T19:58:34Z.** T+1 run 2026-08-10: public cohort empty, re-run required on first non-founder event. Ratings 0.0 from 0.
+**Current Phase:** Post-release watch on live 1.4.8, awaiting first public traffic.
+**Active Story:** None.
+**Last Completed Story:** T+1 telemetry check on 1.4.8, and closure of the WP-69 review-prompt question.
+**Next Recommended Story:** (1) **Find out why `export_cta_seen` renders for almost nobody** — read the code path that gates it, because 55 people reached a saved resume and 1 saw the CTA, and that single gap is the whole EXD-022 gate. (2) Fix `is_internal_tester` at person level so the founder stops counting as a clean user. (3) Re-run this T+1 when a non-founder event arrives on 1.4.8. **Do not** spend a release on the two `ReviewPromptGate` defects; the data says they are not the constraint.
+**Blockers:** The public half of the T+1 is blocked on real traffic arriving, which this project can go days without.
+**Last Validation:** 2026-08-10 — PostHog 270848, project fingerprinted before reading. 0 events since 2026-08-09T19:58:34Z; `app_store_review_requested` n=1 lifetime, founder-attributed; 1.4.7 funnel 69/54/54/55/1/1; `export_cta_seen` first emitted 2026-07-05.
+**Last Updated:** 2026-08-10
+
+## 2026-08-10 — 1.4.8 (18) is LIVE, and this file said it was still awaiting a TestFlight upload
+
+**Store is ground truth and it disagreed with the repo.** Apple has been serving **1.4.8 (18) since 2026-08-09T19:58:34Z**, verified 2026-08-10 with eight cache-busted `itunes.apple.com/lookup` polls all agreeing (a varying query parameter is required; identical URLs return an edge-cached older version that is indistinguishable from a build still in review). The entry below, written the same day, read *"It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey."* Apple released it hours later. **This is the sixth consecutive release across the two apps that shipped without being recorded here**, and the second in a row caught only because the morning brief polls the store rather than trusting the repo.
+
+**The shipped binary is this branch's work.** The public release notes name the three fixes from `codex/resumely-one-pass-fit-score` verbatim: *"Fixed missing experience bullet points / Clearer current match score / More reliable one-time Improve Match results."* That maps to `24f802d` (WP-65 one score in one place), `edad34c` (one current fit result, one improvement), and `2142d00` (fit completion release gates), as those commits exist on `origin` after rebase. So the P0 repair described below is not "not live until the two PRs merge" — the iOS half of it is live to every user.
+
+**The branch was reported stranded and was not.** The Agentic OS stranded-work detector flagged this branch as unlanded local-only work. It was wrong in the same way WP-69 documented on 2026-08-05: the remote branch carries the identical tree under rebased hashes plus three later doc commits, so `git branch -r --contains <local-sha>` returns nothing and ancestry reads as unpushed. `git diff --stat <local> <remote>` was **empty** — the definitive check. The local branch has been reset to the remote tip and given a tracking ref so it stops re-triggering the false positive. Nothing was pushed to fix this, because nothing was missing.
+
+**Still open and not addressed here.** The companion web fix is on `codex/wp64-review-path-bullet-preservation` in the web repo with 146 lines that are genuinely unpushed, so the server-side half of the bullet repair is not deployed. Eight PRs remain open on this repo, and #143 still contains #136's commit under a documentation title. Ratings remain **0.0 from 0** on a fourth consecutive release.
+
+**Status:** **1.4.8 (18) is LIVE on the App Store, released 2026-08-09T19:58:34Z.** Store-verified 2026-08-10, eight cache-busted lookups agreeing. Ratings 0.0 from 0. Nothing is with Apple.
+**Current Phase:** Post-release watch on live 1.4.8. The iOS half of the P0 bullet/score repair is public; the web half is not deployed.
+**Active Story:** None. Recording the release closed the open one.
+**Last Completed Story:** Full experience content, one authoritative score, one fit improvement — shipped in 1.4.8 (18).
+**Next Recommended Story:** (1) **Run the T+1 telemetry check on 1.4.8** — never run for this build, and the standing question is whether `app_store_review_requested (source = "export_success")` is greater than zero, which decides funnel-problem versus prompt-defect. (2) Push and land `codex/wp64-review-path-bullet-preservation` in the web repo so the server half of the bullet fix is deployed. (3) Repeat the authenticated physical-device walk against 1.4.8 rather than 1.4.7, which is no longer the live build.
+**Blockers:** None for the T+1. The web fix needs a deploy.
+**Last Validation:** 2026-08-10 — App Store lookup API, id 6776752349, eight cache-busted polls returning 1.4.8 / 2026-08-09T19:58:34Z / 0 ratings; release notes cross-checked against branch commits; `git diff --stat` local versus `origin` empty.
+**Last Updated:** 2026-08-10
+
+## 2026-08-09 — P0: the live résumé lost 17 bullets, the projected score beat the stored score, and Improve fit ran three times
+
+**The App Store 1.4.7 device walk failed on output correctness.** The founder's new production optimization started at 43, projected 57 during review, and was stored at 64. Its five experience roles had zero `achievements` and 17 populated `responsibilities`, so every renderer showed role headlines and omitted all 17 bullets. Read-only production evidence also found three applied `ats_optimization_report` runs for this one optimization. No production row was changed.
+
+**The three failures were separate but converged on one broken screen.** The web review/canonicalization path could reintroduce the exact `responsibilities` versus `achievements` mismatch that WP-64 had fixed only at the AI parse boundary. On iOS, the review's projected 57 initialized `atsScoreAfter`, and the detail loader refused to replace any non-nil value with the stored 64. The simplified WP-65 panel still showed the entire numeric journey and always left Improve match active; its success message was not in that panel.
+
+**iOS fix:** the optimization detail's stored after-score now replaces the projection while the original baseline remains immutable. The optimized screen renders one number with the label “Current score for the resume shown above.” A successful Improve fit call is marked complete immediately after the non-idempotent server apply, forces an uncached detail reload, persists locally, and is suppressed when the server reports any prior applied ATS improvement. The action becomes a visible completed state instead of remaining tappable.
+
+**Companion web fix:** review canonicalization now promotes non-empty `responsibilities` to `achievements`; the detail and design preview paths also accept the alias so the existing affected row becomes readable without a data rewrite. The detail contract returns whether an ATS improvement was already applied.
+
+**Validation:** read-only Supabase query on the exact live failure; web 4 suites / 21 tests passing; touched-file ESLint clean; iOS targeted regressions passing; complete iOS 26.5 suite passing; fresh iPhone 17 Pro simulator build/install/launch smoke passing. Web `tsc` still has the documented unrelated contract-test baseline errors. No deploy, production write, App Store action, or public change was performed.
+
+**Status:** Fixes implemented locally on `codex/resumely-one-pass-fit-score` and the companion web branch. Not live until the two PRs merge and their normal release paths run.
+**Release status:** iOS 1.4.8 (18) passed 288 XCTest tests with 1 intentional skip, plus 5 Swift Testing tests, with 0 failures. A signed App Store archive and exported IPA both succeeded. The package is Apple Distribution signed, points to `https://www.resumelybuilderai.com`, and has `get-task-allow = false`. It is ready for TestFlight upload; App Store submission remains gated on the physical TestFlight one-pass journey.
+
+**Current Phase:** P0 repair ready for TestFlight and production web deployment.
+**Active Story:** Full experience content, one authoritative score, one fit improvement.
+**Next Recommended Story:** Merge and deploy the web compatibility fix, merge the iOS fix into the next build, then repeat the same authenticated physical-device path.
+**Blockers:** The live verification needs a deployed backend and a new iOS build.
+**Last Validation:** 2026-08-09, full iOS 26.5 suite and fresh simulator smoke; web contract and normalization suites.
+**Last Updated:** 2026-08-09
+
+## 2026-08-05 — WP-69: the 13 stranded branches were never stranded, and the review prompt has a real defect
+
+**Story 5 first, because it is the one that was fully answerable. Twelve of the thirteen "stranded" branches are already in `main`.** The brief counted three different states as one: squash-merged branches whose remote was deleted (the local ref survives and looks unmerged, because a squash merge rewrites the hash), branches superseded by later work, and genuinely unlanded work. Only the third kind is lost, and there is none of it. Each verdict is evidenced by looking for a distinctive symbol from the branch in `origin/main` — `git log main..branch` cannot answer this after a squash merge, and `git diff main...branch` answers a different question and reports a delta for landed work too. Full table in `docs/qa/reports/wp69-branch-triage-2026-08-05.md`. The single exception is `chore/release-c-1.4.3-version-bump`, which bumps to 1.4.3 (13) while the store has served 1.4.7 (17) since 2026-07-28 — superseded, not lost.
+
+**Two things the brief did not contain.** PR #143 (*docs(progress): record that 1.4.7 has been live…*) contains `e385d0d fix(ui): one score in one place on the optimized preview (WP-65)` — the identical commit that is PR #136. Merging #143 lands a UI change under a documentation title and merges #136 by accident. Land #136 first and rebase #143, or drop the commit from #143. Separately, four PRs are already open (#136, #139, #141, #143), so most of what the board calls stranded is in flight; the count was measured against `main` alone.
+
+**Eleven loose files, of which eight are byte-identical Finder duplicates** (verified with `cmp`) and can be deleted. Three carried unique content and are rescued in this branch: the 2026-07-18 HogQL funnel autopsy and funnel paths — whose un-suffixed originals were never committed, so the ` 2` copy *was* the only copy — and the never-committed 2026-07-25 definitive rerun (0 of 0 eligible picker openers, underpowered, product changes deferred).
+
+**Story 2: the review prompt path is intact, and it has two defects that each produce exactly the symptom.** Every guard was checked against a real App Store user and none of them is falsely closed — `isExportComplete` is set before `exportPDF` returns, and `isInternalTester` is true only for DEBUG, the launch argument, the environment variable, TestFlight, and configured ids, none of which describes an App Store user. That first hypothesis is wrong. What is wrong: (1) `ReviewPromptGate` writes its per-version keychain claim **before** the prompt is known to have appeared, and `requestReview()` returns nothing, so a single suppressed presentation permanently spends that user's only attempt on that version; (2) it fires from `.sheet(onDismiss:)`, during the share sheet's teardown — a presentation in flight is one of the documented conditions under which StoreKit declines to present. The two are multiplicative. Detail in `docs/qa/reports/wp69-review-prompt-audit-2026-08-05.md`. **The call is at `OptimizedResumeView.swift:1070`, not `:1198` as the packet states.**
+
+**The competing explanation is still live, and one number settles it.** Twelve days at zero ratings is equally explained by almost nobody finishing an export, which is the standing finding. The app already emits `app_store_review_requested (source = "export_success")`: zero on 1.4.7 means the prompt was never attempted and this is a funnel problem; greater than zero with no ratings means the defects above are costing real prompts. **Run that query before fixing anything.** No product change was made — WP-69 verifies and cleans.
+
+**Why this entry carries a `Status:` line.** It did not, and that alone broke the portfolio. This file is the freshest `tasks/progress.md` across every Resumely checkout (2026-08-05, newer than the primary tree's 2026-08-04), so the Agentic OS refresh correctly selected it — then, finding no `**Status:**` in this entry, fell through to the **first** one below it, a 2026-07-27 block reading *"1.4.6 is LIVE; 1.4.7 was SUBMITTED and is awaiting review."* That was true when written and is nine days stale now, and it made `./agentic-os verify` fail with a `release-live-vs-pending` contradiction on 1.4.7. **An entry that omits `Status:` does not leave the field blank; it silently promotes an older block to current.** Every dated entry in this file must carry one.
+
+**Status:** **1.4.7 (17) is LIVE on the App Store, released 2026-07-28T19:30:45Z.** Store-verified 2026-08-06, three cache-busted lookups agreeing. Ratings still 0.0 from 0.
+**Current Phase:** Post-release watch on live 1.4.7. Nothing is with Apple.
+**Active Story:** WP-69 — story 5 and story 2 done, story 1 prepared and not run.
+**Last Completed Story:** WP-69 story 5 — every stranded branch triaged; 12 of 13 were already in `main`.
+**Next Recommended Story:** (1) Run the `app_store_review_requested (source = "export_success")` count on 1.4.7 — it separates the review-prompt defect from the export-funnel explanation and costs one query. (2) Run the prepared device walk in `docs/qa/wp69-1.4.7-device-walk.md` on the **App Store** build, not TestFlight, which suppresses the prompt by design. (3) Land PR #136 before PR #143.
+**Blockers:** Stories 3-4 (T+1 telemetry, cohort re-baseline) need a PostHog **personal** API key (`phx_`); only the project write key (`phc_`) is on disk and it cannot run HogQL.
+**Last Validation:** 2026-08-06 — Apple lookup API, three cache-busted calls, all returning 1.4.7 / 2026-07-28T19:30:45Z / 0 ratings.
+**Last Updated:** 2026-08-06
+
+**Stories 1, 3, 4 are blocked, and not on anything that can be worked around.** The device walk needs hardware; the record is prepared at `docs/qa/wp69-1.4.7-device-walk.md` with the exact steps and the review-prompt yes/no as step 8, and it must be run on the **App Store** build — a TestFlight build sets `isRunningFromTestFlight` and suppresses the prompt by design, so a TestFlight walk cannot answer it. The T+1 telemetry read and the cohort re-baseline need a PostHog **personal** API key (`phx_`); only the project write key (`phc_`) is on disk, and that cannot run HogQL.
+
+**Story 6 is written in the other repo and cannot be applied from here.** `SCORE_VERSION = 'ats_v2.2_wp45_d7'` lives at `new-ResumeBuilder-ai-/src/lib/ats/core.ts:37` and reaches the client via `score_version` metadata, but was never stored. `optimizations.ats_version` is an INTEGER hardcoded to `2` at three sites, and `anonymous_ats_scores` had no version column despite being written on every free check. A nullable `score_version TEXT` on both tables, written at all four sites — preferring the scoring result's own `metadata.score_version` over the constant, so a row records what actually scored it — is **new-ResumeBuilder-ai- PR #130**, open as a **draft**. **No backfill**: an unknown regime stays NULL rather than being inferred from a timestamp, which is the whole point of the column.
+
+**The migration is not applied, and the credential to apply it is not on this machine.** `supabase/.temp/pooler-url` carries a placeholder password, and `DATABASE_URL` in `.env.local` points at an unrelated Neon database (`neondb`), not the Supabase project. `npx supabase db push` needs a founder login. The PR is a draft for that reason: the anonymous write path degrades safely on a missing column via the existing `isUndefinedColumnError` fallback (the guard WP-39 left behind), but the three `optimizations` writes do not. **Apply the migration, then mark #130 ready.** Verification on the code: `tsc` clean against an unchanged pre-existing error set, 141 ATS tests passing, 22 anonymous-carryover and ats-check tests passing. The migration itself has been run by nobody.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, still unmeasured.
+**Active Story:** WP-69 stories 1, 3, 4 open (blocked on hardware and a PostHog key). Story 6 written, awaiting the migration.
+**Last Completed Story:** WP-69 story 5 (branch triage, 10 of 12 approved deletions, loose-file rescue) and story 2's code audit.
+**Next Recommended Story:** (1) The device walk — it gates WP-62 and answers story 2 in the same pass. (2) The `app_store_review_requested` count on 1.4.7, which decides whether the review-prompt defect is worth fixing now. (3) Land #136 before #143. (4) Apply the story 6 migration and mark web PR #130 ready.
+**Blockers:** Hardware for the device walk; a PostHog personal API key for stories 3 and 4; a Supabase login for the story 6 migration.
+**Last Validation:** 2026-08-05 — branch verdicts checked with `git grep <symbol> origin/main` per branch; duplicate files verified byte-identical with `cmp`. No build or test run: this branch changes documentation only.
+**Last Updated:** 2026-08-05
+
+## 2026-08-04 (later) — The test target now auto-enrolls. Hand-writing pbxproj entries is over
+
+**The enrollment gap is closed structurally, not by another sweep.** The test target `EB8A61F52DFE5AE8A5FC5900` now carries a `PBXFileSystemSynchronizedRootGroup` on `ResumeBuilder IOS APPTests`, referenced from `fileSystemSynchronizedGroups`, exactly as the app target has since the project was created. The explicit `PBXGroup` (`EBBAC22E32DDC2060C87D2CB`) is gone, the `PBXSourcesBuildPhase` `files` list (`FDB6C233CB7683E4F80DCDB3`) is empty, and all 34 test `PBXFileReference` / `PBXBuildFile` pairs are deleted. `project.pbxproj` shrinks by 144 lines. `objectVersion` was already 77, so nothing had to change to support it.
+
+**The reverse case is the actual proof, and it was run.** A throwaway `SyncGroupEnrollmentProbeTests.swift` was dropped into the folder with **zero** pbxproj edits — `grep -c SyncGroupEnrollmentProbe project.pbxproj` returned 0 — and the suite went 313 → **314**, with `Test Suite 'SyncGroupEnrollmentProbeTests' passed` present by name in the output. Deleting the file took it back to 313, and the build system logged `note: Removed stale file ...SyncGroupEnrollmentProbe...` on its own. Enrollment and un-enrollment are both automatic now. A green suite by itself still proves nothing about coverage; this probe is what proves the mechanism.
+
+**`ScanViewModelTests` is auto-enrolled, and that is the deliberate choice.** The 2026-08-04 entry below left it out because the unmerged branch `claude/resumely-upload-instrumentation-25fad1` (commit `bbb3ce1`, PR #139) deletes both it and `ScanViewModel.swift`. That branch was re-checked and is **still open, not merged**. Accepting the auto-enrollment is safe precisely because of this change: PR #139's diff **does not touch `project.pbxproj` at all**, so when it lands the file simply disappears from disk and the synchronized group stops compiling it — no conflict, no manual de-registration. Under the old explicit list, that same merge would have left four dangling pbxproj entries pointing at a deleted file. Suite total is therefore **313, not 310**, and the +3 is exactly `ScanViewModelTests`.
+
+**This supersedes the pbxproj half of PR #140.** This branch is based on `claude/heuristic-gagarin-4bdc00` @ `8ba3258` and keeps every one of its source fixes (`@MainActor` on 6 classes, the `MockChatMessaging` stub, `tearDown() async throws`) — those are still required, since a synchronized group makes a file compile but does not make it *build*. What it removes is PR #140's 44 lines of hand-written pbxproj entries, which the group replaces. If the two land in either order the conflict is confined to `project.pbxproj` and resolves to this version.
+
+**A false failure was chased down and it was local config, not the conversion.** The first full run on this worktree reported 313 / 1 skip / **1 failure** — `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask`, the test PR #140 flagged as making a real network call. It reproduced twice, which looked like cross-test pollution from the newly-enrolled `ScanViewModelTests`. It was not. The worktree's gitignored `Secrets.xcconfig` had been created from the **template**, so `SUPABASE_ANON_KEY` was the literal placeholder; the refresh call failed as a `URLError`, `shouldSignOutAfterRefreshFailure` correctly returns `false` for those, the session stayed `"stale"`, and the assertion failed. Copying the real local `Secrets.xcconfig` in turned the same run green with no code change. **That test is a live dependency on Supabase reachability and valid credentials — it is a config canary, not a suite.**
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None.
+**Last Completed Story:** Converted the test target to a `PBXFileSystemSynchronizedRootGroup`; suite 310 → 313 (the +3 is `ScanViewModelTests`, now auto-enrolled).
+**Next Recommended Story:** Unchanged — the physical-device walk of 1.4.7 and the analytics failure signal remain the top two. The test-enrollment item is now closed and needs no follow-up sweep.
+**Blockers:** None.
+**Last Validation:** 2026-08-04 — `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "id=9E2E82B6-DC56-4162-846F-B96AE74867E7" -testLanguage en -testRegion US` on device `9E2E82B6` (iOS 26.5). **313 tests, 1 skipped, 0 failures**, read from the `Test Suite 'All tests'` summary line. Control run of the same command on the parent branch `claude/heuristic-gagarin-4bdc00`: **310 / 1 / 0**. Probe run with a throwaway test file: **314 / 1 / 0** with the new suite named in the output.
+**Last Updated:** 2026-08-04
+
+## 2026-08-04 — 11 test files had never run. They now run, and all 32 tests pass
+
+**The defect was enrollment, not correctness.** The app target uses a `PBXFileSystemSynchronizedRootGroup`, so source files auto-enroll when dropped on disk. The **test target does not** — it carries an explicit `PBXSourcesBuildPhase` `files` list, so a test file compiles only if someone hand-wrote its `PBXFileReference` **and** its `PBXBuildFile ... in Sources` into `project.pbxproj`. Twelve files had accumulated with **zero** references. They existed, they were readable, and they had never once been compiled.
+
+**Nothing about the green suite revealed this.** The suite reported 278 passing with 1 intentional skip and 0 failures, which is exactly what a healthy suite reports. The only symptom was a number that was too small, and nobody had a reason to know what the right number was. Verified two ways before touching anything: zero occurrences of each file's name in `project.pbxproj`, and no `Test Suite '<name>'` line anywhere in a full `xcodebuild test` run.
+
+**Baseline was measured, not assumed: 278, not 279.** The worktree was reverted to the unmodified `project.pbxproj` and the full suite re-run to establish the real pre-enrollment number. It came back **278 tests / 1 skip / 0 failures**. After enrolling the 11 files: **310 tests / 1 skip / 0 failures**. The delta is **+32**, which is exactly the sum of the tests in those 11 files (2+3+2+8+3+2+2+4+3+2+1). Every one of the 11 was confirmed present by name in the run output, not inferred from the total.
+
+**The expected wave of stale-API failures did not happen — but only after fixing seven build breaks.** Nothing survived to run and then fail on an assertion. The breakage was entirely at compile time, in two shapes:
+
+1. **Actor isolation drift (6 files).** The app target sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`; the test target does not. Every app type is therefore implicitly `@MainActor`, and a bare nonisolated `XCTestCase` cannot touch one. `HomeActivationStateTests`, `JWTDecoderTests`, `KeychainStoreTests`, `OptimizationDetailCacheTests`, `PDFDownloadValidatorTests` and `ProfileAccountDisplayTests` all failed on `main actor-isolated ... in a synchronous nonisolated context`. Fixed by marking each class `@MainActor` — the convention already used by 25 of the previously-enrolled files — not by weakening production isolation. `KeychainStoreTests` needed one extra change: a `@MainActor` class cannot override the synchronous `tearDown()`, so it became `override func tearDown() async throws`.
+2. **Protocol drift (1 file).** `ChatMessaging` gained `previewKeywordSuggestion(optimizationId:suggestionId:token:)` after `ChatViewModelTests` was written, so its `MockChatMessaging` no longer conformed. Added the stub.
+
+**No test was deleted and no production code was changed.** The four deletions flagged as a risk (`ScanViewModel`, `TailorView`, `ScanResumeView`, `ImportResumeView`) are **not on `main`** — they live on the unmerged branch `claude/resumely-upload-instrumentation-25fad1` (commits `bbb3ce1`, `6efc6a6`). Against `main` all four still exist, which is why nothing referenced a dead API.
+
+**A 12th unenrolled file was found that the scope did not name: `ScanViewModelTests`.** It was probed by enrolling it temporarily: it **compiles and its 3 tests pass** (313 total). It was then **backed out**, because `bbb3ce1` on that same unmerged branch deletes both `ScanViewModel.swift` and `ScanViewModelTests.swift` — enrolling it here would leave a pbxproj entry pointing at a file that branch removes. **If that branch does not land, this file should be enrolled; it is passing, working coverage sitting dark.** That is a decision, not an oversight.
+
+**Two of the newly-live tests assert nothing about this app, and one is network-dependent.** They pass, so they are not blocking, but they inflate the count without adding coverage:
+- `AuthServiceResponseTests.testGoTrueResponseRejectsMissingRefreshToken` declares its own local `GoTrueResponse` struct and decodes it. It exercises Foundation's `JSONDecoder`, never app code, and despite the name it asserts the decode *succeeds* with a nil token.
+- `AuthServiceResponseTests.testURLErrorIsNotAuthFailure` evaluates `(error as? AuthServiceError)?.isAuthFailure ?? false` on a `URLError`. The cast can never succeed, so the expression is always `false` and the assertion is a tautology.
+- `AppStateRefreshTests.testParallelRefreshAccessTokenCoalescesToSingleTask` calls `AppState.refreshAccessToken()`, which reaches `AuthService.shared.refreshSession` — a **real network request to Supabase** on every suite run. It passes today because the bogus refresh token gets rejected and the session is cleared. **Offline it will fail**: the request errors, `shouldSignOutAfterRefreshFailure` does not fire for a transport error, the session stays `"stale"`, and the assertion's disjunction collapses. It also does not test coalescing, which is what its name claims. `AuthService.shared` is a hard-coded singleton with no injection point, so making this deterministic needs a production change and was left out of scope.
+
+**The enrollment gap will recur.** Every future test file needs the same four hand-written pbxproj entries. The durable fix is converting the test target to a `PBXFileSystemSynchronizedRootGroup` like the app target; that is a separate change and would also auto-enroll `ScanViewModelTests`.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None.
+**Last Completed Story:** Enrolled 11 orphaned test files in the test target; suite 278 → 310.
+**Next Recommended Story:** Unchanged from 2026-07-29 below — the physical-device walk of 1.4.7 and the analytics failure signal remain the top two. New items from this session, both secondary: convert the test target to a synchronized root group so enrollment stops being manual; decide `ScanViewModelTests` once the upload-instrumentation branch lands or is abandoned.
+**Blockers:** None.
+**Last Validation:** 2026-08-04 — `xcodebuild test -project "ResumeBuilder IOS APP.xcodeproj" -scheme "ResumeBuilder IOS APP" -destination "id=9E2E82B6-DC56-4162-846F-B96AE74867E7" -testLanguage en -testRegion US` on iPhone 17 (iOS 26.5). **310 tests, 1 skipped, 0 failures**, read from the `Test Suite 'All tests'` summary. Run three times (two with a scratch DerivedData, once clean with the default) with identical results. Pre-enrollment baseline re-measured on the same worktree: 278 / 1 / 0.
+**Last Updated:** 2026-08-04
+
+## 2026-07-29 (later) — RESOLVED: telemetry is healthy. The launch check was low traffic, not a break
+
+**A founder device walk at 05:13–05:17 UTC settled it.** The live 1.4.7 (17) build emitted the complete journey, in order and with correct version properties: `app_launched` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` → `resume_file_selected` → `job_input_validation_shown` → `job_added` → `analysis_cta_tapped` → `resume_upload_started` → `resume_upload_succeeded` → `optimization_started` → `recommendation_viewed` / `recommendation_evidence_shown` → `optimization_apply_started` → `optimization_apply_succeeded` → `optimization_completed` → `optimized_viewed` → `export_cta_seen` → **`optimized_preview_rendered`** → `ats_improve_tapped` → `expert_mode_run_started` / `_completed` → `expert_apply_clicked` → `expert_mode_apply_completed`. All carrying `marketing_version 1.4.7`, `build_number 17`.
+
+**The 21-hour silence was volume, not a defect.** The three eliminations recorded below stand, and the fourth candidate is now also eliminated: the app sends. Nothing is wrong with the instrument. **Everything previously written here about "unexplained silence" is closed.**
+
+**`optimized_preview_rendered` fired**, so the activation milestone works on the live build. This is the first confirmation of that on 1.4.7.
+
+**Two instrumentation defects surfaced in the same trace, both worth their own fix:**
+
+1. **Events are duplicated.** At identical timestamps: `optimized_viewed` ×2, `export_cta_seen` ×2, `saved_resume_prompt_viewed` ×2, `recommendation_viewed` ×4, `recommendation_evidence_shown` ×4. Any count built on these is inflated by 2–4x. This alone invalidates naive funnel counts on those steps.
+2. **`optimization_completed` is emitted twice from two sources** — once from the client at 05:16:03.277 carrying `marketing_version`/`build_number`, once server-side at 05:16:03.034 carrying neither. Cross-source double-counting, and the server copy is invisible to any version-filtered query.
+
+**The founder's own person is not flagged internal.** `is_internal_tester` reads `False` on every event in this walk. Founder activity therefore contaminates activation metrics unless excluded by person id — the person-level exclusion is necessary but **not sufficient**, and `9fa6c1f5…` / person `a6441489-66c4-512d-9cf4-22b07652570e` must be excluded explicitly.
+
+**The walk also found a P0 in the product**, unrelated to telemetry: the optimizer returned all five roles with zero achievement bullets, and the ATS score rose 38 → 61 anyway. Filed as **WP-64** in the web repo (`tasks/work-pack-optimizer-drops-all-bullets.md`, PR #126). Root cause is a key-name mismatch (`responsibilities` vs `achievements`) with no output validation. That is now the highest-priority item for this product, ahead of everything in the list below.
+
+**Last Updated:** 2026-07-29
+
+## 2026-07-29 — 1.4.7 is LIVE, and the launch check found zero post-release traffic (superseded above)
+
+**1.4.7 (17) is public.** Apple's lookup API returns `version: 1.4.7`, `currentVersionReleaseDate: 2026-07-28T19:30:45Z`, release notes "Scores reliably update". Store-verified, not a founder statement. The 2026-07-27 entry below asked for the release date to be written back on approval; this is that write-back, one day late.
+
+**The lookup API lies if you call it the same way twice, and this nearly went in the file as fact.** The first call of this session returned `1.4.7`. Later calls to the *identical* URL returned `version: 1.4.6`, `currentVersionReleaseDate: 2026-07-24T21:03:09Z` — the exact signature of a build still in review, and exactly what the 2026-07-27 entry recorded as evidence 1.4.7 was still with Apple. **Sending `Cache-Control: no-cache` does not help**; the stale response comes from Apple's edge cache keyed on the URL, and the request header does not reach past it. **Varying a query parameter does** (`&nocache=1`, `&nocache=2`, ...). Polled six times with a varying parameter: 6/6 returned 1.4.7. Anyone re-verifying a release date must vary the URL and poll more than once, or they will record "still in review" for a build that shipped. This is a plausible reason the last three releases across both apps went live without anyone noticing.
+
+**No ratings and no reviews yet.** `userRatingCount: 0` and `userRatingCountForCurrentVersion: 0`; the customer-reviews RSS feed returns zero entries on both the US and IL storefronts. Nothing to triage, and no rejection-risk signal either way.
+
+**The launch telemetry check ran and returned nothing, which is the finding.** PostHog project 270848, fingerprinted before reading (10,043 events / 452 persons over 365d, distinct from RunSmart's 171597 at 45,111 / 435). **Not one event of any kind has arrived since 2026-07-28T07:32:20Z** — 21 hours of silence at the time of the check (project clock 2026-07-29T04:49Z), and the release landed at 19:30Z, 12 hours *after* the last event. So there is no post-release data at all: zero `app_launched`, zero anything, on the live build.
+
+**Every 1.4.7 event on record is pre-release internal testing.** Build 17 shows 1,858 events / 31 persons / 42 launches, all between 2026-07-26T10:51Z and 2026-07-28T07:32Z. Person-level exclusion (`max(is_internal_tester = 'true')` per person, then filter — *not* event-level, which splits one person across both sides) leaves **1 external person**. That single external person predates the public release. **The instrument has not been proven on the live build; it has only been proven on the same binary before Apple shipped it.**
+
+**Do not read this as broken ingestion, and do not read it as fine.** Both readings are unsupported by what is in the data. Against it: no calendar day in the last 21 has had zero launches, so a 21-hour dead stop has no precedent in this project. For it: the install base is genuinely tiny — 1.4.6 was public for five days (2026-07-24 to 2026-07-28) and accumulated **133 events / 7 persons / 4 external**, so a quiet overnight window is entirely consistent with normal volume. **The two are separated by one observation: whether an `app_launched` carrying `marketing_version = 1.4.7` arrives from a device that is not a tester.** Until one does, the launch is unmeasured.
+
+**Three candidate causes were tested and eliminated; the silence is still unexplained.**
+
+1. **PostHog ingestion is healthy.** Differential against the RunSmart project (171597, fingerprinted 45,173 events / 436 persons) returned an event **5 minutes old** while Resumely sat at 21.6 hours. Whatever this is, it is not the vendor and not the account.
+2. **The shipped binary is correctly configured.** The 1.4.7 (17) IPA at `/private/tmp/wp45-export/` carries `POSTHOG_API_KEY` with prefix `phc_UmPZ` (matching project 270848), `POSTHOG_HOST = https://us.i.posthog.com`, `CFBundleShortVersionString 1.4.7`, `CFBundleVersion 17`. This mattered because `POSTHOG_API_KEY` resolves from the **gitignored** `Secrets.xcconfig` via `$(POSTHOG_API_KEY)` substitution, so a distribution archive built anywhere without that file would ship with analytics silently disabled. It did not happen here, but the exposure is one missing untracked file wide.
+3. **The last transmission was a clean one.** 2026-07-28T07:31–07:32Z, an `is_internal_tester = False` person on build 17 fired `app_launched` → `guest_mode_started` → `resume_upload_cta_seen` → `resume_upload_cta_tapped` → `resume_file_picker_opened` via `resumely-ios-urlsession`. The build emits correctly. Nothing degraded gradually; it stopped mid-health.
+
+**A founder device check on 2026-07-29 did not test this.** The app opened that morning was RunSmart, not Resumely — confirmed by the event stream (`run_started`, `run_completed`, `adaptive_coach_shown`, `posthog-ios`, v1.1.4). **No conclusion about Resumely was drawn from it, and none should be.** The question stays open.
+
+**Separate defect found while investigating: the app cannot report that it failed to report.** `AnalyticsService.track` wraps the transport in `do/catch` whose entire catch body is `#if DEBUG print(...) #endif`. In a Release build a failed capture is swallowed with no retry, no queue, no disk persistence and no counter. `BackendConfig.isPostHogEnabled` fails the same way — a missing key returns `nil` and analytics no-ops, which `Secrets.xcconfig` documents as intended ("Without it the app builds and runs fine; analytics calls are silently skipped"). Every event is one immediate HTTP POST, so a backgrounded app, a flaky network or a 4xx loses it permanently. **The consequence for this investigation is exact: no amount of looking at the app can distinguish "nobody opened it" from "it failed to send", because the app is built not to know.** Needs its own packet.
+
+**Version adoption remains slow and is the real constraint.** Ranked by external persons over 30 days: 1.4.2 (8), 1.4.1 (6), 1.4.6 (4), 1.4 (4), 1.4.3 (3), 1.4.7 (1), 1.4.5 (1), 1.4.4 (1). Older builds still out-carry the current one. Against the EXD-022 gate of >=20 clean activations, **volume is binding, not cohort maturity** — the "no version has matured" framing is true but secondary, and 1.4.7 is now the fourth exact-version reset inside one measurement window (1.4.5 → 1.4.6 → 1.4.7).
+
+**Instrumentation note, unchanged and still load-bearing:** the version lives on `marketing_version` / `build_number` / `app_version`, **not** `$app_version`, which is unset on every native iOS event because the app posts through `resumely-ios-urlsession` rather than the official SDK. A check written against `$app_version` returns "no version data" and is indistinguishable from broken attribution.
+
+**Current Phase:** Live on App Store (1.4.7, released 2026-07-28). Post-release watch, unmeasured.
+**Active Story:** None. The open item is an observation, not a build.
+**Last Completed Story:** 1.4.7 (17) released by Apple 2026-07-28T19:30:45Z, carrying WP-45 D7/D8 (iOS #125, web #123).
+**Next Recommended Story:** In order.
+
+1. **Open Resumely on a physical device and watch the event stream.** Cheapest open item, and it closes two at once: it resolves whether the live build still emits, and it *is* the overdue pre-submission device walk. Run the full journey (optimize → fit check → accept → expert pass, number only climbs). That walk was the recorded gate before submitting, it never ran, and it is now a check on a live build — the journey has failed on device twice while reporting green in the simulator. Both answers arrive in the same five minutes.
+2. **Give the analytics transport a failure signal**, so silence stops being ambiguous: persist failed captures and retry, or at absolute minimum count them. Until this exists the app is built so that "no data" and "no users" are indistinguishable, which is exactly the ambiguity blocking item 1 from being conclusive on its own.
+3. **Re-run the version query once real traffic appears** and confirm a non-tester `app_launched` on `marketing_version = 1.4.7`. Until then every 1.4.7 figure in this file describes testers.
+4. **The upload step.** On the post-2026-07-08 cohort, 27 people saw the upload CTA and only 9 selected a file. n=27 clears the Activation Playbook's 10-user minimum, so it is the one funnel step currently safe to act on, and it starves everything downstream.
+5. **Persist `SCORE_VERSION` as stored text** so score regimes stop being inferred from timestamps.
+6. **Open a packet for the optimizer's keyword regression** (`keyword_exact` 60 → 40 on the tested run; the floor hides it from users but does not stop the product causing it).
+**Blockers:** None on the code. The measurement is blocked on user traffic, which no amount of engineering produces.
+**Last Validation:** 2026-07-29 — App Store lookup API confirms 1.4.7 public since 2026-07-28T19:30:45Z, polled 6/6 with a varying query parameter after identical-URL calls returned a cached 1.4.6. PostHog 270848 read-only, fingerprinted before reading; last ingested event 2026-07-28T07:32:20Z, 21 hours before the check. Zero store ratings and zero reviews (US and IL).
+**Open Verification, carried:** the physical-device walk of 1.4.7 is now a post-release check on a live build. Carried from 2026-07-27 and still unrun.
+**Last Updated:** 2026-07-29
+
+## 2026-07-29 — WP-65: one score, one place. The optimized preview said three different things at once
+
+**Founder report from device, with screenshots:** "as a user i still do not know what the numbers say? ... its very confusing and not clear. also i still see the old how recruter sees my resume i asked several times to remove."
+
+**The three numbers were all correct, and that was the problem.** `FitJourney` models the run in three stages, and the screen rendered all three simultaneously with nothing naming any of them:
+
+| Shown | Stage | Meaning |
+|---|---|---|
+| 44 | `.fit` | the original resume |
+| 69 | `.improved` | after optimize |
+| 85 | `.expert` | after the expert passes — **the resume actually on screen** |
+
+`currentATSScore` returns the *current* stage (85). The Before/After pair was hardcoded to `fit -> improved`, so it read 44 → 69 and **ignored the expert passes entirely**. The "+25 pts" badge understated the real gain of **+41**. Headline and delta were describing two different documents.
+
+**`FitJourney` already owned all of this** — `displayedScore(at:)`, `currentStage`, `totalGain`. The view simply never asked it. The fix is a labelled journey strip (`Original 44 → Optimized 69 → Expert 85`, current stage highlighted, total gain stated once) plus a caption naming what the headline number refers to. No new score logic was written.
+
+**Four score-bearing panels became one.** `atsScoreCard`, `atsInsightPanel`, `diagnosisSnapshotPanel` and `atsUpliftPanel` all rendered scores on the same scroll, each added for a reason, none ever removed when the next arrived. Now: a scoreless `targetRoleHeader` (role only) and a single `atsInsightPanel` carrying the number, the journey, the signals and the blockers. **162 lines of dead view code deleted.**
+
+**The recruiter-eye card was stale by construction, not by accident.** `ResumeDiagnosisViewModel.load()` opens with `guard diagnosis == nil else { return }` — it loads once and never reloads. So the 44% diagnosis and its blockers were computed from the *pre-optimization* resume and pinned there permanently, under an optimized document. That is why it survived being raised several times: nothing was ever wired to refresh it, so every "remove it" landed on a screen that had no refresh path to fix. **Founder decision 2026-07-29: remove it from this screen entirely** rather than re-run it. `RecruiterEyeViewCard` and `ResumeConfidenceChecklist` remain in use by `ResumeDiagnosisView`, the standalone pre-optimization screen where they are accurate.
+
+**Two rendering bugs found in the same screenshots.**
+
+1. **`Sales &amp; Business Development Manager` rendered verbatim.** Job titles are extracted from job descriptions users paste from web pages, so they arrive HTML-escaped, and **nothing in the app decoded entities anywhere**. New `String.decodingHTMLEntities()` handles named and numeric (`&#38;` / `&#x26;`) forms. `&amp;` is unescaped **last** so `&amp;lt;` decodes one level instead of becoming markup. Deliberately a small table rather than `NSAttributedString`'s HTML importer, which requires the main thread, is far slower, and would interpret arbitrary markup in a job title.
+2. **Blocker text rendered twice**, bold then grey. The guard was `detail != blocker.title`, exact equality, which trailing whitespace, case or a full stop slipped straight past. Now `isEquivalentCopy(to:)` normalizes case, diacritics, whitespace runs and trailing punctuation.
+
+**Validation:** `BUILD SUCCEEDED`. Full suite **282 tests, 0 failures, 1 skipped**. 7 new tests, and their execution was confirmed individually with `-only-testing` rather than inferred from the total — the repo's synchronized file group covers only the app target, so a test file added without an explicit pbxproj entry compiles into nothing and reports green. `HTMLEntitiesTests` is wired into `project.pbxproj` (4 entries) and `plutil -lint` passes. Built with `-derivedDataPath /private/tmp/...`, never under iCloud-synced `~/Documents`.
+
+**Not done, and this one matters:** **the screen itself has not been seen rendered.** A fresh simulator install lands on onboarding, and reaching the optimized preview needs a real resume file, an account and a live optimization. Compilation and unit tests are verified; **the layout is not**. It needs a device pass on the real journey before anyone calls this good. Also not done: no snapshot test pins the new layout, and the `&amp;` escaping is fixed at the *render* boundary rather than at the backend extractor that produces it, so the escaped text is still what is stored.
+
+**Last Updated:** 2026-07-29
+
+## 2026-07-27 — WP-45 D7: the fit score can never go down (PR #125 + web #123)
+
+**The bug.** A moderated run scored one unchanged resume **56** through the free match check and **51** through optimize, then **44** after the rewrite. The user watched the number fall for doing nothing but continue. All three composites reproduce to the point from their stored subscores, so this was measured, not inferred.
+
+**Root cause was four defects, and the largest was self-inflicted.** `recency_fit` was `latestRoleBonus * avgDecay` — recency multiplied by the share of the job's must-have keywords in the newest role — so a candidate in a current role that did not echo the job's keywords scored **0 on recency**. It also double-counted keyword overlap, which `keyword_exact` already measures at nearly 3x the weight. Because the analyzer's no-data fallback is a flat 50, **having more information about a resume made it score lower**: the free check fell back to 50, optimize computed 0. WP-45 D4 had introduced that derivation days earlier.
+
+**This was never a one-off.** Across 60 days, **58 of 60 runs** had optimized-side recency below the 50 fallback (mean 12.7, seven at exactly 0) — roughly **3.42 composite points of unearned penalty on every optimization**, invisible until a user happened to see both numbers.
+
+Also fixed: recency resolved on only one side of the comparison (a benchmark case read 93 original vs 50 optimized and reported the optimization as −4); the threshold pair `max_decay_rate 0.5` / `relevance_floor 0.7` putting the worst real score at 35, *below* the fallback, so stale-but-dated history was still punished for parsing; and the gate counting experience entries rather than dates, which let undated roles read as current.
+
+**Two defects were found by reviewing #125 rather than by testing it, and both were shipped-but-inert.** (1) `FitBaselineStore` was keyed by resume id, but every screen that shows a score is built from an optimization id and `OptimizedResumeTabView` passes `resumeId` nil — so the never-decrease floor **never applied in the shipping path**. (2) `applyExpertATSResult` wrote into the *improved* stage even for expert passes, overwriting what the rewrite achieved and making the expert gain invisible; `ExpertModesViewModel` had it on both its apply and its rescan. **Neither was caught by the suite, because both were in wiring between components rather than inside them.** The unit tests exercised the data structure, not the join.
+
+**Scoring changed, so the regime moved.** `SCORE_VERSION` → `ats_v2.2_wp45_d7`, new `wp45_recency_fixed` regime. `regimeFor` matched the substring `wp45` and would have silently binned the new engine with the old.
+
+**Gap found, not closed:** `SCORE_VERSION` is returned in the API response but **never persisted**. `optimizations.ats_version` is an *integer* reading `2` for all 90 days, and `anonymous_ats_scores` has no version column at all. The regime discipline therefore classifies stored rows by timestamp, not by what actually scored them.
+
+**Validation:** 274 tests, 0 failures (ten new; four fail on the prior commit). Web: 11 suites, 126 passed; tsc unchanged at 27 pre-existing errors, none in `src/lib/ats`. Web PR #123 merged and **deployed to production**, verified green on the merge SHA and by scoring a real CV live. `ARCHIVE SUCCEEDED` and `EXPORT SUCCEEDED` for 1.4.7 (17), distribution-signed.
+
+**Not done:** (1) **No physical-device verification.** Simulator only; the journey has now failed on device twice while reporting green. (2) **Not uploaded** — no App Store Connect API key or keychain profile exists on this machine. IPA is at `/private/tmp/wp45-export/`. (3) **The optimizer still degrades resumes** — `keyword_exact` 60 → 40 on the tested run, which also tripped the semantic-gap penalty. `assessLift` detects it and withholds the number; nothing retries. The floor means users no longer *see* a drop, which is not the same as the product no longer *causing* one. Needs its own packet. (4) The free check cannot demonstrate the recency fix: its text extractor does not recover dated roles from PDF-extracted text, so it has always fallen back to 50.
+
+**Status:** **1.4.6 is LIVE; 1.4.7 (17) was SUBMITTED to App Store Connect on 2026-07-28 and is awaiting review.** Submission is a founder statement recorded the same day, not store-verified — Apple's lookup API still returns `version: 1.4.6`, `currentVersionReleaseDate: 2026-07-24T21:03:09Z` (checked 2026-07-28), which is exactly what an in-review build looks like. Re-verify against the lookup API on approval and write the release date back here the same day; the last three releases across both apps went live without anyone recording it.
+**Current Phase:** 1.4.7 in App Store review. No release work in flight.
+**Active Story:** None.
+**Last Completed Story:** 1.4.7 (17) submitted to App Store Connect 2026-07-28, carrying WP-45 D7/D8 (iOS #125, web #123).
+**Next Recommended Story:** Nothing to do on 1.4.7 while Apple holds it. In order: (1) **The upload step** — on the post-2026-07-08 cohort, 27 people saw the upload CTA and only 9 selected a file. n=27 clears the Activation Playbook's 10-user minimum, so this is the one funnel step currently safe to act on, and it starves everything downstream. (2) Persist `SCORE_VERSION` as stored text so score regimes stop being inferred from timestamps. (3) Open a packet for the optimizer's keyword regression (`keyword_exact` 60 → 40 on the tested run; the floor hides it from users but does not stop the product causing it). (4) On approval, re-baseline the cohort against 1.4.7 — this is the third exact-version reset inside one measurement window (1.4.5 → 1.4.6 → 1.4.7), so no cohort has yet matured.
+**Blockers:** None. 1.4.7 is with Apple. Standing submission risk carried from RunSmart WP-57: App Store Review has failed Apple sign-in on every RunSmart build since 23 while approving anyway — worth watching if this review comes back with an account-access rejection.
+**Last Validation:** 2026-07-28 — App Store lookup API confirms 1.4.6 still the public version (consistent with 1.4.7 in review). Pre-submission evidence from 2026-07-27: 274 iOS tests 0 failures; web 126 passed; archive + export succeeded.
+**Open Verification, carried:** the physical-device walk of 1.4.7 (optimize → fit check → accept → expert pass → number only climbs) was the recorded gate before submitting. If it was not run before upload, it becomes a post-release check on the live build, and the journey has now failed on device twice while reporting green in the simulator.
+**T+1 reachability check — RUN 2026-07-28, PASSED.** Events arrive carrying the live version: `marketing_version` 1.4.6 / build 16 — 133 events, 7 persons in the trailing 14 days. Attribution works; volume is the constraint, not the instrument. **Correction to the first write-up:** it reported "4 of them external" from an **event-level** `is_internal_tester != 'true'` filter, which splits one person across both sides of the exclusion. Exclusion must be **person-level** (`max(is_internal_tester = 'true')` per person, then filter). The reachability conclusion is unaffected — 1.4.6 events arrive either way — but every count derived that way was wrong. Reproducible window and SQL: Agentic OS `distribution-os/data/activation-queries-2026-07-28.md`.
+**One instrumentation note worth keeping:** the version lives on the custom properties `marketing_version` / `build_number` / `app_version`, **not** on `$app_version`, which is unset on every single native iOS event (the app posts through `resumely-ios-urlsession`, not the official SDK). A check written against `$app_version` returns "no version data" and looks exactly like broken attribution. Anyone re-running this must use `marketing_version`.
+**What the version split actually shows (14d, project 270848, fingerprinted before reading):** 1.4.7 build 17 has 1,858 events / 31 persons but only **1 external** — that is the pre-submission internal testing, not users. The live 1.4.6 has 4 external persons. Older builds still carry more traffic than the current one (1.4.2 build 12: 40 persons, 9 external), so version adoption is slow and the install base on any single build is small. Against the EXD-022 gate of >=20 clean activations, **volume is the binding constraint** — the cohort framing of "no version has matured" is true but secondary.
+**Last Updated:** 2026-07-28
+
+## 2026-07-24 — WP-45 S6+S7: direct optimize, Fit gate off (PR #123)
+
+**S6.** `BackendConfig.isFitCheckEnabled` is now false. Both Home and Tailor already carried the direct path behind that flag (S0 built it), so Analyze runs upload-then-optimize with one tap and no Fit sheet. `optimize()` calls `ensureUploadedResumeForCurrentJob` internally and it is idempotent, so no double-upload or double-charge. Analytics move to `flow_version=direct_optimize_v2` automatically.
+
+Why the gate had to go rather than be reordered: bands are strong >= 75 / stretch >= 50, but the free checker's 60-day mean was 34.5 with a maximum of 51. Three in four users were told to skip the job, "strong" was never awarded to anyone, and the tester session met a 45 before seeing any value.
+
+**S7 — audited, not changed.** Option (a) is already how the result screen is built: "Preview & Export PDF" is the primary button, Submit Package secondary, Design and Expert reachable as side-doors. The remaining step count comes from the tab bar presenting Design and Expert as peers of the journey — that is option (b), five tabs to three, and it stays the founder decision the packet flags.
+
+**Correction recorded.** The first commit claimed 4 new tests and a green suite; those tests never ran. The synchronized file group covers only the app target, so test files need explicit pbxproj entries. Wiring them in surfaced two real problems: main-actor isolation on `BackendConfig` and `FitBand`, and one wrong assertion (51 is stretch, not skip — the band opens at 50). **Adding a Swift test file to this repo does not add it to the suite; check the executed count moved.**
+
+**Validation:** 219 tests (was 212), 0 failures, Debug simulator build succeeded. One cold-simulator run reported 5 failures that did not reproduce across four later runs.
+
+**Not done:** S8 needs the backend `lift.displayScores` exposed through the optimization API first. S7 option (b) is a founder decision. S10 needs a release plus a PostHog readout.
+
+**Status:** **1.4.6 (16) is LIVE on the App Store, released 2026-07-24.** Store-verified 2026-07-26 against Apple's public lookup API: `id=6776752349` returns `version: 1.4.6` with `currentVersionReleaseDate: 2026-07-24T21:03:09Z` on **both** the US and IL storefronts, bundle `Resumebuilder-IOS.ResumeBuilder-IOS-APP`. PostHog project 270848 corroborates with **85 live users in the trailing 7 days**. This supersedes two stale readings at once: this file's "WP-53 requires a hotfix release" and `main`'s "1.4.6 MERGED AND READY FOR FOUNDER ARCHIVE, NOTHING ARCHIVED OR UPLOADED". The founder archived, uploaded, submitted, and Apple released, and none of it was written back, so **the hotfix that the portfolio's top priority kept asking for has been in users' hands since 2026-07-24.** Build 16 is repo-derived from `main`'s `CURRENT_PROJECT_VERSION`, not store-verified; Apple's lookup API does not expose build numbers. **What 1.4.6 actually carries:** PR #120 (`fa5efe5`) WP-53 optimization-id preservation across transient history failures, plus PR #121 (`b59575d`) the export-success App Store review request, packaged by PR #122 (`0890601`).
+**Current Phase:** Post-release watch on live 1.4.6. This is the first Resumely build whose activation funnel is both repaired and public.
+**Active Story:** None.
+**Last Completed Story:** 1.4.6 (16) released to the App Store on 2026-07-24, carrying WP-53 and the review prompt.
+**Next Recommended Story:** (1) **The physical-device regression that never ran**, now a post-release check: completed optimization visible → terminate → force the history fetch offline → relaunch → Optimized preview and export remain available. Same session, confirm the StoreKit review prompt is actually visible after a successful PDF export and share-sheet dismissal, which was explicitly listed as not validated. (2) **T+7, target 2026-07-29:** milestone monotonicity on the live funnel (`optimized_preview_rendered` ≥ `export_success`). (3) **T+14, target 2026-08-05:** cohort read. **Re-baseline both against the 1.4.6 cohort, not 1.4.5** — 1.4.5 was live for barely a day before 1.4.6 replaced it and the T+1 check found 0 clean external users, so there is no usable 1.4.5 window.
+**Blockers:** None shipping-side. Both physical iPhones were offline when the release-readiness smoke was due, which is why the device regression and the visible-prompt check are still open.
+**Branch hygiene, load-bearing:** the primary working tree sits on `claude/wp45-s6-s8-ios`, **3 commits ahead of `main` and 7 behind**. It does not contain WP-53, the review prompt, or the 1.4.6 version bump, and its `project.pbxproj` still reads 1.4.5. Rebase onto `main` before continuing WP-45, or the next release cuts from a tree that silently reverts the live build's version.
+**Carried gap on WP-45 S10:** S10 needs "a release plus a PostHog readout", and 1.4.6 does **not** satisfy the release half. S6's direct-optimize change (Fit gate off) is still unmerged on the branch above, so nothing measuring it has shipped. S8 remains blocked on the backend exposing `lift.displayScores`.
+**Last Validation:** 2026-07-26 — App Store version confirmed 1.4.6 via Apple's lookup API on the US and IL storefronts, cross-checked against PostHog 270848 (85 users / 7d). Pre-release evidence carried forward from 2026-07-23: PR #121 review found one valid test-coverage nit, the durable-save failure test was added, and the focused export/review suite passes **7/7**; the prior exact production tree ran **222 passed / 1 intentional live-endpoint skip / 0 failures**; Debug build/install/launch and English plus Hebrew RTL smokes passed on iPhone 17 iOS 26.5; the exact merged tree passed a configured, signed generic-device Release build with explicit **BUILD SUCCEEDED** and store validation; bundle inspection confirmed 1.4.6 (16), the production API, Sign in with Apple, and no placeholder or localhost strings. Full report: `docs/qa/reports/testflight-1.4.6-2026-07-23.md`.
+**Open Verification:** two checks have never been run and are now post-release rather than pre-release: the visible StoreKit review prompt after a successful export, and the physical-device recovery and export regression. Both are founder-gated on a connected iPhone. They are restated in Next Recommended Story so they cannot be lost.
+**Last Updated:** 2026-07-26
+
+---
+
+**✅ SUPERSEDED 2026-07-26 — this build shipped and is live (released 2026-07-24, store-verified above). The founder smoke and archive steps it lists as pending were performed; the physical-device recovery/export smoke it lists as open was not, and remains open. Original entry, from `main`, follows for the record.**
+
+**Status (previous — 1.4.6 pre-archive):** **1.4.6 (16) MERGED AND READY FOR FOUNDER ARCHIVE — PR #121 merged to `main` at `b59575d`; NOTHING ARCHIVED OR UPLOADED.** The release contains PR #120's WP-53 recovery protection plus PR #121's export-success App Store review request. The exact merged tree passed a signed generic-device Release build and store validation with configured local release settings. The built bundle reports 1.4.6 (16), the production API, the correct bundle/team, and Sign in with Apple; no placeholder or localhost strings were found. The only live review path sits after a verified PDF export and share-sheet dismissal, claims the version in Keychain before requesting, and excludes Debug, TestFlight, configured internal testers, and unsuccessful exports. Last Updated: 2026-07-23.
+
+**Status (previous — WP-53):** **1.4.5 (15) was LIVE with a confirmed recovery defect; WP-53 fixed it on merged PR #120 and shipped in 1.4.6.** On cold launch, `reconcileLatestOptimization()` cleared the UserDefaults-backed `latestOptimizationId` before fetching history. A transient history failure therefore permanently orphaned the user's completed optimization and made Optimized/Design/Expert appear locked. The fix preserves the ID only when the request throws; a successful authoritative history response retains its existing replacement/empty behavior. CodeRabbit review added a generation/session guard so late success, empty, or failure results cannot overwrite a newer optimization or restore state after sign-out. **Validation 2026-07-23:** focused recovery/journey **13/13**, apply parsing **10/10**, full suite **216 passed / 1 intentional skip / 0 failures** (includes 5 Swift Testing tests) on iPhone 17 iOS 26.5. Two deterministic suspended-request tests prove late failure cannot overwrite a newer optimization and late success cannot restore state after sign-out.
+
+---
+
+**Status (previous — WP-53):** **1.4.5 (15) is LIVE but has a confirmed recovery defect; WP-53 is fixed on merged PR #120 and requires a hotfix release.** On cold launch, `reconcileLatestOptimization()` cleared the UserDefaults-backed `latestOptimizationId` before fetching history. A transient history failure therefore permanently orphaned the user's completed optimization and made Optimized/Design/Expert appear locked. The fix preserves the ID only when the request throws; a successful authoritative history response retains its existing replacement/empty behavior. CodeRabbit review added a generation/session guard so late success, empty, or failure results cannot overwrite a newer optimization or restore state after sign-out.
+
+---
+
+**Status (previous — 1.4.5 pre-submission):** **1.4.5 (15) PREPARED ON MAIN — WP-51 merged + WP-52 failure diagnostics added. NOTHING ARCHIVED OR UPLOADED.** PR #117 (WP-51 activation-milestone repair) merged to `main` (`02e28e7`). On top of it, WP-52 gives the three previously-blind failure events (`save_failed`, `optimization_apply_failed`, `optimization_state_recovery_failed`) a coarse groupable `reason` alongside the existing high-cardinality `error_code`. Version bumped 1.4.4 (14) → **1.4.5 (15)**. **1.4.4 (14) is still SUBMITTED / UNDER APP STORE REVIEW and was not touched** — 1.4.5 is the vehicle for the WP-51 fix and ships only after 1.4.4 clears. **Measurement note carried forward unchanged:** the milestone shipped defective since its 1.4.1 form (`738da5a`), so it has NEVER fired reliably; there is NO valid pre-fix activation baseline and the first trustworthy read starts with the 1.4.5 cohort. Do not compare post-fix activation against the 12.5% or 10.0% figures — both are UNMEASURED, not low.
+**Current Phase:** 1.4.5 (15) staged on `main`; archive + ASC upload are the only remaining steps, both founder-gated and blocked until 1.4.4 clears review
+**Active Story:** None — WP-51 merged, WP-52 implemented and verified locally
+**Last Completed Story:** WP-52 (failure-event diagnostics) — 2026-07-22. Added `FailureReason.reason(for:)` classifier in `Core/Export/ResumeExportAction.swift`; threaded `reason` through the three failure enum cases and their four call sites (`OptimizedResumeViewModel`, `AppState`, `OptimizationReviewView` ×2). **Key finding:** `error_code` was already present on all three events (added 2026-07-18 in `31b73b6`) but has NEVER shipped — `31b73b6` first rides 1.4.4, still in review — so the PostHog "zero of 57 carry error detail" read and the code both being right is a time-skew, not a contradiction. Only `reason` was genuinely missing. Preserved WP-51's dedupe, `optimization_id`, and the WP-50 denominator.
+**Next Recommended Story:** Founder submits 1.4.5 after 1.4.4 clears. Then the first valid activation read on the 1.4.5 cohort (`optimized_preview_rendered` ≥ `export_success`, funnel monotonic). Then WP-48 S2-B (`is_internal_tester` classifier) and the deferred Hebrew/RTL PDF gate.
+**Blockers:** Founder-gated and unchanged: (1) no ASC upload credential on this machine; (2) no physical device online. **Sequencing gate:** 1.4.5 must not be submitted until 1.4.4 clears review.
+**Last Validation:** 2026-07-22 — see the WP-51 (previous) block below for the merged fix's evidence. WP-52: focused `AnalyticsServiceTests` **22/22** (20 prior + 2 new: `testFailureEventsCarryBothReasonAndErrorCode`, `testFailureReasonBucketsErrorsIntoGroupableCategories`); full suite **208 XCTest passed / 1 intentional skip (`testLiveFitCheckEndToEndAgainstProduction`, live-fixture) / 0 failures**, plus **5 swift-testing / 0 failures**, `** TEST SUCCEEDED **`, on iPhone 17 (`9E2E82B6…`) **iOS 26.5** with `-testLanguage en -testRegion US` (this run is also the Debug-build evidence — the test build compiles the Debug config). Unsigned generic-iOS Release build (`-configuration Release -destination generic/platform=iOS CODE_SIGNING_ALLOWED=NO`) **`** BUILD SUCCEEDED **`, 0 errors**. EN launch smoke **PASS** (clean Home render, English copy, version confirmed 1.4.5/15 in the installed bundle) and HE launch smoke **PASS** (full RTL — mirrored tab bar, right-aligned header, 3-2-1 step flow, all-Hebrew copy, no English fallback or placeholder keys), both on `9E2E82B6…` iOS 26.5. **Environment note (important):** the iOS **26.3.1** runtime crashes the XCTest host repeatedly (host restarts, ~11 cases dropped, `** TEST FAILED **` with ZERO assertion failures) — reproduced on iPhone 17 Pro `FCC9843B…` and matches the pre-existing 26.3.1 issue recorded in the WP-51 block below; always validate on **26.5**. Separately, a 2.5-day-old `CoreSimulatorService` plus the iPhone 17 sim `A24FA1E8…` wedged xcodebuild for 30-60+ min on clean `main` with zero changes; `killall com.apple.CoreSimulator.CoreSimulatorService` cleared it. Two initial `FitCheckViewModelTests` failures were the simulator left in Hebrew, not a regression (pass under `-testLanguage en`). **Not validated:** live PostHog funnel (needs a shipped build), physical-device journey, ASC submission.
+**Last Updated:** 2026-07-22
+
+---
+
+**Status (previous):** **WP-51 COMPLETE LOCALLY — the activation milestone is repaired but NOT YET MEASURABLE.** `optimized_preview_rendered` was gated on `hasVisibleAppliedChanges` (the separately fetched `sections` array), while the preview's primary path renders from the backend using `optimization_id` alone — so a real résumé was on screen with `sections` empty and the milestone was suppressed. That is why the 2026-07-21 read was non-monotonic (12 file-selected → 7 completed → **1** preview, with **3** exports). The gate now judges visibility from the markup actually displayed. **The gate shipped with the event's original 1.4.1 form (`738da5a`), so the event has NEVER fired reliably and no activation figure computed on it is trustworthy.** Fix is local-only; it cannot be verified live until it ships.
+**Current Phase:** WP-51 landed locally on `claude/activation-milestone-repair-963fe7`; 1.4.4 (14) still built-and-landed but NOT SUBMITTED
+**Active Story:** None — WP-51 implemented and verified locally
+**Last Completed Story:** WP-51 (activation milestone repair) — 2026-07-21. 3 Swift files (`ResumePreviewWebView.swift`, `OptimizedResumeView.swift`, `AnalyticsServiceTests.swift`) plus the amended contract in `docs/qa/reports/wp46-story10-activation-funnel-2026-07-18.md`. Red state observed before implementing; full suite **207 / 1 skip / 0 failures**. Preserves once-per-optimization dedupe and `optimization_id`. WP-50's denominator was explicitly not touched.
+**Next Recommended Story:** **This fix must ride a shipped build to be worth anything** — fold WP-51 into 1.4.4 before the founder submits, otherwise the 2026-08-01 EXD-015 review still has no valid verdict. Then WP-48 S2-B (`is_internal_tester` classifier), then the deferred Hebrew/RTL PDF gate. Also open: triage of stale PRs #100, #96, #86.
+**Blockers:** Unchanged and still founder-gated: (1) no App Store Connect upload credential on this machine; (2) no physical device online, so build 14 has never run on real hardware. **New consequence:** the WP-51 success signal (`optimized_preview_rendered` ≥ `export_success`, funnel monotonic on a fresh 14-day read) is unverifiable until 1.4.4+ is live — the 2026-08-01 EXD-015 date is at risk for a shipping reason now, not a measurement one.
+**Last Validation:** 2026-07-21 — WP-51 red-first evidence captured (compiler rejected the new signature, proving the test reaches the target), focused `AnalyticsServiceTests` 20/20, full suite **207 XCTest / 1 intentional skip / 0 failures**, `** TEST SUCCEEDED **` on iPhone 17 iOS 26.5 (`9E2E82B6…`). 207 = 205 baseline + 2 net new tests. `git diff --check` clean. **Not validated:** live PostHog funnel (needs a shipped build), physical-device journey, ASC submission.
+**Last Updated:** 2026-07-21
+
+---
+
+**Status:** **1.4.3 (13) still LIVE on the App Store. 1.4.4 (14) is BUILT AND LANDED BUT NOT SUBMITTED.** The seven-story UI/copy pass merged to `main` via PR #114 (`026021c`), and the version is bumped to 1.4.4 (14). A signed, distribution-signed, upload-ready IPA was produced locally (`** ARCHIVE SUCCEEDED **`, `** EXPORT SUCCEEDED **`, verified 1.4.4/14, Apple Distribution 8VC4R5M425). **Nothing was uploaded and nothing was submitted to App Review** — the upload path is blocked (see Blockers). Full record: `docs/qa/reports/release-1.4.4-2026-07-21.md`.
+**Current Phase:** 1.4.4 release staged on `main`; ASC upload + submission pending founder action
+**Active Story:** None — Stories 1-7 landed; release gate partially complete
+**Last Completed Story:** 1.4.4 version bump and release gate — 2026-07-21.
+**Next Recommended Story:** Founder completes the ASC upload/submit (below), then resume WP-48 S2-B (`is_internal_tester` classifier) and the deferred Hebrew/RTL PDF gate.
+**Blockers:** **Two, both blocking submission.** (1) **No App Store Connect upload credential on this machine** — no API key in `~/.appstoreconnect/private_keys/`, no `notarytool`/`altool` keychain profile, and no upload automation in `scripts/`. The documented process (`.agent-os/workflows/testflight-review.md`) is the Xcode Organizer GUI, which cannot be driven headlessly. (2) **No physical device available** — both iPhones report Offline in `xcrun xctrace list devices`, so the required physical release journey (fresh install → upload → diagnosis → sign-in → apply → preview → export → relaunch → second job → Hebrew/RTL) was **not run at all**. Build 14 has never executed on real hardware.
+**Last Validation:** 2026-07-21 — full suite **205 XCTest / 1 intentional skip / 0 failures** plus 5 swift-testing, `** TEST SUCCEEDED **`, on a freshly erased iPhone 17 sim (iOS 26.5) with `-testLanguage en -testRegion US`; analytics (`Core/Analytics/`) and API (`Core/API/`) directories have **zero** diff lines; Hebrew 900/900 with no new placeholder or `needs_translation` regressions vs `main`; GitGuardian check SUCCESS; `git diff --check` clean; App Store ID `6776752349` verified against Apple's lookup API (bundle ID matches). **Not validated:** physical-device journey, signed archive upload, ASC submission.
+**Last Updated:** 2026-07-21
+
+**UI/copy improvement plan COMPLETE LOCALLY — 7 stories, 2026-07-21:** Executed the 2026-07-20 audit plan story by story on `claude/session-ec92e2`, grounded in `PROMPTS/ios-ui-copy-followup-audit.md`, the 2026-07-19 rewrite v2 pack, `.agents/product-marketing.md`, the 2026-06-20 ATS-claims decision, and `GLOBAL-TASTE.md`. **Story 1** renamed ~40 user-facing strings from ATS-as-our-metric to the branded Match language (Free Match Check, Resumely Match Score, Match insights, Improve match, ATS-friendly, simple to parse) across 24 files, with Hebrew for every changed key and a red-first `CopyClaimsTests` banned-fragment guard. **Story 2** fixed the share line that literally claimed "scored N% on ATS", dropped stale ResumeBuilder AI branding, replaced the internal vercel deploy URL and the `id000000000` placeholder with the real App Store listing, rewrote the five marketing screenshot slots, and softened the Ambassador interview-outcome copy. **Story 3** gave `OnboardingViewModel` a `startInSignUp` flag so Create free account opens sign-up and both Sign in entries open sign-in, and added locale-aware Terms/Privacy links derived from `API_BASE_URL` (both verified 200 live). **Story 4** removed the locked-tab mock preview that displayed a fabricated 68/100 score and fake report lines — a fake-precision pattern the taste standard rejects — keeping the honest unlock checklist, recovery states, and one CTA. **Story 5** translated all 41 remaining post-FTUX keys (catalog now 900/900, zero fallbacks) behind a red-first `HebrewParityTests`, and gave the language switcher a full 44pt target with per-button VoiceOver names. **Story 6** fixed the real tab-bar overlap centrally — the floating bar sat over content but only 2 of 5 tabs reserved space, now reserved once via `safeAreaInset` — and replaced 18 hardcoded `chevron.right`/`arrow.right` symbols with auto-mirroring `.forward` variants for Hebrew. Contrast was computed from the tokens rather than sampled: every text and accent token clears WCAG AA, so no color changed. **Story 7** ran the gates above. **Screenshot caveat worth remembering:** the iPhone 17 simulator returned black, then partially-rendered, then fully-white frames for the same binary that renders correctly on the SE — treated as the documented CoreSimulator instability and verified against a second device rather than reported as a regression. **Not done:** no ASC/TestFlight action; no version bump; interactive tap-through of upload → diagnosis → Apply → export → second-job still needs the physical gate.
+
+**1.4.3 (13) APPROVED and LIVE on the App Store** (released 2026-07-19T21:47:02Z, verified 2026-07-20 via Apple's public lookup API `itunes.apple.com/lookup?id=6776752349`), superseding 1.4.2 (12). Release C (Stories 11-13) merged and shipped. Activation autopsy filed same day (PR #109): 1.4.3 partially ships the top cliff fix (tappable "Sign in to Optimize" + diagnosis persistence across sign-in), so the post-1.4.3 cohort is now accumulating for real
+**Current Phase:** WP-48 read taken 2026-07-20 — cohort **NOT mature** (0 of 20 clean uploaders, 9h post-release). Projected maturity **2026-08-18**. Two blocking measurement defects found; fix them in 1.4.4 before that read
+**Active Story:** None
+**Last Completed Story:** WP-50 (S2-A, measurement denominator) — 2026-07-20, branch `claude/wp50-measurement-denominator`. Redesignated the activation denominator from the auth-gated `resume_upload_succeeded` to the pre-auth `resume_file_selected`, restated the win rule against a baseline recomputed on that same definition (**10.0%, 1/10** — supersedes the non-reproducible 12.5% figure), and amended the canonical Story 10 HogQL so `resume_upload_succeeded` is labelled a post-auth diagnostic rather than a funnel step. Closes WP-48 Defects A and B. Docs-only; no Swift changed. Evidence: `docs/qa/reports/wp46-story10-activation-funnel-2026-07-18.md`. (Prior: WP-48 cohort read `docs/qa/reports/wp48-post-1.4.3-cohort-read-2026-07-20.md`; Story 13 physical gate PASS 2026-07-19, PR #108 `c6ad4fd`)
+**Next Recommended Story:** S2 in 1.4.4, remaining blocking item first: **(B)** fix `is_internal_tester` on Debug/TestFlight builds so gate runs stay out of the clean cohort. (**(A)** closed by WP-50 above.) Then the original S2 telemetry (`score_screen_signin_tapped`, file type/size on the picker events, `job_source`) — scoped but not yet implemented. Then the deferred follow-ups (Hebrew/RTL PDF, Story 8 Home→Fit tap-through). Also open: triage of stale PRs #100, #96, #86
+**Blockers:** None external. Measurement is calendar-blocked until ~2026-08-18. The win rule is now reproducible on 1.4.3 (WP-50 redesignated the denominator and restated the baseline on it); `is_internal_tester` on Debug/TestFlight builds is the remaining measurement defect
+**Last Validation:** WP-48 cohort read against PostHog project 270848 on 2026-07-20T06:46:55Z (server clock): zero iOS events in the 9h since release; clean arrival rate 4.7 file-selectors/week. Baseline re-derived like-for-like as **10.0% (1/10)** on `resume_file_selected`, not the 12.5% figure, which came from the legacy `resume_uploaded` event that 1.4.3 no longer emits. Reconciled against Portfolio HQ — agrees (read is calendar-blocked, not broken). App Store live version confirmed **1.4.3** via Apple's public lookup API on 2026-07-20 (store ground truth). Story 13 physical gate run 2026-07-19 on Nadav.Yigal's iPhone (iPhone 13) — golden path, both Story 12 flows, and terminate/relaunch recovery confirmed working
+**Last Updated:** 2026-07-20
+
+**1.4.3 (13) APPROVED and LIVE — Release C shipped (2026-07-20):** Apple approved and released 1.4.3, superseding 1.4.2 (12). Verified against Apple's lookup API: `Resume AI - CV Builder`, `version: 1.4.3`, released **2026-07-19T21:47:02Z**. RunSmart iOS 1.1.0 went live one minute later (21:48:08Z), so both apps are live simultaneously for the first time. **What this release carries:** the Story 13 auth-retry and error-banner fix, the partial activation-cliff fix (tappable "Sign in to Optimize" + diagnosis persistence across sign-in), and the `optimization_id` fix (iOS `c02089e` + backend PR #116) — saved-résumé reuse had never worked in production for any user before this build. **Post-release watch (not yet done):** no PostHog confirmation yet that the Stories 10-12 activation events fire from a clean 1.4.3 install; the >=20-clean-uploader read defined in the S2 plan has not been run.
+
+**Release C Story 13 — physical gate PASSED with 2 defects found and fixed live (2026-07-19):** Founder ran the physical checklist on Nadav.Yigal's iPhone. **Defect 1:** `SavedResumePickerSheet` and the Story 12 auto-reuse both grabbed `session.accessToken` directly with no retry and set an error state that was never rendered — taps silently did nothing. Fixed with `AppState.callWithFreshToken` + a visible error banner (commits `9e9337d`, `ce79d3b`). **Defect 2 (the real root cause, unrelated to auth):** downloads still failed 100% of the time after fix 1 — confirmed via a live debug print that `downloadToCache` called `/api/download/{id}` with the `saved_resumes` row id, but that endpoint looks up an `optimizations` row by id and has nothing to do with saved résumés. `saved_resumes.optimization_id` has always been the correct id but the backend's list/save/rename responses never returned it — this means saved-résumé reuse likely never worked in production for any user, predating Stories 12/13. Fixed with a companion backend PR (`new-ResumeBuilder-ai-` #116, merged and deployed to production 2026-07-19, additive `optimization_id` field, no schema change) plus an iOS client fix (commit `c02089e`). Reverified live end-to-end after both deployed. Full defect record and an honest per-row confirmation status (2 rows + the Story 8 leftover item were not independently re-checked this session) are in `docs/qa/reports/wp46-story13-release-candidate-journey-audit-2026-07-18.md`. PR #108 merged (`c6ad4fd`); version bumped 1.4.2(12) → 1.4.3(13) via PR #110 (`6e29cf3`). **Not done:** no archive, signing, or ASC/TestFlight action — that is the next and only remaining step.
+
+**Release C Story 13 AUTOMATED AUDIT COMPLETE — physical gate pending (2026-07-18):** Started from merged Story 12 at `ca64329`. Read the original 20-checkpoint audit directly from `origin/docs/ftux-audit-rescue`, because PR #96 still owns that historical artifact and it is not on `main`. Erased and freshly booted dedicated iPhone 17 `EAC6E600…` on iOS 26.5, installed/launched the exact candidate, and observed clean Home with no stale state. The complete suite passed 202 total / 1 intentional live-fixture skip / 0 failures. The Story 12 final generic Release build is byte-for-byte the merge tree and passed store validation unsigned. Connected physical iPhone 13 `00008110…` compiled and linked; command-line CodeSign selected the correct Apple Development identity/profile but macOS Keychain returned `errSecInternalComponent`, so the Story 13 Xcode project was opened for founder authorization and Run. The pass/fail delta and physical checklist are in `docs/qa/reports/wp46-story13-release-candidate-journey-audit-2026-07-18.md`. Monetization remains deferred because the canonical activation cohort is not yet released/sample-ready. **Pending:** physical preview/export/share, relaunch, Hebrew/RTL PDF, file picker, second-job loop, and final no-critical/high decision. **Not done:** no ASC/TestFlight action.
+
+**Release C Story 12 COMPLETE LOCALLY — review gate next (2026-07-18):** The post-export action now reads “Optimize for another job” and creates one explicit in-session request back to Home. Home first clears only job-derived upload/diagnosis/review/error state, preserves AppState's prior optimization ID and export recovery, and prefers the saved optimized résumé linked to that optimization; if no saved link is available, the still-valid in-memory résumé remains selected. The user is scrolled directly to a focused empty job-description field with visible résumé context. Relaunch recovery carries the saved résumé association, and new English copy has compiled Hebrew translations with placeholder parity. `second_job_started` has an empty event-property dictionary, so no résumé, job, URL, email, or generated content is emitted. **Validation:** red compile state observed before the new transition method; focused 25/25; exact final full suite 202 total / 1 intentional skip / 0 failures; Debug and unsigned generic-iOS Release builds succeeded; exact final Debug app installed/launched and rendered cleanly on dedicated iPhone 17 and Resumely Build7 iPhone SE; catalog missing count remains 0; version remains 1.4.2 (12); diff/privacy checks passed. **Not observed end to end:** the authenticated export → saved-résumé download → second-job UI path needs the live account/backend fixture and is covered by state, persistence, and analytics tests here; Story 13 retains the physical-device journey gate. **Not done:** no ASC/TestFlight action.
+
+**Release C Story 11 COMPLETE LOCALLY — review gate next (2026-07-18):** Started from Story 10 merge `71b6676`. Red catalog check found 99 entries with no Hebrew value; all now have translations and format-placeholder parity. Added a compiled `he.lproj` regression test for touched journey copy. Signup Email and Password labels remain visible outside placeholders, expose single localized VoiceOver names, and use a keyboard focus chain. Job input fields have explicit names; recovery cards no longer combine and swallow buttons. Shared typography uses semantic Dynamic Type styles, Home reflows its progress path at accessibility sizes, and Reduce Motion now covers Home entrance, signup mode, tab selection, and recovery banners. Hebrew simulator QA found and fixed pre-existing detached gradient artifacts caused by tab-pill matched geometry and the upload icon's repeating scale animation under RTL/small-screen compositing. Contrast ratios and the physical preview/PDF RTL gate are documented in `docs/qa/reports/wp46-story11-localization-accessibility-2026-07-18.md`. **Validation:** focused compiled localization test passed; final-tree full suite 199/1 skip/0 failures; final Debug and unsigned generic-iOS Release builds passed; iPhone 17 + SE Hebrew launch/render smokes are clean; diff/privacy/version checks passed. **Pending:** commit/push/PR/review gate only. **Not done:** physical-device generated preview/PDF/share RTL remains Story 13 by contract; no ASC/TestFlight action.
+
+**Release B Story 10 COMPLETE LOCALLY — canonical activation is measurable (2026-07-18):** Reviewed and merged Story 9 PR #104 after a clean code/privacy review and an independent 28/28 focused test rerun. Reconciled the local-only WP-45 S0 measurement commit rather than replaying its stale analytics file: retained `analysis_cta_tapped`, `flow_version`, input-source categories, Fit score version/buckets, and its clean-cohort sample gate. Added bounded validation, apply, recovery, recommendation, save, and export lifecycle events with the existing stable anonymous session plus review/optimization/item correlation IDs and the shared `is_internal_tester` envelope. Removed both production `resume_uploaded` call sites so local selection is only `resume_file_selected` and server completion is only `resume_upload_succeeded`; the legacy enum remains for historical decoding. `optimized_preview_rendered` now fires only after `WKNavigationDelegate.didFinish`, visible applied content, and once per optimization. Added the reproducible content-free HogQL at `docs/qa/reports/wp46-story10-activation-funnel-2026-07-18.md`. **Validation:** red compile state observed on the missing contracts/policy; focused 16/16; full suite 192/1 skip/0 failures on iOS 26.5; explicit Debug simulator and unsigned generic-iOS Release builds succeeded; iPhone 17 and Resumely Build7 iPhone SE installed, launched, waited, and rendered Home correctly; diff/privacy checks passed. **Not done:** no live PostHog cohort exists for these events before release; no ASC/TestFlight action; Story 11 not started.
+
+**Story 10 PR #105 review fixes (2026-07-18):** Verified all four CodeRabbit comments against the branch. Moved Home validation tracking out of the unreachable disabled-button action and into deduplicated blocked-state transitions; `analysis_cta_tapped.flow_version` now follows the actual Fit feature-flag route on Home and Tailor; optimized-view, export-CTA, save-prompt, and preview-render visibility events now require the active tab and deduplicate per optimization ID; `PreviewActivationPolicy` is explicitly `Sendable`. Added red-first regression coverage for inactive preview suppression, route-version resolution, and validation-reason transitions. The focused analytics suite passed twice after the fixes on iOS 26.5. No content-bearing properties were introduced.
+
+**Release B Story 9 COMPLETE — PR #104 READY (2026-07-16):** Resumed from the handoff without rebuilding the implementation. Debug simulator build succeeded on iPhone 17 / iOS 26.5. The exact Debug app installed and launched on iPhone 17 `9E2E82B6…` and Resumely Build7 iPhone SE `A0F88614…`; both rendered Home after the required launch wait (the SE's first capture was black, then a clean relaunch and longer wait rendered correctly). Generic-device Release build with `CODE_SIGNING_ALLOWED=NO` succeeded. Final inspection found only the Story 9 code, tests, and task-memory files; no version/build-setting drift, unrelated changes, credentials, secrets, or content-bearing analytics; `git diff --check` passed. One earlier Release run was manually interrupted after a transient process-list gap was mistaken for completion; it is excluded from evidence, the clean rerun is the authoritative pass, and the mistake is recorded in `tasks/lessons.md`. **PR #104** is open to `main`; CodeRabbit reviewed all 10 remote files, reported no actionable comments, and passed 5/5 pre-merge checks, so the PR was marked ready. The authenticated evidence screen was not driven with a live review fixture; focused extraction/decoder/safety/analytics coverage remains the evidence for that path. **Not done:** PR #104 was not merged; Story 10 was not started.
+
+**STORY 9 HANDOFF — implementation complete, validation interrupted (2026-07-16):** Founder approved the evidence contract as **alternative B** (v1 on-device extraction; backend schema = v2 upgrade path) — recorded and merged via **PR #103**; Stories 7-8 were integrated to `main` earlier the same day (#98 → #99 → #101 → #102 merged, #93 closed). Story 9 then proceeded test-first on branch `claude/release-b-story-9` (from `main` at `a7ad52b`): **red state observed** (`cannot find type 'ReviewEvidenceDTO' in scope`, proving the new test file reaches the target), then implemented. **What shipped in the WIP commit:** `Features/V2/History/RecommendationEvidence.swift` (new, `nonisolated Sendable` — deterministic verbatim-substring extraction, ≤3 quotes/side, ≤280 chars, sentence-bounded snippets, stopword-gated candidates, backend-evidence preference with verbatim re-validation and version gate); `DomainModels.swift` (additive: `raw_text`/`clean_text` on `OptimizationReviewJobDescriptionDTO`, optional `evidence` on `ReviewChangeGroupDTO`, new `ReviewEvidenceDTO`/`ReviewEvidenceQuoteDTO`); `OptimizationReviewView.swift` (evidence resolved once per load into `evidenceByGroupId`, read-only "Why this change" quote section per card, Include→**Accept** rename, `evidence_state` on include/skip analytics, `recommendation_evidence_shown` counts-only event); `AnalyticsService.swift` (extended `recommendationIncluded`/`Skipped` with `evidenceState`, new `recommendationEvidenceShown`); `AnalyticsServiceTests.swift` (contract lists updated); `RecommendationEvidenceTests.swift` (new, 16 tests: verbatim guarantee, no-fabrication, bounds, dedupe, case-insensitive source-cased quotes, backend preference/rejection/version-gate, decoding compatibility both ways, evidence-never-auto-approves); `project.pbxproj` (4 test-target entries only — no version state touched, still 1.4.2/12). **Validation evidence so far:** focused `RecommendationEvidenceTests` 16/16; focused evidence+analytics+safety 35/35; **full suite 188 tests / 1 intentional skip / 0 failures** — all on iPhone 17 **iOS 26.5** simulator (`9E2E82B6-DC56-4162-846F-B96AE74867E7`). **Critical environment finding:** the full suite **crashes on the iOS 26.3.1 runtime** (`malloc: pointer being freed was not allocated`, XCTest host SIGABRT in `testViewModelStartsEmptyWithoutOptimizationId` + `testATSInsightsExplainLowScoreAndExposeActions`) — reproduced **identically on clean `main` with zero Story 9 changes**, same failure address, so it is a pre-existing 26.3.1 runtime issue, NOT a Story 9 regression. Always validate on the iOS 26.5 runtime (the repo's prior green runs did). **Remaining Story 9 validation (in order):** (1) Debug simulator build; (2) install/launch smoke on iPhone 17 iOS 26.5 `9E2E82B6…` AND smallest SE "Resumely Build7 iPhone SE" `A0F88614-B41A-4383-9C53-4C669CAE22A1` (also iOS 26.5; allow ~10s before trusting screenshots per the Story 8 lesson); (3) generic-device Release build `CODE_SIGNING_ALLOWED=NO` (~25 min, whole-module optimization looks frozen — not a hang); (4) `git diff --check` + final diff inspection for unrelated changes/PII; (5) update this file + session-log with results; (6) open PR `claude/release-b-story-9` → `main` and review-gate it. **Grower signal (per WP-46):** Story 9 targets the review→apply step of the activation loop — PostHog will show it via `recommendation_included` / `recommendation_skipped` segmented by new `evidence_state` (`with_evidence` vs `without_evidence`), `recommendation_evidence_shown` (counts only, never quote content) volume, and downstream `optimization_completed`. **After Story 9:** Story 10 must first reconcile local-only `codex/wp45-s0-measurement-contract` (`d53d091`); then Stories 11-13 per WP-46; 1.5.0 version bump only at the separately-approved release-prep step.
+
+**Status (previous):** Stories 7-8 MERGED to `main` (PRs #101, #102); 1.4.2 (12) LIVE on the App Store; Story 9 evidence contract APPROVED (v1 client-side, alternative B)
+**Current Phase:** WP-46 — Release B+C continuation toward 1.5.0
+**Active Story:** Story 9 — evidence-backed Accept/Skip recommendations (contract approved 2026-07-16)
+**Last Completed Story:** Story 8 — merge Fit into the diagnosis continuation (merged via PR #102)
+**Next Recommended Story:** Story 10 — canonical activation instrumentation, after Story 9 completes
+**Blockers:** None for Story 9. `codex/wp45-s0-measurement-contract` (local-only, `d53d091`) must be reconciled before Story 10.
+**Last Validation:** Story 8 — full suite 172 tests, 1 intentional skip, 0 failures; Debug simulator and generic-device Release builds both succeeded; iPhone 17 + SE smokes. This session so far: docs-only.
+**Last Updated:** 2026-07-16
+
+**Story 9 evidence contract APPROVED — alternative B, v1 client-side (2026-07-16):** The founder approved the recommendation-evidence contract with delivery **alternative B**: v1 evidence extraction runs on-device in iOS from text `GET /api/v1/optimization-reviews/{id}` already delivers (`resume.raw_text`, `jobDescription.raw_text`/`clean_text`), with deterministic verbatim-substring matching and the §2 backend `evidence` schema retained as the approved v2 upgrade path — the client will prefer backend evidence when it appears and keep local extraction as fallback, so v2 lands later with no client rework. Checklist items 1 and 5 approved directly; 2 and 4 delegated and approved as written; 3 decided as B. Rationale recorded in the contract doc: at v1 the backend had no quality advantage (deterministic matching is identical wherever it runs) while costing a second work packet and rollout sequencing; the backend's real advantage — the optimizer explaining its own changes — only arrives with v2. **Story 9 is unblocked and begins now.** Nothing in 1.5.0 waits on the web repo.
+
+**WP-46 session — Stories 7-8 integrated to `main`; Story 9 contract PROPOSED (2026-07-16):** Reconciled and merged the full Release B chain in the order the prior session prescribed: **#98** (authoritative 1.4.2-LIVE record) → **#99** (docs reconciliation; its `progress.md` conflict with #98 was resolved as a verified union, zero lines lost) → **#101** (Story 7) → **#102** (Story 8, which GitHub auto-closed when its base branch was deleted mid-chain; it was reopened, retargeted to `main`, and merged — same commits, no rework). `main` is now `c0f880c` with `MARKETING_VERSION = 1.4.2` / `CURRENT_PROJECT_VERSION = 12` intact. **#93 CLOSED** with a comment: its two-dot diff would have regressed the live version state, and #99 already landed its four docs. **Story 9 gate executed per WP-46 Start Gate 4:** searched the iOS repo, the web repo, and the Agentic OS decision log — the required additive backend-evidence contract **did not exist anywhere**; DECISIONS.md item 7 (2026-07-16) records only the requirement and ownership. Authored the proposal at `docs/specs/drafts/recommendation-evidence-backend-contract.md`, grounded in the real schemas: additive optional `evidence` per group inside `grouped_changes_json` (verbatim-substring quotes only, bounded, no migration, served unchanged by `GET /api/v1/optimization-reviews/{id}`), old clients unaffected because `ReviewChangeGroupDTO` ignores unknown keys, and the Story 5 `RecommendationSafetyPolicy` staying authoritative as the no-evidence fallback — evidence never auto-approves factual changes. **Still open elsewhere:** PR #96 needs a docs-only rebuild (uniquely holds `release-b-initiation-prompt.md` + the FTUX audit); PR #100 targets the superseded Release A branch; `codex/wp45-s0-measurement-contract` (`d53d091`) remains local-only and overlaps Story 10. **Next:** founder reviews the contract's approval checklist; on approval, Story 9 begins per WP-46.
+
+**Release B Story 8 COMPLETE — Fit merged into the diagnosis continuation (2026-07-16):** Continuing from Home into Fit opened Fit's own entry form: `prepareFitCheck()` carried the résumé and job across, then `resetToEntry()` presented that same job back as a `TextEditor` plus a "Check Fit" button — asking the user to confirm work they had just done. Added `FitContinuation` (`Features/V2/Fit/`), a `nonisolated Sendable` policy resolving one of `runAutomatically` / `askForJob` / `editTarget` / `showVerdict` / `showFailure`, where **editing takes precedence over everything** so the target is always changeable. `FitCheckViewModel` gained `beginCarriedFitCheck()` (guarded by `hasAttemptedCarriedCheck` so continuing checks the carried target exactly once, not on every re-render), `editTarget()`, and `applyEditedTarget()`; `resetToEntry()` clears the new guards so each entry from Home starts a fresh continuation. `FitCheckView` now drives presentation from `continuationStep` and auto-runs via `.task`; a failed fit shows an **in-place failure state** — explaining that the résumé and diagnosis are untouched, offering "Edit target job" and "Skip fit and optimize" — rather than silently reverting to the confirmation form this story removes. `FitVerdictView` gained "Edit target job" so the target is editable immediately before optimizing. **Validation:** red state **observed** by removing the implementation and rebuilding (`cannot find 'FitContinuation' in scope`), then restored; focused suite 11/11; full suite **172 tests, 1 intentional skip, 0 failures**; Debug simulator and generic-device Release builds both succeeded (the Release build takes ~25 min here — whole-module optimization compiles single-threaded and emits no incremental log output, so a frozen log is normal, not a hang); iPhone 17 and the smallest available iPhone SE installed, launched, stayed running, and rendered Home correctly. **Screenshot caveat worth remembering:** two SE screenshots initially looked like a blank/partial Home and were **not** a regression — they were captured mid-launch before the `appeared` fade-in completed; a 10-second wait rendered Home correctly. Allow ~10s before trusting a simulator screenshot of this app. **Not verified by observation:** the real authenticated Home → Fit continuation needs a live résumé, job, backend and credentials the simulator tooling cannot supply. **Next:** Release B is stopped at the Story 9 gate by explicit instruction. Story 9 needs a backend owner, schema, delivery plan and fallback before any work begins.
+
+**Release B Story 7 COMPLETE — guest context survives authentication (2026-07-16):** A guest ran the free ATS check, signed in to optimize, and their diagnosis vanished: Home gated the score card on `!appState.isAuthenticated`, so signing in hid the exact result the user signed in to act on, and the CTA still read "Analyze my resume" as though the work had to be redone. Added `GuestDiagnosisContinuity` (`Features/V2/Home/`), a pure `Sendable` decision layer that fingerprints the inputs a diagnosis was computed from — résumé sandbox path plus `JobInputPolicy`-normalized job input, carrying **no résumé or job content** — and decides `carryForward` for unchanged inputs versus `invalidateDiagnosis` for changed ones, where invalidation drops the result only and never the user's résumé selection or job text. `TailorViewModel` now writes `atsResult` and its fingerprint together and `atsResult` is `private(set)`, so a diagnosis cannot outlive the inputs it describes; verified no call site outside the view model ever assigned it. Home re-checks continuity on every auth transition — which covers sign-in **and** cancellation identically, since neither touches the inputs — and on every résumé/job edit. **Authentication never starts optimization:** `postAuthStep` only ever returns a user-initiated step, and the optimize card reads "Continue to optimize" when a carried diagnosis stands. The `MainActor` isolation matches `JobInputPolicy` (the project sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`); the test class is annotated to match rather than forcing the policy `nonisolated`. **Validation:** red state confirmed (tests failed to compile on the missing type, which also proved the test file was reaching the target); focused suite 15/15; full suite **161 tests, 1 intentional skip, 0 failures**; Debug simulator and generic-device Release builds succeeded; iPhone 17 and the smallest available iPhone SE installed, launched, stayed running, and rendered Home without clipping. **Scope note:** the test target does **not** use a synchronized group (only the app target does), so `GuestDiagnosisContinuityTests.swift` required 4 explicit `project.pbxproj` entries; no version or Info.plist state was touched. `AppState.swift` and `OnboardingViewModel` needed no changes. **Not verified by observation:** the real guest → ATS → sign-in → continue path needs a live résumé, job, backend and credentials that the simulator tooling cannot supply — continuity is proven by tests, not yet by a driven run. **Flagged, not fixed:** `ScoreResultView`'s authenticated copy still says "Use Tailor to generate the full optimized resume" (legacy tab wording, outside Story 7's file scope), and the three new Home strings have no Hebrew translation and fall back to English — both belong to Release C Story 11. **Next:** Story 8 — merge Fit into the diagnosis continuation; stop at the Story 9 gate.
+
+**Release A docs reconciled to `main`; branch `codex/first-time-journey-release-a` confirmed SUPERSEDED (2026-07-16):** Audited the standing instruction to "land Release A on `main` via a PR from `codex/first-time-journey-release-a`" and found it already satisfied. A two-dot tree comparison (`git diff origin/main origin/codex/first-time-journey-release-a`) shows **zero Swift differences** across all 30 source and test files — PR #97 landed every line of Release A code. The instruction was quoted verbatim from that branch's own stale `progress.md` entry, written before #97 merged. **Opening the requested PR would have regressed `main`:** the branch carries `MARKETING_VERSION = 1.4.1` / `CURRENT_PROJECT_VERSION = 11` against main's submitted 1.4.2 / 12, re-adds the `UIDeviceFamily` key that #97 deliberately removed, and deletes main's validated #97 record plus two 2026-07-15 lessons. That PR was **not** opened. Instead, this docs-only change lands the artifacts #97 intentionally scoped out — the FTUX brief/spec/stories drafts (where Stories 7-10 are defined), `docs/app-store/wp-31-hebrew-aso-draft.md`, and the additive `todo.md`/`session-log.md` history — while hand-merging `progress.md` and `lessons.md` as a verified union (zero lines lost from either side) so main's #97 record survives. The two stale claims in the branch's historical entry are annotated in place rather than deleted. **No code, config, or version state changed; `Config/Info.plist` and `project.pbxproj` were deliberately excluded.** **Also found:** `docs/specs/drafts/release-b-initiation-prompt.md` is not on `main` or the Release A branch — it lives only on `docs/ftux-audit-rescue`; and `codex/wp45-s0-measurement-contract` (`d53d091`, "feat: instrument WP-45 analyze intent baseline") is **local-only, never pushed**, and overlaps Story 10's instrumentation. **Next:** Release B Stories 7 then 8, branched from `main`; stop at the Story 9 gate.
+
+**Open docs PRs #93 and #96 carry the SAME stale-base regression as the Release A branch — do not merge either as-is (2026-07-16):** Audited every open PR after discovering the Release A branch was behind `main`. **PR #93** ("docs(wp-31): Hebrew ASO draft asset pass") is titled draft-only but its two-dot diff against `main` reverts `MARKETING_VERSION` 1.4.2 → 1.4.1 and `CURRENT_PROJECT_VERSION` 12 → 11 and re-adds the `UIDeviceFamily` key — it would desync `main` from the **live** 1.4.2 (12) build. Its four docs (`wp-31-hebrew-aso-draft.md` and the FTUX brief/spec/stories) are landed safely instead by PR #99, so **#93 should be closed in favour of #99, not merged**. **PR #96** ("preserve first-time-user journey audit and FTUX artifacts") is also based on a stale point: its two-dot diff is 63 files with **1918 deletions**, including 10 lines of `tasks/lessons.md` and 2 of `tasks/progress.md` — it would clobber main's records. #96 uniquely holds `docs/specs/drafts/release-b-initiation-prompt.md`, `docs/audits/first-time-user-journey-audit.md` + evidence images, and `docs/qa/reports/release-a-asc-readiness-2026-07-15.md`, so it needs the same docs-only rebuild #99 did before anything of it lands. **PR #98** (progress.md only, records 1.4.2 APPROVED and LIVE) is correct and authoritative on release status; it overlaps #99 on `progress.md` and should merge first or be folded in. **Root cause, worth internalising:** several branches predate PR #97 and every one of them silently reverts the shipped version state. Always compare with a two-dot tree diff (`git diff origin/main <branch>`) before merging any branch older than #97.
+
+**Release A 1.4.2 (12) APPROVED and LIVE on the App Store (2026-07-15):** Founder-confirmed directly from App Store Connect at ~21:15 local, with the store listing showing **Version 1.4.2** released and the app installable. **The live App Store build is now 1.4.2 (12)** — this supersedes both 1.4.1 (11) and the "SUBMITTED, awaiting review" entry recorded earlier today. Apple approval changes state with **no git commit and no file edit**, so this entry is the only record of it and the repo cannot self-corroborate it; source is the direct founder statement plus the ASC/App Store listing. This is the first release carrying the first-time-journey **Release A (Stories 1-6)** work to real users. `origin/main` can rebuild this exact binary: PR #97 reconciled Stories 1-6 and the 1.4.2/12 version stamp onto `main`, matching the submission checkout byte-for-byte. **Shipped with two known-unverified items** (unchanged by approval — App Review passing is not evidence these work): the timeout-recovery regression never went green (XCTest-host `SIGABRT`, not an assertion failure), and the clean-install signed device journey was not completed before submission. If users report Release A problems, start there. **Next:** re-scope the PostHog picker→file-selected funnel read to `marketing_version=1.4.2` — the 1.4.1 (11) cohort stops accumulating as of today, so the earliest usable post-live window resets to ~2026-07-22; then Release B (Stories 7-10) per `docs/specs/drafts/release-b-initiation-prompt.md`, with Story 9 still blocked until the backend recommendation-evidence metadata contract has an owner, schema, delivery plan and fallback.
+
+**Release A 1.4.2 (12) source reconciliation VALIDATED — PR #97 (2026-07-15):** A clean worktree from `origin/main` reconciles only Release A Stories 1–6 and their regression fixes/tests from `codex/first-time-journey-release-a` (`3427e6b` through `a9fcf96`), plus the exact submitted version state. Local Xcode archive evidence at creation time `2026-07-15T09:02:26Z` records bundle `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, version **1.4.2**, build **12**, production `API_BASE_URL`, and an App Store distribution record with `uploadedBuildNumber = 12` and successful upload at `2026-07-15T09:05:14Z`. This supersedes the earlier automated BLOCKED / NOT READY assessment without rewriting that historical result. The reconciled configuration matches the submission checkout byte-for-byte in `Config/Info.plist` and `project.pbxproj`: both Debug and Release use `MARKETING_VERSION = 1.4.2` and `CURRENT_PROJECT_VERSION = 12`, while the manually supplied source `UIDeviceFamily` key is removed and Xcode resolves `TARGETED_DEVICE_FAMILY = 1,2`. Validation on Xcode 26.5 / iOS 26.5 passed: 90 focused Release A tests with 1 intentional live-fixture skip and 0 failures; the complete suite with 151 tests, 1 intentional skip, and 0 failures; an explicit Debug simulator build; a generic-device Release build with store validation; plist/project/localization parsing; and `git diff --check`. The generated Release app reports version 1.4.2, build 12, and device families 1 and 2. Release B, WP-31 documentation, and the separate audit/readiness/evidence draft set remain out of scope.
+
+**Release A 1.4.2 (12) SUBMITTED to App Store Connect, awaiting review (2026-07-15):** Founder-confirmed. The founder resolved the distribution-signing blocker recorded below and completed the archive, upload and review submission. This **supersedes the two BLOCKED / NOT READY entries that follow** — those remain an accurate record of the automated attempt at the time it was made, not of the final outcome. Source: direct founder statement, 2026-07-15; Apple state changes leave no commit or file edit, so this entry is the only record and the repo cannot self-corroborate it. The live App Store build remains **1.4.1 (11)** until review clears. **Known risk — the submitted binary is not on `main`:** 1.4.2 (12) was cut from `codex/first-time-journey-release-a`, and `origin/main` contains neither Release A Stories 1-6 nor the version bump, so main cannot rebuild what users are about to receive. **[RESOLVED by PR #97, 2026-07-15 — see the VALIDATED entry above. `main` now contains Release A Stories 1-6 and the 1.4.2 (12) version state, and can rebuild the submitted binary. This risk text is retained as the record of the gap, not as a live risk.]** **Shipped unverified:** the timeout-recovery regression never went green (XCTest-host `SIGABRT`, not an assertion failure), and the clean-install signed device journey plus ASC metadata/reviewer-note checks were not completed before submission — if App Review flags Release A, start there. **Next:** land Release A on `main` via a PR from `codex/first-time-journey-release-a`, then begin Release B (Stories 7-10) per `docs/specs/drafts/release-b-initiation-prompt.md`; founder approved B then C as one FTUX push on 2026-07-15, and Story 9 stays blocked until the backend recommendation-evidence metadata contract has an owner, schema, delivery plan and fallback. **[STALE — do not action this Next clause. Superseded 2026-07-16. (1) "Land Release A via a PR from `codex/first-time-journey-release-a`" was DONE by PR #97; that branch is now behind `main` and merging it would regress `MARKETING_VERSION` to 1.4.1 / `CURRENT_PROJECT_VERSION` to 11 and re-add the `UIDeviceFamily` key. Do not open that PR. (2) `docs/specs/drafts/release-b-initiation-prompt.md` was never on this branch; it lives on `docs/ftux-audit-rescue`. (3) Release B is Stories 7-8 only: Story 9 is gated on the backend evidence contract, and Story 10 lists Stories 6-9 as prerequisites, so Story 9's gate blocks Story 10 too.]**
+
+**Release A 1.4.2 (12) ASC archive attempt — BLOCKED (2026-07-15):** Set `MARKETING_VERSION` to **1.4.2** and `CURRENT_PROJECT_VERSION` to **12** and removed the manually supplied `UIDeviceFamily` Info.plist key. The fresh Debug iPhone 17 Pro simulator build/install/launch passed and exposed the restored optimized-preview flow. The exact unsigned 1.4.2 (12) generic-iOS Release build succeeded and passed Xcode store validation; its resolved plist has the production API URL, 1.4.2/12, and no UIDeviceFamily source warning. One narrow Apply transition regression passed; the timeout-recovery regression again aborted the documented XCTest host (`SIGABRT`), not an assertion failure. The authorized Release archive compiled to code signing with `-allowProvisioningUpdates`, but Xcode selected `Apple Development: Nadav Yigal (V2D7D57MXR)` and its iOS Team provisioning profile, then waited for keychain access. That identity cannot create an App Store Connect distribution archive, so the attempt was stopped and no archive, upload, TestFlight build, or review submission occurred. **Next:** install/authorize an Apple Distribution identity and App Store profile for team `8VC4R5M425`, then rerun the signed archive/validation/upload and complete the remaining clean-install device + ASC console checks.
+
+**Release A ASC readiness assessed — NOT READY (2026-07-15):** Current branch smoke passed on an iPhone 17 Pro simulator: a restored completed optimization opened the Optimized tab and visibly rendered the résumé. Debug simulator and unsigned generic-iOS Release builds both succeeded; the Release build completed Xcode's store validation. This is not an upload-ready archive: the checked-in version is **1.4.1 (11)**, already live, and the local keychain has only an Apple Development identity (no Apple Distribution identity/profile). The focused first-session/review test invocation exercised several assertions but ended with the documented XCTest-host `malloc` crash/restart loop and exit **65**, so automated verification is not green. ASC metadata/reviewer-note confirmation and a clean-install signed TestFlight device journey remain required. Also remove the non-fatal `UIDeviceFamily` Info.plist warning before final archive. Release B has not begun; its gated initiation prompt is at `docs/specs/drafts/release-b-initiation-prompt.md`.
+
+**Optimization Review blank-screen regression FIXED (2026-07-14):** The physical-device logs proved `GET /api/v1/optimization-reviews/{id}` completed and decoded successfully, so this was not an optimization-generation or API failure. The review destination created its `OptimizationReviewViewModel` inline; when its parent refreshed at the end of optimization, SwiftUI replaced that model and discarded the loaded review, leaving the view with no loading, envelope, or error state. Added stable `@State` destination ownership across Home, Tailor, Improve, and History, while changing the model only for a different review ID. Confirmed the focused test fails before the owner exists, then passes; the two focused suites pass **19/19**. Debug launches/smokes passed on iPhone 17 and the smallest supported iPhone SE; the generic-device Release build also passed. **Next:** rebuild the current branch on the physical device, submit a job, and confirm review cards plus Apply appear before applying to view the optimized résumé.
+
+**Optimized résumé visibility regression FIXED (2026-07-14):** Investigated the supplied production logs and reproduced the rebuilt app on iPhone 17. Optimization history, detail, design, and review requests all returned 200; the existing optimized résumé rendered correctly but appeared missing because the document sat below the full ATS-insights and diagnosis stack and required two scrolls to reach. Moved the rendered résumé and its save state directly below the score card so the primary deliverable is visible in the initial viewport. The new run in the logs remains correctly pending review because `/api/optimize` returned a review ID and no Apply request/new optimization ID occurred. Focused regression suites passed **38/38**; Debug and Release builds passed; iPhone 17 showed the résumé without scrolling; and the smallest supported iPhone SE built/launched and rendered the locked Optimized layout without clipping or crash. **Next:** apply the selected review changes to create the new optimization, then confirm the newly generated résumé opens in Optimized.
+
+**First-time journey Release A Story 6 IMPLEMENTED — manual physical interaction pending (2026-07-14):** Verified the live saved-résumé web contracts directly: save accepts `displayName`/`display_name` and returns `id`, `filename`, `display_name`, `size_bytes`, `created_at`; list returns the same public fields. The optimized preview now visibly confirms applied content, owns idle/saving/saved/retryable-failure state, and persists the returned saved-résumé row locally by optimization ID so Preview and Account show the saved state after relaunch while the server-backed picker exposes the saved row. Save failures leave all preview sections visible and retry in place. Styled, backend, and local export paths now require a structurally readable PDF with extractable text before sharing, with backend/styled failure falling through to the existing local text-layer renderer. Added `optimized_preview_rendered`, `saved_resume_prompt_viewed`, `save_success`, and `save_failed` analytics using only empty payloads or fixed error categories—no résumé, job, email, URL, or generated content. Focused red state was confirmed; final focused verification passed **40/40**. Debug simulator, Release generic-device, and signed physical-device builds succeeded. iPhone 17 and the smallest supported iPhone SE both installed/launched; the iPhone 17 restored live Optimized content and the SE rendered the fresh Home flow without clipping/crash. The connected iPhone 13 installed, launched, terminated, and relaunched the signed build successfully (PID 26180 → 26185); the available tooling cannot tap physical-device UI, so preview → save → export/share remains a short manual acceptance pass. Q1 did not block Story 6; Q4 is resolved available. **Next:** complete that physical interaction pass; do not begin Story 7 / Release B.
+
+**First-time journey Release A Story 5 COMPLETE (2026-07-14):** Added a nonisolated Sendable `RecommendationSafetyPolicy` fallback for the still-open Q1 backend evidence-metadata contract. Unresolved `{placeholder}` output is hidden from both diagnosis and optimization review while original content remains visible with a blocking explanation; blocked groups cannot be selected. Potential title/seniority, company, date, degree, location, contact, and numerical-achievement changes default off and require an explicit `Confirm & include` choice. Reviews whose projected score is unchanged or lower—including the required 53 → 52 fixture—start with no selected changes and a blocking warning, so Apply is not the default action. Added the five recommendation analytics contract names with only fixed `surface`, `safety_state`, and `reason` categories; no résumé, job, email, URL, or generated content is attached. Focused red state was confirmed; final focused verification passed **19/19** policy and analytics tests. Debug and Release simulator builds succeeded. The updated app installed, launched, and produced complete interactive UI snapshots on iPhone 17 and the smallest available supported iPhone SE. Q1 remains open for backend ownership/rollout but did not block the specified client fallback; Q4 did not block because the SE simulator was available. **Next:** Story 6 saved-résumé continuity, only after a new user confirmation.
+
+**First-time journey Release A Story 4 COMPLETE (2026-07-14):** Added one Sendable `JobInputPolicy` for Home, guest ATS, and Fit. A valid HTTP(S) link is independently ready; pasted descriptions require the approved temporary 100-word client fallback. Whitespace, malformed links, and 99-word text remain blocked; 100 words and URL-only input proceed. Home and Fit show live localized word-count/link guidance, all Home activation/progress/CTA state derives from the same policy, and sub-threshold optional text is omitted rather than sent beside a valid URL. Tailor and Fit normalize expected backend 400 validation into friendly guidance without HTTP/server terminology. No résumé, job, email, URL, or generated content was added to analytics. Focused red state was confirmed; final focused verification passed **24 tests with 1 intentional live-auth skip and 0 failures**. Final Debug simulator and Release generic-device builds succeeded. The updated build installed, launched, remained running, and rendered the dark Home surface on iPhone 17 and the smallest available supported iPhone SE. Q1 did not apply; Q4 did not block because the SE simulator was available. **Next:** Story 5 recommendation presentation safety gate, only after a new user confirmation.
+
+**First-time journey Release A Story 3 COMPLETE (2026-07-14):** `AppState` is now the single optimization source of truth. On restored or newly authenticated sessions it validates the persisted ID against authenticated `GET /api/optimizations` history, restores the newest completed optimization when local state is missing/stale, and rejects blank, mock, incomplete, and unverified IDs. Home, Optimized, Design, Expert, and Account now derive completion from the same ID; Account no longer performs an independent history read. Recovery exposes loading, one-time restored, empty, and retryable failure states. Added PII-safe `optimization_state_recovered` analytics with `optimization_id` only—no résumé, job, email, or generated content. Focused red state was confirmed; final focused verification passed **22/22**. Debug simulator and Release generic-device builds succeeded. Live authenticated iPhone 17 smoke restored a backend optimization and rendered the one-time sync banner plus Optimized content; the smallest available iPhone SE rendered the locked Optimized surface without a blank screen or crash. Q1 did not block; Q4 did not block because the SE simulator was available. **Next:** Story 4 shared job-input policy, only after a new user confirmation.
+
+**First-time journey Release A Story 2 COMPLETE (2026-07-14):** Replaced Home's competing review/diagnosis Boolean destinations with one `FirstSessionJourneyRoute` (`Hashable`, `Identifiable`, `Sendable`). Successful review Apply now trims and persists the optimization ID, remembers the job URL, and records pending save state before one guarded Optimized-tab handoff; the review completion handler is idempotent. A failed Apply keeps its selected groups retryable, presents an error, and never sets a success ID. Focused red state was confirmed before implementation; final focused verification passed **6/6**. Debug simulator and Release generic-device builds succeeded. iPhone 17 and iPhone SE (smallest supported available) install/launch smokes rendered the Optimized surface without a blank destination or crash. No analytics contract or content payload changed. Q1 and Q4 did not block this story. **Next:** Story 3 optimization source-of-truth reconciliation, only after a new user confirmation.
+
+**First-time journey Release A Story 1 COMPLETE (2026-07-14):** Added an explicit Xcode test-target golden-path harness with a synthetic résumé/job fixture covering guest diagnosis → auth → review → apply → optimized preview, no service/network dependency, the current two-destination Apply mutation precondition, and one optimization ID across Home, Optimized, Design, Expert, and Account. Focused red state was confirmed before implementation; final focused suite passed **3/3** with parallel workers disabled. Debug and Release simulator builds succeeded. Fresh iPhone 17 and iPhone SE (3rd generation, smallest supported available) build/install/launch smokes passed and Home rendered correctly. Release A is approved; Releases B/C remain out of scope. Q2 is resolved as Accept/Skip only because apply accepts `approvedGroupIds`; Q3 is resolved live with Story 6 required to verify `filename`, `display_name`, `size_bytes`, and `created_at` against web routes. **Next:** Story 2 deterministic Apply-to-preview route, only after a new user confirmation.
+
+**First-time journey upgrade PLAN DRAFTED + FIGJAM CREATED (2026-07-13):** Converted the fresh-user audit into an approval-ready product brief, feature spec, and 13-story release plan under `docs/specs/drafts/first-time-user-journey-upgrade-*`. Sequence: **Release A** trustworthy completion and recovery (P0), **Release B** continuous evidence-backed review (P1), **Release C** localization/accessibility and second-job retention (P2). Created the FigJam board `Resumely iOS — First-Time Journey Upgrade` with the audit verdict, 20-step current journey, failure map, proposed eight-stage journey, three-release roadmap, and a contact sheet containing all 20 captured screens. **No production code changed.** **Next:** founder reviews/approves the draft; implementation starts with Story 1 golden-path regression harness, then Story 2 deterministic Apply-to-preview navigation.
+
+**First-time-user product and UX audit COMPLETE (2026-07-13):** Ran a fresh-install, end-to-end Resumely iOS walkthrough on an erased iPhone 17 Pro simulator with synthetic résumé/job content and the live configured backend. Captured 20 evidence screenshots and documented the journey in `docs/audits/first-time-user-journey-audit.md`. **Verdict:** strong guest-first positioning and early diagnosis, followed by repeated Analyze/Check Fit work, serious recommendation-credibility defects, and a critical post-Apply blank/locked state that blocks preview/export even though Account records the optimization. No production code changed. **Validation:** Debug simulator build succeeded; full UI smoke completed through the blocked state and relaunch. **Next:** P0 fix the Apply-to-preview navigation/state recovery and recommendation safety gates before monetization or acquisition work.
+
+**WP-31 — Hebrew ASO draft asset pass DONE, draft-only (2026-07-13):** Produced `docs/app-store/wp-31-hebrew-aso-draft.md` as a founder-review candidate set: 5 subtitle candidates (≤30 chars, S1 `בדיקת התאמה לפני הגשה` recommended), 4 keyword-field sets (≤100 chars, K1 recommended, `ATS` retained as discoverability token only), 3 promotional-text options (≤170 chars, P1 matches the approved 1.2 EN promo), 5 screenshot captions mapped to `rb-aso-002` slots 1–5, plus a founder+QA reviewer note. Every claim checked against canonical `.agents/product-marketing.md` — Fit-First/Resumely Match Score/application package/export-from-iPhone framing kept; "pass ATS" / guaranteed-interview / official-ATS-score excluded per Words-to-avoid. **RTL PDF export quality GATED on product QA:** `docs/qa/pdf-export-checklist.md` § "Hebrew / RTL (currently not in scope)" has all boxes unchecked, so promo/captions claim PDF export + ATS-friendly templates (process-descriptive) but NOT Hebrew/RTL PDF fidelity; a GATED slot-4 caption alternative is held until physical-device QA passes. All character counts Unicode-verified (a few counts in the earlier draft were corrected: S2/S3 25 not 24, K1 79 not 78, K2 81 not 84, Cap2 56 not 54 — none breach limits). **No App Store Connect changes; no paid acquisition initiated.** Committed on branch `claude/wp-31-draft-assets-5ef590`. **Next:** founder picks S/K/P variants → merge winners into `docs/app-store/he-metadata.md` → capture `dist/app-store-screenshots/he/` → complete Hebrew/RTL PDF QA before enabling any RTL PDF claim.
+
+**WP-44 S1 — iOS picker landing fix BLOCKED, re-scoped (2026-07-11):** Attempted the planned `UIDocumentPickerViewController` wrapper with a `directoryURL` hint pointed at iCloud Drive, to fix the picker landing on empty "Recents" for first-time users (confirmed live in a Simulator walkthrough this session). Checked entitlements before writing code: `ResumeBuilder IOS APP.entitlements` grants only Sign in with Apple — zero iCloud capability anywhere in the project (`.entitlements`, `.pbxproj`, `Info.plist` all checked). Without it, `directoryURL` has nowhere populated to point at; the app's own sandbox fallback is exactly as empty as Recents. Shipping the wrapper anyway would be more code for identical behavior, which the story's own escape hatch says not to do. **Re-scoped:** needs a founder decision to add the iCloud Documents capability (Developer Portal + entitlements + provisioning, not a code-only diff), or drop S1 and prioritize S2 (paste-resume-text), which has no such blocker and is the actual root-cause fix. Full record in the WP-44 packet doc, merged via PR #92 (docs-only, no code shipped for S1).
+
+**WP-41 — Resumely 1.4.1 raw HogQL funnel autopsy EARLY READ (2026-07-11):** Executed the canonical PostHog project `270848` audit from `2026-07-11T00:00:00Z` through `2026-07-11T14:56:47.594927Z`. **Verdict: no readable cohort.** Two runs returned 0 raw people and 0 events before exclusions; internal-tester removal 0, known-prefix removal 0, overlap 0, clean people 0. Consequently conversion rates, ranked losses, session/library coverage, picker diagnosis, and a single bottleneck are undefined—not 0%. Saved cohort `394227` is structurally not equivalent to WP-41 exclusions because it is email-based, while the packet requires tester-property handling plus explicit prefixes. Files: `docs/qa/reports/resumely-1.4.1-raw-hogql-funnel-autopsy-2026-07-11.md` and privacy-safe empty path appendix. **Next action:** re-run on/after 2026-07-18; definitive read preferred 2026-07-25; defer product changes if picker openers remain <10.
+
+**PostHog picker→file-selected funnel re-read — DEFERRED (2026-07-11):** Ran the planned post-1.4.1 funnel read against PostHog project `270848`. **Verdict: window not open yet — no post-live 1.4.1 cohort to judge.** 1.4.1 (11) went App Store live 2026-07-11 (founder-confirmed); earliest usable 7d window is **2026-07-18**, full 14d window closes **2026-07-25**. PostHog data through 2026-07-11 shows **zero** post-live `marketing_version = 1.4.1` events. All existing 1.4.1 traffic is from **2026-07-10** (pre-live early updaters): 2 clean (`is_internal_tester ≠ true`) picker openers, 0 file selectors, 4 `resume_file_picker_cancelled` events — 0% conversion, n too small. Cancellation instrumentation from Story 4 is confirmed working on 1.4.1 (vs zero production cancel rows pre-fix). **Baseline for comparison when window opens:** 60d all-iOS ordered funnel 13 picker openers → 6 file selectors (**46%**); clean `app=resumely_ios` filter 3 openers → 0 selectors (**0%**, n too small). **Query to re-run on/after 2026-07-18:** ordered funnel `resume_file_picker_opened` → `resume_file_selected`, filters `app=resumely_ios`, `marketing_version=1.4.1`, `is_internal_tester ≠ true`, 1h conversion window; also track `resume_file_picker_cancelled` alongside. **Recommendation:** definitive read on **2026-07-25**; if picker openers ≥ 10, compare to 46% all-time baseline and Story 4's 50% pre-fix cohort; if n < 10, report sample size and defer product decisions.
+
+**Hygiene — ignore .gstack tool cache (2026-07-09):** Added `.gstack/` to `.gitignore`; the directory was untracked local tool cache (gstack CLI state), not product data. No functional change. Commit `597bf9f`.
+
+**WP-37 S3 — Guest saved-resume list investigation (2026-07-08):** Read-only root-cause on whether a genuinely first-time guest sees another user's saved resumes. **Verdict: closed as leftover simulator state, not a cross-user leak.** Evidence: `ResumeLibraryService.listSavedResumes(token:)` (`ResumeLibraryService.swift:15-17`) and `SavedResumePickerSheet` download/delete (`SavedResumePickerSheet.swift:32,62`) both require `appState.session?.accessToken`; Home's `libraryButton` only renders when `appState.isAuthenticated` (`HomeTabView.swift:69-71,671-676`). On launch, `AppState.bootstrap()` restores a Supabase session from Keychain (`AppState.swift:70-71` → `AuthService.restoreSession()` `AuthService.swift:48-50`, service `com.nadavyigal.resumebuilder.auth`). The Jul-8 observation (six founder CVs on a "guest" reinstall) is explained by a persisted founder auth token on that simulator — WP-37 S1 smoke on a reinstall still showed "Use a saved resume" without signing in this session, confirming auto-restore. **Clean retest wipe:** Sign out in app (or `AuthService.clearSession()`), uninstall app, optionally `xcrun simctl erase <device>`, reinstall; expect no library row and empty picker if opened while signed out. No code change required.
+
+**WP-37 S4 — Scroll job input into view after resume select (2026-07-09):** After step 1 completes, the Add Job card sat below the fold behind the tab bar. Added `ScrollViewReader` + `scrollTo` on `jobInputCard` when `selectedResumeName` becomes non-empty; respects `accessibilityReduceMotion`. **Files:** `Features/V2/Home/HomeTabView.swift` only. **Validation:** Debug build iPhone 17 simulator **BUILD SUCCEEDED**. **Ship:** **1.4.1 (11)** on `main`, ready for ASC archive.
+
+**WP-37 S1 — Ship merged iOS upload fixes (build 10 / v1.4 — LIVE 2026-07-09):** Cut release candidate from `main` at `41d6fce` (PR #90 merged). Confirmed one-tap upload picker path. ASC rejected **1.3 (9)**: approved marketing version is **1.3** and the 1.3 train is closed. Bumped `MARKETING_VERSION` **1.3 → 1.4**, `CURRENT_PROJECT_VERSION` **9 → 10**. **Founder handoff:** Archive → Validate → Distribute → submit **1.4 (10)**. Create version **1.4** in App Store Connect if prompted.
+
+**Story 4 — File Picker to File Selected Loss (2026-07-08):**** Investigated the clean iOS picker-open → file-selected loss before touching export/paywall/monetization. PostHog project `270848` showed 10 clean 60d picker openers and 5 file selectors; in the recent 30d, the 5 non-selecting users had repeated `resume_file_picker_opened` / `resume_upload_cta_tapped` activity but no downstream upload events, while the 5 selectors all reached legacy `resume_uploaded`. Production had zero `resume_file_picker_cancelled` rows, so cancellation/empty-picker abandonment was invisible. Simulator reproduction matched the likely friction: the iOS Files picker opens to an empty Recents screen with Browse hidden in the bottom tab bar. Shipped one focused Home fix: replaced the inactive "Paste text / Try sample" visual affordance under the CTA with real location cues (`Files · iCloud Drive · Downloads`) and added fallback cancellation tracking when the importer dismisses without a result. **Validation:** focused `AnalyticsServiceTests` passed 12/12; XcodeBuildMCP smoke showed the patched Home cue rendering cleanly and the CTA opening Files directly to empty Recents; PostHog confirmed fresh QA rows for `resume_upload_cta_seen`, `resume_upload_cta_tapped`, and `resume_file_picker_opened` at `2026-07-08T08:30:26Z` with `is_internal_tester=True`. **Caveat:** the system picker close button is outside app-scoped runtime snapshots and no raw coordinate tap is available in this session, so a fresh `resume_file_picker_cancelled` row still needs a manual tap smoke or next real cancel.
+
+**Story 3 — Launch to Upload CTA Wall (2026-07-08):** Investigated the fresh-launch Home screen and the 60d clean iOS funnel wall from launch to upload CTA tap. PostHog showed the historical gap is partly a measurement/cohort artifact: many pre-CTA users still had downstream `fit_check_*` or `resume_uploaded` activity, while the recent instrumented cohort is small. Fresh simulator smoke found Home renders the upload CTA above the fold and the biggest actionable product friction was the extra intermediate upload sheet after tapping "Choose a file" before the iOS document picker. Shipped one focused fix: Home now tracks `resume_upload_cta_seen`, tracks `resume_upload_cta_tapped`, and opens the system file picker directly from the Home upload CTA, retry CTA, and FitCheck need-resume path; no export/paywall/monetization UX touched. **Validation:** focused `AnalyticsServiceTests` passed 12/12; fresh PostHog QA rows landed for `resume_upload_cta_seen`, `resume_upload_cta_tapped`, and `resume_file_picker_opened` with `app=resumely_ios`, build `8`, marketing version `1.3`, `is_internal_tester=True`; XcodeBuildMCP tap smoke opened the iOS Files picker directly. Screenshot evidence: `/var/folders/5q/sgp857m901q6pyg7s3_bx1p40000gn/T/screenshot_optimized_830684a2-15b8-4f6f-99b5-4422eb8e8ca6.jpg`.
+
+**Story 1 evidence closeout + Story 2 canonical activation update (2026-07-08):** Completed the requested manual sign-in verification on the iPhone 17 simulator after launching the fresh Debug build with `--internal-tester`. PostHog project `270848` confirmed a fresh `$create_alias` row at `2026-07-08T07:49:02.112Z`: anonymous distinct id `7AB71271-C87B-461C-948D-B1923A0454B2`, alias `9fa6c1f5-9aba-439e-9e4e-5760d516ce6e`, `app=resumely_ios`, build `8`, marketing version `1.3`, `is_internal_tester=True`, and matching `anonymous_session_id`. The companion `$identify` row landed at `2026-07-08T07:49:02.275Z` for distinct id `9fa6c1f5-9aba-439e-9e4e-5760d516ce6e` with `$set.app=resumely_ios`, `$set.build_number=8`, `$set.marketing_version=1.3`, `$set.is_internal_tester=true`, and `$set.anonymous_session_id=7AB71271-C87B-461C-948D-B1923A0454B2`. With Story 1 evidence confirmed, updated PostHog insight `3NiBhRDP` in place on dashboard `1801425`: primary activation is now `optimization_completed` (`PRIMARY_ACTIVATION`), while `export_success` remains as `SECONDARY_EXPORT_DIAGNOSTIC`; the query filters to `$lib=resumely-ios-urlsession` and keeps founder/QA/bot prefix exclusions `067544b5`, `761e5b1b`, `a6441489`, `712cf425`. Refreshed insight result: 68 launched, 11 upload CTA tapped, 10 file picker opened, 5 file selected, 12 resume uploaded, 7 job added, 3 optimization completed, 1 export success.
+
+**Story 1 — Analytics Identity Hardening (2026-07-06):** Implemented the measurement-infra side of the activation-gap plan without product UX changes. `AnalyticsService` now attaches `app=resumely_ios`, marketing/build versions, a persistent anonymous session id, and `is_internal_tester` to every event; supports PostHog `$create_alias` and `$identify`; and keeps anonymous launch activity joinable to Supabase-authenticated user ids after sign-in. App auth now restores/identifies analytics identity after Supabase session success, and optimization events now carry safe reconciliation ids (`resume_id`, `job_description_id`, `optimization_id`, `review_id`) without resume content. Added an optional `INTERNAL_TESTER_USER_IDS` Info.plist setting via `Secrets.xcconfig.template`. **Validation:** focused `AnalyticsServiceTests` passed 12/12; full simulator suite passed 121 tests with 1 skipped and 0 failures; Debug simulator build succeeded; simulator launch with `--internal-tester` sent `app_launched` rows to PostHog project `270848` with `app=resumely_ios`, `marketing_version=1.3`, `build_number=8`, `anonymous_session_id`, and `is_internal_tester=true`. **Evidence gap:** authenticated simulator smoke is still blocked because secure password entry through MCP UI automation produced the app's "Password must be at least 6 characters" validation; PostHog had no fresh `$create_alias` / `$identify` rows yet. A disposable Supabase auth diagnostic user was created only to isolate backend auth, then removed.
+
+**Supabase + PostHog post-live current-state review (2026-07-06):** Queried Supabase project `brtdyamysfmctrhuankn` and PostHog project `270848` from the App Store-live anchor `2026-06-17T00:00:00Z` through `2026-07-06`. **Supabase:** backend optimization path looks healthy once reached: 39 resumes, 42 job descriptions, 23/23 completed optimizations, 0 failed optimizations, 36 optimization review runs, 23 applied review runs, 6 saved resumes, 6 applications. Concentration is high: one backend user accounts for 35 resumes, 38 jobs, 22 optimizations, and all saved applications/resumes. **PostHog raw iOS:** 53 launch people, 8 resume-upload people, 5 job-added people, 2 optimization-completed people, 1 export-success person, 2 `optimized_viewed`/`export_cta_seen` people. **PostHog clean excluding known QA/founder prefixes:** 51 launchers, 9 upload CTA tappers, 8 picker openers, 4 file selectors, 7 resume uploaders, 4 job-added users, 1 optimization completer, 0 clean export successes. **Verdict:** backend reliability is not the main blocker; current state is tiny/QA-heavy production usage, early upload activation loss, and insufficient clean post-1.3 export data. **Recommendation:** harden analytics identity/test filtering, focus next product pass on first-session upload/job activation, delay export/paywall/paid acquisition decisions until v1.3 has real completer data. Report: `docs/qa/reports/supabase-post-live-current-state-2026-07-06.md`.
+
+**WP-36 Export Friction Instrumentation — shipped 1.3 (8) to ASC (2026-07-05):** Shipped WP-36 `optimized_viewed` / `export_cta_seen` instrumentation from `main` commit `292b816`, plus a pre-ship visibility fix: events now fire when the Optimized tab is actually active (`isActive`), not only on `onAppear` while the tab is hidden behind `opacity: 0`. **Simulator smoke (PASS):** iPhone 17 sim, seeded `latest_optimization_id`, opened Optimized tab (`--smoke-open-optimized-tab` DEBUG arg); console showed `Analytics captured: optimized_viewed` + `export_cta_seen`; PostHog project **270848** confirmed both events at `2026-07-05T17:20:08Z` with `$lib=resumely-ios-urlsession`, `build_number=8`. **ASC:** Archive + upload succeeded after bumping `MARKETING_VERSION` **1.2 → 1.3** (build **8**) because the 1.2 train is closed for new submissions; uploaded **2026-07-05** via `xcodebuild -exportArchive` → App Store Connect (processing). **PostHog funnel read (60d, iOS `$lib`, founder/QA/bot prefixes excluded: `067544b5`, `761e5b1b`, `a6441489`, `712cf425`):** see WP-36 readout below. **Validation:** `AnalyticsServiceTests` 9/9 pass; Debug + Release archive builds succeeded. **Next:** after 1.3 (8) is live, re-read export funnel; if `optimization_completed > 0` but `optimized_viewed = 0`, investigate post-optimize tab routing before UX changes.
+
+**WP-36 PostHog Export Funnel Readout (2026-07-05):**
+
+| Step | Clean people (60d, iOS) | vs D7 Readout #2 baseline |
+|---|---:|---|
+| `resume_uploaded` | **9** | 8 (baseline) — stable order of magnitude |
+| `optimization_completed` | **2** raw clean in readout; **0** in upload→optimize intersection | 2 — completers do not chain cleanly from iOS `resume_uploaded` |
+| `optimized_viewed` | **1** (pre-production smoke only) | n/a — event did not exist |
+| `export_cta_seen` | **1** (pre-production smoke only) | n/a — event did not exist |
+| `export_success` | **0** | 0 — unchanged |
+| `export_pdf_tapped` / `export_started` / `export_failed` | **0** | 0 — no export intent or failure signal |
+
+**PostHog query used:** HogQL via `POST https://us.posthog.com/api/projects/270848/query/` with `AGENTIC_OS_POSTHOG_API_KEY`; per-event `uniq(person_id)` where `properties.$lib = 'resumely-ios-urlsession'`, `timestamp >= now() - INTERVAL 60 DAY`, excluding `person_id` prefixes `067544b5`, `761e5b1b`, `a6441489`, `712cf425`; upload→step intersection computed in Python from grouped `person_id` sets. Dashboard: [Resumely — Activation + Export Diagnostic](https://us.posthog.com/project/270848/dashboard/1801425), insight `lVFdiDCs`.
+
+**Finding (event-level):** Pre-fix data showed 2 clean `optimization_completed` but **zero** export-intent events — we could not tell whether users never saw the Optimized screen/CTA or never tapped export. New instrumentation is verified working but has **no production user data yet** (only smoke). Historical clean completers still show **0** `export_success` and **0** `export_pdf_tapped`. The export wall remains at **export intent** (nobody taps) or earlier (**never views Optimized tab after completing** — now measurable once 1.3 (8) is live). **Low-risk follow-up to verify after live data:** confirm Home/Tailor post-optimize paths always call `onSwitchTab(.optimized)` (already present in `HomeTabView`); if live data shows `optimization_completed` without `optimized_viewed`, file a plan-feature prompt for post-optimize routing — do not guess at UX.
+
+**Resumely product-marketing context + 1.2 (7) submission note (2026-06-28):** Founder reported iOS **1.2 (7) was sent to App Store Connect review**. Created the canonical product-marketing context at `.agents/product-marketing.md` and executed the approved marketing recommendations 2-5: ASO should lead with Fit/Match and application-package value, unsafe "pass ATS" / official-score framing is replaced with process-descriptive Resumely Match Score language, paid acquisition stays blocked until post-1.2 activation data is readable, and Fit-First is the front-door story. Updated current product docs, Hebrew metadata, and screenshot upload manifests to match that positioning. **Validation:** Hebrew promotional text is 100 chars / 170; `git diff --check` pending in this session. **Next marketing read:** after 1.2 is approved/live, verify production PostHog upload + fit-check events and then decide whether ASO volume, lifecycle, or monetization work is next.
+
+**Submit Package reopened-from-Me persistence fix (2026-06-28):** Investigated the latest physical-phone smoke where Submit Package preview/save worked, but reopening the saved position from Me showed "No job link attached", no cover letter body, and no Interview Q&A. The logs showed the application reload path calling `/api/v1/applications/{id}/expert-reports` successfully but receiving an effectively empty report list, while the reopened detail relied on backend `source_url` and saved reports only. Fixed persistence on three layers: Save to Me now stores Submit Package metadata in the create request's `job_extraction` payload; `AppState` caches package metadata locally by optimization id after a confirmed save; and `ApplicationDetailView` reconstructs Job Link, Cover Letter, and Interview Q&A from backend reports, `job_extraction.submit_package`, remembered job URL, or local package cache. Also widened expert-report envelope decoding to support `reports`, `expert_reports`, `data`, and bare array payloads. **Validation:** targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed; `git diff --check` passed. **Known test note:** a full `OptimizedResumeViewModelTests` run also hit 4 existing locale-sensitive assertions because the simulator was in Hebrew; targeted package tests and both builds are green. **Next smoke:** rebuild 1.1 (7), run LinkedIn URL → Fit/Optimize → Submit Package → Save to Me → open from Me, and verify Job Link, Cover Letter, and Interview Q&A are all present.
+
+**Fit-First LinkedIn URL carry-forward fix (2026-06-28):** Investigated founder real-device logs for a URL-only LinkedIn job optimization attempt. The logs showed the original Home flow captured job input (`job_added`) and uploaded with both `resumeId` and `jobDescriptionId`, but the Fit sheet still opened in paste-only mode because `FitCheckViewModel` did not store `jobDescriptionURL`, Home/Tailor did not seed it, and the Fit request always sent `jobDescriptionURL: nil`. Fixed the client-side state bridge so Fit-First accepts URL-only jobs, displays the carried job link in the Fit sheet, treats pasted description as optional when a URL exists, and sends `jobDescriptionUrl` through the existing `/api/public/ats-check` request. **Validation:** `git diff --check` passed; focused `FitCheckViewModelTests` passed on iPhone 17 simulator, 17 executed with 1 intentional live-fixture skip and 0 failures; Debug simulator build on iPhone 17 passed. **Next smoke:** rebuild on phone and verify URL-only flow shows "Using Job Link", then `fit_check_started` and `POST /api/public/ats-check` without requiring pasted description.
+
+**Fit-First Home smoke quick fix (2026-06-28):** Investigated founder real-device smoke logs after the Fit-First merge and found the V2 Home analysis path still called optimize directly, so the app uploaded the resume and jumped to `/api/optimize` without opening the Fit check or calling `/api/public/ats-check`. Wired `HomeTabView.runAnalysis()` through the same Fit-First gate as Tailor when `BackendConfig.isFitCheckEnabled = true`: Home now ensures the stored server resume exists, opens `FitCheckView` with `resumeId` + bearer token, and continues to optimization only from the Fit verdict CTA. Also corrected the save prompt id wiring so `pendingSaveResumeId` uses the returned optimization id instead of the uploaded resume id, addressing the observed `/api/v1/resumes/{resumeId}/save` 404. **Validation:** `git diff --check` passed; Debug simulator build on iPhone 17 passed; focused `FitCheckServiceTests` + `FitCheckViewModelTests` passed on iPhone 17 simulator, 21 tests executed with 1 intentional live-fixture skip and 0 failures; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. **Next smoke:** rebuild build 1.1 (7) locally and verify Home shows the Fit check before optimization; expected logs include `fit_check_started` and `POST https://www.resumelybuilderai.com/api/public/ats-check` before `/api/optimize`.
+
+**Fit-First resume_id swap (2026-06-28):** Updated the Fit-First iOS flow to use the stored server resume id instead of re-uploading the same PDF to `/api/public/ats-check`. `TailorViewModel` now exposes a reusable deferred upload helper that returns `resumeId`/`jobDescriptionId` and prevents stale reuse with a selected-resume + job-context signature; the existing optimize path consumes that same upload response so Fit check does not create a double upload. `FitCheckViewModel` and `FitCheckService` now require `resumeId` + access token for the authenticated Fit check, while `APIClient` keeps the legacy PDF upload overload for anonymous/free web-style ATS checks and adds a fields-only multipart path for authenticated saved-resume checks. **Validation:** focused `FitCheckServiceTests` + `FitCheckViewModelTests` passed on iPhone 17 simulator, 21 tests executed with 1 intentional live-fixture skip and 0 failures; Debug simulator build on iPhone 17 passed; `git diff --check` passed. **Not run:** real authenticated saved-resume simulator smoke on iPhone 17/iPhone SE, because no authenticated saved-resume fixture/credentials were available in this Codex session.
+
+**v1.1 Build 7 archive-readiness closeout (2026-06-27):** Re-ran the build 7 submission preflight on `main` after the optimization-review timeout recovery merge. The only dirty file was `ResumeBuilder IOS APP/Resources/Localizable.xcstrings`; the diff was legitimate Xcode string extraction for the new already-applied recovery copy in `OptimizationReviewView`, not noise. Kept the key and filled the Hebrew translation so the runtime language override does not fall back to English. Confirmed `MARKETING_VERSION = 1.1`, `CURRENT_PROJECT_VERSION = 7`, bundle id `Resumebuilder-IOS.ResumeBuilder-IOS-APP`, `BackendConfig.isFitCheckEnabled = true`, production `API_BASE_URL = https://www.resumelybuilderai.com`, Sign in with Apple entitlement only, and modern universal app icon assets. **Validation:** `jq empty` passed for `Localizable.xcstrings`; full Debug simulator test suite passed on iPhone 17 iOS 26.5 — 107 XCTest + 5 Swift Testing tests, 0 failures; Release `iphoneos` build with store validation and `CODE_SIGNING_ALLOWED=NO` succeeded. **Non-blocking warnings:** existing unused-value warnings in `AppState.swift` and `FitCheckViewModel.swift`, plus existing UIDeviceFamily plist warning. **Still founder-only/blocking for ASC:** local keychain still has only `Apple Development: Nadav Yigal (V2D7D57MXR)` and no Apple Distribution identity, so Codex could not create a real signed archive, validate in Organizer, upload, or submit in App Store Connect.
+
+**Optimization Review Apply Timeout Recovery (2026-06-26):** Investigated real-device smoke logs for applying resume changes. The relevant failure was not the QUIC/keyboard/pasteboard noise; it was `POST /api/v1/optimization-reviews/{reviewId}/apply` timing out with `NSURLErrorDomain -1001`, followed by a retry returning 500 "This review has already been applied." Fixed the iOS flow so apply uses the long-running request path with a 120s timeout, and if a timeout or already-applied server response still occurs, the app reloads the review envelope and navigates to the returned `optimization_id` instead of showing a dead-end error. Added decoding for review `optimization_id`/`optimizationId` and regression coverage for the timeout-after-server-success case. **Validation:** focused `ResumeOptimizationParsingTests` passed 7/7; Debug build on iPhone 17 simulator succeeded. **Next smoke:** rebuild on device and retry the same resume-change apply path; expected behavior is either normal success or automatic recovery into the optimized resume if the server completed while the client timed out.
+
+**v1.1 Build 7 ASC submission preflight + iPhone SE smoke (2026-06-26):** Executed the build 7 submission plan as far as Codex can take it locally. **Preflight:** `main` contains PR #83, #82, #81, #80, and Fit-First PR history in the last commits; `MARKETING_VERSION = 1.1` and `CURRENT_PROJECT_VERSION = 7` are confirmed in the Xcode project. The uncommitted `Localizable.xcstrings` change was real, not noise: Xcode had extracted new activation-redesign strings that were visible in current source. Kept it, filled release-critical Hebrew values, and fixed `HomeTabView`'s dynamic upload subtitle/accessibility fallback to use `NSLocalizedString(...)` so the runtime language override applies. PR #84 review follow-up filled the selected-resume Hebrew visible/accessibility strings that were present but empty in the catalog. **Validation:** fresh full suite on iPhone 17 simulator passed — 110 tests total (105 XCTest + 5 Swift Testing), 0 failures; SE-targeted Debug builds succeeded. **iPhone SE visual smoke:** created fresh iOS 26.5 `Resumely Build7 iPhone SE` simulator (`A0F88614-B41A-4383-9C53-4C669CAE22A1`) and verified Home upload-first hero/progress path, upload CTA area, locked Optimized/Design/Expert teasers, Me guest/account surface, and EN→HE/RTL language switch. Found and fixed visible Hebrew fallback strings on Home/Me/locked teaser surfaces; final Hebrew Home screenshot saved at `/tmp/resumely-build7-se-smoke/11-home-he-final-nslocalized.png`. **Still founder-only:** Apple Distribution signing/archive/validate/distribute/submit remains external. **Post-live required:** after Apple approval and App Store live availability, verify production PostHog project 270848 receives WP-18 upload-funnel events (`resume_upload_cta_tapped`, `resume_file_picker_opened`, `resume_file_selected`, `resume_upload_succeeded`) and set the next D7 readout target.
+
+**Resumely Activation Redesign — CodeRabbit review fix pass on PR #83 (2026-06-25):** CodeRabbit reviewed PR #83 and surfaced 8 findings; fixed the 6 real ones, skipped 2 verified false positives. **Fixed:** (1) Locked-tab checklists (Optimized/Design/Expert) bound both checklist items to `appState.latestOptimizationId != nil`, which is always false while the locked branch renders — added real `AppState.hasUploadedResumeThisSession`/`hasAddedJobThisSession` session signals, set from `HomeTabView`'s existing onChange hooks, so "Upload your résumé" can genuinely tick before optimize completes. (2) `OptimizedResumeView`'s target-reached `onChange` treated a `nil` old score as `0`, so opening an already-high-scoring resume from history (e.g. via Profile → latest resume) could fire a false celebration on initial load — now requires a real non-nil prior score below threshold. (3) `ProfileView`'s "ATS checks" stat label was paired with a percentage value — renamed to "ATS score" (catalog key swapped, Hebrew translation updated). (4) `TailorViewModel`'s preflight-rejection analytics used `type(of: error)`, which resolves to the same enum type name for every failure reason — switched to `UploadFailureReason.analyticsValue`, a stable per-case string. (5) `redesign-notes.md`'s R3 section still described the bold auto-resume/NWPathMonitor spec with no note that the shipped implementation is manual-retry-only — added an "As actually implemented" amendment. (6) Reconciled "105/105 tests passed" wording to the accurate "110 tests (105 XCTest + 5 Swift Testing)". **Skipped as false positives:** CodeRabbit's `@MainActor` annotation requests on `SaveAccountSheetView`/`TargetReachedView` — the project sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` build-wide, so every type (including every other new View in this PR) is already MainActor-isolated without an explicit annotation; adding one would be inconsistent with the rest of the PR, not a fix. **Validation:** rebuild + full test suite still pending as of this note — see next entry for result.
+
+**Resumely Activation Redesign — QA fix pass (2026-06-25):** Claude QA'd the uncommitted redesign implementation pass against `tasks/work-pack-resumely-redesign-implementation.md` and found 8 issues; all fixed in this pass. **Fixed:** (1) WP-18 `.doc` regression — the redesign had silently dropped `.doc` from the picker's accepted types; restored, and also fixed a pre-existing WP-18 gap where `UploadFilePreflight.mimeType(for:)` never recognized `.doc` at all (picker accepted it, preflight always rejected it) — added `application/msword` recognition. (2) The new upload sheet had zero analytics, reopening exactly the WP-18 "measurement black box" it was meant to close — added `resume_upload_sheet_dismissed` and `resume_upload_coming_soon_tapped` events. (3) `ScoreResultView`'s new sub-score row showed Keywords/Format/Impact all rendering the *same* overall score (no backend breakdown exists) — replaced with a real-data row (issues found / quick wins / checks remaining), hidden entirely when no real stat is available. (4) `ProfileView`'s RTL fix only flipped the hero header, not the rest of the screen — moved `.environment(\.layoutDirection, ...)` to wrap the full screen content. (5) The new Me copy used an ad-hoc `localized(en:he:)` Swift helper instead of `Localizable.xcstrings` — migrated 9 new strings into the catalog (3 already existed) and removed the helper. (6) **Critical:** `TargetReachedView`/`SaveAccountSheetView` (the target-crossing celebration + save-account ask) were wired into `ImproveView`, which is never instantiated anywhere in the app — dead code, invisible to every user. Rewired the same logic into the live `OptimizedResumeView`/`OptimizedResumeViewModel.atsScoreAfter` via `onChange`, removed the dead wiring from `ImproveView`. (7) Funnel screens E1 (parsing)/E3 (analyzing) were never built as separate full-screen mockups; rather than introduce a second, competing "match job" step that would conflict with the already-shipped Home upload-first flow, updated `ResumeOptimizationLoadingView`'s `.atsCheck` copy to the recruiter-framed language from the design (still driven by real completion state, not a fake timer) — a deliberate scope decision, not a silent drop. (8) R3 (connection-lost) was never built — added `ConnectionLostView`, wired to a new `TailorViewModel.isConnectionError` flag (real `URLError` classification) with a manual "Retry now" action (no fake auto-resume claim — no `NWPathMonitor` exists). **Validation:** fresh Debug build SUCCEEDED; full test suite passed — 110 tests total (105 XCTest + 5 Swift Testing), 0 failures. **Still uncommitted as of the previous Codex pass** — this pass commits and pushes everything together.
+
+**Resumely Activation Redesign Implementation Pass — 2026-06-25:** Implemented the buildable first pass of `tasks/work-pack-resumely-redesign-implementation.md` against the V2 app surfaces. Shipped: global touched-screen contrast bump (`textSecondary` 72%, `textTertiary` 50%); Home upload-first hero/progress path/motivation strip + app-level upload sheet; file picker tightened to PDF/DOCX to match preflight; upload failure recovery for scanned/image PDFs, wrong type, oversize, and generic preflight errors; locked-tab teaser component wired into Optimized/Design/Expert (Design reuses `TemplateThumbnail`); Me/account trust-first guest redesign with explicit EN/HE copy and custom language segments; first-score reveal restyle using existing score/quick-wins data; target-reached/save-account surfaces wired only to real `rescanATS` score crossing. **Honest flags left:** paste-resume text endpoint, sample/demo diagnosis, parser-stage progress callbacks, global pre-optimization `hasResume`/`hasJob` state outside Home, generic no-JD scoring from Home, backend sub-scores/ranked point deltas/apply-all fixes, resumable offline analysis, and verified guest-session restart guarantees. **Validation:** Debug build on iPhone 17 simulator succeeded; focused tests passed 23/23 (`AnalyticsServiceTests` 9/9, `FitCheckViewModelTests` 14/14 including live production ATS check); full test suite passed 105 XCTest tests + 5 Swift Testing tests; iPhone 17 simulator install/launch smoke passed and screenshot captured at `/tmp/resumely-redesign-smoke/home-iphone17-after-wait.png`. **Not yet done:** iPhone SE visual smoke (no iPhone SE simulator available in this runtime list) and deeper tap-through QA for sheet/locked/account/failure states.
+
+**Build 7 bump for WP-18 measurement — 2026-06-25:** `CURRENT_PROJECT_VERSION` 6 → **7** (MARKETING_VERSION 1.1 unchanged). Build 6 was prepped (Fit-First flag-on) but never uploaded to ASC; live App Store build is 1.1(5). Build 7 carries Fit-First (visible) + the WP-18 upload-journey instrumentation + docx picker — i.e. the first build that will actually emit the new upload funnel events. **Founder-gated next:** resolve Apple Distribution signing in Xcode (only Development cert in keychain), Product → Archive → Validate → Distribute → submit 1.1(7) for review. Branch `chore/bump-build-7`.
+
+**WP-18 Upload/Import Friction Instrumentation — 2026-06-24, merged #80 2026-06-25:** Diagnosed the WP-16 `guest_mode_started` (26) → `resume_uploaded` (5) leak as a **measurement black box** — the entire upload journey between guest entry and the terminal `resume_uploaded` event was uninstrumented, so the 81% drop was unattributable. Root cause sharpened: in the Home flow `resume_uploaded` fires on local file-pick (`onChange(selectedResumeName)`), so 21/26 guests never completed a pick. Prime friction: the `.fileImporter` was `allowedContentTypes: [.pdf]` only while `UploadFilePreflight`/backend already accept `.docx` (`ScanViewModelTests.testDocxMimeTypeRecognizedByPreflight`), so Word users were silently blocked from even selecting their file. **Shipped (PR #80 → `main` `0e38ce1`):** 9 new PII-safe events (`resume_upload_cta_tapped`, `resume_file_picker_opened`, `resume_file_picker_cancelled`, `resume_file_selected`, `resume_upload_preflight_rejected`, `resume_upload_started`, `resume_upload_failed`, `resume_upload_succeeded`, `resume_upload_error_shown`) wired through the shared `TailorViewModel` (preflight/file-selected in `cachePickedFile`; started/succeeded/failed in `optimize()`) plus HomeTabView + TailorView (CTA/picker/cancel/error); both pickers widened to PDF + DOCX + DOC. **Review fix:** preserve picked file extension in sandbox cache (`picked_resume.{ext}`) so docx preflight succeeds; Home pick `resume_uploaded` now reports actual file type. **Validation:** Debug build SUCCEEDED (generic iOS Simulator); `AnalyticsServiceTests` 9/9 pass; CodeRabbit + GitGuardian green. **Deferred:** Scan flow instrumentation. **Next metric:** `guest_mode_started → resume_upload_cta_tapped → resume_file_selected → resume_upload_succeeded → job_added`. Files: `Core/Analytics/AnalyticsService.swift`, `Features/Tailor/TailorViewModel.swift`, `Features/Tailor/TailorView.swift`, `Features/V2/Home/HomeTabView.swift`, `ResumeBuilder IOS APPTests/AnalyticsServiceTests.swift`.
+
+**WP-16 Activation Attribution + Funnel Diagnostic — 2026-06-24:** PostHog project 270848 live read completed for Resumely D7 / Gate A attribution. `067544b5` is **excluded** from organic activation: PostHog shows backend `optimization_review_created` and `optimization_completed` on 2026-06-10 followed by iOS `sign_in_completed` on 2026-06-15, all classified as Automation / bot-like traffic. Real-organic D7 activation remains **0 confirmed users**. Current all-product diagnostic window 2026-06-10 through 2026-06-24 shows 37 first-seen product users, 12 resume uploaders, 10 job-added users, 4 optimization starters, 4 raw completers, and 0 confirmed organic completers. Saved iOS ordered funnel for the same window shows 30 `app_launched` → 26 `guest_mode_started` → 5 `resume_uploaded` → 4 `job_added` → 1 `optimization_completed` → 1 `export_success`; largest measurable drop-off is guest/app-open to resume upload. Recommendation: next packet should target upload/import friction and missing preflight/error instrumentation before monetization, paid acquisition, score-copy nudges, or more GTM volume. Report: `docs/qa/reports/wp-16-activation-attribution-funnel-2026-06-24.md`.
+
+**Fit-First FLIPPED ON for v1.1 (6) — 2026-06-24 (supersedes the dark-launch entry below):** Founder decided to ship Fit-First Triage **visible**, not dark. `BackendConfig.isFitCheckEnabled = true` on `main` (PR #78, squash-merged `dd09727`). Rationale: the build looked unchanged on the founder's device because the week's headline feature was gated off; Fit-First targets the exact upload→optimize activation drop-off the D7 readout exposed; you cannot gather usage data on a hidden feature; internal smoke already passed. Behavior: authenticated users now hit the "Is this job a fit?" verdict screen (Strong/Stretch/Skip) before optimizing. **Smoke test (flag ON, 2026-06-24):** clean `xcodebuild build` SUCCEEDED on iPhone 17 sim; full suite **105/105 pass, 0 failures** (44 FitCheck test refs); app boots clean (launch screenshot captured). Build 6 / version 1.1 unchanged (never uploaded to ASC). **Remaining (founder-only):** resolve Apple Distribution signing in Xcode (only Apple Development cert in keychain), Product → Archive → Validate → Distribute → submit build 6 for review. To SEE Fit-First: reinstall this build on device while signed in, upload a resume + add a job, tap the primary action → verdict screen appears (it was skipped before because the flag was off).
+
+**WP-13 Fit-First Release v1.1 (6) — 2026-06-24 [SUPERSEDED by the flag-ON entry above]:** Release branch `release/v1.1-build-6` cut from `feat/wp-13-fit-check-internal` HEAD (`b9eb19b` + smoke-test evidence). **`BackendConfig.isFitCheckEnabled = false`** on the release branch — Fit-First ships **dark** (hidden). Flip deferred: D7 readout (2026-06-24, post-erratum) shows **zero organic activation for 10 days**; all `fit_check_*` PostHog events were internal smoke tests only — no real-user data to justify enabling the flag in this build. Internal validation on `feat/wp-13-fit-check-internal` (flag ON): live `/api/public/ats-check` HTTP 200, verdict + optimize handoff, all 4 `fit_check_*` analytics events, Hebrew RTL — see `docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md`. **Build:** `MARKETING_VERSION` 1.1, `CURRENT_PROJECT_VERSION` 6. **Archive/upload:** blocked locally — only Apple Development cert in keychain; requires founder to open Xcode, resolve Distribution signing (Automatic), Product → Archive → Validate → Distribute to App Store Connect. PR open into `main`; merge after archive/upload confirmed.
+
+**Fit-First Triage WP-12 — FULLY DONE, merged to main as #75 (2026-06-23):** Rebased `feat/wp-12-fit-first-stories-2-4` onto `origin/main`; DomainModels.swift union preserves #72's `KeywordSuggestionPreviewDTO`/`JSONValue.displayString` AND branch's `ATSScoreResult.fit` decoder. BUILD SUCCEEDED (generic/platform=iOS + iPhone 17 Pro + iPhone 17e simulators, including with `isFitCheckEnabled=true`). 27 targeted tests pass (AnalyticsServiceTests 9/9, FitCheckServiceTests 6/6, FitCheckViewModelTests 12/12). HE xliff export confirmed 40 fit-check string matches. E2E gate: prod rate-limited on re-run (5/7 days); decoder correctness validated by FitCheckServiceTests passing with the same `(try? decodeIfPresent(...)) ?? nil` fix. PR #75 squash-merged to main as `17d2122`; branch deleted. `isFitCheckEnabled=false` on main (ships dark).
+
+**Fit-First Triage Story 1 — FitCheckService (2026-06-23):** Implemented the iOS service/model wedge for the existing anonymous `POST /api/public/ats-check` path. Added `FitVerdict`/`FitBand` under `Core/API/Models/` (path reconciled from the spec's `Models/FitVerdict.swift` to the actual API models layout), flexible snake/camel decoding, score clamping, and fallback band derivation from `score.overall` only when the server omits `fit.verdict`. Added `FitCheckServiceProtocol`, live `FitCheckService` on `APIClient.runPublicATSCheck`, an injectable mock, and `RuntimeServices.fitCheckService()`. `ATSScoreResult` now decodes optional additive `fit` without changing existing `score`/`preview`/`quickWins` fields. Validation passed: Debug iPhone 17 simulator build succeeded from a clean temp copy, and focused `FitCheckServiceTests` executed 6 tests with 0 failures. Live production `/api/public/ats-check` was reachable and returned HTTP 200 for a sample PDF + 100+ word JD, but the deployed response did not yet include `fit`; final external gate is to deploy Story 0 with the additive `fit` block and rerun the same live decode check.
+
+**Resumely ATS Claim Defensibility (2026-06-20):** Implemented the approved positioning decision — the displayed score is a self-defined "Resumely Match Score", not an external ATS vendor's score. Copy/label-only changes (no scoring logic touched). Renamed user-facing "ATS Score/score" labels to "Resumely Match Score" (primary surfaces) or "Match Score" (constrained) across ScoreResultView, OptimizedResumeView, ExpertOutputViews, ImproveView, ApplicationDetailView, ApplicationCompareView, HomeActivationState, MarketingScreenshotView, MetricCard. Added explainer microcopy ("Based on formatting + keyword match vs the job you paste. Not affiliated with any ATS vendor.") near the score in ScoreResultView and the OptimizedResumeView score card (EN + HE). Reframed LinkedInShareComposer EN+HE share post to "Resumely match score". Updated Localizable.xcstrings (renamed keys + Hebrew). Audited App Store metadata: fixed docs/app-store/he-metadata.md ("ראה את ציון ההתאמה שלך ב-Resumely", "ציון התאמה של Resumely", removed "תתקבל לראיונות יותר" interview-outcome promo). Removed outcome-guarantee "Templates that pass ATS" → "ATS-friendly templates". Kept "ATS" only in descriptive contexts (ATS check / ATS insights / ATS match / ATS-friendly / template ATS attribute). Build: iPhone 17 Pro simulator Debug ** BUILD SUCCEEDED **. Flagged (generated artifacts, not fixed): dist/app-store-screenshots/{rb-aso-002,app-store-v1}/upload-manifest.md still say "Templates that pass ATS". PR #70 merged into `main` 2026-06-20 — **not yet released**; v1.1 (5) is the live App Store build and does not contain this copy. Fold into next build (1.1 (6)) before next submission. No App Store Connect submission made.
+
+**PostHog Findings Remediation (2026-06-19):** Resolved the first actionable error-sweep findings in code: `ResumePreviewWebView` now installs a `WKNavigationDelegate`, surfaces non-cancelled WebKit preview load failures, and logs them via OSLog; `HTMLPDFExporter` now logs timeout, navigation, `createPDF`, and write failures; preview-toolbar export now emits `export_pdf_tapped`, `export_started`, `export_success`, and detailed `export_failed` codes when both styled HTML export and backend fallback fail. Validation passed: Debug simulator build on iPhone 17, focused `AnalyticsServiceTests` (9/9), and iPhone 17 Pro simulator install/launch smoke. PostHog connector refresh on 2026-06-19 appeared pointed at a different/current project context: last-7-day `$lib` values showed only `posthog-ios`, not the expected `$lib=resumely-ios-urlsession`, so production funnel counts were not refreshed from the 2026-06-18 baseline in this remediation session.
+
+**v5 / 1.1 (5) Submitted for App Store Review (2026-06-18):** Version 1.1 build 5 submitted to Apple for review. Bumped CURRENT_PROJECT_VERSION to 5 and MARKETING_VERSION to 1.1 (required because version 1.0 is locked after approval). Archived and uploaded via Xcode Organizer. PostHog analytics confirmed live during smoke: app_launched, resume_uploaded, optimization_started, ats_improve_tapped all firing. Promotional Text and "What's New in This Version" filled in ASC. Apple review window: ~48h, expected approval before 2026-06-21 D7 Gate A deadline. PR #68 (docs: v5 spec + plan) is open.
+
+Status: **v1.4.1 (11) LIVE on App Store, founder-confirmed 2026-07-11** (Apple state change, no commit — see WP-37 S4 for the code that shipped in this build).
+Current Phase: Post-launch — 1.4.1 (11) live; picker→file-selected funnel read **deferred** until post-live cohort exists.
+Active Story: None — WP-37 S4 handoff closed. PostHog funnel re-read attempted 2026-07-11; deferred to **2026-07-18** (7d) / **2026-07-25** (14d).
+Last Completed Story: PostHog picker→file-selected deferred-read attempt (2026-07-11) — confirmed zero post-live 1.4.1 data; pre-live signal only (n=2, 0% convert).
+Next Recommended Story: Re-run PostHog picker→file-selected funnel on **2026-07-25** (or minimum check **2026-07-18**) for clean `marketing_version=1.4.1` cohort; see deferred-read entry above for query definition.
+Blockers: PostHog read blocked on calendar (no post-live 1.4.1 traffic yet); missing `tasks/ERRORS.md` and `docs/agent-os/project-context.md` from required read list; automated tapping of the system Files picker close button is blocked by app-scoped snapshots/no raw coordinate tap.
+Last Validation: 2026-07-11 — PostHog project `270848` funnel read completed (deferred verdict); Debug build last **SUCCEEDED** 2026-07-09 (`597bf9f` gitignore hygiene). Live-on-Store confirmed by founder 2026-07-11.
+Last Updated: 2026-08-31
+
+**D7 Gate A PR Merge Closeout (2026-06-18):** PR #63 (Hebrew/RTL) and PR #61 (Monetization/Ambassador scaffolding) were reviewed, repaired where needed, marked ready, and merged into `main`. Local validation after both merges passed with `xcodebuild -scheme "ResumeBuilder IOS APP" -destination "platform=iOS Simulator,name=iPhone 17" -configuration Debug build`. Remaining follow-up: real-device Hebrew preview/PDF QA, manual App Store Connect Hebrew metadata submission, and future monetization implementation behind `BackendConfig.isMonetizationEnabled`.
+
+**Monetization/Ambassador Scaffolding (reviewed 2026-06-18):** PR #61 adds parked StoreKit purchase-tier, credit-cache, paywall-draft, and ambassador-flow scaffolding for future monetization work. It is not live-gated into export or Profile flows; existing `BackendConfig.isMonetizationEnabled = false` remains the release guard. During review, the draft StoreKit paywall view and file were renamed to avoid colliding with the existing gated Profile `PaywallView`.
+
+**Hebrew / RTL (2026-06-16, reviewed 2026-06-18):** PR #63 adds Hebrew app localization support: `he` region and `CFBundleLocalizations`, runtime language selection via `LocalizationManager`, localized bundle override, app-root locale/layout-direction injection, Hebrew String Catalog coverage, a Me-tab language picker, RTL resume preview/PDF handling based on resume content, and Hebrew App Store metadata in `docs/app-store/he-metadata.md`. Remaining after merge: real-device Hebrew resume preview/PDF QA and manual App Store Connect Hebrew metadata submission.
+
+**PostHog Real-Device QA (2026-06-17):** Connected PostHog plugin was switched to project 270848 ("ResumeBuilder AI") and dashboard 1720819 resolved. `AnalyticsEvent` contract tests now cover all 16 app-defined event names/properties, including `account_deleted`. Physical iPhone 13 Debug build/install/launch passed, focused `AnalyticsServiceTests` passed 8/8 on device, and PostHog showed fresh device-QA events after `2026-06-17T12:25:25Z`: `app_launched`, `resume_uploaded`, `job_added`, and `optimization_started`. Remaining live-observation gap: `free_ats_completed`, `diagnosis_viewed`, `ats_improve_tapped`, `export_pdf_tapped`, `submit_package_saved` are wired/test-covered but still need an authenticated manual smoke to appear in production data. Report: `docs/qa/reports/posthog-real-device-qa-2026-06-17.md`.
+
+**D7 Gate A Build 4 Check (2026-06-18):** `main` was synced and analytics/QA work was committed/pushed. Release archive and App Store export for version 1.0 build 4 succeeded locally. CLI upload reached App Store Connect but was rejected because bundle version `4` had already been uploaded, indicating build 4 is already present in App Store Connect. App Store Connect review submission still needs UI/API confirmation.
+
+**D7 Gate A PostHog Baseline (2026-06-18):** PostHog project 270848 shows fresh iOS `$lib = resumely-ios-urlsession` activity since 2026-06-18T00:00:00Z, including `app_launched`, `resume_uploaded`, `job_added`, `optimization_started`, `optimization_completed`, and `diagnosis_viewed`. Seven-day counts also include `ats_improve_tapped`. Remaining gaps: `export_pdf_tapped`, `submit_package_saved`, and `free_ats_completed` are not yet in PostHog taxonomy; local iPhone 17 simulator launch screenshot was blocked by a wedged simulator install/launch. Report: `docs/qa/posthog-gate-a-baseline-2026-06-18.md`.
+
+**D7 Gate A Stranded Work Cleanup (2026-06-18):** Reopened draft PR #63 for the Hebrew/RTL localization branch and draft PR #61 for the monetization/Ambassador/StoreKit branch before deleting their local branches. Deleted superseded docs-only `feat/localization-updates` after confirming its work-pack file matches `main`. Agentic OS janitor removed all Resumely agent worktrees; non-agent `version-2` worktree remains intentionally untouched.
+
+**App Store Live + Launch Analytics (2026-06-17):** Founder reported Resumely iOS is live in the App Store. Live PostHog QA for project 270848 verified iOS analytics are healthy: `$lib=resumely-ios-urlsession`, 190 events / 18 users in the last 7 days, last event 2026-06-17. D7 dashboard is the iOS north-star dashboard: [ResumeBuilder iOS - D7 Activation](https://us.posthog.com/project/270848/dashboard/1720819).
+
+**Post-Live D7 Readout Pre-Read (2026-06-17):** Connected PostHog plugin source access is verified for project 270848 and dashboard 1720819. Live HogQL read: `$lib=resumely-ios-urlsession`, 188 events / 18 users over the trailing 7 days, last event 2026-06-17T03:06:44.021Z. Since the App Store-live anchor of 2026-06-17T00:00:00Z, PostHog shows 2 `app_launched` events / 2 users and 2 `guest_mode_started` events / 2 users. This is a Day 0 / D7-pre-read; the first complete D7 window from the 2026-06-17 launch anchor ends on 2026-06-24. Report: `docs/qa/reports/post-live-d7-readout-2026-06-17.md`.
+
+**PostHog Analytics Integration (2026-06-16):** Wired 8 core funnel events for D7 activation data: app_launched (pre-existing), resume_uploaded (file_type), optimization_started (pre-existing), optimization_completed (pre-existing), diagnosis_viewed (match_score), ats_improve_tapped (current_score), export_pdf_tapped, submit_package_saved (has_cover_letter). PR #60 merged.
+
+**Resume Aha Moments (2026-06-12):** Implemented the diagnosis-first resume/job flow in V2: grounded match guidance, top gaps, missing keywords, recruiter-eye review, before/after rewrite, confidence checklist, smart empty/loading copy, backend-diagnosis decode hook, and conservative mocked/fallback diagnosis data.
+
+Project: ResumeBuilder iOS
+Status: v1.2 (7) LIVE on App Store, confirmed by founder 2026-06-29.
+Current Phase: Post-launch / verifying production activation events and zero-budget outreach.
+Active Story: Verify production activation events now live; read results of founder outreach wave.
+Last Completed Story: Product-marketing context + positioning update for approved recommendations 2-5 (Fit/Match ASO, unsafe claim cleanup, no paid acquisition until data, Fit-First front-door story) (2026-06-28).
+Next Recommended Story: After 1.2 (7) is approved and live, verify production PostHog project 270848 receives WP-18 upload-funnel events and `fit_check_*` events, then set the next D7 readout target.
+Blockers: Waiting on Apple review outcome for 1.2 (7); paid acquisition and monetization decisions remain blocked until the post-1.2 funnel is readable.
+Risks: New Submit Package copy is source-English in newly added SwiftUI strings until localization extraction/translation catches up; existing Hebrew keys still cover the main pre-existing labels.
+Last Validation: 2026-06-28 — `git diff --check` clean; targeted Submit Package persistence tests passed, 4 executed with 0 failures; Debug simulator build on iPhone 17 Pro passed; Release generic iOS build with `CODE_SIGNING_ALLOWED=NO` passed. Full `OptimizedResumeViewModelTests` also hit 4 existing locale-sensitive Hebrew simulator assertions, not package regressions.
+Last Updated: 2026-08-04
+Current Branch: main
+Latest Base Commit: pending Submit Package job-link commit
+Active Spec: docs/specs/drafts/fit-first-triage-spec.md
+Latest QA Report: docs/qa/reports/wp-13-fit-check-live-smoke-2026-06-23.md
+
+## Tab Structure (as of 2026-05-20)
+| Tab | Index | View | VM |
+|-----|-------|------|----|
+| Tailor | 0 | TailorView | TailorViewModel (stable @State) |
+| Optimized | 1 | OptimizedResumeTabView → OptimizedResumeView | OptimizedResumeViewModel (built from appState.latestOptimizationId) |
+| Design | 2 | RedesignResumeView | DesignViewModel (stable @State) |
+| Expert | 3 | ExpertTabView → ExpertModesView | ExpertModesViewModel (built from appState.latestOptimizationId) |
+| Me | 4 | ProfileView (with inline applications) | — |
+
+## Key Shared State
+- `AppState.latestOptimizationId: String?` — persisted via UserDefaults; set on optimize success AND when opening Latest Resume from Me tab or View Optimized Resume from Application Detail; drives Optimized+Expert+Design tabs
+- `AppState.bootstrap()` clears stale persisted `mock-` optimization IDs so old local state cannot call live endpoints with mock identifiers
+- Runtime service defaults are live-only via `RuntimeServices`; mocks remain available only through explicit tests/previews
+- `RuntimeFeatures.isResumeLibraryEnabled = true` on current `main` because `/api/v1/resumes` was confirmed live; saved-resume UI is available again.
+- Design history is not loaded automatically because `/api/v1/styles/history` currently returns 500; Apply/Undo use the stable design endpoints without blocking normal preview/design navigation
+- Upload preflight rejects missing, empty, unsupported, malformed, and no-readable-text PDFs before calling `/api/upload-resume`; readable PDFs are re-emitted as simple text-layer PDFs and multipart includes `resumeText` so the backend can fall back when parser internals fail
+- Optimization detail now carries `contact`; iOS preview/copy uses real candidate identity and local fallback no longer fabricates placeholder contact values
+- Design render/preview/export resolves backend template UUIDs to category+slug and iOS reloads current design assignment after Apply/Undo so Optimized reflects the applied template
+- Design apply treats assignment as the stable source of truth when the secondary customize endpoint returns the live "Optimization not found" 404 after assignment succeeds
+- Design category switching is user-owned after the initial assignment load; subsequent category changes do not reload current assignment and cannot reset the UI back to the applied Traditional template
+- Optimized preview starts rendering immediately from `optimizationId`; local section/contact HTML replaces the spinner as soon as details load, and cached backend design HTML can still upgrade the web view asynchronously
+- Optimized/Design preview now resets stale design state on optimization changes, pauses preview network work when hidden behind another tab, debounces Design preview customization changes, and avoids redundant WKWebView reloads for unchanged HTML
+- PDF export retains its off-screen WKWebView, times out stalled client-side PDF rendering, writes share files to stable Caches export URLs, falls back to backend download, then generates a local text-layer PDF from loaded optimization sections/contact data before surfacing an export failure
+- Expert workflows accept user evidence input from iOS, parse backend-real structured outputs (summary options, quantified bullets, ATS keyword analysis, cover letters, screening answers), preserve selected variants for apply, let full rewrites apply selected sections, save applied reports to linked applications, and force no-cache optimized-section reload plus ATS score refresh when the backend returns a new score
+- Expert tab links saved reports to Me applications by matching either `optimization_id` or `optimized_resume_id` from `/api/v1/applications`
+- rb-aso-002 screenshot mode is launch-argument-only (`--marketing-screenshot --screenshot-slot N`) and renders App Store screenshot slots without changing the normal `RootView` path
+- Home/Tailor optimize waits now use an inline SwiftUI resume-scanning animation with optimization and free-ATS copy variants; no backend progress contract is implied
+- Optimized resume now supports manual section edits from the Improve bottom bar. Manual saves reuse `/api/v1/refine-section/apply`, update the local section body/status to `edited`, clear stale optimization-detail cache for that optimization, and refresh headline ATS scores via `/api/ats/rescan`.
+- Optimized resume now supports an assisted Submit Package flow. It refreshes optimization detail before package generation, downloads the optimized resume PDF, runs Cover Letter Architect and Screening Answer Studio, previews a draft package, then saves it to Me only after user confirmation. Saving creates a saved application, attaches the optimized resume, saves Expert reports, and presents share/copy/submit-at-link actions without attempting third-party auto-submit.
+- Submit Package now allows missing role/company context with visible fallback copy and safe placeholders (`Target Role`, `Company not specified`) so live job parsing gaps do not make the primary action look broken.
+- Submit Package remembers the job URL entered during optimize by `optimizationId`, seeds Optimized/Expert/Profile/Application Detail submit flows with that URL, shows package contents including Resume PDF, Cover Letter, and Job Link, and clarifies that saving/sharing is internal and does not auto-send to a recruiter. Saved applications opened from Me now reuse the same package-style surface, including package contents, cover letter, job link actions, secondary actions, and overview.
+- Submit Package save now also persists package metadata in application `job_extraction` and a local optimization-id cache so reopened Me applications can recover Job Link, Cover Letter, and Interview Q&A even if backend `source_url` or expert reports are missing from the reload response.
+- Home now owns the app language switcher in the top header; Me/Profile no longer includes the language section.
+- Optimized resume now has a normal in-app ATS insight panel that maps App Store screenshot claims to a reachable product surface: headline score, before/after delta, score signals, top blockers/actions, Improve ATS, and an explicit low-score explanation when the optimized score remains below 55.
+- Home/Tailor now route successful resume/job optimization into a V2 Resume Diagnosis screen before the full Improve tab. Diagnosis shows estimated match guidance, potential score, top gaps, missing keywords, recruiter-eye review, before/after rewrite, and grounded CTAs to improve or edit the target job.
+- Optimized resume now reuses the diagnosis mapper for a compact recruiter snapshot and confidence checklist so the user sees why the resume is stronger before export/payment.
+- iOS optimize requests now ask for `optimization_mode: strong_faithful` with a substantial-but-factual quality profile. The Optimized tab surfaces ATS status/blockers when returned by optimization detail, offers an Improve ATS action through the existing Expert ATS workflow/apply path, and uses a focused section-editor sheet with empty-section validation and dirty-state discard protection for manual amendments.
+- Me/Application Detail now acts as a package hub when application rows include an optimization, resume link, job link, or saved cover-letter report: users can share/download the optimized resume PDF, copy the cover letter, open the job link, and see ATS status. Submit Package bumps an app-wide applications refresh token so Me reloads when active.
+
+## Key Wiring (2026-05-20)
+- `ProfileView` now accepts `onSwitchTab` from `MainTabViewV2.switchTab` — "Send to Expert" / "Open Design" buttons in preview work from Me tab
+- `ApplicationDetailView` now accepts `onSwitchTab` — passed through to `OptimizedResumeView` opened from application rows
+- `ExpertModesViewModel` now takes `applicationId` — loads saved expert reports via `ApplicationTrackingService`; `ExpertSavedReportDetailView` fetches and renders individual saved runs
+
+## Files Deleted This Spec
+- `Features/Score/ScoreView.swift`
+- `Features/Score/ScoreViewModel.swift`
+- `Features/V2/Profile/ProfileViewV2.swift`
+- `Features/Track/ApplicationsListView.swift`
+
+Notes: App is v1.2 build 7 in App Store review. V2 folder is active target for all new screens. Dark mode only.
