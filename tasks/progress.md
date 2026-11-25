@@ -2,7 +2,7 @@
 
 Current Phase: Production outage. Legacy Supabase keys disabled 11:58 UTC; App Store 1.6.1 (40) gets 401 everywhere.
 Active Story: hotfix 1.6.2 (41), PR #247; upload commit ab29944 (same code as 40, key now `sb_publishable_`).
-Next Recommended Story: founder submits 1.6.2 (41) with expedited review; before April 2027 move builds to Xcode 27 (iOS 27 SDK).
+Next Recommended Story: 1.6.2 (41) submitted, expedite approved 2026-11-25; when live, test on phone, merge #247; before April 2027 move builds to Xcode 27 (iOS 27 SDK).
 Blockers: Apple review time. Upload warning: built with iOS 26.5 SDK, allowed until April 2027.
 Last Validation: 2026-11-25 archive of ab29944 OK (1.6.2/41, sb_publishable_); founder uploaded build 41 to App Store Connect.
 Last Updated: 2026-11-25
