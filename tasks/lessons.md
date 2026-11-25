@@ -1050,3 +1050,6 @@ Rewriting `Config/Info.plist` with `plistlib` or `Localizable.xcstrings` with `j
 ### 2026-11-12: On the Optimized screen the résumé is a half-page card, not a full page
 **Rule:** Keep the résumé first (2026-07-14 rule) but as a card showing the top half of the page, no inner scrolling, with "View full resume" opening the whole page. A full page plus the pinned export bar fills an iPhone, and the score, "See what changed" and next steps are never found. Check the first screen with `--smoke-optimized` (DEBUG harness, fixture data) before changing this layout.
 **Why:** tester call 2026-11-12: she did not know the screen scrolls; she found the score and "Improve fit once" only when told. The web view also scrolled itself, so a swipe on the page never moved the screen.
+
+## 2026-11-25: Never disable a Supabase key that a shipped build still uses
+Disabling legacy keys (anon + service_role go together) at 11:58 UTC locked every App Store install of 1.6.1 (40) out: token refresh and sign-in got 401, and the app showed a bare "Unauthorized". Order for any key rotation: ship and get adoption of a build with the new key first, then disable the old one. Check with `/usr/libexec/PlistBuddy -c "Print SUPABASE_ANON_KEY"` on the live build before disabling.
