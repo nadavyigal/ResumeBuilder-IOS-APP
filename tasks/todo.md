@@ -8,6 +8,21 @@
 - Update prerequisite and recovery copy in DesignTabView, ExpertTabView, OptimizedResumeTabView, UploadFailureView and ConnectionLostView. Translate in Localizable.xcstrings and update the old localization assertions in FirstSessionJourneyTests.
 - Verify with loopback-only EN/HE screenshots, 17/SE layouts, rendered contrast, the full iPhone 17 suite and a Release simulator build. Check RTL clipping, AX upload visibility, dismissal and guest stats. Record results in progress.md.
 
+# 2026-11-22: Supabase key rotation Phase 2 (iOS + edge function)
+
+Web production moved to the new keys on 2026-11-22 (web PR #220). Phase 2 moves the last two legacy-key users.
+Found: only `delete_account` is deployed; `storekit-verify` and `ambassador-reward` (web repo) are stubs with no key use.
+No cron, pg_net or database webhook holds a key. `SUPABASE_SECRET_KEYS` exists in Edge Function secrets.
+
+- [x] `supabase/functions/delete_account/index.ts`: reads `SUPABASE_SECRET_KEYS.default`; no legacy fallback.
+- [x] `Secrets.xcconfig.template`: placeholder says publishable key (`sb_publishable_...`). Variable name unchanged.
+- [x] Founder pasted the publishable key into local `Secrets.xcconfig` (gitignored).
+- [x] Build and unit tests (767, 0 failures); built app carries `sb_publishable_`.
+- [x] Deployed `delete_account` v4 (founder yes), `verify_jwt = false`; probes 401/401/405.
+- [x] End-to-end delete test PASSED (founder, 2026-11-22): test user signed in on simulator, deleted, gone from Supabase.
+- [ ] Next: App Store build with the new key (see PR #246 release steps). Ship it as soon as possible.
+- [x] Legacy keys disabled by the founder 2026-11-25 11:58 UTC after a scanner used the leaked `service_role` key. Verified: legacy 401, publishable 200, live web 200. iOS 1.6.0 and older cannot sign in until the new build is live.
+
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
 - [x] Expert tab lists Cover letter, Screening answers, Achievement quantifier, Summary, ATS report, Resume Rewrite last (`ExpertWorkflowType.displayOrder`; API enum order unchanged).

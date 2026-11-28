@@ -26,6 +26,15 @@ Blockers: Xcode Cloud and App Store Connect setup need founder OK; GitHub billin
 Last Validation: 2026-11-21 6 script unit tests pass; Release simulator build with script-written Secrets.xcconfig, keys present in Info.plist.
 Last Updated: 2026-11-21
 
+# 2026-11-22: Supabase key rotation Phase 2
+
+Current Phase: leaked Supabase keys rotation; web and delete_account on new keys, E2E delete test passed.
+Active Story: ship the publishable key in the next App Store build (PR #246 release steps).
+Next Recommended Story: App Store build, then the legacy-key disable checklist in web runbook PR #220.
+Blockers: founder archives the build; legacy keys disabled 2026-11-25, so iOS 1.6.0 and older cannot sign in until it ships.
+Last Validation: 2026-11-22 founder E2E delete test passed; tests 767, 0 failures; delete_account probes 401/401/405.
+Last Updated: 2026-11-22
+
 # 2026-11-21: Sprout plan, 3 draft PRs open (#242 events, #243 SE paywall check, #244 ASO docs)
 
 Current Phase: Sprout-learnings plan; founder approved merging #242, #243, #244 on 2026-11-21 (reviews run here, Codex out of credits).
