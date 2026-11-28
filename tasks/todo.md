@@ -1,5 +1,6 @@
 # 2026-11-27: W1 quick wins
 
+- [x] Use PlanSummary in the Me header so active Pro subscribers see subscription status even with zero pack credits.
 - [x] Verify the initial AX5 upload button in English and Hebrew, restore localized tab values and Hebrew Close, and simplify the Design teaser copy.
 
 - Add the CTA gradient in AppGradients and adopt it behind text in GradientButton, LockedTabTeaser, ResumlyTabBar, ProfileView, HomeTabView, SaveAccountSheetView, SampleCV, UploadFailureView and ConnectionLostView. Include multiline text backgrounds in RedesignResumeView and ResumePreviewExportView.

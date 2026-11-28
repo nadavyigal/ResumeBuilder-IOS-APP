@@ -5,6 +5,7 @@ Active Story: W1 Tier 1 draft review on `codex/ux-wave1-quick-wins`.
 Last Completed Story: W1 CTA contrast, accessible Home and tabs, sign-in Close, connection copy, score estimates, Me stats, and Hebrew localization.
 Next Recommended Story: W2-A after W1 merges. W2-B waits for the L4 live free-download count.
 Last Validation: Debug build and Release simulator build passed. iPhone 17 unit suite passed with 757 passed and 11 skipped. The follow-up Debug build passed. On iPhone 17 at AX5, the upload button is fully visible on first display in English and Hebrew. All five tab controls expose localized accessibility values in both languages.
+Me header review fix: signed-in accounts now show the existing plan summary. Debug simulator build passed on iPhone 17 (iOS 26.5). Full unit suite: 757 passed, 11 skipped, 0 failed.
 Last Updated: 2026-11-28
 
 # 2026-11-25: Xcode Cloud script requires the publishable Supabase key (#245)

@@ -252,12 +252,26 @@ struct ProfileView: View {
                 icon: "gauge.medium",
                 color: Theme.accentBlue
             )
-            statCell(
-                value: appState.isAuthenticated ? String(appState.creditsBalance) : "—",
-                label: NSLocalizedString("PDF downloads left", comment: "Me stats: remaining PDF downloads"),
-                icon: "arrow.down.doc.fill",
-                color: Theme.accentCyan
-            )
+            if appState.isAuthenticated {
+                let plan = PlanSummary.make(
+                    subscription: appState.subscription,
+                    balance: appState.creditsBalance,
+                    locale: localization.locale
+                )
+                statCell(
+                    value: plan.headline,
+                    label: plan.detail ?? NSLocalizedString("Plan", comment: "Profile plan"),
+                    icon: "arrow.down.doc.fill",
+                    color: Theme.accentCyan
+                )
+            } else {
+                statCell(
+                    value: "—",
+                    label: NSLocalizedString("PDF downloads left", comment: "Me stats: remaining PDF downloads"),
+                    icon: "arrow.down.doc.fill",
+                    color: Theme.accentCyan
+                )
+            }
         }
     }
 
