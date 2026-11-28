@@ -1,3 +1,11 @@
+# 2026-11-28: Resumely UX Wave 2-A
+
+The export paywall explains that free PDF downloads are used up and Match Scores stay free. The 14-pack stays first. The user must select an offer to enable Continue. Both new strings have Hebrew translations.
+
+Debug and unsigned Release builds passed on iPhone 17 (iOS 26.5). The full unit suite passed with 758 passed, 11 skipped, 0 failed. EN and HE smoke captures are in `~/ux-audit/resumely/wave2a-shots/`. The simulator language preference was reset to English.
+
+Next is W2-D. W2-B waits on L4, then W2-C. Repeat-download copy waits on L5.
+
 # 2026-11-28: Resumely UX Wave 1
 
 Current Phase: First-session UX improvements.

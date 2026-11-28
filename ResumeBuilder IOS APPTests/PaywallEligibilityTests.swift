@@ -125,23 +125,30 @@ final class PaywallOffersTests: XCTestCase {
         }
     }
 
-    func testThe14PackIsPreselected() {
+    func testFreshOffersListThe14PackFirstAndRequireAChoice() {
         let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: offers)
         XCTAssertEqual(model.offers.map(\.id), ["resumely.exports.14", "resumely.exports.5.v2", "resumely.pro.monthly"])
-        XCTAssertEqual(model.selectedID, "resumely.exports.14")
-
-        model.select(offers[2])
-        XCTAssertEqual(model.selectedOffer, offers[2])
+        XCTAssertNil(model.selectedID)
+        XCTAssertFalse(model.canContinue)
+        XCTAssertEqual(model.primaryButtonLabel, "Choose a pack")
     }
 
-    func testAnActivePlanHidesProAndKeepsAShownSelection() {
+    func testPickingAPackEnablesContinue() {
+        let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: offers)
+        model.select(offers[1])
+        XCTAssertEqual(model.selectedOffer, offers[1])
+        XCTAssertTrue(model.canContinue)
+        XCTAssertEqual(model.primaryButtonLabel, "Continue")
+    }
+
+    func testAnActivePlanClearsAHiddenProSelection() {
         let model = ExportPaywallModel(optimizationId: "o", fixtureOffers: offers)
         model.select(offers[2])
 
         model.hidePlan(true)
 
         XCTAssertEqual(model.offers.map(\.id), ["resumely.exports.14", "resumely.exports.5.v2"])
-        XCTAssertEqual(model.selectedID, "resumely.exports.14")
+        XCTAssertNil(model.selectedID)
     }
 
     func testHidingProWithNoPackLeftShowsTryAgain() {
@@ -161,7 +168,7 @@ final class PaywallOffersTests: XCTestCase {
         model.hidePlan(false)
 
         XCTAssertEqual(model.offers.map(\.id), ["resumely.exports.14", "resumely.exports.5.v2", "resumely.pro.monthly"])
-        XCTAssertEqual(model.selectedID, "resumely.exports.14")
+        XCTAssertNil(model.selectedID)
     }
 
     func testProComingBackLeavesTryAgain() {
@@ -189,7 +196,7 @@ final class PaywallOffersTests: XCTestCase {
         let english = [
             "Get more PDF downloads",
             "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate.",
-            "Match Scores stay free and unlimited.",
+            "You've used your free PDF downloads. Match Scores stay free and unlimited.",
             "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction.",
         ].joined(separator: " ")
         for banned in ["guarantee", "ATS score", "beat the ATS", "get hired", "Premium"] {

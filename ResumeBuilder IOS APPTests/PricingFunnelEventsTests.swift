@@ -45,7 +45,7 @@ final class PricingFunnelEventsTests: XCTestCase {
         }
     }
 
-    func testChoosingAnotherPaywallRowIsTrackedOnce() async {
+    func testTappingTheSamePaywallRowTwiceIsTrackedOnce() async {
         let offers = [
             PackOffer.make(id: "resumely.exports.14", displayPrice: "$7.99")!,
             PackOffer.make(id: "resumely.exports.5.v2", displayPrice: "$3.99")!,
@@ -55,8 +55,6 @@ final class PricingFunnelEventsTests: XCTestCase {
         let transport = FunnelTransport()
         let analytics = AnalyticsService(transport: transport)
 
-        // The 14-pack is preselected, so tapping it again is not a choice.
-        model.select(offers[0], analytics: analytics)
         model.select(offers[2], analytics: analytics)
         model.select(offers[2], analytics: analytics)
 

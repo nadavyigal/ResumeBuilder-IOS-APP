@@ -5,7 +5,7 @@ enum ExportPaywallCopy {
     static let title: LocalizedStringKey = "Get more PDF downloads"
     static let body: LocalizedStringKey =
         "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate."
-    static let scoresStayFree: LocalizedStringKey = "Match Scores stay free and unlimited."
+    static let context: LocalizedStringKey = "You've used your free PDF downloads. Match Scores stay free and unlimited."
     static let bestValue: LocalizedStringKey = "Best value"
     static let planTitle: LocalizedStringKey = "Pro, unlimited PDF downloads (fair use)"
     static let renews: LocalizedStringKey = "Renews monthly until cancelled."
@@ -13,6 +13,7 @@ enum ExportPaywallCopy {
         "Your Pro plan reached its fair-use limit for this billing period. A pack lets you keep downloading until it resets."
     static let estimateFooter: LocalizedStringKey =
         "The Match Score is an estimate of how well your CV fits the job, not a hiring prediction."
+    static let choosePack: LocalizedStringKey = "Choose a pack"
     static let continueLabel: LocalizedStringKey = "Continue"
     static let restore: LocalizedStringKey = "Restore Purchases"
     static let terms: LocalizedStringKey = "Terms of Use"
@@ -78,7 +79,7 @@ struct PackOffer: Identifiable, Equatable {
 /// Opens only after the server answered 402 for an export the user tapped, and
 /// only once this account saw its own Match Score and a preview (pricing v2,
 /// plan 3.1): never at launch, never as a banner. The 14-pack is listed first
-/// and preselected, then the 5-pack, then Pro (plan A2). After a grant or a
+/// with no preselection, then the 5-pack, then Pro (plan A2). After a grant or a
 /// restore it calls `onUnlocked`, and the caller runs the export the user
 /// tapped without a second tap.
 @Observable
@@ -105,7 +106,7 @@ final class ExportPaywallModel {
     private(set) var phase: Phase = .loading
     private(set) var message: String?
     private(set) var offers: [PackOffer] = []
-    /// The offer the Continue button buys. Starts on the first pack (the 14).
+    /// The offer the Continue button buys. Set only by an explicit row choice.
     private(set) var selectedID: String?
     private let store: StoreKitManager
     private let isFixture: Bool
@@ -144,6 +145,14 @@ final class ExportPaywallModel {
         offers.first { $0.id == selectedID }
     }
 
+    var canContinue: Bool {
+        phase == .ready && selectedOffer != nil
+    }
+
+    var primaryButtonLabel: LocalizedStringKey {
+        selectedOffer == nil ? ExportPaywallCopy.choosePack : ExportPaywallCopy.continueLabel
+    }
+
     func select(_ offer: PackOffer, analytics: AnalyticsService = .shared) {
         guard phase == .ready, selectedID != offer.id else { return }
         selectedID = offer.id
@@ -175,7 +184,7 @@ final class ExportPaywallModel {
 
     private func showOffers() {
         offers = isPlanHidden ? offersOnSale.filter { !$0.isSubscription } : offersOnSale
-        if selectedOffer == nil { selectedID = offers.first?.id }
+        if selectedOffer == nil { selectedID = nil }
     }
 
     /// The buyer, set by `load(for:)`; the waiting lock is per account.
@@ -402,10 +411,10 @@ struct ExportPaywallSheet: View {
                     .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(ExportPaywallCopy.context)
+                        .foregroundStyle(AppColors.textPrimary)
                     Text(ExportPaywallCopy.body)
                         .foregroundStyle(AppColors.textSecondary)
-                    Label(ExportPaywallCopy.scoresStayFree, systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(AppColors.textPrimary)
                 }
                 .font(.appSubheadline)
                 .fixedSize(horizontal: false, vertical: true)
@@ -574,7 +583,7 @@ struct ExportPaywallSheet: View {
                 if isBuying {
                     ProgressView()
                 } else {
-                    Text(ExportPaywallCopy.continueLabel)
+                    Text(model.primaryButtonLabel)
                 }
             }
             .font(.appSubheadline.weight(.semibold))
@@ -583,7 +592,7 @@ struct ExportPaywallSheet: View {
         .buttonStyle(.borderedProminent)
         .tint(AppColors.accentTeal)
         .foregroundStyle(.black)
-        .disabled(model.phase != .ready || model.selectedOffer == nil)
+        .disabled(!model.canContinue)
         .accessibilityIdentifier("paywall.continue")
     }
 
