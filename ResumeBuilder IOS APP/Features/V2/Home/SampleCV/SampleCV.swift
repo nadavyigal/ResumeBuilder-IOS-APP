@@ -118,7 +118,7 @@ struct SampleCVSheet: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
                         .foregroundStyle(.white)
-                        .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                        .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("sample.tryYours")
@@ -219,7 +219,7 @@ struct LinkedInHowSheet: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .foregroundStyle(.white)
-                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("linkedin.done")

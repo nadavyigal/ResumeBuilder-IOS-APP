@@ -1,3 +1,13 @@
+# 2026-11-27: W1 quick wins
+
+- [x] Use PlanSummary in the Me header so active Pro subscribers see subscription status even with zero pack credits.
+- [x] Verify the initial AX5 upload button in English and Hebrew, restore localized tab values and Hebrew Close, and simplify the Design teaser copy.
+
+- Add the CTA gradient in AppGradients and adopt it behind text in GradientButton, LockedTabTeaser, ResumlyTabBar, ProfileView, HomeTabView, SaveAccountSheetView, SampleCV, UploadFailureView and ConnectionLostView. Include multiline text backgrounds in RedesignResumeView and ResumePreviewExportView.
+- Reorder Home at accessibility sizes, label all tabs, add Close in OnboardingView, update the stats in ProfileView and estimate labels in OptimizedResumeView and ExpertOutputViews.
+- Update prerequisite and recovery copy in DesignTabView, ExpertTabView, OptimizedResumeTabView, UploadFailureView and ConnectionLostView. Translate in Localizable.xcstrings and update the old localization assertions in FirstSessionJourneyTests.
+- Verify with loopback-only EN/HE screenshots, 17/SE layouts, rendered contrast, the full iPhone 17 suite and a Release simulator build. Check RTL clipping, AX upload visibility, dismissal and guest stats. Record results in progress.md.
+
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
 - [x] Expert tab lists Cover letter, Screening answers, Achievement quantifier, Summary, ATS report, Resume Rewrite last (`ExpertWorkflowType.displayOrder`; API enum order unchanged).

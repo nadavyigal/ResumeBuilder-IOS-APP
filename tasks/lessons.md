@@ -1,3 +1,9 @@
+## 2026-11-27: Wait for the screen to render before taking simulator evidence
+
+**Category:** Simulator QA.
+**Rule:** Wait for visible screen content after a cold launch and inspect each capture before using it as evidence.
+**Why:** During W1 verification a fixed three-second wait captured the white launch screen on the iPhone 17. Retrying after the dark app content appeared produced the intended view.
+
 ## 2026-11-11: `git grep -E` has no `\b`; count uses with `-w` before deleting
 
 The repo audit counted `Font.app*` uses with `git grep -nE '\.appBody\b'`, got zero, and deleted `AppTypography.swift`; the build then failed in three components. `git grep` ERE treats `\b` as a literal, so every count was zero. Use `git grep -w <name>` (or Python `re`) to prove a symbol is unused, and let the compiler confirm before committing.

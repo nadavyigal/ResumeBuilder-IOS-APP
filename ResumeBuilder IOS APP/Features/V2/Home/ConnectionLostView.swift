@@ -10,9 +10,9 @@ struct ConnectionLostView: View {
     var body: some View {
         VStack(spacing: AppSpacing.lg) {
             HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "wifi.slash")
+                Image(systemName: "exclamationmark.triangle")
                     .font(.caption.weight(.bold))
-                Text("You're offline")
+                Text("Connection problem")
                     .font(.caption.weight(.bold))
             }
             .foregroundStyle(Color(hex: "FFD479"))
@@ -32,12 +32,12 @@ struct ConnectionLostView: View {
                         .foregroundStyle(Color(hex: "FFD479"))
                 }
 
-                Text("Connection dropped")
+                Text("We couldn't reach Resumely")
                     .font(.title3.weight(.black))
                     .foregroundStyle(AppColors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Your résumé and job details are still here — nothing's lost. Retry when you're back online.")
+                Text("Your résumé and job are still here. Check your connection, then try again.")
                     .font(.subheadline)
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -51,7 +51,7 @@ struct ConnectionLostView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .foregroundStyle(.white)
-                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
             }
             .buttonStyle(.plain)
         }

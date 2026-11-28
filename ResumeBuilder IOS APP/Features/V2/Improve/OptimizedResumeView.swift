@@ -684,7 +684,7 @@ struct OptimizedResumeView: View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
             HStack(alignment: .top, spacing: AppSpacing.md) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Match score")
+                    Text("Estimated Match Score")
                         .font(.appCaption.weight(.bold))
                         .foregroundStyle(AppColors.accentTeal)
                     Text(currentScoreCaption)

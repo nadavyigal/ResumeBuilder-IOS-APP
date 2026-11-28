@@ -59,10 +59,10 @@ struct OptimizedResumeTabView: View {
         LockedTabTeaser(
             title: "Optimized",
             headline: "Here's what you'll unlock.",
-            subtitle: "A Resumely Match Score, keyword gaps, and line-by-line fixes — tuned to one target job.",
+            subtitle: "An estimated Match Score, the skills the job asks for that your résumé doesn't show yet, and line-by-line edits for one job.",
             checklist: [
                 .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
-                .init(title: "Add a job to match against", isComplete: appState.hasAddedJobThisSession)
+                .init(title: "Check it against a job", isComplete: appState.hasAddedJobThisSession)
             ],
             ctaTitle: "Upload résumé on Home",
             systemImage: "wand.and.stars",
