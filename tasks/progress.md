@@ -1,3 +1,13 @@
+# 2026-11-28: Resumely UX Wave 1
+
+Current Phase: First-session UX improvements.
+Active Story: W1 Tier 1 draft review on `codex/ux-wave1-quick-wins`.
+Last Completed Story: W1 CTA contrast, accessible Home and tabs, sign-in Close, connection copy, score estimates, Me stats, and Hebrew localization.
+Next Recommended Story: W2-A after W1 merges. W2-B waits for the L4 live free-download count.
+Last Validation: Debug build and Release simulator build passed. iPhone 17 unit suite passed with 757 passed and 11 skipped. The follow-up Debug build passed. On iPhone 17 at AX5, the upload button is fully visible on first display in English and Hebrew. All five tab controls expose localized accessibility values in both languages.
+Me header review fix: signed-in accounts now show the existing plan summary. Debug simulator build passed on iPhone 17 (iOS 26.5). Full unit suite: 757 passed, 11 skipped, 0 failed.
+Last Updated: 2026-11-28
+
 # 2026-11-25: Xcode Cloud script requires the publishable Supabase key (#245)
 
 Current Phase: Apple membership follow-ups; Small Business Program accepted 2026-11-13 (15%); debrief stack merged in RunSmart.
@@ -21,7 +31,7 @@ Last Updated: 2026-11-21
 Current Phase: leaked Supabase keys rotation; web and delete_account on new keys, E2E delete test passed.
 Active Story: ship the publishable key in the next App Store build (PR #246 release steps).
 Next Recommended Story: App Store build, then the legacy-key disable checklist in web runbook PR #220.
-Blockers: founder archives the build; founder chose 2026-11-25 to disable legacy keys now (scanner hit); disable click pending.
+Blockers: founder archives the build; legacy keys disabled 2026-11-25, so iOS 1.6.0 and older cannot sign in until it ships.
 Last Validation: 2026-11-22 founder E2E delete test passed; tests 767, 0 failures; delete_account probes 401/401/405.
 Last Updated: 2026-11-22
 

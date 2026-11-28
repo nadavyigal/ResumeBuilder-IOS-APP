@@ -1,6 +1,96 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "PDF downloads left" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורדות PDF שנותרו"
+          }
+        }
+      }
+    },
+    "Estimated Match Score" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה משוער"
+          }
+        }
+      }
+    },
+    "It looks like a scanned image, so there's no selectable text for us to read. Export a PDF with selectable text and try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נראה שזו תמונה סרוקה, ולכן אין בה טקסט שאפשר לבחור ולקרוא. יש לייצא קובץ PDF עם טקסט שניתן לבחור ולנסות שוב."
+          }
+        }
+      }
+    },
+    "An estimated Match Score, the skills the job asks for that your résumé doesn't show yet, and line-by-line edits for one job." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ציון התאמה משוער, הכישורים הנדרשים למשרה שעדיין חסרים בקורות החיים והצעות עריכה לכל שורה עבור אותה משרה."
+          }
+        }
+      }
+    },
+    "Check it against a job" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בדיקת ההתאמה למשרה"
+          }
+        }
+      }
+    },
+    "Choose a layout with clear headings. Change the colors and fonts any time." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפשר לבחור פריסה עם כותרות ברורות ולשנות את הצבעים והגופנים בכל עת."
+          }
+        }
+      }
+    },
+    "Your résumé and job are still here. Check your connection, then try again." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קורות החיים ופרטי המשרה עדיין כאן. כדאי לבדוק את החיבור ולנסות שוב."
+          }
+        }
+      }
+    },
+    "We couldn't reach Resumely" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לא הצלחנו להתחבר ל-Resumely"
+          }
+        }
+      }
+    },
+    "Connection problem" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בעיית חיבור"
+          }
+        }
+      }
+    },
     "Your session has expired. Sign out, sign in again, then change your password." : {
       "localizations" : {
         "he" : {

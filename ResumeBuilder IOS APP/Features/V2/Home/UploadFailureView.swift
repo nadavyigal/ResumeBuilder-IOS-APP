@@ -49,7 +49,7 @@ enum UploadFailureReason: Equatable, Sendable {
     var message: LocalizedStringKey {
         switch self {
         case .scannedImage:
-            return "It looks like a scanned image — there's no selectable text for us (or most parsers) to read."
+            return "It looks like a scanned image, so there's no selectable text for us to read. Export a PDF with selectable text and try again."
         case .wrongType:
             return "Choose a PDF or DOCX résumé so we can read it reliably."
         case .tooLarge:
@@ -143,7 +143,7 @@ struct UploadFailureView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
                             .foregroundStyle(.white)
-                            .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                            .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                     }
                     .buttonStyle(.plain)
 

@@ -73,31 +73,22 @@ struct ResumlyTabBar: View {
                 }
             }
         } label: {
-            HStack(spacing: isActive ? 6 : 0) {
+            VStack(spacing: 2) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 17, weight: isActive ? .semibold : .regular))
-                    .frame(width: 20, height: 20)
-
-                if isActive {
-                    Text(tab.label)
-                        .font(.system(size: 12, weight: .semibold))
-                        .lineLimit(1)
-                        .transition(
-                            .asymmetric(
-                                insertion: .scale(scale: 0.7).combined(with: .opacity),
-                                removal: .scale(scale: 0.7).combined(with: .opacity)
-                            )
-                        )
-                }
+                    .frame(height: 20)
+                Text(tab.label)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .foregroundStyle(isActive ? Color.white : Theme.textTertiary)
-            .padding(.vertical, 10)
-            .padding(.horizontal, isActive ? 14 : 10)
-            .frame(minWidth: 44, maxWidth: isActive ? .infinity : nil)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background {
                 if isActive {
                     Capsule()
-                        .fill(Theme.brandGradient)
+                        .fill(AppGradients.cta)
                         .shadow(color: Theme.accent.opacity(0.45), radius: 10, y: 4)
                 }
             }
@@ -107,6 +98,7 @@ struct ResumlyTabBar: View {
         .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.72), value: selection)
         .accessibilityLabel(Text(tab.label))
         .accessibilityValue(tab.accessibilityValue)
+        .accessibilityShowsLargeContentViewer()
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 

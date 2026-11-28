@@ -1,3 +1,13 @@
+# 2026-11-27: W1 quick wins
+
+- [x] Use PlanSummary in the Me header so active Pro subscribers see subscription status even with zero pack credits.
+- [x] Verify the initial AX5 upload button in English and Hebrew, restore localized tab values and Hebrew Close, and simplify the Design teaser copy.
+
+- Add the CTA gradient in AppGradients and adopt it behind text in GradientButton, LockedTabTeaser, ResumlyTabBar, ProfileView, HomeTabView, SaveAccountSheetView, SampleCV, UploadFailureView and ConnectionLostView. Include multiline text backgrounds in RedesignResumeView and ResumePreviewExportView.
+- Reorder Home at accessibility sizes, label all tabs, add Close in OnboardingView, update the stats in ProfileView and estimate labels in OptimizedResumeView and ExpertOutputViews.
+- Update prerequisite and recovery copy in DesignTabView, ExpertTabView, OptimizedResumeTabView, UploadFailureView and ConnectionLostView. Translate in Localizable.xcstrings and update the old localization assertions in FirstSessionJourneyTests.
+- Verify with loopback-only EN/HE screenshots, 17/SE layouts, rendered contrast, the full iPhone 17 suite and a Release simulator build. Check RTL clipping, AX upload visibility, dismissal and guest stats. Record results in progress.md.
+
 # 2026-11-22: Supabase key rotation Phase 2 (iOS + edge function)
 
 Web production moved to the new keys on 2026-11-22 (web PR #220). Phase 2 moves the last two legacy-key users.
@@ -11,7 +21,7 @@ No cron, pg_net or database webhook holds a key. `SUPABASE_SECRET_KEYS` exists i
 - [x] Deployed `delete_account` v4 (founder yes), `verify_jwt = false`; probes 401/401/405.
 - [x] End-to-end delete test PASSED (founder, 2026-11-22): test user signed in on simulator, deleted, gone from Supabase.
 - [ ] Next: App Store build with the new key (see PR #246 release steps). Ship it as soon as possible.
-- [ ] Founder decision, urgent: disable the legacy keys. While they are enabled, the leaked `service_role` key still bypasses RLS. Supabase cannot retire `service_role` alone: disabling legacy keys also turns off `anon`, so iOS 1.6.0 and older lose sign-in until users update. Options: (a) disable now and accept that older builds must update; (b) disable the day the new build is live, with a forced-update prompt. Waiting for most users to update is not an option. Supabase ends legacy keys at the end of 2026 regardless.
+- [x] Legacy keys disabled by the founder 2026-11-25 11:58 UTC after a scanner used the leaked `service_role` key. Verified: legacy 401, publishable 200, live web 200. iOS 1.6.0 and older cannot sign in until the new build is live.
 
 # 2026-11-12: Expert tools order and "Before you send" checklist (story 4, tester call)
 
