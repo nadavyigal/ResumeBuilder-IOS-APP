@@ -105,7 +105,7 @@ struct RedesignResumeView: View {
                         .padding(.vertical, AppSpacing.sm)
                         .background(
                             viewModel.activeCategory == cat.0
-                                ? AnyShapeStyle(AppGradients.primary)
+                                ? AnyShapeStyle(AppGradients.cta)
                                 : AnyShapeStyle(Color.clear)
                         )
                         .clipShape(Capsule())
@@ -224,7 +224,7 @@ struct RedesignResumeView: View {
                             .padding(.vertical, AppSpacing.sm)
                             .background(
                                 viewModel.customization.fontStyle == slug
-                                    ? AnyShapeStyle(AppGradients.primary)
+                                    ? AnyShapeStyle(AppGradients.cta)
                                     : AnyShapeStyle(AppColors.glassTint)
                             )
                             .clipShape(Capsule())

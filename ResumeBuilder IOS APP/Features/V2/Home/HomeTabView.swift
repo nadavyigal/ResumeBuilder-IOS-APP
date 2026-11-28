@@ -87,7 +87,7 @@ struct HomeTabView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .foregroundStyle(.white)
-                    .background(Theme.brandGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -218,20 +218,18 @@ struct HomeTabView: View {
                                 .opacity(appeared ? 1 : 0)
                                 .offset(y: appeared ? 0 : 12)
 
-                            progressPath
-                                .opacity(appeared ? 1 : 0)
-
-                            // A returning user's last résumé, offered only until they
-                            // pick a new file; after that it competes with the next step.
-                            if !hasSelectedResume,
-                               activationState == .optimizedReady || activationState == .exportComplete {
-                                optimizedReadyCard
-                            }
-
-                            uploadHero
-
-                            if !hasSelectedResume {
+                            if dynamicTypeSize.isAccessibilitySize && !hasSelectedResume {
+                                uploadHero
                                 otherStarts
+                                returningResume
+                            } else {
+                                progressPath
+                                    .opacity(appeared ? 1 : 0)
+                                returningResume
+                                uploadHero
+                                if !hasSelectedResume {
+                                    otherStarts
+                                }
                             }
 
                             if viewModel.selectedResumeName?.isEmpty != false,
@@ -926,7 +924,7 @@ struct HomeTabView: View {
                 )
                 .foregroundStyle(isSelected ? Color.white : AppColors.textSecondary)
                 .background(
-                    isSelected ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(Color.clear),
+                    isSelected ? AnyShapeStyle(AppGradients.cta) : AnyShapeStyle(Color.clear),
                     in: Capsule()
                 )
                 // Keep the compact pill visual, but give the control the full
@@ -961,11 +959,17 @@ struct HomeTabView: View {
         .accessibilityLabel("Progress path. Upload, add job, match.")
     }
 
+    private func progressMarkerFill(isActive: Bool, isComplete: Bool) -> AnyShapeStyle {
+        if isComplete { return AnyShapeStyle(AppGradients.primary) }
+        if isActive { return AnyShapeStyle(AppGradients.cta) }
+        return AnyShapeStyle(AppColors.glassTint)
+    }
+
     private func progressRow(index: Int, title: LocalizedStringKey, isActive: Bool, isComplete: Bool) -> some View {
         HStack(spacing: AppSpacing.md) {
             ZStack {
                 Circle()
-                    .fill(isComplete || isActive ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint))
+                    .fill(progressMarkerFill(isActive: isActive, isComplete: isComplete))
                     .frame(width: 44, height: 44)
                 if isComplete {
                     Image(systemName: "checkmark")
@@ -993,7 +997,7 @@ struct HomeTabView: View {
         VStack(spacing: 6) {
             ZStack {
                 Circle()
-                    .fill(isComplete || isActive ? AnyShapeStyle(AppGradients.primary) : AnyShapeStyle(AppColors.glassTint))
+                    .fill(progressMarkerFill(isActive: isActive, isComplete: isComplete))
                     .frame(width: 25, height: 25)
 
                 if isComplete {
@@ -1072,7 +1076,7 @@ struct HomeTabView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
                     .foregroundStyle(.white)
-                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                 }
                 .padding(18)
                 .frame(maxWidth: .infinity)
@@ -1191,6 +1195,13 @@ struct HomeTabView: View {
                 .strokeBorder(Theme.accent.opacity(0.25), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var returningResume: some View {
+        if !hasSelectedResume, activationState == .optimizedReady || activationState == .exportComplete {
+            optimizedReadyCard
+        }
     }
 
     private var optimizedReadyCard: some View {
@@ -1729,7 +1740,7 @@ struct HomeTabView: View {
                 .foregroundStyle(canRun ? Color.white : Theme.textTertiary)
                 .background(
                     canRun && !isCheckRunning
-                        ? AnyShapeStyle(Theme.brandGradient)
+                        ? AnyShapeStyle(AppGradients.cta)
                         : AnyShapeStyle(Color.white.opacity(0.07)),
                     in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                 )

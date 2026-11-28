@@ -133,7 +133,7 @@ struct ResumePreviewExportView: View {
                         .padding(.vertical, AppSpacing.sm)
                         .background(
                             viewModel.mode == mode
-                                ? AnyShapeStyle(AppGradients.primary)
+                                ? AnyShapeStyle(AppGradients.cta)
                                 : AnyShapeStyle(Color.clear)
                         )
                         .clipShape(Capsule())

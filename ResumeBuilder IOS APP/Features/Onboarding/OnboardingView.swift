@@ -2,6 +2,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingView: View {
+    @Environment(\.dismiss) private var dismiss
     @Bindable var viewModel: OnboardingViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var localization: LocalizationManager { .shared }
@@ -178,6 +179,11 @@ struct OnboardingView: View {
             .scrollDismissesKeyboard(.interactively)
             .screenBackground(showRadialGlow: true)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
             .sheet(item: $forgotPasswordViewModel) { model in
                 ForgotPasswordView(viewModel: model)
             }

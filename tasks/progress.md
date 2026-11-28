@@ -1,3 +1,12 @@
+# 2026-11-28: Resumely UX Wave 1
+
+Current Phase: First-session UX improvements.
+Active Story: W1 Tier 1 draft review on `codex/ux-wave1-quick-wins`.
+Last Completed Story: W1 CTA contrast, accessible Home and tabs, sign-in Close, connection copy, score estimates, Me stats, and Hebrew localization.
+Next Recommended Story: W2-A after W1 merges. W2-B waits for the L4 live free-download count.
+Last Validation: Debug build and Release simulator build passed. iPhone 17 unit suite passed with 757 passed and 11 skipped. At AX5, the upload button still requires scrolling in English and Hebrew.
+Last Updated: 2026-11-28
+
 # 2026-11-25: Xcode Cloud script requires the publishable Supabase key (#245)
 
 Current Phase: Apple membership follow-ups; Small Business Program accepted 2026-11-13 (15%); debrief stack merged in RunSmart.

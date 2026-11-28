@@ -160,7 +160,7 @@ struct ProfileView: View {
                     .font(.system(size: 22, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                     .frame(width: 56, height: 56)
-                    .background(AppGradients.primary, in: Circle())
+                    .background(AppGradients.cta, in: Circle())
                     .shadow(color: AppColors.accentSky.opacity(0.36), radius: 16, y: 8)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -219,7 +219,7 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .foregroundStyle(.white)
-                    .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                    .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
             }
             .buttonStyle(.plain)
 
@@ -247,21 +247,15 @@ struct ProfileView: View {
     private var statsRow: some View {
         HStack(spacing: 12) {
             statCell(
-                value: appState.latestOptimizationId != nil ? "1+" : "0",
-                label: NSLocalizedString("Optimized", comment: "Me stats: count of optimized resumes"),
-                icon: "wand.and.stars",
-                color: Theme.accent
-            )
-            statCell(
                 value: latestOptimization.map { "\($0.matchScorePercent)%" } ?? "—",
-                label: NSLocalizedString("Match Score", comment: "Me stats: latest resume's Resumely Match Score percent"),
+                label: NSLocalizedString("Estimated Match Score", comment: "Me stats: latest resume's Resumely Match Score percent"),
                 icon: "gauge.medium",
                 color: Theme.accentBlue
             )
             statCell(
-                value: "∞",
-                label: NSLocalizedString("Templates", comment: "Me stats: templates available"),
-                icon: "paintbrush.fill",
+                value: appState.isAuthenticated ? String(appState.creditsBalance) : "—",
+                label: NSLocalizedString("PDF downloads left", comment: "Me stats: remaining PDF downloads"),
+                icon: "arrow.down.doc.fill",
                 color: Theme.accentCyan
             )
         }
@@ -272,6 +266,7 @@ struct ProfileView: View {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(color)
+                .accessibilityHidden(true)
             Text(value)
                 .font(.system(size: 18, weight: .black, design: .rounded))
                 .foregroundStyle(Theme.textPrimary)
@@ -286,6 +281,9 @@ struct ProfileView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(color.opacity(0.18), lineWidth: 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: label))
+        .accessibilityValue(Text(verbatim: value))
     }
 
     // MARK: - Section: Latest Resume
