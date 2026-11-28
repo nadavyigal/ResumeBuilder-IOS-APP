@@ -29,6 +29,15 @@ enum ResumlyTab: Int, CaseIterable {
         }
     }
 
+    var accessibilityValue: LocalizedStringKey {
+        switch self {
+        case .tailor: return "Activation home tab"
+        case .optimized: return "Optimized resume tab"
+        case .design: return "Design templates tab"
+        case .expert: return "Expert tools tab"
+        case .me: return "Account tab"
+        }
+    }
 }
 
 // MARK: - Custom Tab Bar
@@ -88,6 +97,7 @@ struct ResumlyTabBar: View {
         .buttonStyle(.plain)
         .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.72), value: selection)
         .accessibilityLabel(Text(tab.label))
+        .accessibilityValue(tab.accessibilityValue)
         .accessibilityShowsLargeContentViewer()
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }

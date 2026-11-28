@@ -22,7 +22,7 @@ struct DesignTabView: View {
         LockedTabTeaser(
             title: "Design",
             headline: "Recruiter-ready templates, one tap.",
-            subtitle: "ATS-friendly templates with clear headings. Swap layouts, colors and fonts any time.",
+            subtitle: "Choose a layout with clear headings. Change the colors and fonts any time.",
             checklist: [
                 .init(title: "Upload your résumé", isComplete: appState.hasUploadedResumeThisSession),
                 .init(title: "Check it against a job", isComplete: appState.latestOptimizationId != nil)

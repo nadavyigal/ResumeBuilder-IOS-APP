@@ -1,5 +1,7 @@
 # 2026-11-27: W1 quick wins
 
+- [x] Verify the initial AX5 upload button in English and Hebrew, restore localized tab values and Hebrew Close, and simplify the Design teaser copy.
+
 - Add the CTA gradient in AppGradients and adopt it behind text in GradientButton, LockedTabTeaser, ResumlyTabBar, ProfileView, HomeTabView, SaveAccountSheetView, SampleCV, UploadFailureView and ConnectionLostView. Include multiline text backgrounds in RedesignResumeView and ResumePreviewExportView.
 - Reorder Home at accessibility sizes, label all tabs, add Close in OnboardingView, update the stats in ProfileView and estimate labels in OptimizedResumeView and ExpertOutputViews.
 - Update prerequisite and recovery copy in DesignTabView, ExpertTabView, OptimizedResumeTabView, UploadFailureView and ConnectionLostView. Translate in Localizable.xcstrings and update the old localization assertions in FirstSessionJourneyTests.

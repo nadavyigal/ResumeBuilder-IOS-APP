@@ -51,12 +51,12 @@
         }
       }
     },
-    "ATS-friendly templates with clear headings. Swap layouts, colors and fonts any time." : {
+    "Choose a layout with clear headings. Change the colors and fonts any time." : {
       "localizations" : {
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "תבניות מותאמות למערכות ATS עם כותרות ברורות. אפשר לשנות את הפריסה, הצבעים והגופנים בכל עת."
+            "value" : "אפשר לבחור פריסה עם כותרות ברורות ולשנות את הצבעים והגופנים בכל עת."
           }
         }
       }
@@ -3058,7 +3058,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "סגירה"
+            "value" : "סגור"
           }
         }
       }

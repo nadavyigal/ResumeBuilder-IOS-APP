@@ -214,15 +214,14 @@ struct HomeTabView: View {
                 ScrollViewReader { scrollProxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 18) {
-                            pageHeader
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 12)
-
                             if dynamicTypeSize.isAccessibilitySize && !hasSelectedResume {
                                 uploadHero
+                                pageHeader
+                                progressPath
                                 otherStarts
                                 returningResume
                             } else {
+                                pageHeader
                                 progressPath
                                     .opacity(appeared ? 1 : 0)
                                 returningResume
@@ -1074,7 +1073,8 @@ struct HomeTabView: View {
                             .fontWeight(.bold)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 52)
+                    .padding(.vertical, 6)
+                    .frame(minHeight: 52)
                     .foregroundStyle(.white)
                     .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                 }
