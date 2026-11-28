@@ -23,7 +23,7 @@ struct SaveAccountSheetView: View {
                 }
                 .foregroundStyle(.white)
                 .frame(width: 58, height: 58)
-                .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Save your \(score)")

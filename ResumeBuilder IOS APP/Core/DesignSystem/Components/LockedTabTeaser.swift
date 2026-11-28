@@ -45,7 +45,7 @@ struct LockedTabTeaser: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                         .foregroundStyle(.white)
-                        .background(AppGradients.primary, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
+                        .background(AppGradients.cta, in: RoundedRectangle(cornerRadius: Theme.radiusButton, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Opens the Home tab")

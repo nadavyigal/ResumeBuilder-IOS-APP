@@ -132,7 +132,7 @@ final class FirstSessionJourneyTests: XCTestCase {
             "Add your résumé",
             "Browse Files",
             "Choose another file",
-            "Connection dropped",
+            "We couldn't reach Resumely",
             "Continue with Apple",
             "Continue with email",
             "Couldn’t reuse your saved résumé. Choose it again to continue.",
@@ -148,8 +148,8 @@ final class FirstSessionJourneyTests: XCTestCase {
             "Check my fit",
             "These appear in the job description but not your resume. Review the proposed wording before adding it.",
             "Using %@. Add the next job to create a new match.",
-            "You're offline",
-            "Your résumé and job details are still here — nothing's lost. Retry when you're back online."
+            "Connection problem",
+            "Your résumé and job are still here. Check your connection, then try again."
         ]
 
         let fallbacks = requiredKeys.filter {

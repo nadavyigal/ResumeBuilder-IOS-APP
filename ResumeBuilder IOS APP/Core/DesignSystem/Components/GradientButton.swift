@@ -39,7 +39,7 @@ struct GradientButton: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .background(AppGradients.primary)
+            .background(AppGradients.cta)
             .clipShape(RoundedRectangle(cornerRadius: AppRadii.md, style: .continuous))
         }
         .buttonStyle(GradientButtonStyle())
