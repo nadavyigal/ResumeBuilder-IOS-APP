@@ -361,6 +361,26 @@
         }
       }
     },
+    "You've used your free PDF downloads. Match Scores stay free and unlimited." : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ניצלתם את כל הורדות ה-PDF החינמיות שלכם. ציוני ההתאמה נשארים בחינם וללא הגבלה."
+          }
+        }
+      }
+    },
+    "Choose a pack" : {
+      "localizations" : {
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בחרו חבילה"
+          }
+        }
+      }
+    },
     "Match Scores stay free and unlimited." : {
       "localizations" : {
         "he" : {

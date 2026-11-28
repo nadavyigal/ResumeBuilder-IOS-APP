@@ -35,6 +35,8 @@ final class PricingV2CopyTests: XCTestCase {
             "Get more PDF downloads",
             "A free chatbot gives you text. Resumely gives you a ready PDF, right-to-left in Hebrew, in a clean template, with a before-and-after Match Score estimate.",
             "Match Scores stay free and unlimited.",
+            "You've used your free PDF downloads. Match Scores stay free and unlimited.",
+            "Choose a pack",
             "Best value",
             "Pro, unlimited PDF downloads (fair use)",
             "Renews monthly until cancelled.",

@@ -1,3 +1,11 @@
+# 2026-11-28: W2-A paywall context and choice
+
+- [x] Update ExportPaywallSheet.swift and Localizable.xcstrings with the EN/HE context and selection-dependent button.
+- [x] Cover the initial state and explicit pack selection in PaywallEligibilityTests.swift and localization in PricingV2CopyTests.swift. Update the old preselection assumption in PricingFunnelEventsTests.swift.
+- [x] Verify Debug, the full iPhone 17 unit suite, Release, and EN/HE paywall smoke captures. Record results in tasks/progress.md.
+
+Next is W2-D. W2-B waits on L4, then W2-C.
+
 # 2026-11-27: W1 quick wins
 
 - [x] Use PlanSummary in the Me header so active Pro subscribers see subscription status even with zero pack credits.
